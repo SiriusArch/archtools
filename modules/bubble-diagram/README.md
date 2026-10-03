@@ -7,9 +7,11 @@ Bağımlılıksız saf JS; `window.App` altında ad alanlı modüller.
 | 00-core | util, mini sanal DOM, store |
 | 10/11 | palet ve bilgi tabanı (11 yapı türü, kaynak etiketli) |
 | 20–27 | saf mantık: geometri, skor, yerleşim, eşleştirme, analiz, asistan, pafta çizimi, dosya (JSON/PNG/PDF) |
-| 30 | state, reducer, geri/ileri al |
-| 40–44 | arayüz bileşenleri |
-| 50, 99 | controller ve başlatma |
+| 30 | state, reducer (modüller `App.state.hooks` ile eylem ekler), geri/ileri al |
+| 40–46 | ortak arayüz bileşenleri ve glass kabuğu |
+| 50 | controller (ortak: dışa aktarma `ctl.exporters[modül]`, dosya, tema, klavye) |
+
+Ortak çekirdek (00–27, 30, 40–50) bu klasördedir; diğer modüller ve kabuk `platform/src` ile kardeş klasörlerde durur. Derleme kökten: `python3 build.py`.
 
 `20–27` arayüzden bağımsızdır; React'e taşınabilir.
 
@@ -21,7 +23,9 @@ Bağımlılıksız saf JS; `window.App` altında ad alanlı modüller.
   "world": { "width": 1400, "height": 990, "unit": "px", "scalePxPerSqrtM2": 31.467 },
   "spaces": [ { "id": "", "name": "Salon", "area": 23, "zone": "sosyal", "x": 0, "y": 0 } ],
   "relations": [ { "a": "<id>", "b": "<id>", "type": "strong | weak | avoid" } ],
-  "metrics": { "efficiencyScore": 94, "totalArea": 69.5, "circulationShare": 0.065 }
+  "metrics": { "efficiencyScore": 94, "totalArea": 69.5, "circulationShare": 0.065 },
+  "platform": "archtools",
+  "extensions": { "floorStudy": {}, "spaceAnalysis": {} }
 }
 ```
 

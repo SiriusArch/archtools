@@ -1,0 +1,17 @@
+/* Modül 3 — Mekân Analizi: Bauhaus */
+.an-chip { padding: 5px 6px 5px 12px; border: 3px solid var(--line); background: var(--surface); box-shadow: 4px 4px 0 var(--shadow); font: 700 13px var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
+.aflr .row-main.aflr-btn { padding: 7px 8px; }
+.aflr .row-main.aflr-btn:hover { background: var(--surface-2); }
+.mixbar { height: 10px; border: 2px solid var(--line); background: var(--surface); }
+.lyr { padding: 6px 8px; border: 2px solid var(--line); background: var(--surface); }
+.lyrs { gap: 6px; }
+.lyr:hover { background: var(--surface-2); }
+.lyr.on { background: var(--surface-2); box-shadow: 3px 3px 0 var(--blue); }
+.lyr-box { border: 2px solid var(--line); background: var(--surface); }
+.lyr.on .lyr-box { background: var(--blue); color: var(--on-blue); }
+.lyr-t b { font: 700 13px var(--f-display); letter-spacing: .06em; text-transform: uppercase; }
+.ahit-block:hover { fill: rgba(38, 29, 17, .1); }
+.ahit-block.sel { stroke: var(--red); }
+
+.board-svg-analiz:focus-visible { outline: none; }
+body.kbd .board-svg-analiz:focus-visible { outline: 2px dashed var(--ink-3, var(--ink-2)); outline-offset: -8px; }

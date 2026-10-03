@@ -1,0 +1,7 @@
+/* Modül 2 — Kat Etüdü: Bauhaus */
+.flr-name { padding: 5px 8px; font: 700 13px var(--f-display); letter-spacing: .08em; text-transform: uppercase; background: var(--surface-2); }
+.flr-head { padding-bottom: 4px; border-bottom: 3px solid var(--line); }
+.frow .row-main { padding: 4px 4px 4px 8px; }
+.fblock-hit:hover { fill: rgba(38, 29, 17, .09); }
+.fblock-hit:focus-visible { stroke: var(--blue-2); stroke-width: 3; }
+.fcell.over .fcell-hit { fill: rgba(234, 174, 27, .22); }

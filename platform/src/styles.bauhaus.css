@@ -1,0 +1,77 @@
+/* archtools kabuğu — Bauhaus: açılış, modül gezgini, ortak kontroller */
+
+/* ---------- açılış ---------- */
+.intro { background-color: var(--bg); background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px); background-size: 20px 20px; color: var(--ink); }
+.intro::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 16px; border-top: 4px solid var(--line); background: linear-gradient(90deg, var(--blue) 0 33.33%, var(--yellow) 33.33% 66.66%, var(--red) 66.66%); transform: scaleY(0); transform-origin: bottom; }
+.run.intro::before { animation: ib-rise .6s 2.6s cubic-bezier(.2, .9, .3, 1) forwards; }
+@keyframes ib-rise { to { transform: none; } }
+.intro-glow { background: radial-gradient(closest-side, rgba(234, 174, 27, .22), transparent 72%); }
+.intro-disc { background: var(--blue); border: 4px solid var(--line); box-shadow: 10px 10px 0 var(--shadow); }
+.intro-mark svg * { stroke: var(--ink); stroke-width: 2.4; }
+.im-c { fill: var(--yellow); --fo: 1; }
+.im-s { fill: var(--red); --fo: 1; }
+.im-t { fill: var(--paper); --fo: 1; }
+.intro-word { font: 700 clamp(38px, 9vw, 80px)/1.05 var(--f-display); letter-spacing: .12em; text-transform: uppercase; }
+.intro-tag { font: 600 13px var(--f-display); letter-spacing: .3em; text-transform: uppercase; color: var(--ink-2); }
+.intro-modules { font: 600 13px var(--f-display); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); }
+.intro-modules i { border-radius: 0; }
+.intro-bar { bottom: calc(44px + env(safe-area-inset-bottom, 0px)); height: 12px; border: 3px solid var(--line); background: var(--surface); }
+.intro-bar i { background: var(--red); }
+.intro-skip { padding: 8px 14px; border: 3px solid var(--line); background: var(--surface); box-shadow: 3px 3px 0 var(--shadow); color: var(--ink); font: 700 13px var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
+.intro-skip:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+
+/* ---------- modül gezgini ---------- */
+.mnav { border: 3px solid var(--line); background: var(--surface); box-shadow: 3px 3px 0 var(--shadow); }
+.mnav-i { padding: 7px 12px; border: 0; border-right: 3px solid var(--line); background: transparent; color: var(--ink); font: 700 12px var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
+.mnav-i:last-child { border-right: 0; }
+.mnav-i:hover { background: var(--surface-2); }
+.mnav-n { font: 500 11px var(--f-mono); opacity: .7; }
+.mnav-islev.on { background: var(--yellow); color: var(--on-yellow); }
+.mnav-kat.on { background: var(--red); color: var(--on-red); }
+.mnav-analiz.on { background: var(--blue); color: var(--on-blue); }
+
+/* ---------- ortak kontroller ---------- */
+.sgm { display: inline-flex; border: 3px solid var(--line); background: var(--surface); }
+.sgm-wide { display: flex; width: 100%; }
+.sgm-wide .sgm-b { flex: 1; padding: 7px 6px; }
+.sgm-b { padding: 6px 12px; border: 0; border-right: 3px solid var(--line); background: var(--surface); color: var(--ink); font: 700 12px var(--f-display); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; cursor: pointer; }
+.sgm-b:last-child { border-right: 0; }
+.sgm-b:hover { background: var(--surface-2); }
+.sgm-b.on { background: var(--blue); color: var(--on-blue); }
+
+.rng { display: flex; flex-direction: column; gap: 4px; }
+.rng-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.rng-lbl { font: 600 11px var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.rng-val { font: 500 13px var(--f-mono); color: var(--ink); }
+.rng-hint { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+.rng-in { -webkit-appearance: none; appearance: none; width: 100%; height: 26px; margin: 0; background: transparent; cursor: pointer; touch-action: pan-y; }
+.rng-in::-webkit-slider-runnable-track { height: 10px; border: 3px solid var(--line); background: var(--surface-2); box-sizing: content-box; }
+.rng-in::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 22px; margin-top: -9px; border: 3px solid var(--line); border-radius: 0; background: var(--yellow); box-shadow: 2px 2px 0 var(--shadow); }
+.rng-in::-moz-range-track { height: 10px; border: 3px solid var(--line); background: var(--surface-2); }
+.rng-in::-moz-range-thumb { width: 14px; height: 18px; border: 3px solid var(--line); border-radius: 0; background: var(--yellow); box-shadow: 2px 2px 0 var(--shadow); }
+.rng-in:focus { outline: none; }
+.rng-in:focus-visible::-webkit-slider-thumb { background: var(--blue-2); }
+.rng-in:focus-visible::-moz-range-thumb { background: var(--blue-2); }
+
+.stp { display: inline-flex; align-items: stretch; border: 3px solid var(--line); background: var(--surface); }
+.stp-b { width: 38px; height: 36px; padding: 0; border: 0; background: var(--surface); color: var(--ink); font: 700 18px/1 var(--f-mono); cursor: pointer; }
+.stp-b:first-child { border-right: 3px solid var(--line); }
+.stp-b:last-child { border-left: 3px solid var(--line); }
+.stp-b:hover:not(:disabled) { background: var(--yellow); color: var(--on-yellow); }
+.stp-b:disabled { opacity: .35; cursor: not-allowed; }
+.stp-v { display: inline-flex; align-items: center; justify-content: center; min-width: 78px; padding: 0 10px; background: var(--surface-2); font: 600 15px var(--f-body); }
+.stp-u { margin-left: 5px; font: 500 12px var(--f-mono); color: var(--ink-2); }
+
+.tgl { display: inline-flex; align-items: center; gap: 8px; padding: 5px 10px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font: 600 13px var(--f-body); cursor: pointer; }
+.tgl-dot { width: 12px; height: 12px; border: 2px solid var(--line); background: transparent; }
+.tgl:hover { background: var(--surface-2); }
+.tgl.on { background: var(--yellow); color: var(--on-yellow); box-shadow: 2px 2px 0 var(--shadow); }
+.tgl.on .tgl-dot { background: var(--ink); }
+.tgl-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.fld2 { display: flex; flex-direction: column; gap: 5px; }
+.fld2-l { font: 600 11px var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.fld2-h { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+.sw-dot { width: 8px; height: 8px; border: 0; border-top: 0; background: var(--ink); }
+.sec { display: flex; flex-direction: column; gap: 12px; }
+.sec .panel-head { margin-bottom: 0; }
+.sec-box { display: flex; flex-direction: column; gap: 12px; padding: 12px; border: 3px solid var(--line); background: var(--surface-2); }

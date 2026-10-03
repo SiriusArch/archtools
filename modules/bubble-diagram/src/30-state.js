@@ -70,14 +70,16 @@
   /* ---------------- başlangıç durumu ---------------- */
   function initialState() {
     const saved = loadSaved();
-    const project = saved || createFromTemplate('konut', '2+1', { messy: true });
+    let project = saved || createFromTemplate('konut', '2+1', { messy: true });
+    if (App.study && !project.study) project = Object.assign({}, project, { study: App.study.init(project) });
     return {
       project: project,
       past: [], future: [],
       selectedId: null,
       restored: !!saved,
       ui: {
-        tab: 'spaces', assistantOpen: false, asTab: 'analysis', messages: [], toast: null, highlight: null,
+        module: 'islev', tab: 'spaces', assistantOpen: false, asTab: 'analysis', messages: [], toast: null, highlight: null,
+        stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
         busy: null, hintDismissed: false, style: App.theme.name,
       },
@@ -86,7 +88,8 @@
 
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
-  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations }; }
+  // geri al/ileri al: kat etüdü ayarları (study) da projeyle birlikte geri alınır
+  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study }; }
   function withHistory(state, project) {
     const meta = project.meta.example ? Object.assign({}, project.meta, { example: false }) : project.meta;
     return Object.assign({}, state, {
@@ -193,6 +196,15 @@
     }
   }
 
+  /* ---------------- modül eklentileri ----------------
+     Diğer modüller (kat etüdü vb.) kendi eylemlerini hook ile ekler: fn(next, action, prev) → yeni state | undefined */
+  const hooks = [];
+  function rootReducer(state, a) {
+    let next = reducer(state, a);
+    for (let i = 0; i < hooks.length; i++) { const r = hooks[i](next, a, state); if (r) next = r; }
+    return next;
+  }
+
   /* ---------------- türetilmiş veriler (önbellekli) ---------------- */
   let memo = { project: null, out: null };
   function derive(state) {
@@ -204,5 +216,5 @@
     return memo.out;
   }
 
-  App.state = { createFromTemplate: createFromTemplate, emptyProject: emptyProject, initialState: initialState, reducer: reducer, derive: derive, persist: persist, clearSaved: clearSaved };
+  App.state = { createFromTemplate: createFromTemplate, emptyProject: emptyProject, initialState: initialState, reducer: rootReducer, derive: derive, persist: persist, clearSaved: clearSaved, hooks: hooks, withHistory: withHistory, snap: snap, setUi: setUi, HISTORY: HISTORY };
 })();

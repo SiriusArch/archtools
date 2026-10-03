@@ -27,7 +27,7 @@
   };
 
   /* ---------- tema: "Beni renklendir!" ↔ "Sadeleştir" ---------- */
-  const STYLE_KEY = 'archtools.bubble.style';
+  const STYLE_KEY = 'archtools.style';
   ctl.applyStyle = function (name) {
     App.theme.set(name);
     document.documentElement.setAttribute('data-style', name);
@@ -140,19 +140,26 @@
     else if (res && res.code === 'declined') ctl.toast('İndirme iptal edildi.');
     else ctl.toast('Dosya indirilemedi' + (res && res.message ? ': ' + res.message : '.'), 'error');
   }
-  function guard(fn, label) {
+  ctl.report = report;
+  // label: 'PNG' | 'PDF' · make(project, derived) → Promise<{ok}>
+  ctl.runExport = function (label, make) {
     const st = get();
-    if (!st.project.spaces.length) { ctl.toast('Önce pafta’ya en az bir mekân ekleyin.', 'error'); return; }
+    if (!st.project.spaces.length) { ctl.toast('Önce İşlev Şeması’na en az bir mekân ekleyin.', 'error'); return; }
     ctl.dispatch({ type: 'UI', patch: { busy: label } });
-    const d = derived();
-    fn(st.project, d).then((r) => report(r, label + ' hazır')).catch((e) => report({ ok: false, message: e && e.message }));
-  }
-  ctl.exportPNG = () => guard((p, d) => App.files.exportPNG(p, d.k, d.score), 'PNG');
-  ctl.exportPDF = () => guard((p, d) => App.files.exportPDF(p, d.k, d.score), 'PDF');
+    make(st.project, derived()).then((r) => report(r, label + ' hazır')).catch((e) => report({ ok: false, message: e && e.message }));
+  };
+  // modül başına dışa aktarıcı: ctl.exporters[modülKimliği](kind: 'png' | 'pdf')
+  ctl.exporters = {
+    islev: (kind) => ctl.runExport(kind === 'png' ? 'PNG' : 'PDF', (p, d) => (kind === 'png' ? App.files.exportPNG(p, d.k, d.score) : App.files.exportPDF(p, d.k, d.score))),
+  };
+  const exporter = (kind) => (ctl.exporters[get().ui.module] || ctl.exporters.islev)(kind);
+  ctl.exportPNG = () => exporter('png');
+  ctl.exportPDF = () => exporter('pdf');
+  const JSON_SUFFIX = { islev: undefined, kat: 'kat-etudu', analiz: 'mekan-analizi' };
   ctl.saveJSON = function () {
     const st = get();
     const d = derived();
-    App.files.exportJSON(st.project, d.k, d.score, d.analysis.circ).then((r) => report(r, 'Proje kaydedildi (JSON)'));
+    App.files.exportJSON(st.project, d.k, d.score, d.analysis.circ, JSON_SUFFIX[st.ui.module]).then((r) => report(r, 'Proje kaydedildi (JSON)'));
   };
   ctl.pickFile = function () { const el = document.getElementById('file-load'); if (el) el.click(); };
   ctl.onFile = function (e) {
@@ -218,7 +225,7 @@
     const mod = e.ctrlKey || e.metaKey;
     if (mod && !typing && e.key.toLowerCase() === 'z') { e.preventDefault(); ctl.dispatch({ type: e.shiftKey ? 'REDO' : 'UNDO' }); }
     else if (mod && !typing && e.key.toLowerCase() === 'y') { e.preventDefault(); ctl.dispatch({ type: 'REDO' }); }
-    else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && get().selectedId) { e.preventDefault(); ctl.dispatch({ type: 'REMOVE_SPACE', id: get().selectedId }); }
+    else if (!typing && get().ui.module === 'islev' && (e.key === 'Delete' || e.key === 'Backspace') && get().selectedId) { e.preventDefault(); ctl.dispatch({ type: 'REMOVE_SPACE', id: get().selectedId }); }
     else if (e.key === 'Escape') { if (typing && tag === 'INPUT') e.target.blur(); else if (get().selectedId) ctl.dispatch({ type: 'SELECT', id: null }); }
   };
 })();

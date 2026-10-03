@@ -4,6 +4,7 @@
    İndirme: önce Artifact "downloads" yeteneği, yoksa tarayıcı indirmesi.
    ========================================================================== */
 (function () {
+  window.App.extProviders = window.App.extProviders || [];
   const App = window.App;
   const U = App.util;
   const geo = App.geo;
@@ -35,9 +36,12 @@
   /* ---------------- JSON ---------------- */
   function toJSON(project, k, score, circ) {
     const now = new Date().toISOString();
+    const ext = {};
+    (App.extProviders || []).forEach((fn) => { try { Object.assign(ext, fn(project)); } catch (e) { /* bir modülün uzantısı hatalıysa dosya yine de yazılır */ } });
     return {
       schema: SCHEMA,
       version: VERSION,
+      platform: 'archtools',
       meta: {
         name: project.meta.name,
         buildingType: project.meta.buildingType,
@@ -53,6 +57,9 @@
         totalArea: Math.round(U.sum(project.spaces, (s) => s.area) * 100) / 100,
         circulationShare: circ ? Math.round(circ.share * 1000) / 1000 : null,
       },
+      // diğer modüllerin verisi: App.extProviders'a eklenen her işlev { anahtar: veri } döndürür
+      //   floorStudy (Modül 2): kat ataması + hesaplanan plan blokları · spaceAnalysis (Modül 3): uyum skoru ve ölçüler
+      extensions: ext,
     };
   }
 
@@ -78,7 +85,9 @@
     const m = o.meta || {};
     const typeKey = App.KB.TYPES.some((t) => t.key === m.buildingType) ? m.buildingType : 'genel';
     const variant = App.kb.variant(typeKey, m.variant).key;
-    return { meta: { name: String(m.name || 'İçe aktarılan proje').slice(0, 80), buildingType: typeKey, variant: variant, createdAt: m.createdAt || null, example: false }, spaces: spaces, relations: relations };
+    const project = { meta: { name: String(m.name || 'İçe aktarılan proje').slice(0, 80), buildingType: typeKey, variant: variant, createdAt: m.createdAt || null, example: false }, spaces: spaces, relations: relations };
+    if (App.study && o.extensions && o.extensions.floorStudy) project.study = App.study.fromExt(o.extensions.floorStudy, project);
+    return project;
   }
 
   /* ---------------- PNG / PDF ---------------- */
@@ -120,9 +129,9 @@
       canvasToBlob(cv, 'image/jpeg', 0.93).then((b) => b.arrayBuffer()).then((buf) => buildPdf(new Uint8Array(buf), cv.width, cv.height, project.meta.name))
     ).then((blob) => saveBlob(U.slug(project.meta.name) + '-islev-semasi.pdf', blob));
   }
-  function exportJSON(project, k, score, circ) {
+  function exportJSON(project, k, score, circ, suffix) {
     const text = JSON.stringify(toJSON(project, k, score, circ), null, 2);
-    return saveBlob(U.slug(project.meta.name) + '-islev-semasi.json', new Blob([text], { type: 'application/json' }));
+    return saveBlob(U.slug(project.meta.name) + '-' + (suffix || 'islev-semasi') + '.json', new Blob([text], { type: 'application/json' }));
   }
 
   App.files = { SCHEMA: SCHEMA, toJSON: toJSON, fromJSON: fromJSON, exportPNG: exportPNG, exportPDF: exportPDF, exportJSON: exportJSON, saveBlob: saveBlob, buildPdf: buildPdf };

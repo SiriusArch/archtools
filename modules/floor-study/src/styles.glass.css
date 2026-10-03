@@ -1,0 +1,8 @@
+/* Modül 2 — Kat Etüdü: glass */
+.flr-name { height: 34px; padding: 0 12px; background: transparent; box-shadow: none; font: 400 13.5px var(--f-display); border-radius: 17px; }
+.flr-name:hover { background: var(--inset-bg); }
+.flr-name:focus { background: var(--inset-bg); box-shadow: var(--press-sm), 0 0 0 2px var(--ink-3); }
+.frow .row-main { padding: 5px 4px 5px 12px; }
+.fblock-hit:hover { fill: rgba(23, 24, 27, .07); }
+.fblock-hit:focus-visible { stroke: var(--ink); stroke-width: 3; }
+.core-row .tgl { flex: none; }

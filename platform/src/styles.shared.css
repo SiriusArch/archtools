@@ -1,0 +1,60 @@
+/* archtools kabuğu — iki temada ortak: açılış (intro) yapısı, modül geçişi, gezgin düzeni */
+
+/* ---------- açılış ---------- */
+.intro { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; overflow: hidden; background: var(--bg, #E4E5E9); transition: opacity .85s ease, transform .95s cubic-bezier(.7, 0, .2, 1), filter .85s ease; }
+html[data-intro="off"] .intro { display: none; }
+.intro.out { opacity: 0; transform: scale(1.035); filter: blur(10px); pointer-events: none; }
+.intro:not(.run) { animation: intro-failsafe .01s 7s forwards; }
+@keyframes intro-failsafe { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+.intro-glow { position: absolute; left: 50%; top: 50%; width: min(96vmin, 780px); aspect-ratio: 1; transform: translate(-50%, -50%) scale(.6); border-radius: 50%; opacity: 0; pointer-events: none; }
+.run .intro-glow { animation: ig-in 2.4s .1s ease-out forwards; }
+@keyframes ig-in { to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+.intro-core { position: relative; display: flex; flex-direction: column; align-items: center; gap: clamp(18px, 3.4vh, 30px); padding: 24px; text-align: center; }
+.intro-mark { position: relative; display: grid; place-items: center; width: clamp(150px, 22vmin, 200px); aspect-ratio: 1; }
+.intro-disc { position: absolute; inset: 0; transform: scale(.4); opacity: 0; }
+.run .intro-disc { animation: im-disc 1s .05s cubic-bezier(.2, .9, .3, 1.1) forwards; }
+@keyframes im-disc { to { transform: none; opacity: 1; } }
+.intro-mark svg { position: relative; width: 64%; height: 64%; overflow: visible; }
+.intro-mark svg * { fill-opacity: 0; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: butt; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.run .im-c { animation: im-draw 1.1s .35s cubic-bezier(.5, 0, .2, 1) forwards, im-fill .7s 1.4s ease forwards; }
+.run .im-s { animation: im-draw 1.1s .7s cubic-bezier(.5, 0, .2, 1) forwards, im-fill .7s 1.6s ease forwards; }
+.run .im-t { animation: im-draw 1.1s 1.05s cubic-bezier(.5, 0, .2, 1) forwards, im-fill .7s 1.8s ease forwards; }
+@keyframes im-draw { to { stroke-dashoffset: 0; } }
+@keyframes im-fill { to { fill-opacity: var(--fo, 1); } }
+.intro-word { display: flex; justify-content: center; margin: 0; font-size: clamp(40px, 9.5vw, 84px); line-height: 1.05; white-space: nowrap; }
+.intro-word span { display: inline-block; opacity: 0; transform: translateY(.45em) scale(.96); filter: blur(8px); }
+.run .intro-word span { animation: iw-in .9s calc(1.55s + var(--i) * .075s) cubic-bezier(.2, .85, .25, 1) forwards; }
+@keyframes iw-in { to { opacity: 1; transform: none; filter: none; } }
+.intro-tag { margin: 0; opacity: 0; }
+.run .intro-tag { animation: iw-fade .9s 2.5s ease forwards; }
+.intro-modules { position: absolute; left: 0; right: 0; bottom: calc(60px + env(safe-area-inset-bottom, 0px)); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 14px; padding: 0 16px; opacity: 0; }
+.run .intro-modules { animation: iw-fade .9s 3s ease forwards; }
+.intro-modules i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .4; }
+@keyframes iw-fade { to { opacity: 1; } }
+.intro-bar { position: absolute; left: 50%; bottom: calc(32px + env(safe-area-inset-bottom, 0px)); width: min(220px, 50vw); height: 3px; transform: translateX(-50%); overflow: hidden; }
+.intro-bar i { display: block; width: 100%; height: 100%; transform: scaleX(0); transform-origin: left; }
+.run .intro-bar i { animation: ib-fill var(--dur, 4000ms) linear forwards; }
+@keyframes ib-fill { to { transform: none; } }
+.intro-skip { position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); right: 20px; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) {
+  .intro-mark svg * { stroke-dashoffset: 0 !important; fill-opacity: var(--fo, 1) !important; }
+  .intro-disc, .intro-glow { opacity: 1 !important; transform: none !important; }
+  .intro-glow { transform: translate(-50%, -50%) !important; }
+  .intro-word span, .intro-tag, .intro-modules { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .intro-bar i { transform: none !important; }
+}
+
+/* ---------- modül geçişi: yumuşak çapraz solma ---------- */
+html.vt-fade::view-transition-old(root) { animation: vt-out .26s ease both; }
+html.vt-fade::view-transition-new(root) { animation: vt-in .38s .06s ease both; }
+@keyframes vt-out { to { opacity: 0; } }
+@keyframes vt-in { from { opacity: 0; } }
+
+/* ---------- modül gezgini (yerleşim) ---------- */
+.mnav { display: inline-flex; align-items: stretch; flex: none; }
+.mnav-i { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap; }
+.msh { flex: none; }
+.tb-seg { display: inline-flex; }
+@media (max-width: 1180px) { .mnav-n { display: none; } }
+@media (max-width: 1280px) and (min-width: 641px) { .mnav-i:not(.on) .mnav-l { display: none; } }
+@media (max-width: 640px) { .mnav { order: 1; width: 100%; } .mnav-i { flex: 1; justify-content: center; } .mnav-i:not(.on) .mnav-l { display: none; } }

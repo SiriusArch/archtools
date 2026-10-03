@@ -1,0 +1,21 @@
+/* Modül 2 — Kat Etüdü: iki temada ortak yerleşim */
+.core-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.core-val { font-weight: 700; }
+.flr-list { display: flex; flex-direction: column; gap: 20px; }
+.flr { display: flex; flex-direction: column; gap: 6px; }
+.flr-head { display: flex; align-items: center; gap: 10px; }
+.flr-name { flex: 1 1 auto; min-width: 0; }
+.flr-head .count { flex: none; }
+.flr-empty { padding: 6px 4px; }
+.frow-area { flex: none; font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+.frow-mv { display: inline-flex; flex: none; }
+.frow .frow-mv .icon-btn { width: 28px; height: 28px; }
+.rot-up, .rot-down { display: inline-grid; place-items: center; }
+.rot-up { transform: rotate(-90deg); }
+.rot-down { transform: rotate(90deg); }
+.icon-btn:disabled { opacity: .28; cursor: default; pointer-events: none; }
+.fblock-hit { cursor: grab; outline: none; }
+.fblock.dragging, .fblock.dragging .fblock-hit { cursor: grabbing; }
+.fcell-hit { pointer-events: all; }
+.fcell.over .fcell-hit { fill: rgba(23, 24, 27, .05); }
+.fghost { filter: drop-shadow(0 8px 14px rgba(23, 24, 27, .28)); }

@@ -1,0 +1,26 @@
+/* Modül 3 — Mekân Analizi: iki temada ortak yerleşim */
+.board-svg-analiz { cursor: grab; }
+.board-svg-analiz:active { cursor: grabbing; }
+.ahit { pointer-events: all; }
+.ahit-slab.click { cursor: pointer; }
+.ahit-block { cursor: pointer; }
+.ahit-block:hover { fill: rgba(23, 24, 27, .09); }
+.ahit-block.sel { fill: rgba(23, 24, 27, .08); stroke: var(--ink); stroke-width: 2.5; stroke-dasharray: 7 5; stroke-linejoin: round; }
+.an-chip { position: absolute; left: 14px; top: 14px; z-index: 2; display: inline-flex; align-items: center; gap: 12px; }
+.an-chip .mono { font-size: 12.5px; color: var(--ink-2); }
+.aflr { padding: 0; }
+.aflr .row-main.aflr-btn { display: flex; flex-direction: column; align-items: stretch; gap: 7px; width: 100%; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.aflr .aflr-top { display: flex; align-items: center; gap: 10px; }
+.aflr-top .row-name { flex: 1; }
+.aflr-note { margin-top: 10px; }
+.mixbar { display: flex; height: 7px; overflow: hidden; background: var(--line); }
+.mixbar i { display: block; height: 100%; }
+.lyrs { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.lyr { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.lyr-box { flex: none; display: grid; place-items: center; width: 20px; height: 20px; }
+.lyr-t { display: flex; flex-direction: column; min-width: 0; }
+.lyr-t small { font-size: 12px; color: var(--ink-2); }
+.stats { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px 14px; margin: 0; }
+.stats dt { color: var(--ink-2); font-size: 13.5px; }
+.stats dd { margin: 0; text-align: right; font-weight: 700; }
+.board-stage.is-layers { }

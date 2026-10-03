@@ -253,6 +253,7 @@
         Object.assign(a, { x: p.x, y: p.y, width: p.w, height: p.h, fill: p.fill || 'none' });
         if (p.rx) a.rx = p.rx;
         if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; a['stroke-linejoin'] = p.rx ? 'round' : 'miter'; }
+        if (p.dash) a['stroke-dasharray'] = p.dash.join(' ');
         if (p.shadow) a.style = { filter: shadowCss(p.shadow) };
         return h('rect', a);
       case 'circle':
@@ -268,9 +269,16 @@
         Object.assign(a, { points: p.pts.map((q) => q.join(',')).join(' '), fill: p.fill || 'none' });
         if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; a['stroke-linejoin'] = 'round'; }
         return h('polygon', a);
+      case 'path':
+        Object.assign(a, { d: p.d, fill: p.fill || 'none' });
+        if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; a['stroke-linecap'] = p.cap || 'butt'; a['stroke-linejoin'] = 'round'; }
+        if (p.dash) a['stroke-dasharray'] = p.dash.join(' ');
+        return h('path', a);
       case 'text':
         Object.assign(a, { x: p.x, y: p.y, fill: p.fill, 'font-family': FONTS[p.fam], 'font-size': p.size, 'font-weight': p.weight, 'text-anchor': p.anchor || 'start' });
+        if (p.xf) { a.x = 0; a.y = 0; a.transform = 'matrix(' + p.xf.map((v) => Math.round(v * 1000) / 1000).join(' ') + ' ' + Math.round(p.x * 100) / 100 + ' ' + Math.round(p.y * 100) / 100 + ')'; }
         if (p.ls) a['letter-spacing'] = p.ls;
+        if (p.pe === false) a['pointer-events'] = 'none';
         return h('text', a, p.s);
     }
     return null;
@@ -316,13 +324,20 @@
         if (p.fill) { ctx.fillStyle = p.fill; ctx.fill(); }
         if (p.stroke) { ctx.strokeStyle = p.stroke; ctx.lineWidth = p.sw; ctx.lineJoin = 'round'; ctx.stroke(); }
         break;
+      case 'path': {
+        const pth = new Path2D(p.d);
+        if (p.fill) { ctx.fillStyle = p.fill; ctx.fill(pth); }
+        if (p.stroke) { ctx.strokeStyle = p.stroke; ctx.lineWidth = p.sw; ctx.lineJoin = 'round'; ctx.stroke(pth); }
+        break;
+      }
       case 'text':
         ctx.font = p.weight + ' ' + p.size + 'px ' + FONTS[p.fam];
         ctx.fillStyle = p.fill;
         ctx.textAlign = p.anchor === 'middle' ? 'center' : p.anchor === 'end' ? 'right' : 'left';
         ctx.textBaseline = 'alphabetic';
         if ('letterSpacing' in ctx) ctx.letterSpacing = (p.ls || 0) + 'px';
-        ctx.fillText(p.s, p.x, p.y);
+        if (p.xf) { ctx.transform(p.xf[0], p.xf[1], p.xf[2], p.xf[3], p.x, p.y); ctx.fillText(p.s, 0, 0); }
+        else ctx.fillText(p.s, p.x, p.y);
         break;
     }
     ctx.restore();
@@ -348,8 +363,23 @@
     });
   }
 
+  // Herhangi bir sahneyi (primitif listesi) tuvale çiz: diğer modüller (kat etüdü, analiz) kullanır
+  function primsToCanvas(prims, W, H, factor) {
+    return ensureFonts().then(function () {
+      const s = factor || 2;
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(W * s);
+      cv.height = Math.round(H * s);
+      const ctx = cv.getContext('2d');
+      ctx.__k = s;
+      ctx.scale(s, s);
+      prims.forEach((p) => paintPrim(ctx, p));
+      return cv;
+    });
+  }
+
   App.board = {
     staticPrims: staticPrims, relLinePrims: relLinePrims, bubblePrims: bubblePrims, infoOf: infoOf,
-    allPrims: allPrims, primToV: primToV, paintPrim: paintPrim, toCanvas: toCanvas,
+    allPrims: allPrims, primToV: primToV, paintPrim: paintPrim, toCanvas: toCanvas, primsToCanvas: primsToCanvas, shadowCss: shadowCss,
   };
 })();

@@ -26,6 +26,10 @@
       actionBtns(item.actions));
   }
 
+  ui.findingCard = card;
+  ui.srcChips = srcChips;
+  ui.actionBtns = actionBtns;
+
   function renderBlock(b, i) {
     if (b.t === 'p') return h('p', { key: i, class: 'msg-p' }, b.text);
     if (b.t === 'ul') return h('ul', { key: i, class: 'msg-ul' }, b.items.map((x, j) => h('li', { key: j }, x)));

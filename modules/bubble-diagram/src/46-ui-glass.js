@@ -17,6 +17,8 @@
       opts.badge ? h('span', { class: 'badge' + (opts.badgePulse ? ' pulse-badge' : '') }, opts.badge) : null);
   }
 
+  glass.gbtn = gbtn;
+
   // Sadeleştirilmiş logo: üç geometrik form, tek renk
   glass.logo = function () {
     return h('svg', { viewBox: '0 0 40 40', width: 34, height: 34, class: 'glogo', 'aria-hidden': 'true' },
@@ -45,7 +47,8 @@
     return h('header', { class: 'gh' },
       h('div', { class: 'gh-brand' },
         glass.logo(),
-        h('h1', { class: 'gh-title' }, 'işlev şeması')),
+        h('h1', { class: 'gh-title' }, 'archtools')),
+      ui.moduleNav ? ui.moduleNav(state) : null,
       h('div', { class: 'gh-name' },
         h('label', { class: 'sr', for: 'project-name' }, 'Proje adı'),
         h('input', { id: 'project-name', class: 'ginput', type: 'text', maxlength: 80, value: meta.name, keep: true, autocomplete: 'off', placeholder: 'Proje adı', onchange: (e) => ctl.dispatch({ type: 'SET_META', patch: { name: e.target.value.trim() || 'Adsız proje' } }) }),
@@ -58,21 +61,18 @@
         h('div', { class: 'gseg', role: 'group', 'aria-label': 'Dışa aktar' },
           h('button', { type: 'button', onclick: ctl.exportPNG, disabled: !!state.ui.busy, title: 'Saf şemayı PNG resmi olarak indir' }, 'PNG'),
           h('button', { type: 'button', onclick: ctl.exportPDF, disabled: !!state.ui.busy, title: 'Saf şemayı A3 PDF olarak indir' }, 'PDF')),
-        h('span', { class: 'gh-sep', 'aria-hidden': 'true' }),
-        h('button', { type: 'button', class: 'gpill' + (state.ui.assistantOpen ? ' on' : ''), onclick: ctl.toggleAssistant, 'aria-pressed': String(!!state.ui.assistantOpen), title: 'Akıllı öneri panelini aç / kapat' },
+        state.ui.module === 'islev' ? h('span', { class: 'gh-sep', 'aria-hidden': 'true' }) : null,
+        state.ui.module === 'islev' ? h('button', { type: 'button', class: 'gpill' + (state.ui.assistantOpen ? ' on' : ''), onclick: ctl.toggleAssistant, 'aria-pressed': String(!!state.ui.assistantOpen), title: 'Akıllı öneri panelini aç / kapat' },
           ui.icon('spark', 16), h('span', {}, 'Akıllı öneri'),
-          issues ? h('span', { class: 'badge' + (state.ui.assistantOpen ? '' : ' pulse-badge') }, String(issues)) : null)),
+          issues ? h('span', { class: 'badge' + (state.ui.assistantOpen ? '' : ' pulse-badge') }, String(issues)) : null) : null),
       ui.themeToggle(state),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
   };
 
-  /* --- skor kadranı: kabartmalı yüz, ince ibre (referans görseldeki saat gibi) --- */
-  glass.dial = function (state, d) {
-    const s = d.score;
-    const pc = s.percent;
-    const c = s.counts;
-    const issues = d.analysis.counts.hata + d.analysis.counts.uyari;
-    const msg = pc == null ? 'İlişki ekleyerek skoru başlatın' : pc >= 85 ? 'Çok iyi yerleşim' : pc >= 70 ? 'İyi, birkaç ince ayar kaldı' : pc >= 40 ? 'Güçlü ilişkili daireleri yaklaştırın' : 'Güçlü bağlar çok uzak';
+  /* --- skor kadranı: kabartmalı yüz, ince ibre (referans görseldeki saat gibi) ---
+     o: { label, percent, msg, chips: [{label, value, tail, cls}], warn, issues, issuesText, okText, onIssues } */
+  glass.meter = function (o) {
+    const pc = o.percent;
     const R = 44, C = 2 * Math.PI * R, sweep = C * 0.75;
     const val = pc == null ? 0 : pc;
     const ticks = [];
@@ -82,10 +82,11 @@
       const r1 = 56, r2 = major ? 50 : 53;
       ticks.push(h('line', { key: 't' + i, x1: 60 + Math.sin(a) * r1, y1: 60 - Math.cos(a) * r1, x2: 60 + Math.sin(a) * r2, y2: 60 - Math.cos(a) * r2, stroke: 'currentColor', 'stroke-width': major ? 1.6 : 1, opacity: major ? 0.55 : 0.3, 'stroke-linecap': 'round' }));
     }
-    const chip = (label, pair, tail, cls) => h('li', { class: 'gchip' }, h('i', { class: 'gsw ' + cls }), label + ' ', h('b', {}, pair[0] ? pair[1] + '/' + pair[0] : '0'), ' ' + tail);
-    return h('section', { class: 'gdial', 'aria-label': 'Verimlilik skoru' },
+    const chip = (c) => h('li', { class: 'gchip', key: c.label }, h('i', { class: 'gsw gsw-' + (c.cls || 'plain') }), c.label + ' ', h('b', {}, c.value), c.tail ? ' ' + c.tail : '');
+    const issues = o.issues || 0;
+    return h('section', { class: 'gdial', 'aria-label': o.label },
       h('div', { class: 'gdial-face' },
-        h('svg', { viewBox: '0 0 120 120', width: 112, height: 112, role: 'img', 'aria-label': pc == null ? 'Skor yok' : 'Verimlilik yüzde ' + pc },
+        h('svg', { viewBox: '0 0 120 120', width: 112, height: 112, role: 'img', 'aria-label': pc == null ? 'Skor yok' : o.label + ' yüzde ' + pc },
           ticks,
           h('circle', { cx: 60, cy: 60, r: R, fill: 'none', stroke: 'currentColor', 'stroke-width': 3, opacity: 0.12, 'stroke-linecap': 'round', 'stroke-dasharray': sweep + ' ' + C, transform: 'rotate(135 60 60)' }),
           h('circle', { class: 'gdial-arc', cx: 60, cy: 60, r: R, fill: 'none', stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-dasharray': (sweep * val / 100) + ' ' + C, transform: 'rotate(135 60 60)' }),
@@ -95,16 +96,13 @@
           h('circle', { cx: 60, cy: 60, r: 1.8, fill: 'var(--dial-pin, #fff)' }))),
       h('div', { class: 'gdial-info', 'aria-live': 'polite' },
         h('div', { class: 'gdial-num' }, pc == null ? '—' : '%' + pc),
-        h('p', { class: 'gdial-msg' }, msg),
-        h('ul', { class: 'gchips', 'aria-label': 'Skor ayrıntısı' },
-          chip('Güçlü', c.strong, 'yakın', 'gsw-strong'),
-          chip('Zayıf', c.weak, 'uygun', 'gsw-weak'),
-          chip('Ayrı', c.avoid, 'uzak', 'gsw-avoid'),
-          s.overlaps.length ? h('li', { class: 'gchip gchip-warn' }, 'Üst üste ', h('b', {}, String(s.overlaps.length))) : null)),
-      h('button', { type: 'button', class: 'gissues' + (issues ? ' has' : ''), onclick: App.ctl.openAnalysis },
+        h('p', { class: 'gdial-msg' }, o.msg),
+        h('ul', { class: 'gchips', 'aria-label': 'Skor ayrıntısı' }, (o.chips || []).map(chip), o.warn ? h('li', { class: 'gchip gchip-warn' }, o.warn) : null)),
+      h('button', { type: 'button', class: 'gissues' + (issues ? ' has' : ''), onclick: o.onIssues },
         issues ? h('b', {}, String(issues)) : ui.icon('check', 15),
-        h('span', {}, issues ? 'uyarı ve öneriler' : 'kritik sorun yok')));
+        h('span', {}, issues ? (o.issuesText || 'uyarı ve öneriler') : (o.okText || 'kritik sorun yok'))));
   };
+  glass.dial = function (state, d) { return glass.meter(ui.meterFor(state, d)); };
 
   /* --- yüzen araç çubuğu --- */
   glass.dock = function (state, d, attn) {

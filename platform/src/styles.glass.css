@@ -1,0 +1,82 @@
+/* archtools kabuğu — glass: açılış, modül gezgini, ortak kontroller */
+
+/* ---------- açılış ---------- */
+.intro { background-color: var(--bg); background-image: radial-gradient(70% 55% at 10% 6%, var(--bg-2), transparent 62%), radial-gradient(55% 50% at 94% 92%, var(--bg-3), transparent 70%); color: var(--ink); }
+.intro-glow { background: radial-gradient(closest-side, var(--hi), transparent 72%); }
+.intro-disc { border-radius: 50%; background: var(--glass-2); border: 1px solid var(--stroke); box-shadow: var(--raise); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+.intro-mark svg * { stroke: currentColor; }
+.im-c { fill: currentColor; --fo: .9; }
+.im-s { --fo: 0; }
+.im-t { --fo: 0; opacity: .55; }
+.intro-word { font: 300 clamp(40px, 9.5vw, 84px)/1.05 var(--f-display); letter-spacing: -.015em; }
+.intro-tag { font: 600 12px var(--f-body); letter-spacing: .34em; text-transform: uppercase; color: var(--ink-2); }
+.intro-modules { font: 600 12.5px var(--f-body); color: var(--ink-2); }
+.intro-bar { border-radius: 3px; background: var(--line); }
+.intro-bar i { background: var(--ink); border-radius: 3px; }
+.intro-skip { height: 40px; padding: 0 20px; border: 0; border-radius: 99px; background: var(--glass-2); box-shadow: var(--raise-sm); color: var(--ink); font: 700 13px var(--f-body); }
+.intro-skip:active { box-shadow: var(--press); }
+.intro-skip:focus-visible { outline: 2px solid var(--ink-3); outline-offset: 3px; }
+
+/* ---------- modül gezgini ---------- */
+.mnav { gap: 2px; padding: 4px; border-radius: 99px; background: var(--inset-bg); box-shadow: var(--press); }
+.mnav-i { height: 38px; padding: 0 16px 0 14px; border: 0; border-radius: 99px; background: transparent; color: var(--ink-2); font: 700 13px var(--f-body); transition: background-color .18s, box-shadow .18s, color .18s; }
+.mnav-i:hover { color: var(--ink); }
+.mnav-i.on { background: var(--glass-2); color: var(--ink); box-shadow: var(--raise-sm); }
+.mnav-n { display: none; }
+.gh-name { flex: 1 1 170px; max-width: 260px; min-width: 150px; }
+@media (max-width: 1560px) and (min-width: 1024px) {
+  .gh-actions .gpill { padding: 0 14px; }
+  .gh-actions .gpill > span:not(.badge) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+.msh { opacity: .6; transition: opacity .2s; }
+.mnav-i.on .msh { opacity: 1; }
+
+/* ---------- ortak kontroller ---------- */
+.sgm { display: inline-flex; gap: 2px; padding: 3px; border-radius: 99px; background: var(--inset-bg); box-shadow: var(--press-sm); }
+.sgm-wide { display: flex; width: 100%; }
+.sgm-wide .sgm-b { flex: 1; padding: 0 8px; }
+.sgm-b { height: 32px; padding: 0 14px; border: 0; border-radius: 99px; background: transparent; color: var(--ink-2); font: 700 12.5px var(--f-body); white-space: nowrap; cursor: pointer; transition: background-color .15s, color .15s; }
+.sgm-b:hover { color: var(--ink); }
+.sgm-b.on { background: var(--ink); color: var(--on-ink); }
+.gdock .sgm { background: var(--inset-bg); }
+
+.rng { display: flex; flex-direction: column; gap: 4px; }
+.rng-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.rng-lbl { margin-left: 4px; font: 700 12.5px var(--f-body); color: var(--ink-2); }
+.rng-val { font: 700 12.5px var(--f-body); color: var(--ink); }
+.rng-hint { margin: 0 4px; font-size: 12px; color: var(--ink-3); }
+.rng-in { -webkit-appearance: none; appearance: none; width: 100%; height: 24px; margin: 0; background: transparent; cursor: pointer; touch-action: pan-y; }
+.rng-in::-webkit-slider-runnable-track { height: 8px; border-radius: 99px; background: var(--inset-bg); box-shadow: var(--press-sm); }
+.rng-in::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -7px; border: 0; border-radius: 50%; background: var(--glass-2); box-shadow: var(--raise-sm); }
+.rng-in::-moz-range-track { height: 8px; border-radius: 99px; background: var(--inset-bg); box-shadow: var(--press-sm); }
+.rng-in::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--glass-2); box-shadow: var(--raise-sm); }
+.rng-in:focus { outline: none; }
+.rng-in:focus-visible::-webkit-slider-thumb { box-shadow: var(--raise-sm), 0 0 0 2px var(--ink); }
+.rng-in:focus-visible::-moz-range-thumb { box-shadow: var(--raise-sm), 0 0 0 2px var(--ink); }
+
+.stp { display: inline-flex; align-items: center; gap: 4px; padding: 3px; border-radius: 99px; background: var(--inset-bg); box-shadow: var(--press-sm); }
+.stp-b { width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: var(--glass-2); box-shadow: var(--raise-sm); color: var(--ink); font: 700 18px/1 var(--f-body); cursor: pointer; }
+.stp-b:active:not(:disabled) { box-shadow: var(--press-sm); }
+.stp-b:disabled { opacity: .35; box-shadow: none; cursor: not-allowed; }
+.stp-v { min-width: 70px; text-align: center; font: 700 14px var(--f-body); }
+.stp-u { margin-left: 5px; font-size: 12px; font-weight: 600; color: var(--ink-3); }
+
+.tgl { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px 0 11px; border: 0; border-radius: 99px; background: var(--glass-2); box-shadow: var(--raise-sm); color: var(--ink-2); font: 700 12.5px var(--f-body); cursor: pointer; transition: box-shadow .15s, color .15s; }
+.tgl-dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-3); transition: background-color .15s, box-shadow .15s; }
+.tgl.on { box-shadow: var(--press-sm); color: var(--ink); }
+.tgl.on .tgl-dot { background: var(--ink); box-shadow: none; }
+.tgl-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.fld2 { display: flex; flex-direction: column; gap: 6px; }
+.fld2-l { margin-left: 4px; font: 700 12.5px var(--f-body); color: var(--ink-2); }
+.fld2-h { margin: 0 4px; font-size: 12px; color: var(--ink-3); }
+.gsw-dot { width: 7px; height: 7px; margin-right: 7px; border: 0; border-radius: 50%; background: var(--ink); opacity: .7; }
+.sec { display: flex; flex-direction: column; gap: 12px; }
+.sec .panel-head { margin-bottom: 0; }
+.sec-box { padding: 16px; border-radius: 28px; background: var(--inset-bg); box-shadow: var(--press); display: flex; flex-direction: column; gap: 14px; }
+
+/* ---------- dar ekranda araç çubuğu satır atlar ---------- */
+@media (max-width: 640px) {
+  .gdock { flex-wrap: wrap; justify-content: center; border-radius: 30px; }
+  .gdock .gh-sep { display: none; }
+  .gdock .tb-seg { max-width: 100%; }
+}
