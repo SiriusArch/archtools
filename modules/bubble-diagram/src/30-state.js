@@ -72,6 +72,7 @@
     const saved = loadSaved();
     let project = saved || createFromTemplate('konut', '2+1', { messy: true });
     if (App.study && !project.study) project = Object.assign({}, project, { study: App.study.init(project) });
+    if (App.site && !project.site) project = Object.assign({}, project, App.site.init());
     return {
       project: project,
       past: [], future: [],
@@ -80,6 +81,7 @@
       ui: {
         module: 'islev', tab: 'spaces', assistantOpen: false, asTab: 'analysis', messages: [], toast: null, highlight: null,
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
+        site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
         busy: null, hintDismissed: false, style: App.theme.name,
       },
@@ -88,8 +90,8 @@
 
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
-  // geri al/ileri al: kat etüdü ayarları (study) da projeyle birlikte geri alınır
-  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study }; }
+  // geri al/ileri al: kat etüdü (study), arsa / imar (site) ve aday konumlar (cand) da projeyle birlikte geri alınır
+  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand }; }
   function withHistory(state, project) {
     const meta = project.meta.example ? Object.assign({}, project.meta, { example: false }) : project.meta;
     return Object.assign({}, state, {

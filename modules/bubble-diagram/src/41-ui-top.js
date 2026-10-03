@@ -34,6 +34,7 @@
         h('span', { class: 'sep', 'aria-hidden': 'true' }),
         state.ui.module === 'islev' ? ui.btn('Akıllı öneri', { icon: 'spark', onclick: ctl.toggleAssistant, cls: 'btn-yellow', pressed: state.ui.assistantOpen, badge: issues ? String(issues) : null, badgePulse: !state.ui.assistantOpen, title: 'Akıllı öneri panelini aç / kapat' }) : null,
         state.ui.module === 'islev' ? h('span', { class: 'sep', 'aria-hidden': 'true' }) : null,
+        ui.helpBtn ? ui.btn('Rehber', { icon: 'help', onclick: ui.helpBtn, title: 'Başlangıç sorularını yeniden aç', labelCls: 'lbl-hide' }) : null,
         ui.themeToggle(state)),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
   };

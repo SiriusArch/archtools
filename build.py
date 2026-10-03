@@ -5,6 +5,7 @@ Kaynak klasörleri (CSS bu sırayla birleşir):
   modules/bubble-diagram/src   Modül 1 — İşlev Şeması (ortak çekirdek de burada: 00-core, 10-data, 20-27 lib)
   modules/floor-study/src      Modül 2 — Kat Etüdü
   modules/space-analysis/src   Modül 3 — Mekân Analizi (patlatılmış izometrik)
+  modules/site-analysis/src    Modül 4 · 5 · 6 — Arsa Analizi, İmar ve Kapasite, Yer Seçimi (OpenStreetMap tabanlı)
   platform/src                 Kabuk: marka, intro, modül geçişi, başlatma
 
 JS dosyaları klasörden bağımsız olarak dosya adındaki sayı önekine göre (00–99) sıralanır:
@@ -24,6 +25,7 @@ SRC_DIRS = [
     os.path.join(root, 'modules', 'bubble-diagram', 'src'),
     os.path.join(root, 'modules', 'floor-study', 'src'),
     os.path.join(root, 'modules', 'space-analysis', 'src'),
+    os.path.join(root, 'modules', 'site-analysis', 'src'),
     os.path.join(root, 'platform', 'src'),
 ]
 
@@ -84,7 +86,7 @@ for d in SRC_DIRS:
     js_files += glob.glob(os.path.join(d, '[0-9][0-9]-*.js'))
 js_files.sort(key=lambda f: os.path.basename(f))
 names = [os.path.basename(f)[:2] for f in js_files]
-dup = sorted({n for n in names if names.count(n) > 1 and n not in ('99',)})
+dup = sorted({n for n in names if names.count(n) > 1 and n not in ('39', '99')})
 if dup:
     print('uyarı: aynı sayı önekini paylaşan dosyalar:', ', '.join(dup))
 js = '\n'.join(open(f, encoding='utf-8').read() for f in js_files)
@@ -123,7 +125,7 @@ html = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>archtools — Mimari Tasarım Asistanı</title>
-<meta name="description" content="archtools: işlev şeması, kat etüdü ve patlatılmış izometrik mekân analizi. Minimal, buzlu cam arayüz; Beni renklendir ile Bauhaus teması.">
+<meta name="description" content="archtools: işlev şeması, kat etüdü, mekân analizi, arsa analizi, imar ve kapasite, yer seçimi. Minimal, buzlu cam arayüz; Beni renklendir ile Bauhaus teması.">
 <meta name="theme-color" content="#E4E5E9">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

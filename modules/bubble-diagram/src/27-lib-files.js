@@ -59,6 +59,7 @@
       },
       // diğer modüllerin verisi: App.extProviders'a eklenen her işlev { anahtar: veri } döndürür
       //   floorStudy (Modül 2): kat ataması + hesaplanan plan blokları · spaceAnalysis (Modül 3): uyum skoru ve ölçüler
+      //   siteAnalysis (Modül 4): konum, parsel, skorlar · zoning (Modül 5): imar parametreleri ve kapasite · siteSelection (Modül 6): adaylar ve sıralama
       extensions: ext,
     };
   }
@@ -87,6 +88,8 @@
     const variant = App.kb.variant(typeKey, m.variant).key;
     const project = { meta: { name: String(m.name || 'İçe aktarılan proje').slice(0, 80), buildingType: typeKey, variant: variant, createdAt: m.createdAt || null, example: false }, spaces: spaces, relations: relations };
     if (App.study && o.extensions && o.extensions.floorStudy) project.study = App.study.fromExt(o.extensions.floorStudy, project);
+    // arsa / imar / yer seçimi gibi sonradan eklenen modüller: App.extImporters (ext, project) → { alan: değer }
+    if (o.extensions) (App.extImporters || []).forEach((fn) => { try { Object.assign(project, fn(o.extensions, project) || {}); } catch (e) { /* bozuk uzantı projeyi engellemez */ } });
     return project;
   }
 

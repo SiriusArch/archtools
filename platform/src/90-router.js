@@ -1,11 +1,11 @@
 /* ==========================================================================
-   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz
+   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer
    Geçiş: View Transitions varsa yumuşak çapraz solma, yoksa anında.
    ========================================================================== */
 (function () {
   const App = window.App;
   const ctl = App.ctl;
-  const IDS = ['islev', 'kat', 'analiz'];
+  const IDS = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer'];
   const get = () => App.store.get();
 
   const fromHash = function () {
@@ -20,7 +20,7 @@
   App.route.setTitle = setTitle;
 
   function apply(id) {
-    ctl.dispatch({ type: 'UI', patch: { module: id } });
+    ctl.dispatch({ type: 'UI', patch: { module: id, xmenu: false } });
     setTitle(id);
     window.scrollTo(0, 0);
     if (App.paintNow) App.paintNow();
@@ -47,5 +47,6 @@
 
   window.addEventListener('hashchange', function () {
     switchTo(fromHash() || 'islev'); // boş adres = işlev şeması (geri düğmesiyle ilk sayfaya dönüş)
+    if (ctl.hashSite) ctl.hashSite(); // #/arsa?lat=…&lon=… paylaşım bağlantısı
   });
 })();

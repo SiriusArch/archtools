@@ -75,3 +75,23 @@
 .sec { display: flex; flex-direction: column; gap: 12px; }
 .sec .panel-head { margin-bottom: 0; }
 .sec-box { display: flex; flex-direction: column; gap: 12px; padding: 12px; border: 3px solid var(--line); background: var(--surface-2); }
+
+.mnav-arsa.on { background: var(--green); color: var(--on-green); }
+.mnav-imar.on { background: var(--indigo); color: var(--on-blue); }
+.mnav-yer.on { background: var(--orange); color: var(--on-yellow); }
+
+/* ---------- açılış soruları ---------- */
+.wc-card { border: 4px solid var(--line); background: var(--surface); box-shadow: 10px 10px 0 var(--shadow); }
+.wc-card::before { content: ''; position: absolute; left: -4px; right: -4px; top: -4px; height: 12px; border: 4px solid var(--line); border-bottom: 0; background: linear-gradient(90deg, var(--blue) 0 33.33%, var(--yellow) 33.33% 66.66%, var(--red) 66.66%); }
+.wc-head { padding-top: 10px; }
+.wc-step { font-family: var(--f-mono); }
+.wc-hello { font: 600 12px var(--f-display); letter-spacing: .2em; text-transform: uppercase; }
+.wc-q { font: 700 clamp(19px, 3.2vw, 26px)/1.2 var(--f-display); letter-spacing: .05em; text-transform: uppercase; }
+.wc-opt { border: 3px solid var(--line); background: var(--surface); }
+.wc-opt:hover { background: var(--surface-2); box-shadow: 4px 4px 0 var(--shadow); }
+.wc-opt.on { background: var(--yellow); color: var(--on-yellow); box-shadow: 4px 4px 0 var(--shadow); }
+.wc-opt.on .wc-t small { color: var(--on-yellow); }
+.wc-ico { border: 2px solid var(--line); background: var(--surface-2); }
+.wc-opt:hover .wc-ico { background: var(--blue); color: var(--on-blue); }
+.wc-t b { font: 700 13px var(--f-display); letter-spacing: .06em; text-transform: uppercase; }
+

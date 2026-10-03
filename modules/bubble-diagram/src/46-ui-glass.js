@@ -65,6 +65,7 @@
         state.ui.module === 'islev' ? h('button', { type: 'button', class: 'gpill' + (state.ui.assistantOpen ? ' on' : ''), onclick: ctl.toggleAssistant, 'aria-pressed': String(!!state.ui.assistantOpen), title: 'Akıllı öneri panelini aç / kapat' },
           ui.icon('spark', 16), h('span', {}, 'Akıllı öneri'),
           issues ? h('span', { class: 'badge' + (state.ui.assistantOpen ? '' : ' pulse-badge') }, String(issues)) : null) : null),
+      ui.helpBtn ? gbtn('help', 'Başlangıç rehberi', { onclick: ui.helpBtn, title: 'Başlangıç sorularını yeniden aç' }) : null,
       ui.themeToggle(state),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
   };

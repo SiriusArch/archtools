@@ -1,7 +1,7 @@
 /* ==========================================================================
    47-ui-shell.js — archtools kabuğu: modül gezgini, ortak skor kadranı verisi,
    araç çubuğu ve sayfa iskeleti. Modüller yalnızca kendi içeriğini üretir.
-   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz
+   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -13,17 +13,25 @@
     { id: 'islev', n: '01', label: 'İşlev Şeması', sub: 'İşlev şeması · bubble diagram', shape: 'circle' },
     { id: 'kat', n: '02', label: 'Kat Etüdü', sub: 'Kat etüdü · plan blokları', shape: 'square' },
     { id: 'analiz', n: '03', label: 'Mekân Analizi', sub: 'Mekân analizi · patlatılmış izometrik', shape: 'triangle' },
+    { id: 'arsa', n: '04', label: 'Arsa Analizi', sub: 'Arsa analizi · çevre, erişim, ulaşım', shape: 'diamond' },
+    { id: 'imar', n: '05', label: 'İmar ve Kapasite', sub: 'İmar ve kapasite · parsel ve kütle', shape: 'plot' },
+    { id: 'yer', n: '06', label: 'Yer Seçimi', sub: 'Yer seçimi · aday karşılaştırma ve tarama', shape: 'target' },
   ];
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
   ui.moduleSub = (state) => ui.moduleInfo(state.ui.module).sub;
 
-  /* modül simgesi: daire · kare · üçgen (marka simgesinin üç parçası) */
+  /* modül simgesi: daire · kare · üçgen (marka simgesinin üç parçası) + eşkenar dörtgen · parsel · hedef */
   function shapeIcon(shape) {
     const p = { fill: 'currentColor', stroke: 'currentColor', 'stroke-width': 1.6, 'stroke-linejoin': 'round' };
-    const g = shape === 'circle' ? h('circle', Object.assign({ cx: 9, cy: 9, r: 6.2 }, p))
-      : shape === 'square' ? h('rect', Object.assign({ x: 3, y: 3, width: 12, height: 12, rx: 2 }, p))
-        : h('path', Object.assign({ d: 'M2.5 15.2L9 3l6.5 12.2z' }, p));
+    const q = { fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8, 'stroke-linejoin': 'round' };
+    let g;
+    if (shape === 'circle') g = h('circle', Object.assign({ cx: 9, cy: 9, r: 6.2 }, p));
+    else if (shape === 'square') g = h('rect', Object.assign({ x: 3, y: 3, width: 12, height: 12, rx: 2 }, p));
+    else if (shape === 'diamond') g = h('path', Object.assign({ d: 'M9 2L16 9 9 16 2 9z' }, p));
+    else if (shape === 'plot') g = h('path', Object.assign({ d: 'M2.6 6.6L9 2.4l6.4 4.6-2.2 8.2H5z' }, p));
+    else if (shape === 'target') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.4 }, q)), h('circle', Object.assign({ cx: 9, cy: 9, r: 2.6 }, p)));
+    else g = h('path', Object.assign({ d: 'M2.5 15.2L9 3l6.5 12.2z' }, p));
     return h('svg', { viewBox: '0 0 18 18', width: 16, height: 16, class: 'msh msh-' + shape, 'aria-hidden': 'true' }, g);
   }
 
@@ -128,8 +136,8 @@
   };
 
   /* Boş durum kartı: pafta üstünde */
-  ui.emptyCard = function (title, text, actions) {
-    return h('div', { class: 'empty-card' },
+  ui.emptyCard = function (title, text, actions, cls) {
+    return h('div', { class: 'empty-card' + (cls ? ' ' + cls : '') },
       h('h2', { class: 'empty-title' }, title),
       h('p', {}, text),
       h('div', { class: 'empty-actions' }, actions));
@@ -145,6 +153,9 @@
     const m = state.ui.module;
     if (m === 'kat' && ui.floors) return h('main', { class: 'main main-kat', key: 'main-kat' }, ui.floors.sidebar(state, d), ui.floors.board(state, d));
     if (m === 'analiz' && ui.analysis) return h('main', { class: 'main main-analiz', key: 'main-analiz' }, ui.analysis.sidebar(state, d), ui.analysis.board(state, d));
+    if (m === 'arsa' && ui.site) return h('main', { class: 'main main-arsa', key: 'main-arsa' }, ui.site.sidebar(state, d), ui.site.board(state, d));
+    if (m === 'imar' && ui.imar) return h('main', { class: 'main main-imar', key: 'main-imar' }, ui.imar.sidebar(state, d), ui.imar.board(state, d));
+    if (m === 'yer' && ui.yer) return h('main', { class: 'main main-yer', key: 'main-yer' }, ui.yer.sidebar(state, d), ui.yer.board(state, d));
     return h('main', { class: 'main main-islev', key: 'main-islev' }, ui.sidebar(state, d), ui.board(state, d), ui.assistant(state, d));
   };
 })();

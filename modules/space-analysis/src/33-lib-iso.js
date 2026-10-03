@@ -67,6 +67,39 @@
     return P;
   };
 
+
+  /* ---------- çokgen katı (herhangi bir halka): görünen yan yüzler + çatı ---------- */
+  // ring: plan koordinatında (u, v) halka · dönüş: { walls: [{ pts, f }], roof } — f: yüz parlaklık çarpanı
+  iso.extrudeFaces = function (I, ring, z0, z1) {
+    const n = ring.length;
+    let a = 0;
+    for (let i = 0; i < n; i++) { const p = ring[i], q = ring[(i + 1) % n]; a += p[0] * q[1] - q[0] * p[1]; }
+    const sgn = a >= 0 ? 1 : -1;
+    const walls = [];
+    if (z1 > z0 + 1e-6) {
+      for (let i = 0; i < n; i++) {
+        const p = ring[i], q = ring[(i + 1) % n];
+        const dx = q[0] - p[0], dy = q[1] - p[1];
+        const l = Math.hypot(dx, dy);
+        if (l < 1e-6) continue;
+        const nx = (sgn * dy) / l, ny = (-sgn * dx) / l;
+        if (nx * I.eye[0] + ny * I.eye[1] <= 1e-6) continue;
+        const nxs = nx * I.c - ny * I.sn;
+        const f = Math.abs(nxs) < 0.02 ? 0.84 : nxs > 0 ? 0.72 : 0.9;
+        walls.push({ pts: [I.proj(p[0], p[1], z1), I.proj(q[0], q[1], z1), I.proj(q[0], q[1], z0), I.proj(p[0], p[1], z0)], f: f });
+      }
+    }
+    return { walls: walls, roof: ring.map((q) => I.proj(q[0], q[1], z1)) };
+  };
+  iso.extrude = function (I, ring, z0, z1, fill, o) {
+    o = o || {};
+    const F = iso.extrudeFaces(I, ring, z0, z1);
+    const stroke = o.stroke || 'rgba(23,24,27,.28)', sw = o.sw || 1;
+    const P = F.walls.map((w) => ({ t: 'poly', pts: w.pts, fill: iso.shade(fill, w.f), stroke: stroke, sw: sw, opacity: o.opacity }));
+    P.push({ t: 'poly', pts: F.roof, fill: o.topFill || fill, stroke: stroke, sw: sw, opacity: o.opacity });
+    return P;
+  };
+
   /* ---------- düzlemde çizgi, tarama, ızgara ---------- */
   iso.seg = function (I, u0, v0, u1, v1, z, st) {
     const a = I.proj(u0, v0, z), b = I.proj(u1, v1, z);

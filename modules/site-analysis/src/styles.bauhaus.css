@@ -1,0 +1,58 @@
+/* Modül 4 · 5 · 6 — Bauhaus */
+
+.geo-item { border: 2px solid var(--line); background: var(--surface); }
+.geo-item:hover, .geo-item:focus-visible { background: var(--yellow); color: var(--on-yellow); box-shadow: 3px 3px 0 var(--shadow); }
+.geo-item:hover .geo-item-sub, .geo-item:focus-visible .geo-item-sub { color: var(--on-yellow); }
+.geo-item-sub { font-family: var(--f-mono); }
+.geo-item-act { font: 700 11px var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
+.geo-res { gap: 8px; }
+.geo-status { padding: 8px 10px; border: 2px solid var(--line); background: var(--surface); }
+.geo-status.err { background: var(--red); color: var(--on-red); }
+.spin { border-radius: 0; animation-timing-function: steps(8); }
+.loc-name { font: 700 13px var(--f-display); letter-spacing: .04em; }
+.loc-sub { font-family: var(--f-mono); }
+.loc-tag { border: 2px solid var(--line); background: var(--blue); color: var(--on-blue); font-family: var(--f-display); letter-spacing: .1em; }
+.loc-tag.demo { background: var(--yellow); color: var(--on-yellow); }
+
+.xmenu { border: 3px solid var(--line); background: var(--surface); box-shadow: 6px 6px 0 var(--shadow); }
+.xmenu-head b { font: 700 13px var(--f-display); letter-spacing: .1em; text-transform: uppercase; }
+.xmenu ul { gap: 6px; }
+.xmenu-i { border: 2px solid var(--line); background: var(--surface); }
+.xmenu-i:hover:not(:disabled), .xmenu-i:focus-visible { background: var(--surface-2); box-shadow: 3px 3px 0 var(--shadow); }
+.xmenu-k { border: 2px solid var(--line); background: var(--surface-2); font-family: var(--f-mono); }
+.xmenu-i.strong .xmenu-k { background: var(--blue); color: var(--on-blue); }
+.xmenu-t b { font: 700 12.5px var(--f-display); letter-spacing: .06em; text-transform: uppercase; }
+.board-ghost { border: 3px solid var(--line); background: var(--surface-2); }
+
+.nf-l { font: 600 11px var(--f-display); letter-spacing: .12em; text-transform: uppercase; }
+.nf-in { height: 36px; font-family: var(--f-mono); }
+.kv-k { font: 600 10.5px var(--f-display); letter-spacing: .12em; text-transform: uppercase; }
+.kv-v { font-family: var(--f-mono); font-weight: 500; }
+.edge-kind { border: 2px solid var(--line); background: var(--surface); color: var(--ink); font-family: var(--f-display); letter-spacing: .06em; text-transform: uppercase; }
+.edge-kind.k-on { background: var(--red); color: var(--on-red); }
+.edge-kind.k-yan { background: var(--yellow); color: var(--on-yellow); }
+.edge-kind.k-arka { background: var(--blue); color: var(--on-blue); }
+.edge-kind:hover { box-shadow: 2px 2px 0 var(--shadow); }
+.preset { border: 2px solid var(--line); background: var(--surface); color: var(--ink); font-family: var(--f-display); letter-spacing: .06em; text-transform: uppercase; font-size: 11.5px; }
+.preset:hover:not(:disabled) { background: var(--yellow); color: var(--on-yellow); box-shadow: 2px 2px 0 var(--shadow); }
+.scn, .cc { border: 3px solid var(--line); background: var(--surface); box-shadow: 4px 4px 0 var(--shadow); }
+.cc.sel { background: var(--surface-2); box-shadow: 4px 4px 0 var(--blue); }
+.cc.out { opacity: .8; }
+.scn-n { font: 700 13px var(--f-display); letter-spacing: .06em; text-transform: uppercase; }
+.cc-name { padding: 5px 8px; font: 700 13px var(--f-display); letter-spacing: .06em; text-transform: uppercase; background: var(--surface-2); }
+.cc-sub { font-family: var(--f-mono); }
+.cc-rank { border: 2px solid var(--line); background: var(--surface-2); font-family: var(--f-mono); }
+.cc-rank.first { background: var(--yellow); color: var(--on-yellow); }
+.cc-score { font-family: var(--f-mono); font-weight: 500; }
+.cc-state { border: 2px solid var(--line); font: 700 11px var(--f-display); letter-spacing: .08em; text-transform: uppercase; background: var(--surface-2); }
+.cc-state.ok { background: var(--green); color: var(--on-green); }
+.cc-state.bad { background: var(--red); color: var(--on-red); }
+.cc-state.wait { background: var(--yellow); color: var(--on-yellow); }
+.cc-sw.good { color: var(--green); font-weight: 600; }
+.cc-sw.weak { color: var(--red); font-weight: 600; }
+.peak { padding: 6px; border: 2px solid var(--line); background: var(--surface); }
+.peak-xy, .peak-s { font-family: var(--f-mono); }
+.peak .btn { padding: 4px 10px; font-size: 12px; }
+
+/* dört sekmeli çubuk (İmar): dar yan panelde taşmasın */
+.tabs > .tab:first-child:nth-last-child(4), .tabs > .tab:first-child:nth-last-child(4) ~ .tab { padding: 11px 4px; font-size: 12px; letter-spacing: .03em; min-width: 0; }

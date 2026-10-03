@@ -25,6 +25,9 @@
   if (first && first !== App.store.get().ui.module) App.store.dispatch({ type: 'UI', patch: { module: first } });
   App.route.setTitle(App.store.get().ui.module);
   App.ctl.loadAnView();
+  App.ctl.loadSiteView();
+  App.ctl.loadImarView();
+  const fromLink = App.ctl.hashSite(); // #/arsa?lat=…&lon=… paylaşım bağlantısı
 
   function view() {
     const state = App.store.get();
@@ -36,7 +39,8 @@
       App.ui.scorebar(state, d),
       App.ui.pageMain(state, d),
       h('div', { class: 'toast-zone', 'aria-live': 'polite', role: 'status' },
-        t ? h('div', { key: t.id, class: 'toast toast-' + t.kind }, t.msg) : null));
+        t ? h('div', { key: t.id, class: 'toast toast-' + t.kind }, t.msg) : null),
+      App.ui.welcome ? App.ui.welcome(state) : null);
   }
 
   const paint = App.mount(document.getElementById('root'), view);
@@ -71,5 +75,6 @@
   // açılış animasyonu: uygulama altta hazır, intro yumuşakça çözülür
   App.intro.start(function () {
     if (App.store.get().restored) setTimeout(function () { App.ctl.toast('Son çalışmanız geri yüklendi.'); }, 250);
+    if (!fromLink && App.welcome) App.welcome.maybe(); // ilk açılış soruları
   });
 })();
