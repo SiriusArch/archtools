@@ -1,0 +1,3075 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>İşlev Şeması Simülasyonu</title>
+<meta name="description" content="Retro-Bauhaus mimari işlev şeması (bubble diagram) simülasyonu">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=DM+Mono:wght@400;500&family=Jost:wght@400;500;600;700&display=swap">
+<style>
+/* ==========================================================================
+   Retro-Bauhaus tasarım dili
+   Belirteçler (:root) Tailwind'e taşınabilir: theme.extend.colors = { bg, surface, ink, blue, yellow, red, ... }
+   ========================================================================== */
+:root {
+  --bg: #E7D9B8;
+  --dot: rgba(38, 29, 17, 0.08);
+  --surface: #F5ECD5;
+  --surface-2: #EADFC0;
+  --ink: #261D11;
+  --ink-2: #5A4B33;
+  --line: #261D11;
+  --shadow: #261D11;
+  --blue: #00427A;
+  --blue-2: #0477BF;
+  --yellow: #EAAE1B;
+  --red: #C03A22;
+  --green: #3A8040;
+  --indigo: #4E5189;
+  --orange: #E87E1B;
+  --on-blue: #F5ECD5;
+  --on-yellow: #261D11;
+  --on-red: #F5ECD5;
+  --on-green: #F5ECD5;
+  --paper: #F1E6CB;
+  --f-display: 'Chakra Petch', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif;
+  --f-body: 'Jost', 'Futura', 'Century Gothic', 'Trebuchet MS', sans-serif;
+  --f-mono: 'DM Mono', 'Courier New', monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14100A; --dot: rgba(241, 230, 203, 0.07); --surface: #201A11; --surface-2: #2A2217;
+    --ink: #F1E6CB; --ink-2: #BFAF8E; --line: #CDBD98; --shadow: #000000;
+    --blue: #1F6BB0; --blue-2: #4FA3E8; --yellow: #F2B705; --red: #D9503A; --green: #3F8F4B; --indigo: #7479C9; --orange: #F08A2A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14100A; --dot: rgba(241, 230, 203, 0.07); --surface: #201A11; --surface-2: #2A2217;
+  --ink: #F1E6CB; --ink-2: #BFAF8E; --line: #CDBD98; --shadow: #000000;
+  --blue: #1F6BB0; --blue-2: #4FA3E8; --yellow: #F2B705; --red: #D9503A; --green: #3F8F4B; --indigo: #7479C9; --orange: #F08A2A;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px);
+  background-size: 20px 20px;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 3px dashed var(--blue-2); outline-offset: 2px; }
+
+#root { height: 100%; }
+.app { display: flex; flex-direction: column; min-height: 100%; padding: 0 0 24px; }
+
+/* ----------------------------- düğmeler & alanlar ----------------------------- */
+.lbl { display: block; font: 600 11px var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.inp {
+  width: 100%; min-width: 0; padding: 8px 10px; background: var(--surface); color: var(--ink);
+  border: 3px solid var(--line); border-radius: 0; font-family: var(--f-body); font-size: 15px; font-weight: 500;
+}
+.inp:focus { outline: none; box-shadow: 0 0 0 3px var(--blue-2); }
+.inp::placeholder { color: var(--ink-2); opacity: .7; }
+select.inp { appearance: none; padding-right: 28px; background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 15px) 55%, calc(100% - 10px) 55%; background-size: 5px 5px; background-repeat: no-repeat; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px;
+  font: 700 13px var(--f-display); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+  background: var(--surface); color: var(--ink); border: 3px solid var(--line); border-radius: 0;
+  box-shadow: 3px 3px 0 var(--shadow); cursor: pointer; transition: transform .09s ease, box-shadow .09s ease;
+  position: relative;
+}
+.btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--shadow); }
+.btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+.btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+.btn-primary { background: var(--red); color: var(--on-red); }
+.btn-yellow { background: var(--yellow); color: var(--on-yellow); }
+.btn-blue { background: var(--blue); color: var(--on-blue); }
+.btn-wide { width: 100%; }
+.btn[aria-pressed="true"] { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+.ico { flex: none; }
+.icon-btn { display: inline-grid; place-items: center; width: 30px; height: 30px; padding: 0; background: transparent; border: 2px solid transparent; color: var(--ink-2); cursor: pointer; }
+.icon-btn:hover { border-color: var(--line); color: var(--ink); background: var(--surface-2); }
+.badge { position: absolute; top: -10px; right: -10px; min-width: 22px; height: 22px; padding: 0 5px; display: grid; place-items: center; background: var(--red); color: var(--on-red); border: 2px solid var(--line); border-radius: 50%; font: 700 12px var(--f-mono); }
+.pulse-badge { animation: badge-pulse 1.8s ease-in-out infinite; }
+@keyframes badge-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+.attn { animation: attn 1.7s ease-in-out infinite; }
+@keyframes attn { 0%, 100% { box-shadow: 3px 3px 0 var(--shadow), 0 0 0 0 rgba(234, 174, 27, .85); } 55% { box-shadow: 3px 3px 0 var(--shadow), 0 0 0 11px rgba(234, 174, 27, 0); } }
+
+/* ----------------------------- üst çubuk ----------------------------- */
+.hdr {
+  position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px;
+  padding: 12px 16px; background: var(--surface); border-bottom: 4px solid var(--line); margin-bottom: 12px;
+}
+.hdr::after { content: ''; position: absolute; left: 0; right: 0; bottom: -12px; height: 8px; background: linear-gradient(90deg, var(--blue) 0 33.33%, var(--yellow) 33.33% 66.66%, var(--red) 66.66%); border-bottom: 3px solid var(--line); }
+.hdr-brand { display: flex; align-items: center; gap: 12px; }
+.logo { flex: none; }
+.hdr-title { margin: 0; font: 700 24px/1 var(--f-display); letter-spacing: .12em; }
+.hdr-sub { margin: 3px 0 0; font: 500 12px var(--f-body); letter-spacing: .16em; text-transform: uppercase; color: var(--ink-2); }
+.hdr-name { flex: 1 1 220px; max-width: 380px; min-width: 180px; }
+.hdr-name-row { display: flex; align-items: center; gap: 8px; }
+.tag-example { flex: none; font: 700 11px var(--f-display); letter-spacing: .14em; padding: 5px 8px; background: var(--orange); color: var(--on-yellow); border: 2px solid var(--line); }
+.hdr-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-left: auto; padding-top: 10px; }
+.sep { width: 3px; align-self: stretch; background: var(--line); opacity: .35; }
+
+/* ----------------------------- skor şeridi ----------------------------- */
+.scorebar {
+  display: grid; grid-template-columns: auto minmax(180px, 1fr) auto auto; align-items: center; gap: 12px 20px;
+  margin: 8px 16px 12px; padding: 10px 14px; background: var(--surface); border: 3px solid var(--line); box-shadow: 5px 5px 0 var(--shadow);
+}
+.score-main { display: flex; flex-direction: column; justify-content: center; min-width: 150px; padding: 6px 14px; border: 3px solid var(--line); background: var(--surface-2); color: var(--ink); transition: background-color .4s ease, color .4s ease; }
+.score-main .lbl { color: inherit; opacity: .85; margin: 0; }
+.score-num { font: 700 44px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.score-low { background: var(--red); color: var(--on-red); }
+.score-mid { background: var(--yellow); color: var(--on-yellow); }
+.score-good { background: var(--green); color: var(--on-green); }
+.meter { position: relative; height: 24px; border: 3px solid var(--line); background: var(--surface-2); overflow: hidden; }
+.meter-fill { position: absolute; inset: 0 auto 0 0; transition: width .55s cubic-bezier(.2,.8,.2,1), background-color .4s ease; }
+.meter-low { background: var(--red); } .meter-mid { background: var(--yellow); } .meter-good { background: var(--green); } .meter-none { background: var(--ink-2); }
+.tick { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--line); }
+.meter-msg { margin: 6px 0 0; font: 500 13px var(--f-body); color: var(--ink-2); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 0; padding: 0; list-style: none; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; font: 500 13px var(--f-body); background: var(--surface-2); border: 2px solid var(--line); white-space: nowrap; }
+.chip b { font-family: var(--f-mono); }
+.chip-warn { background: var(--orange); color: var(--on-yellow); }
+.swatch { display: inline-block; width: 22px; height: 0; border-top: 4px solid var(--ink); }
+.sw-strong { border-top: 7px double var(--ink); height: 0; }
+.sw-weak { border-top: 3px dashed var(--ink); }
+.sw-avoid { border-top: 3px dotted var(--red); }
+.issues-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--surface); border: 3px solid var(--line); font: 700 13px var(--f-display); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; }
+.issues-btn:hover { background: var(--surface-2); }
+.issues-btn.has-issues { background: var(--yellow); color: var(--on-yellow); }
+.issues-n { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 5px; background: var(--ink); color: var(--surface); font-family: var(--f-mono); border-radius: 50%; }
+
+/* ----------------------------- ana yerleşim ----------------------------- */
+.main { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; padding: 0 16px; }
+.board-wrap { order: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; }
+.sidebar { order: 2; min-width: 0; }
+.assistant { order: 3; }
+
+@media (min-width: 1024px) {
+  .app { height: 100%; min-height: 0; padding-bottom: 14px; overflow: hidden; }
+  .main { display: grid; grid-template-columns: minmax(310px, 370px) minmax(0, 1fr) auto; align-items: stretch; gap: 16px; overflow: hidden; }
+  .sidebar { order: 0; display: flex; flex-direction: column; min-height: 0; border: 3px solid var(--line); background: var(--surface); box-shadow: 5px 5px 0 var(--shadow); }
+  .side-body { overflow-y: auto; min-height: 0; flex: 1; }
+  .board-wrap { order: 0; }
+  .board-stage { flex: 1; min-height: 0; }
+  .board-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .assistant { order: 0; width: 0; overflow: hidden; visibility: hidden; transition: width .32s cubic-bezier(.2,.8,.2,1), visibility 0s .32s; }
+  .assistant.open { width: 410px; visibility: visible; transition: width .32s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+  .as-inner { width: 410px; height: 100%; }
+}
+@media (max-width: 1023px) {
+  .sidebar { border: 3px solid var(--line); background: var(--surface); box-shadow: 5px 5px 0 var(--shadow); }
+  .board-stage { aspect-ratio: 1400 / 990; }
+  .board-svg { width: 100%; height: 100%; }
+  .scorebar { grid-template-columns: auto 1fr; }
+  .chips, .issues-btn { grid-column: 1 / -1; }
+  .assistant { position: fixed; left: 0; right: 0; bottom: 0; height: min(78%, 640px); z-index: 20; transform: translateY(105%); transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s .3s; visibility: hidden; border-top: 4px solid var(--line); box-shadow: 0 -8px 0 var(--shadow); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--surface); }
+  .assistant.open { transform: none; visibility: visible; transition: transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+  .as-inner { height: 100%; }
+  .hdr-actions { margin-left: 0; width: 100%; }
+}
+@media (max-width: 640px) {
+  .lbl-hide { display: none; }
+  .hdr-title { font-size: 20px; }
+  .score-num { font-size: 36px; }
+  .scorebar { padding: 8px; margin-inline: 12px; }
+  .main { padding-inline: 12px; }
+}
+
+/* ----------------------------- pafta ----------------------------- */
+.board-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.board-scale { margin-left: auto; font: 500 12px var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.board-stage { position: relative; min-width: 0; }
+.board-svg { display: block; touch-action: none; user-select: none; -webkit-user-select: none; filter: drop-shadow(7px 7px 0 var(--shadow)); }
+.board-hint { display: flex; align-items: center; gap: 8px; margin: 2px 0 0; font: 500 13px var(--f-body); color: var(--ink-2); }
+.hint-x { display: inline-grid; place-items: center; width: 22px; height: 22px; background: transparent; border: 0; color: var(--ink-2); cursor: pointer; }
+.bubble { cursor: grab; outline: none; }
+.bubble:active { cursor: grabbing; }
+.bubble:focus-visible > circle:first-of-type { stroke: var(--blue-2); }
+.bubble.selected { filter: drop-shadow(4px 4px 0 rgba(38, 29, 17, .35)); }
+.sel-ring { animation: march 1.2s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -26; } }
+.rel-hit { cursor: pointer; }
+.far-strong { animation: far-pulse 1.5s ease-in-out infinite; }
+@keyframes far-pulse { 0%, 100% { stroke: #261D11; } 50% { stroke: #C03A22; } }
+.far-avoid { animation: far-fade 1.4s ease-in-out infinite; }
+@keyframes far-fade { 50% { opacity: .35; } }
+.locate-ring { animation: march 0.8s linear infinite; }
+.empty-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, 86%); padding: 18px 20px; background: var(--surface); border: 4px solid var(--line); box-shadow: 6px 6px 0 var(--shadow); text-align: left; }
+.empty-title { margin: 0 0 6px; font: 700 22px var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
+.empty-card p { margin: 0 0 14px; color: var(--ink-2); }
+.empty-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ----------------------------- sol panel ----------------------------- */
+.tabs { display: flex; border-bottom: 3px solid var(--line); background: var(--surface-2); }
+.tab { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 10px; background: transparent; border: 0; border-right: 3px solid var(--line); font: 700 13px var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); cursor: pointer; }
+.tab:last-child { border-right: 0; }
+.tab:hover { color: var(--ink); }
+.tab.on { background: var(--surface); color: var(--ink); box-shadow: inset 0 -5px 0 var(--red); }
+.tab-n { min-width: 22px; padding: 1px 6px; font: 600 12px var(--f-mono); background: var(--ink); color: var(--surface); border-radius: 11px; }
+.tab-n-warn { background: var(--red); color: var(--on-red); }
+.side-body { padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+.panel { border: 3px solid var(--line); background: var(--surface); padding: 12px; }
+.panel-title { margin: 0; font: 700 14px var(--f-display); letter-spacing: .12em; text-transform: uppercase; }
+.panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.count { font-size: 12px; color: var(--ink-2); }
+.add-form { display: flex; flex-direction: column; gap: 10px; background: var(--surface-2); }
+.add-row { display: flex; gap: 10px; }
+.fld { min-width: 0; }
+.fld-grow { flex: 1 1 auto; }
+.fld-area { flex: 0 0 96px; }
+.form-error { margin: 0; padding: 6px 8px; background: var(--red); color: var(--on-red); font-weight: 600; }
+.note { margin: 0; font-size: 13px; color: var(--ink-2); }
+.summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+.summary::-webkit-details-marker { display: none; }
+.summary::before { content: '+'; display: inline-grid; place-items: center; width: 20px; height: 20px; background: var(--ink); color: var(--surface); font-family: var(--f-mono); }
+.tpl[open] .summary::before { content: '–'; }
+.tpl-body { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.rows { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.row { border: 2px solid var(--line); background: var(--surface); }
+.row.sel { border-width: 3px; box-shadow: 4px 4px 0 var(--blue); }
+.row-main { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 8px; cursor: pointer; }
+.row-main:hover { background: var(--surface-2); }
+.dot { flex: none; width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid var(--line); }
+.row-name { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pill { flex: none; padding: 1px 6px; font: 700 10px var(--f-display); letter-spacing: .08em; text-transform: uppercase; border: 2px solid var(--line); }
+.pill-hata { background: var(--red); color: var(--on-red); }
+.pill-uyari { background: var(--yellow); color: var(--on-yellow); }
+.pill-oneri { background: var(--orange); color: var(--on-yellow); }
+.pill-ok { background: var(--green); color: var(--on-green); }
+.area-wrap { display: inline-flex; align-items: center; gap: 4px; flex: none; }
+.area-inp { width: 74px; padding: 4px 6px; font-size: 14px; text-align: right; }
+.unit { font: 500 12px var(--f-mono); color: var(--ink-2); }
+.row-detail { padding: 10px 10px 12px; border-top: 2px dashed var(--line); display: flex; flex-direction: column; gap: 10px; background: var(--surface-2); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sub-title { margin: 4px 0 0; font: 700 12px var(--f-display); letter-spacing: .12em; text-transform: uppercase; }
+.rel-list { display: flex; flex-direction: column; gap: 6px; }
+.rel-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.rel-name { display: inline-flex; align-items: center; gap: 7px; min-width: 0; font-size: 14px; font-weight: 500; }
+.rel-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seg { display: inline-flex; flex: none; border: 2px solid var(--line); }
+.seg-btn { width: 34px; height: 30px; display: grid; place-items: center; background: var(--surface); border: 0; border-right: 2px solid var(--line); font: 700 16px var(--f-body); cursor: pointer; }
+.seg-btn:last-child { border-right: 0; }
+.seg-btn:hover { background: var(--surface-2); }
+.seg-btn.on.seg-none { background: var(--ink-2); color: var(--surface); }
+.seg-btn.on.seg-strong { background: var(--blue); color: var(--on-blue); }
+.seg-btn.on.seg-weak { background: var(--yellow); color: var(--on-yellow); }
+.seg-btn.on.seg-avoid { background: var(--red); color: var(--on-red); }
+
+/* matris */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0; padding: 0; list-style: none; font-size: 13px; }
+.legend-i { display: inline-flex; align-items: center; gap: 4px; }
+.matrix-scroll { overflow: auto; max-height: 62vh; border: 2px solid var(--line); }
+.matrix { border-collapse: collapse; font-size: 13px; }
+.matrix th, .matrix td { padding: 0; border: 1px solid var(--ink-2); }
+.corner { background: var(--surface-2); }
+.mh { background: var(--surface-2); vertical-align: bottom; height: 112px; width: 34px; }
+.mh.on, .rh.on { background: var(--yellow); color: var(--on-yellow); }
+.mh-btn { width: 100%; height: 100%; padding: 6px 0; background: transparent; border: 0; cursor: pointer; }
+.vert { display: block; writing-mode: vertical-rl; transform: rotate(180deg); margin: 0 auto; max-height: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.rh { position: sticky; left: 0; z-index: 1; background: var(--surface-2); text-align: left; min-width: 120px; max-width: 150px; }
+.rh-btn { display: flex; align-items: center; gap: 6px; width: 100%; padding: 4px 8px; background: transparent; border: 0; text-align: left; cursor: pointer; font-weight: 600; }
+.rh-btn span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mc { background: var(--surface); }
+.mc.hot { background: var(--surface-2); }
+.mc-empty { background: repeating-linear-gradient(45deg, transparent 0 4px, var(--dot) 4px 8px); }
+.mcell { display: grid; place-items: center; width: 34px; height: 32px; padding: 0; background: transparent; border: 0; cursor: pointer; }
+.mcell:hover { background: var(--yellow); }
+.mcell-sym { font: 700 17px/1 var(--f-body); }
+.sym-strong { color: var(--blue-2); font-size: 20px; }
+.sym-weak { color: var(--ink); }
+.sym-avoid { color: var(--red); }
+.sym-none { color: var(--ink-2); opacity: .5; }
+.mcell-strong { background: color-mix(in srgb, var(--blue-2) 18%, transparent); }
+.mcell-avoid { background: color-mix(in srgb, var(--red) 14%, transparent); }
+
+/* ----------------------------- asistan ----------------------------- */
+.assistant { background: var(--surface); border: 3px solid var(--line); box-shadow: 5px 5px 0 var(--shadow); min-height: 0; }
+.as-inner { display: flex; flex-direction: column; min-height: 0; max-height: 100%; }
+.as-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 12px 14px; background: var(--yellow); color: var(--on-yellow); border-bottom: 3px solid var(--line); }
+.as-head .icon-btn { color: var(--on-yellow); }
+.as-title { margin: 0; font: 700 18px var(--f-display); letter-spacing: .14em; }
+.as-sub { margin: 2px 0 0; font-size: 12px; }
+.tabs-sm .tab { padding: 8px; font-size: 12px; }
+.as-body { padding: 12px; overflow-y: auto; min-height: 0; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.as-context { margin: 0; font-size: 13px; color: var(--ink-2); }
+.as-counts { display: flex; gap: 8px; flex-wrap: wrap; }
+.cnt { padding: 3px 9px; border: 2px solid var(--line); font-size: 13px; }
+.cnt b { font-family: var(--f-mono); }
+.cnt-hata { background: var(--red); color: var(--on-red); } .cnt-uyari { background: var(--yellow); color: var(--on-yellow); } .cnt-oneri { background: var(--surface-2); }
+.cards { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.card { padding: 10px 12px; border: 3px solid var(--line); background: var(--surface); box-shadow: 3px 3px 0 var(--shadow); }
+.card-hata { border-left-width: 10px; border-left-color: var(--red); }
+.card-uyari { border-left-width: 10px; border-left-color: var(--yellow); }
+.card-oneri { border-left-width: 10px; border-left-color: var(--blue-2); }
+.card-ok { border-left-width: 10px; border-left-color: var(--green); }
+.card-top { display: flex; align-items: flex-start; gap: 8px; }
+.lvl { flex: none; margin-top: 2px; padding: 2px 6px; font: 700 10px var(--f-display); letter-spacing: .12em; border: 2px solid var(--line); }
+.lvl-hata { background: var(--red); color: var(--on-red); } .lvl-uyari { background: var(--yellow); color: var(--on-yellow); } .lvl-oneri { background: var(--blue); color: var(--on-blue); } .lvl-ok { background: var(--green); color: var(--on-green); }
+.card-title { margin: 0; font: 700 15px/1.25 var(--f-body); }
+.card-detail { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-2); }
+.src-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 8px; }
+.src-lbl { font: 600 10px var(--f-display); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.src-chip { padding: 1px 7px; font: 500 11px var(--f-mono); background: var(--surface-2); border: 1.5px solid var(--line); cursor: help; }
+.act-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.act-btn { padding: 5px 9px; font: 600 12.5px var(--f-body); background: var(--surface); border: 2px solid var(--line); box-shadow: 2px 2px 0 var(--shadow); cursor: pointer; text-align: left; }
+.act-btn:hover { background: var(--yellow); color: var(--on-yellow); }
+.act-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--shadow); }
+.as-ask { padding: 0; gap: 0; overflow: hidden; }
+.msgs { flex: 1; min-height: 120px; margin: 0; padding: 12px; list-style: none; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.msg { max-width: 94%; padding: 9px 11px; border: 2.5px solid var(--line); font-size: 14px; }
+.msg-user { align-self: flex-end; background: var(--blue); color: var(--on-blue); }
+.msg-bot { align-self: flex-start; background: var(--surface); box-shadow: 3px 3px 0 var(--shadow); }
+.msg-p { margin: 0 0 6px; } .msg-p:last-child { margin-bottom: 0; }
+.msg-ul, .msg-ol { margin: 4px 0 6px; padding-left: 20px; } .msg-ul li, .msg-ol li { margin: 2px 0; }
+.msg-kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 4px 0 8px; padding: 8px; background: var(--surface-2); border: 2px solid var(--line); }
+.msg-kv dt { font-weight: 600; } .msg-kv dd { margin: 0; text-align: right; }
+.qchips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; border-top: 3px solid var(--line); background: var(--surface-2); }
+.qchip { padding: 4px 9px; font: 500 12.5px var(--f-body); background: var(--surface); border: 2px solid var(--line); border-radius: 14px; cursor: pointer; }
+.qchip:hover { background: var(--yellow); color: var(--on-yellow); }
+.ask-form { display: flex; gap: 8px; padding: 10px 12px; border-top: 3px solid var(--line); }
+
+/* ----------------------------- bildirim ----------------------------- */
+.toast-zone { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; pointer-events: none; width: min(520px, calc(100% - 32px)); display: flex; justify-content: center; }
+.toast { padding: 10px 16px; background: var(--ink); color: var(--surface); border: 3px solid var(--line); box-shadow: 4px 4px 0 var(--shadow); font-weight: 600; animation: toast-in .28s cubic-bezier(.2,.9,.3,1.2); }
+.toast-success { background: var(--green); color: var(--on-green); }
+.toast-error { background: var(--red); color: var(--on-red); }
+@keyframes toast-in { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+}
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+/* ==========================================================================
+   00-core.js — ortak yardımcılar, mini sanal-DOM (h/patch), store
+   Tüm modüller window.App altında toplanır; mantık katmanları (lib/*) arayüzden
+   bağımsızdır ve ileride React vb. bir arayüze olduğu gibi taşınabilir.
+   ========================================================================== */
+(function () {
+  const App = (window.App = window.App || {});
+  const U = (App.util = {});
+
+  U.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  U.uid = () => 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  U.pairKey = (a, b) => (a < b ? a + '|' + b : b + '|' + a);
+  U.norm = (s) =>
+    String(s == null ? '' : s)
+      .toLocaleLowerCase('tr')
+      .replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/ı/g, 'i')
+      .replace(/ö/g, 'o').replace(/ş/g, 's').replace(/ü/g, 'u').replace(/â/g, 'a')
+      .replace(/[^a-z0-9+ ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  U.slug = (s) => U.norm(s).replace(/ /g, '-').replace(/[^a-z0-9+-]/g, '') || 'proje';
+  U.fmt = (n, d) => {
+    if (n == null || isNaN(n)) return '—';
+    const r = Math.round(n * Math.pow(10, d == null ? 1 : d)) / Math.pow(10, d == null ? 1 : d);
+    return r.toLocaleString('tr-TR', { maximumFractionDigits: d == null ? 1 : d });
+  };
+  U.sum = (arr, f) => arr.reduce((t, x) => t + (f ? f(x) : x), 0);
+  U.mid = (r) => (r[0] + r[1]) / 2;
+  U.round5 = (n) => Math.round(n * 2) / 2;
+  U.today = () => {
+    const d = new Date();
+    return String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + d.getFullYear();
+  };
+
+  /* ---------- mini sanal DOM ---------- */
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  function h(tag, props) {
+    props = props || {};
+    const kids = [];
+    (function flat(a) {
+      for (let i = 0; i < a.length; i++) {
+        const k = a[i];
+        if (Array.isArray(k)) flat(k);
+        else if (k === null || k === undefined || k === false || k === true) continue;
+        else if (typeof k === 'object') kids.push(k);
+        else kids.push({ text: String(k) });
+      }
+    })(Array.prototype.slice.call(arguments, 2));
+    return { tag: tag, props: props, children: kids, key: props.key };
+  }
+
+  const BOOL = { checked: 1, disabled: 1, selected: 1, hidden: 1, readOnly: 1 };
+
+  function setProps(el, o, n, svg) {
+    for (const k in o) if (!(k in n) && k !== 'key' && k !== 'ref' && k !== 'value' && k !== 'keep') clearProp(el, k, svg);
+    for (const k in n) {
+      if (k === 'key' || k === 'value' || k === 'keep') continue;
+      const v = n[k];
+      if (k === 'ref') { if (typeof v === 'function') v(el); continue; }
+      if (k.charCodeAt(0) === 111 && k.charCodeAt(1) === 110 && typeof v === 'function') { el[k.toLowerCase()] = v; continue; }
+      if (o[k] === v && k !== 'style') continue;
+      if (k === 'class') { if (svg) el.setAttribute('class', v || ''); else el.className = v || ''; }
+      else if (k === 'style') {
+        if (v && typeof v === 'object') {
+          let css = '';
+          for (const s in v) if (v[s] != null && v[s] !== false) css += s.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()) + ':' + v[s] + ';';
+          if (el.getAttribute('style') !== css) el.setAttribute('style', css);
+        } else if (v) el.setAttribute('style', v); else el.removeAttribute('style');
+      } else if (BOOL[k]) el[k] = !!v;
+      else if (k === 'html') el.innerHTML = v;
+      else if (v === false || v == null) el.removeAttribute(k);
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+  }
+  function clearProp(el, k, svg) {
+    if (k.charCodeAt(0) === 111 && k.charCodeAt(1) === 110) el[k.toLowerCase()] = null;
+    else if (k === 'class') { if (svg) el.removeAttribute('class'); else el.className = ''; }
+    else if (BOOL[k]) el[k] = false;
+    else el.removeAttribute(k);
+  }
+  function applyValue(el, props) {
+    if ('value' in props) {
+      const v = props.value == null ? '' : String(props.value);
+      if (el.value !== v && !(props.keep && document.activeElement === el)) el.value = v;
+    }
+  }
+
+  function create(v, svg) {
+    if (v.tag === undefined) { v.el = document.createTextNode(v.text); return v.el; }
+    const isSvg = svg || v.tag === 'svg';
+    const el = isSvg ? document.createElementNS(SVG_NS, v.tag) : document.createElement(v.tag);
+    setProps(el, {}, v.props, isSvg);
+    const childSvg = isSvg && v.tag !== 'foreignObject';
+    for (let i = 0; i < v.children.length; i++) el.appendChild(create(v.children[i], childSvg));
+    applyValue(el, v.props);
+    v.el = el;
+    return el;
+  }
+
+  function patchEl(el, o, n, svg) {
+    const isSvg = svg || n.tag === 'svg';
+    setProps(el, o.props, n.props, isSvg);
+    patchChildren(el, o.children, n.children, isSvg && n.tag !== 'foreignObject');
+    applyValue(el, n.props);
+    n.el = el;
+  }
+
+  function patchChildren(parent, oc, nc, svg) {
+    const keyed = new Map();
+    for (let i = 0; i < oc.length; i++) if (oc[i].key != null) keyed.set(oc[i].key, oc[i]);
+    const used = new Set();
+    const els = [];
+    for (let i = 0; i < nc.length; i++) {
+      const n = nc[i];
+      let o = null;
+      if (n.key != null) o = keyed.get(n.key) || null;
+      else if (oc[i] && oc[i].key == null) o = oc[i];
+      if (o && !used.has(o) && o.tag === n.tag) {
+        used.add(o);
+        if (n.tag === undefined) { if (o.text !== n.text) o.el.nodeValue = n.text; n.el = o.el; }
+        else patchEl(o.el, o, n, svg);
+      } else create(n, svg);
+      els.push(n.el);
+    }
+    for (let i = 0; i < oc.length; i++) {
+      const o = oc[i];
+      if (!used.has(o) && o.el && o.el.parentNode === parent) parent.removeChild(o.el);
+    }
+    let ref = parent.firstChild;
+    for (let i = 0; i < els.length; i++) {
+      if (els[i] === ref) ref = ref.nextSibling;
+      else parent.insertBefore(els[i], ref);
+    }
+  }
+
+  App.h = h;
+  App.mount = function (container, render) {
+    let prev = null;
+    return function paint() {
+      const next = render();
+      if (!prev || prev.tag !== next.tag) { container.textContent = ''; container.appendChild(create(next, false)); }
+      else patchEl(prev.el, prev, next, false);
+      prev = next;
+    };
+  };
+  App.raf = function (fn) {
+    let queued = false;
+    return function () {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; fn(); });
+    };
+  };
+
+  /* ---------- store ---------- */
+  App.createStore = function (reducer, initial) {
+    let state = initial;
+    const subs = new Set();
+    return {
+      get: () => state,
+      dispatch(a) {
+        const next = reducer(state, a);
+        if (next !== state) { state = next; subs.forEach((f) => f(state, a)); }
+      },
+      subscribe(f) { subs.add(f); return () => subs.delete(f); },
+    };
+  };
+})();
+
+/* ==========================================================================
+   10-data-palette.js — Retro-Bauhaus renk belirteçleri (design tokens)
+   Renkler referans afişlerden alınmıştır (lacivert/sarı/kırmızı/yeşil/indigo/turuncu).
+   Tailwind'e taşırken: theme.extend.colors.bauhaus = App.PAL
+   ========================================================================== */
+(function () {
+  const App = window.App;
+
+  App.PAL = {
+    ink: '#261D11',
+    paper: '#F1E6CB',
+    paperDark: '#D9C9A3',
+    blue: '#00427A',
+    blueBright: '#0477BF',
+    yellow: '#EAAE1B',
+    red: '#C03A22',
+    green: '#3A8040',
+    indigo: '#4E5189',
+    orange: '#E87E1B',
+  };
+
+  App.FONTS = {
+    d: "'Chakra Petch','Futura','Century Gothic','Trebuchet MS',sans-serif",
+    b: "'Jost','Futura','Century Gothic','Trebuchet MS',sans-serif",
+    m: "'DM Mono','Courier New',monospace",
+  };
+
+  // Mekan bölgeleri (zone): daire rengi + üzerindeki yazı rengi
+  App.ZONES = {
+    sosyal:      { label: 'Sosyal / kamusal',    fill: '#EAAE1B', text: '#261D11' },
+    ozel:        { label: 'Özel / dinlenme',     fill: '#00427A', text: '#F1E6CB' },
+    servis:      { label: 'Islak / servis',      fill: '#C03A22', text: '#F1E6CB' },
+    calisma:     { label: 'Çalışma / eğitim',    fill: '#3A8040', text: '#F1E6CB' },
+    sirkulasyon: { label: 'Sirkülasyon',         fill: '#D9C9A3', text: '#261D11' },
+    teknik:      { label: 'Teknik / depo',       fill: '#4E5189', text: '#F1E6CB' },
+    acik:        { label: 'Açık / yarı açık',    fill: '#E87E1B', text: '#261D11' },
+  };
+  App.ZONE_ORDER = ['sosyal', 'ozel', 'servis', 'calisma', 'sirkulasyon', 'teknik', 'acik'];
+
+  // İlişki türleri
+  App.REL = {
+    strong: { label: 'Güçlü',       short: 'Güçlü',  sym: '●', weight: 3 },
+    weak:   { label: 'Zayıf',       short: 'Zayıf',  sym: '○', weight: 1 },
+    none:   { label: 'İlişkisiz',   short: 'Yok',    sym: '·', weight: 0 },
+    avoid:  { label: 'Ayrı tut',    short: 'Ayrı',   sym: '✕', weight: 2 },
+  };
+  App.REL_CYCLE = ['none', 'strong', 'weak', 'avoid'];
+
+  // Anahtar kelimeden bölge tahmini (kullanıcının yazdığı serbest mekan adları için)
+  App.ZONE_HINTS = [
+    ['servis', ['wc', 'banyo', 'tuvalet', 'lavabo', 'mutfak', 'camasir', 'dus', 'islak', 'hasta wc', 'bulasik', 'temizlik']],
+    ['sirkulasyon', ['antre', 'hol', 'koridor', 'sirkulasyon', 'merdiven', 'asansor', 'lobi', 'giris', 'fuaye', 'bekleme']],
+    ['ozel', ['yatak', 'ebeveyn', 'cocuk odasi', 'uyku', 'giyinme', 'mudur', 'idare', 'yonetici', 'ofis', 'rehberlik', 'muayene']],
+    ['calisma', ['derslik', 'sinif', 'atolye', 'laboratuvar', 'lab', 'calisma', 'kutuphane', 'okuma', 'galeri', 'sergi', 'toplanti', 'egitim', 'studuyo', 'studyo']],
+    ['teknik', ['depo', 'kiler', 'teknik', 'kazan', 'sunucu', 'arsiv', 'garaj', 'jenerator', 'siginak', 'yukleme', 'mal kabul']],
+    ['acik', ['balkon', 'teras', 'bahce', 'avlu', 'veranda', 'otopark']],
+    ['sosyal', ['salon', 'oturma', 'yemek', 'restoran', 'kafe', 'mutfak salon', 'misafir', 'cok amacli', 'kantin', 'bar', 'magaza', 'resepsiyon']],
+  ];
+})();
+
+/* ==========================================================================
+   11-data-knowledge.js — Akıllı öneri asistanının hazır bilgi tabanı
+   Kaynaklar: (1) Türk mevzuatı ve bakanlık kılavuzları (sert alt sınır),
+   (2) uluslararası rehberler (tipik/ideal aralık), (3) yüklenen kitaplardaki
+   mekân organizasyonu ve dolaşım kavramları (Ching), (4) bu çalışmanın sentezi (S).
+   min = mevzuat asgarisi (null: sayısal asgari yok) | typ = tipik aralık | ideal = ideal aralık
+   Alan birimi: m². Veri yapısı JSON'a uygundur; modüller arası paylaşım için tasarlanmıştır.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+
+  const SOURCES = {
+    'PAİY':    { label: 'Planlı Alanlar İmar Yönetmeliği (md. 29)', kind: 'Mevzuat', trust: 'çok yüksek' },
+    'İst.İY':  { label: 'İstanbul İmar Yönetmeliği (md. 31)', kind: 'Mevzuat', trust: 'çok yüksek' },
+    'MEB15':   { label: 'MEB Eğitim Yapıları Asgari Tasarım Standartları Kılavuzu 2015', kind: 'Bakanlık kılavuzu', trust: 'çok yüksek' },
+    'ÖÖK':     { label: 'MEB Özel Öğretim Kurumları Standartlar Yönergesi', kind: 'Yönerge', trust: 'yüksek' },
+    'KREŞ':    { label: 'Özel Kreş ve Gündüz Bakımevleri Yönetmeliği', kind: 'Mevzuat', trust: 'çok yüksek' },
+    'AHUY':    { label: 'Aile Hekimliği Uygulama Yönetmeliği', kind: 'Mevzuat', trust: 'çok yüksek' },
+    'ATTY':    { label: 'Ayakta Teşhis ve Tedavi Yapılan Özel Sağlık Kuruluşları Yönetmeliği', kind: 'Mevzuat', trust: 'çok yüksek' },
+    'TTNY':    { label: 'Turizm Tesislerinin Niteliklerine İlişkin Yönetmelik (2024 değ.)', kind: 'Mevzuat', trust: 'çok yüksek' },
+    'NDSS':    { label: 'İngiltere Nationally Described Space Standard', kind: 'Yabancı standart', trust: 'yüksek' },
+    'BCO':     { label: 'British Council for Offices — ofis yoğunluğu', kind: 'Sektör rehberi', trust: 'orta-yüksek' },
+    'GSA':     { label: 'GSA / Gensler — Sirkülasyon (2012); UNM Verimlilik Rehberi', kind: 'Kurumsal rehber', trust: 'orta-yüksek' },
+    'Dahlgren':{ label: 'Dahlgren — Public Library Space Needs (2009)', kind: 'Rehber', trust: 'orta-yüksek' },
+    'Ching':   { label: 'Ching — Mimarlık: Biçim, Mekan ve Düzen (yüklenen kitap)', kind: 'Literatür', trust: 'yüksek' },
+    'White':   { label: 'E. T. White — Space Adjacency Analysis (1986)', kind: 'Literatür', trust: 'yüksek' },
+    'TOKİ':    { label: 'TOKİ proje belgeleri (net/brüt oranları)', kind: 'Uygulama verisi', trust: 'orta' },
+    'S':       { label: 'Sentez: kaynaklı değerlerden türetilmiş öneri; kullanım ile kalibre edilmeli', kind: 'Sentez', trust: 'orta' },
+  };
+
+  const E = (key, name, zone, min, typ, ideal, o) =>
+    Object.assign({ key: key, name: name, zone: zone, min: min, typ: typ, ideal: ideal || typ, req: true, noise: 'mid', kw: [name], note: '', src: 'S' }, o || {});
+
+  /* ------------------------------ KONUT ------------------------------ */
+  function konut(n, villa) {
+    const e = [];
+    e.push(E('antre', 'Antre', 'sirkulasyon', null, [3, 6], [4, 8], { kw: ['antre', 'giris', 'vestiyer'], src: 'S', note: 'Hol/koridor genişliği en az 1,20 m olmalı (İstanbul: 1,10 m). Antre + hol toplamı net alanın yaklaşık %8–14’ü.' }));
+    if (n >= 3 || villa) e.push(E('hol', 'Yatak Holü', 'sirkulasyon', null, [3, 6], [4, 7], { kw: ['yatak holu', 'hol', 'koridor'], req: false, src: 'S', note: 'Yatak odalarını ve banyoyu salondan ayıran özel bölge; koridor ≥ 1,20 m.' }));
+    e.push(E('salon', 'Salon', 'sosyal', 12, [18, 28], [22, 32], { kw: ['salon', 'oturma', 'yasam', 'living'], src: 'PAİY', note: 'Oturma odası en az 12 m², dar kenar 3,00 m. Tipik aralık uygulama verisidir.' }));
+    e.push(E('yemek', 'Yemek Alanı', 'sosyal', null, [8, 12], [10, 14], { kw: ['yemek'], req: false, src: 'S', note: 'Açık planlı salon–mutfakta mutfak nişi + oda minimumlarının toplamı aranır (12 + 3,30 m²).' }));
+    e.push(E('mutfak', 'Mutfak', 'servis', 3.3, [8, 14], [10, 14], { kw: ['mutfak', 'kitchen'], noise: 'mid', src: 'PAİY', note: 'Mutfak en az 3,30 m² (dar kenar 1,50 m). Mutfak, oda ve banyo/WC havalandırmaları aynı boşluğa açılamaz.' }));
+    e.push(E('yatak1', 'Ebeveyn Yatak Odası', 'ozel', 9, [12, 16], [14, 18], { kw: ['ebeveyn', 'yatak odasi 1', 'master', 'yatak odasi', 'yatak'], noise: 'quiet', src: 'PAİY', note: 'Yatak odası en az 9 m², dar kenar 2,50 m (İstanbul İmar Yönetmeliği: 8 m² / 2,40 m). NDSS çift kişilik oda ≥ 11,5 m².' }));
+    for (let i = 2; i <= n; i++) {
+      e.push(E('yatak' + i, 'Yatak Odası ' + i, 'ozel', 9, [9, 12], [11, 14], { kw: ['yatak odasi ' + i, 'cocuk odasi ' + (i - 1), 'cocuk', 'yatak odasi', 'yatak'], noise: 'quiet', src: 'PAİY', note: 'En az 9 m²; tek kişilik oda için NDSS ≥ 7,5 m² (Türk asgarisi daha büyük).' }));
+    }
+    e.push(E('banyo', 'Banyo', 'servis', 3, [5, 8], [6, 8], { kw: ['banyo', 'dus', 'bath'], src: 'PAİY', note: 'Banyo en az 3,00 m², dar kenar 1,50 m (İstanbul: 1,20 m). En fazla 3 odalı konutta banyo ve WC birleştirilebilir.' }));
+    if (n >= 3 || villa) e.push(E('banyo2', 'Ebeveyn Banyosu', 'servis', null, [3.5, 5], [5, 6], { kw: ['ebeveyn banyo', 'ensuit', 'en suite'], req: false, src: 'S', note: 'Yalnızca ebeveyn yatak odasına açılır.' }));
+    e.push(E('wc', 'WC', 'servis', 1.2, [1.5, 2.5], [2, 2.5], { kw: ['wc', 'tuvalet', 'misafir wc'], req: n >= 3 || villa, src: 'PAİY', note: 'WC en az 1,20 m², dar kenar 1,00 m. Misafir WC’si antre/salon tarafında olmalı; mutfağa ve yemek alanına doğrudan açılmamalı.' }));
+    e.push(E('balkon', 'Balkon', 'acik', null, [4, 8], [6, 12], { kw: ['balkon', 'teras'], req: false, src: 'S', note: 'Salonu tamamlayan balkon; servis balkonu mutfağa bağlanır.' }));
+    e.push(E('kiler', 'Kiler / Depo', 'teknik', null, [1.5, 3], [3, 5], { kw: ['kiler', 'depo', 'camasir', 'dolap'], req: false, src: 'NDSS', note: 'NDSS iç depo: 1 yatak odalı 1,5 m², 2 yatak odalı 2,0 m². En sık unutulan mekân.' }));
+    if (villa) {
+      e.push(E('calisma', 'Çalışma Odası', 'ozel', null, [9, 14], [12, 16], { kw: ['calisma', 'ofis'], req: false, noise: 'quiet', src: 'S' }));
+      e.push(E('misafir', 'Misafir Odası + WC', 'ozel', 9, [12, 16], [14, 18], { kw: ['misafir odasi', 'misafir'], req: false, noise: 'quiet', src: 'PAİY', note: 'Misafir odası zemin katta, yatak katından ayrı olmalı.' }));
+      e.push(E('garaj', 'Garaj', 'teknik', null, [15, 30], [18, 36], { kw: ['garaj', 'otopark'], req: false, src: 'S' }));
+      e.push(E('teknik', 'Kazan / Teknik Oda', 'teknik', null, [4, 8], [6, 10], { kw: ['kazan', 'teknik'], req: false, noise: 'loud', src: 'S', note: 'Servis girişinden erişilmeli; yatak odalarından uzak.' }));
+      e.push(E('merdiven', 'Merdiven', 'sirkulasyon', null, [6, 10], [8, 12], { kw: ['merdiven'], req: true, src: 'PAİY', note: 'İç yükseklik ≥ 2,60 m.' }));
+    }
+    const has = (k) => e.some((x) => x.key === k);
+    const R = [
+      ['antre', 'salon', 'strong'], ['antre', 'mutfak', 'weak'], ['antre', 'wc', 'strong'],
+      ['salon', 'yemek', 'strong'], ['salon', 'balkon', 'strong'], ['salon', 'mutfak', 'weak'], ['yemek', 'mutfak', 'strong'],
+      ['mutfak', 'kiler', 'strong'], ['mutfak', 'balkon', 'weak'],
+      ['salon', 'yatak1', 'avoid'], ['salon', 'banyo', 'avoid'], ['mutfak', 'wc', 'avoid'], ['mutfak', 'yatak1', 'avoid'],
+      ['yatak1', 'banyo2', 'strong'], ['banyo', 'wc', 'strong'],
+      ['hol', 'banyo', 'strong'], ['hol', 'yatak1', 'strong'], ['hol', 'salon', 'weak'],
+      ['garaj', 'antre', 'weak'], ['garaj', 'yatak1', 'avoid'], ['teknik', 'yatak1', 'avoid'], ['teknik', 'garaj', 'weak'],
+      ['misafir', 'antre', 'weak'], ['calisma', 'salon', 'avoid'], ['merdiven', 'antre', 'strong'],
+    ];
+    for (let i = 2; i <= n; i++) {
+      R.push([has('hol') ? 'hol' : 'antre', 'yatak' + i, has('hol') ? 'strong' : 'weak']);
+      R.push(['yatak' + i, 'banyo', 'weak']);
+      R.push(['salon', 'yatak' + i, 'avoid']);
+      R.push(['mutfak', 'yatak' + i, 'avoid']);
+    }
+    if (!has('hol')) { R.push(['antre', 'yatak1', 'weak']); R.push(['yatak1', 'banyo', 'strong']); R.push(['antre', 'banyo', 'weak']); }
+    return { entries: e, relations: R };
+  }
+
+  /* ------------------------ DİĞER BİNA TİPLERİ ------------------------ */
+  const OFIS = {
+    entries: [
+      E('resepsiyon', 'Resepsiyon / Bekleme', 'sirkulasyon', null, [10, 20], [14, 24], { kw: ['resepsiyon', 'bekleme', 'giris', 'karsilama'], src: 'S' }),
+      E('acik', 'Açık Ofis', 'calisma', null, [100, 120], [110, 130], { kw: ['acik ofis', 'calisma alani', 'ofis'], src: 'BCO', note: 'Tasarım yoğunluğu çalışma yeri başına yaklaşık 10 m² (BCO 2022). Tarihsel aralık 8–13 m². Örnek program 10 kişiliktir.' }),
+      E('yonetici', 'Yönetici Odası', 'ozel', null, [12, 16], [16, 20], { kw: ['yonetici', 'mudur', 'direktor'], noise: 'quiet', src: 'S' }),
+      E('toplanti', 'Toplantı Odası', 'calisma', null, [16, 28], [20, 32], { kw: ['toplanti'], src: 'S', note: 'Her 8–12 kişiye bir toplantı odası; misafir toplantıları için resepsiyona yakın.' }),
+      E('cay', 'Çay Ocağı / Mutfak', 'servis', null, [6, 12], [8, 14], { kw: ['cay', 'mutfak', 'kafeterya'], noise: 'loud', src: 'S' }),
+      E('wc', 'WC', 'servis', null, [8, 14], [10, 16], { kw: ['wc', 'tuvalet'], src: 'S' }),
+      E('arsiv', 'Arşiv / Depo', 'teknik', null, [5, 15], [8, 18], { kw: ['arsiv', 'depo'], req: false, src: 'S' }),
+      E('sunucu', 'Sunucu / Teknik Oda', 'teknik', null, [4, 10], [6, 12], { kw: ['sunucu', 'teknik'], req: false, src: 'S', note: 'Islak hacimlerin altına/yanına gelmemeli.' }),
+      E('foto', 'Fotokopi Nişi', 'teknik', null, [3, 6], [4, 8], { kw: ['fotokopi', 'yazici'], req: false, noise: 'loud', src: 'S' }),
+      E('koridor', 'Koridor / Sirkülasyon', 'sirkulasyon', null, [30, 45], [35, 50], { kw: ['koridor', 'sirkulasyon', 'hol'], src: 'GSA', note: 'Ofiste sirkülasyon brüt alanın yaklaşık %16–28’i; kapalı ofis ağırlıklı planlarda %30’u aşabilir.' }),
+    ],
+    relations: [
+      ['resepsiyon', 'toplanti', 'strong'], ['resepsiyon', 'acik', 'weak'], ['acik', 'toplanti', 'strong'], ['acik', 'yonetici', 'weak'],
+      ['acik', 'cay', 'weak'], ['cay', 'wc', 'weak'], ['acik', 'foto', 'strong'], ['yonetici', 'toplanti', 'weak'],
+      ['sunucu', 'cay', 'avoid'], ['sunucu', 'wc', 'avoid'], ['yonetici', 'cay', 'avoid'], ['acik', 'arsiv', 'weak'],
+    ],
+  };
+
+  const OKUL = {
+    entries: [
+      E('giris', 'Giriş Holü / Kapalı Teneffüs', 'sirkulasyon', null, [90, 160], [120, 180], { kw: ['giris', 'hol', 'teneffus'], src: 'MEB15' }),
+      E('mudur', 'Müdür ve Yardımcıları', 'ozel', null, [30, 45], [35, 55], { kw: ['mudur', 'idare'], noise: 'quiet', src: 'MEB15', note: 'Alan verilmemiş (ihtiyaç programına bağlı). Müdür odası girişlere ve öğrenci alanlarına hâkim olmalı.' }),
+      E('ogretmen', 'Öğretmenler Odası', 'ozel', null, [40, 60], [45, 70], { kw: ['ogretmen'], noise: 'quiet', src: 'MEB15' }),
+      E('rehber', 'Rehberlik Servisi', 'ozel', null, [15, 25], [18, 28], { kw: ['rehber', 'veli'], noise: 'quiet', src: 'MEB15', note: 'Girişe yakın olmalı.' }),
+      E('derslik', 'Derslik Grubu (12)', 'calisma', 666, [666, 720], [700, 780], { kw: ['derslik', 'sinif'], noise: 'quiet', src: 'MEB15', note: '30 öğrencilik derslik; ortaokul/lisede ≥ 1,85 m²/öğrenci (ilkokulda 1,60). 12 derslik için 12 × 30 × 1,85 = 666 m².' }),
+      E('lab', 'Fen Laboratuvarı', 'calisma', 55.5, [56, 65], [60, 72], { kw: ['laboratuvar', 'lab', 'fen'], src: 'MEB15', note: '≥ 1,85 m²/kişi + hazırlık odası; tercihen zemin kat.' }),
+      E('muzik', 'Müzik Dersliği', 'calisma', 55.5, [56, 70], [60, 75], { kw: ['muzik'], noise: 'loud', src: 'MEB15', note: 'Dersliklerden uzak, ses yalıtımlı alanda olmalı.' }),
+      E('gorsel', 'Görsel Sanatlar Dersliği', 'calisma', 55.5, [56, 70], [60, 75], { kw: ['gorsel', 'resim'], req: false, src: 'MEB15' }),
+      E('kutuphane', 'Kütüphane', 'calisma', 60, [60, 100], [80, 120], { kw: ['kutuphane'], noise: 'quiet', src: 'MEB15', note: '≥ 1,50 m²/kişi (çalışma salonu); yarısı okuma, yarısı raf.' }),
+      E('cokamacli', 'Çok Amaçlı Salon', 'sosyal', 180, [180, 300], [220, 320], { kw: ['cok amacli', 'konferans', 'salon'], noise: 'loud', src: 'MEB15', note: 'Oturma alanında ≥ 1,20 m²/kişi; dersliklerden uzak, zemin kat.' }),
+      E('yemekhane', 'Yemekhane', 'sosyal', 234, [234, 270], [250, 300], { kw: ['yemekhane'], noise: 'loud', src: 'MEB15', note: '≥ 1,30 m²/kişi; öğrencilerin %50’si 15’er dakikalık periyotlarla. (360 öğrenci örneği)' }),
+      E('mutfak', 'Yemekhane Mutfağı', 'servis', 117, [120, 150], [130, 160], { kw: ['mutfak'], noise: 'loud', src: 'MEB15', note: 'Pişirme alanı salonun en az %50’si; servis girişi öğrenci sirkülasyonuyla kesişmemeli.' }),
+      E('kantin', 'Kantin', 'sosyal', null, [40, 80], [50, 90], { kw: ['kantin'], req: false, noise: 'loud', src: 'S' }),
+      E('wck', 'Öğrenci WC (Kız)', 'servis', null, [30, 45], [35, 50], { kw: ['wc kiz', 'kiz wc', 'kiz', 'wc'], src: 'MEB15', note: 'Her 20 öğrenciye 1 WC + 1 lavabo; her katta ayrı kız/erkek. WC’ler laboratuvar/mutfak üzerine gelmemeli.' }),
+      E('wce', 'Öğrenci WC (Erkek)', 'servis', null, [30, 45], [35, 50], { kw: ['wc erkek', 'erkek wc', 'erkek', 'wc'], src: 'MEB15', note: 'Pisuar ayrıca; her katta engelli WC.' }),
+      E('koridor', 'Koridor / Sirkülasyon', 'sirkulasyon', null, [500, 700], [550, 720], { kw: ['koridor', 'sirkulasyon', 'merdiven'], src: 'MEB15', note: 'Sirkülasyon alanı, eğitsel+sosyal+idari alanların %50–60’ı (brütün yaklaşık %33–37’si). Çift taraflı koridor ≥ 3,00 m.' }),
+      E('spor', 'Spor Salonu', 'sosyal', null, [300, 500], [400, 600], { kw: ['spor'], req: false, noise: 'loud', src: 'S' }),
+      E('teknik', 'Kazan / Teknik', 'teknik', null, [30, 60], [40, 70], { kw: ['kazan', 'teknik', 'jenerator'], req: false, noise: 'loud', src: 'MEB15', note: 'Bodrumda/arka cephede; servis yolu tören alanından ayrı.' }),
+    ],
+    relations: [
+      ['giris', 'mudur', 'strong'], ['giris', 'rehber', 'strong'], ['giris', 'kantin', 'weak'], ['giris', 'koridor', 'strong'],
+      ['koridor', 'derslik', 'strong'], ['derslik', 'wck', 'strong'], ['derslik', 'wce', 'strong'], ['derslik', 'lab', 'weak'], ['derslik', 'kutuphane', 'weak'],
+      ['derslik', 'muzik', 'avoid'], ['derslik', 'cokamacli', 'avoid'], ['derslik', 'spor', 'avoid'], ['kutuphane', 'muzik', 'avoid'], ['kutuphane', 'cokamacli', 'avoid'],
+      ['yemekhane', 'mutfak', 'strong'], ['yemekhane', 'kantin', 'weak'], ['mudur', 'ogretmen', 'weak'], ['cokamacli', 'giris', 'weak'], ['teknik', 'derslik', 'avoid'],
+    ],
+  };
+
+  const KRES = {
+    entries: [
+      E('giris', 'Giriş / Karşılama', 'sirkulasyon', null, [10, 20], [14, 24], { kw: ['giris', 'karsilama', 'antre'], src: 'S' }),
+      E('oyun', 'Oyun ve Etkinlik Odası', 'sosyal', 15, [40, 50], [45, 60], { kw: ['oyun', 'etkinlik'], noise: 'loud', src: 'KREŞ', note: 'Oda ≥ 15 m²; çocuk başına ≥ 2 m² + 6 m³ hava. Kapasite bu odaların alanından hesaplanır (örnek: 20 çocuk).' }),
+      E('uyku', 'Uyku Odası', 'ozel', 15, [20, 40], [25, 45], { kw: ['uyku'], noise: 'quiet', src: 'KREŞ', note: 'KREŞ: ≥ 2 m² + 6 m³/çocuk; MEB15: 1,50 m²/kişi; ÖÖK: ≥ 3 m² + 10 m³/öğrenci. Kurumun bağlı olduğu bakanlığa göre seçin.' }),
+      E('emekleme', 'Oyun / Emekleme Odası', 'sosyal', 15, [20, 40], [25, 45], { kw: ['emekleme'], req: false, noise: 'loud', src: 'KREŞ', note: 'Uyku odasına denk büyüklükte; kapasiteye dahil edilmez.' }),
+      E('bahce', 'Oyun Bahçesi', 'acik', 30, [40, 80], [60, 100], { kw: ['bahce', 'oyun bahcesi'], src: 'KREŞ', note: '≥ 1,5 m²/çocuk; sınıflardan doğrudan bahçeye çıkılabilmeli.' }),
+      E('mutfak', 'Mutfak', 'servis', null, [10, 18], [12, 20], { kw: ['mutfak'], src: 'S' }),
+      E('yemek', 'Yemek Odası', 'sosyal', null, [15, 25], [18, 28], { kw: ['yemek'], req: false, src: 'S' }),
+      E('idare', 'İdare / Müdür Odası', 'ozel', 10, [10, 15], [12, 16], { kw: ['idare', 'mudur'], noise: 'quiet', src: 'ÖÖK', note: 'Müdür odası ≥ 10 m²; girişe yakın, kontrol görüşü.' }),
+      E('veli', 'Veli Görüşme', 'ozel', 15, [15, 20], [16, 22], { kw: ['veli', 'gorusme'], req: false, noise: 'quiet', src: 'ÖÖK' }),
+      E('wc', 'Çocuk WC / Lavabo', 'servis', null, [8, 14], [10, 16], { kw: ['wc', 'lavabo', 'tuvalet'], src: 'MEB15', note: 'Her 30 öğrenciye 1 WC + 1 lavabo (MEB15); etkinlik odalarına bitişik, yaşa uygun lavabo yüksekliği.' }),
+      E('bakim', 'Bebek Bakım / Alt Değiştirme', 'servis', null, [6, 10], [8, 12], { kw: ['bakim', 'alt degistirme'], req: false, src: 'S' }),
+      E('depo', 'Depo', 'teknik', null, [4, 8], [5, 10], { kw: ['depo'], req: false, src: 'S' }),
+    ],
+    relations: [
+      ['giris', 'idare', 'strong'], ['giris', 'veli', 'weak'], ['oyun', 'bahce', 'strong'], ['oyun', 'wc', 'strong'], ['oyun', 'uyku', 'weak'],
+      ['uyku', 'emekleme', 'strong'], ['yemek', 'mutfak', 'strong'], ['oyun', 'yemek', 'weak'], ['uyku', 'bahce', 'avoid'], ['uyku', 'mutfak', 'avoid'],
+      ['mutfak', 'oyun', 'avoid'], ['bakim', 'uyku', 'weak'],
+    ],
+  };
+
+  const OTEL = {
+    entries: [
+      E('lobi', 'Lobi / Resepsiyon', 'sirkulasyon', null, [40, 80], [50, 90], { kw: ['lobi', 'resepsiyon', 'giris'], src: 'S' }),
+      E('bagaj', 'Bagaj Odası', 'teknik', null, [6, 12], [8, 14], { kw: ['bagaj'], req: false, src: 'S' }),
+      E('oda', 'Oda Grubu (10)', 'ozel', 200, [220, 320], [250, 320], { kw: ['oda', 'standart oda', 'suit'], noise: 'quiet', src: 'TTNY', note: '4★ otelde oda banyo dahil ≥ 20 m², 5★’ta ≥ 25 m² (RG 22.12.2024). 10 oda × 20 m² = 200 m².' }),
+      E('restoran', 'Restoran / Kahvaltı Salonu', 'sosyal', null, [60, 120], [80, 140], { kw: ['restoran', 'kahvalti', 'yemek'], noise: 'loud', src: 'S' }),
+      E('mutfak', 'Mutfak', 'servis', null, [25, 50], [30, 60], { kw: ['mutfak'], noise: 'loud', src: 'S' }),
+      E('katofis', 'Kat Ofisi', 'teknik', null, [6, 12], [8, 14], { kw: ['kat ofisi'], src: 'TTNY', note: 'Servis akışı lobiden geçmemeli.' }),
+      E('camasir', 'Çamaşırhane', 'servis', null, [15, 30], [18, 36], { kw: ['camasir'], noise: 'loud', src: 'S' }),
+      E('personel', 'Personel (Soyunma / Yemek)', 'teknik', null, [15, 30], [18, 32], { kw: ['personel'], src: 'S' }),
+      E('yonetim', 'Yönetim Ofisi', 'ozel', null, [12, 20], [14, 22], { kw: ['yonetim', 'ofis'], req: false, src: 'S' }),
+      E('depo', 'Depo', 'teknik', null, [10, 25], [12, 28], { kw: ['depo'], req: false, src: 'S' }),
+      E('teknik', 'Teknik Oda', 'teknik', null, [10, 25], [12, 28], { kw: ['teknik', 'kazan'], req: false, noise: 'loud', src: 'S' }),
+      E('koridor', 'Kat Koridoru / Sirkülasyon', 'sirkulasyon', null, [60, 90], [70, 100], { kw: ['koridor', 'sirkulasyon', 'merdiven', 'asansor'], src: 'S' }),
+    ],
+    relations: [
+      ['lobi', 'bagaj', 'strong'], ['lobi', 'restoran', 'strong'], ['lobi', 'yonetim', 'strong'], ['lobi', 'koridor', 'strong'], ['koridor', 'oda', 'strong'],
+      ['mutfak', 'restoran', 'strong'], ['katofis', 'oda', 'strong'], ['camasir', 'katofis', 'strong'], ['personel', 'mutfak', 'weak'], ['depo', 'mutfak', 'weak'],
+      ['mutfak', 'lobi', 'avoid'], ['camasir', 'lobi', 'avoid'], ['teknik', 'oda', 'avoid'], ['restoran', 'oda', 'avoid'],
+    ],
+  };
+
+  const ASM = {
+    entries: [
+      E('bekleme', 'Bekleme', 'sirkulasyon', 25, [28, 45], [35, 50], { kw: ['bekleme', 'giris', 'hol'], src: 'AHUY', note: 'Tek hekimde ≥ 20 m², her ek hekim için +5 m² (Ek-1). 1 hekim için ≥ 5 koltuk, her ek hekim +3.' }),
+      E('kayit', 'Kayıt / Danışma', 'sosyal', null, [8, 15], [10, 16], { kw: ['kayit', 'danisma'], src: 'S' }),
+      E('muayene1', 'Muayene Odası 1', 'ozel', 10, [14, 16], [14, 18], { kw: ['muayene odasi 1', 'muayene'], noise: 'quiet', src: 'AHUY', note: 'ASM’de muayene odası ≥ 10 m², lavabolu (Ek-1 puanlamasında 14 m²). Poliklinikte ise ≥ 16 m² (ATTY).' }),
+      E('muayene2', 'Muayene Odası 2', 'ozel', 10, [14, 16], [14, 18], { kw: ['muayene odasi 2', 'muayene'], noise: 'quiet', src: 'AHUY' }),
+      E('asi', 'Aşı / İzlem Odası', 'ozel', 10, [10, 14], [12, 16], { kw: ['asi', 'izlem', 'bebek'], src: 'AHUY', note: 'Müstakil oda ≥ 10 m²; her 3 hekime 1 oda.' }),
+      E('mudahale', 'Müdahale / Pansuman', 'servis', 10, [10, 14], [12, 16], { kw: ['mudahale', 'pansuman'], src: 'AHUY' }),
+      E('wc', 'Hasta WC', 'servis', null, [3, 6], [4, 7], { kw: ['wc', 'tuvalet'], src: 'S', note: 'Engelli erişimi ve acil çağrı düğmesi.' }),
+      E('personel', 'Personel / Dinlenme', 'ozel', null, [10, 16], [12, 18], { kw: ['personel', 'dinlenme'], req: false, src: 'S' }),
+      E('depo', 'Depo / İlaç', 'teknik', null, [4, 8], [5, 10], { kw: ['depo', 'ilac'], req: false, src: 'S' }),
+      E('koridor', 'Koridor', 'sirkulasyon', null, [20, 35], [25, 40], { kw: ['koridor', 'sirkulasyon'], src: 'S', note: 'Merdiven ve sahanlık sedye için ≥ 1,30 m.' }),
+    ],
+    relations: [
+      ['bekleme', 'kayit', 'strong'], ['bekleme', 'wc', 'strong'], ['bekleme', 'koridor', 'strong'], ['koridor', 'muayene1', 'strong'], ['koridor', 'muayene2', 'strong'],
+      ['muayene1', 'mudahale', 'weak'], ['asi', 'bekleme', 'weak'], ['mudahale', 'asi', 'weak'], ['depo', 'mudahale', 'weak'],
+      ['muayene1', 'bekleme', 'avoid'], ['muayene2', 'bekleme', 'avoid'], ['personel', 'bekleme', 'avoid'],
+    ],
+  };
+  const POLI = {
+    entries: [
+      E('bekleme', 'Bekleme', 'sirkulasyon', 25, [30, 45], [35, 50], { kw: ['bekleme', 'giris'], src: 'ATTY', note: 'Poliklinikte ≥ 20 m²; ikiden fazla her muayene odası için +5 m². Bekleme amaçlı orta koridor ≥ 3 m.' }),
+      E('kayit', 'Kayıt / Danışma', 'sosyal', null, [8, 15], [10, 16], { kw: ['kayit', 'danisma'], src: 'S' }),
+      E('muayene1', 'Muayene Odası 1', 'ozel', 16, [16, 20], [18, 22], { kw: ['muayene odasi 1', 'muayene'], noise: 'quiet', src: 'ATTY', note: '≥ 16 m² (8 m² hekim + 8 m² muayene alanı); soyunma bölümü ve lavabo.' }),
+      E('muayene2', 'Muayene Odası 2', 'ozel', 16, [16, 20], [18, 22], { kw: ['muayene odasi 2', 'muayene'], noise: 'quiet', src: 'ATTY' }),
+      E('muayene3', 'Muayene Odası 3', 'ozel', 16, [16, 20], [18, 22], { kw: ['muayene odasi 3', 'muayene'], noise: 'quiet', src: 'ATTY' }),
+      E('mudahale', 'Pansuman / Müdahale', 'servis', 10, [10, 14], [12, 16], { kw: ['mudahale', 'pansuman'], src: 'ATTY' }),
+      E('wc', 'Hasta WC', 'servis', null, [3, 6], [4, 7], { kw: ['wc', 'tuvalet'], src: 'ATTY', note: 'Bekleme salonuna koridorla bağlı, acil çağrı ve tutamaçlı.' }),
+      E('koridor', 'Koridor', 'sirkulasyon', null, [25, 40], [30, 45], { kw: ['koridor', 'sirkulasyon'], src: 'S' }),
+      E('depo', 'Depo / Steril', 'teknik', null, [4, 10], [6, 12], { kw: ['depo', 'steril'], req: false, src: 'S' }),
+    ],
+    relations: [
+      ['bekleme', 'kayit', 'strong'], ['bekleme', 'wc', 'strong'], ['bekleme', 'koridor', 'strong'], ['koridor', 'muayene1', 'strong'], ['koridor', 'muayene2', 'strong'], ['koridor', 'muayene3', 'strong'],
+      ['muayene1', 'mudahale', 'weak'], ['muayene1', 'bekleme', 'avoid'], ['muayene2', 'bekleme', 'avoid'], ['muayene3', 'bekleme', 'avoid'], ['mudahale', 'depo', 'weak'],
+    ],
+  };
+
+  const KUTUP = {
+    entries: [
+      E('giris', 'Giriş / Kontrol / Ödünç', 'sirkulasyon', null, [25, 45], [30, 50], { kw: ['giris', 'kontrol', 'odunc'], src: 'S' }),
+      E('yetiskin', 'Yetişkin Koleksiyon + Okuma', 'calisma', null, [150, 230], [180, 260], { kw: ['yetiskin', 'koleksiyon', 'raf'], noise: 'quiet', src: 'Dahlgren', note: 'Okuyucu oturma yeri 2,3–3,7 m² (ort. 2,8 m²) ve raf yoğunluğu ortalama ≈ 108 cilt/m².' }),
+      E('cocuk', 'Çocuk Bölümü', 'sosyal', null, [45, 80], [55, 90], { kw: ['cocuk'], noise: 'loud', src: 'S', note: 'Ayrı ve tanınabilir; sessiz okumadan uzak.' }),
+      E('sessiz', 'Sessiz Okuma / Çalışma', 'calisma', null, [60, 110], [70, 120], { kw: ['sessiz', 'calisma', 'okuma'], noise: 'quiet', src: 'Dahlgren' }),
+      E('etkinlik', 'Etkinlik / Toplantı Salonu', 'sosyal', null, [40, 80], [50, 90], { kw: ['etkinlik', 'toplanti', 'salon'], noise: 'loud', src: 'S' }),
+      E('depo', 'Depo / Arşiv', 'teknik', null, [15, 40], [20, 45], { kw: ['depo', 'arsiv'], src: 'S' }),
+      E('personel', 'Personel / İşlem', 'ozel', null, [15, 30], [18, 32], { kw: ['personel', 'islem'], src: 'S' }),
+      E('wc', 'WC', 'servis', null, [12, 20], [14, 22], { kw: ['wc', 'tuvalet'], src: 'S' }),
+      E('kafe', 'Kafe', 'sosyal', null, [20, 40], [25, 45], { kw: ['kafe'], req: false, noise: 'loud', src: 'S' }),
+    ],
+    relations: [
+      ['giris', 'yetiskin', 'strong'], ['giris', 'cocuk', 'weak'], ['yetiskin', 'sessiz', 'strong'], ['giris', 'wc', 'weak'], ['giris', 'etkinlik', 'weak'],
+      ['depo', 'personel', 'strong'], ['etkinlik', 'sessiz', 'avoid'], ['cocuk', 'sessiz', 'avoid'], ['kafe', 'sessiz', 'avoid'], ['giris', 'personel', 'weak'],
+    ],
+  };
+
+  const RESTORAN = {
+    entries: [
+      E('giris', 'Giriş / Bekleme', 'sirkulasyon', null, [8, 15], [10, 18], { kw: ['giris', 'bekleme'], src: 'S' }),
+      E('salon', 'Yemek Salonu', 'sosyal', null, [60, 100], [70, 110], { kw: ['salon', 'yemek', 'restoran'], noise: 'loud', src: 'S', note: 'Kişi başı yaklaşık 1,0–1,5 m² (gündelik 0,9–1,1; lüks 1,5–1,9 m²). Örnek program 60 kişiliktir. Kaba kural: salon %60, mutfak+hazırlık+depo %40.' }),
+      E('bar', 'Bar / Servis Tezgâhı', 'sosyal', null, [8, 15], [10, 18], { kw: ['bar', 'servis', 'tezgah'], noise: 'loud', src: 'S' }),
+      E('mutfak', 'Mutfak', 'servis', null, [30, 50], [35, 55], { kw: ['mutfak'], noise: 'loud', src: 'S' }),
+      E('bulasik', 'Bulaşık / Çöp', 'servis', null, [4, 8], [5, 9], { kw: ['bulasik', 'cop'], src: 'S' }),
+      E('wc', 'Müşteri WC', 'servis', null, [8, 14], [10, 16], { kw: ['wc', 'tuvalet'], src: 'S', note: 'Mutfağa ve yemek alanına doğrudan açılmamalı.' }),
+      E('malkabul', 'Mal Kabul / Depo', 'teknik', null, [10, 20], [12, 22], { kw: ['mal kabul', 'depo'], src: 'S', note: 'Müşteri girişiyle kesişmeyen ayrı servis girişi.' }),
+      E('soguk', 'Soğuk Hava Deposu', 'teknik', null, [4, 8], [5, 9], { kw: ['soguk'], req: false, src: 'S' }),
+      E('personel', 'Personel (Soyunma / WC)', 'teknik', null, [6, 10], [7, 12], { kw: ['personel', 'soyunma'], src: 'S' }),
+      E('teras', 'Teras', 'acik', null, [20, 60], [30, 80], { kw: ['teras', 'bahce'], req: false, src: 'S' }),
+    ],
+    relations: [
+      ['giris', 'salon', 'strong'], ['salon', 'bar', 'strong'], ['bar', 'mutfak', 'weak'], ['mutfak', 'bulasik', 'strong'], ['mutfak', 'malkabul', 'strong'],
+      ['mutfak', 'salon', 'strong'], ['malkabul', 'soguk', 'strong'], ['giris', 'wc', 'weak'], ['salon', 'teras', 'strong'],
+      ['wc', 'mutfak', 'avoid'], ['wc', 'salon', 'weak'], ['malkabul', 'giris', 'avoid'], ['malkabul', 'salon', 'avoid'],
+    ],
+  };
+
+  const MUZE = {
+    entries: [
+      E('giris', 'Giriş / Bilet / Vestiyer', 'sirkulasyon', null, [30, 60], [40, 70], { kw: ['giris', 'bilet', 'vestiyer'], src: 'S' }),
+      E('kalici', 'Kalıcı Sergi Salonu', 'calisma', null, [150, 300], [180, 320], { kw: ['kalici', 'sergi'], noise: 'quiet', src: 'S', note: 'Kalıcı sergiler toplam alanın yaklaşık %40’ı. Galeri : galeri dışı ≈ 48 : 52 (ikincil kaynak).' }),
+      E('gecici', 'Geçici Sergi Salonu', 'calisma', null, [80, 150], [100, 170], { kw: ['gecici'], req: false, noise: 'quiet', src: 'S' }),
+      E('depo', 'Koleksiyon Deposu', 'teknik', null, [60, 120], [70, 140], { kw: ['koleksiyon', 'depo'], src: 'S', note: 'Koleksiyon hacmi + planlı büyüme + bağışlar için yaklaşık %15 ek alan; depo ekipman izdüşümüne %60 sirkülasyon.' }),
+      E('karantina', 'Kasa Açma / Karantina', 'teknik', null, [15, 30], [18, 34], { kw: ['kasa acma', 'karantina'], src: 'S' }),
+      E('yukleme', 'Yükleme Alanı', 'teknik', null, [20, 40], [25, 45], { kw: ['yukleme', 'mal kabul'], noise: 'loud', src: 'S', note: 'Koleksiyon rotası kamusal alanlardan geçmemeli.' }),
+      E('magaza', 'Mağaza', 'sosyal', null, [15, 30], [18, 34], { kw: ['magaza', 'hediye'], req: false, src: 'S' }),
+      E('kafe', 'Kafe', 'sosyal', null, [30, 60], [35, 70], { kw: ['kafe'], req: false, noise: 'loud', src: 'S' }),
+      E('egitim', 'Eğitim Atölyesi', 'calisma', null, [30, 50], [35, 55], { kw: ['egitim', 'atolye'], req: false, noise: 'loud', src: 'S' }),
+      E('ofis', 'Ofis', 'ozel', null, [20, 40], [24, 44], { kw: ['ofis', 'idare'], src: 'S' }),
+      E('wc', 'WC', 'servis', null, [12, 24], [14, 26], { kw: ['wc', 'tuvalet'], src: 'S', note: 'Islak hacimler depo/galeri üzerinde yer almamalı.' }),
+      E('konservasyon', 'Konservasyon', 'teknik', null, [20, 40], [24, 44], { kw: ['konservasyon', 'restorasyon'], req: false, src: 'S' }),
+    ],
+    relations: [
+      ['giris', 'kalici', 'strong'], ['giris', 'magaza', 'weak'], ['giris', 'kafe', 'weak'], ['kalici', 'gecici', 'strong'], ['giris', 'wc', 'weak'],
+      ['yukleme', 'karantina', 'strong'], ['karantina', 'depo', 'strong'], ['depo', 'gecici', 'weak'], ['depo', 'konservasyon', 'strong'], ['ofis', 'depo', 'weak'],
+      ['yukleme', 'giris', 'avoid'], ['yukleme', 'kalici', 'avoid'], ['kafe', 'kalici', 'avoid'], ['wc', 'depo', 'avoid'], ['egitim', 'kalici', 'avoid'],
+    ],
+  };
+
+  const ATOLYE = {
+    entries: [
+      E('giris', 'Giriş / Karşılama', 'sirkulasyon', null, [8, 15], [10, 18], { kw: ['giris', 'karsilama'], src: 'S' }),
+      E('atolye', 'Atölye', 'calisma', 22.5, [28, 45], [32, 50], { kw: ['atolye', 'studyo', 'studuyo'], noise: 'loud', src: 'MEB15', note: 'Özel kurumlarda öğrenci başına ≥ 1,5 m² (ÖÖK), kamu okulunda 1,85 m² (MEB15). Örnek: 15 öğrenci.' }),
+      E('malzeme', 'Malzeme Deposu', 'teknik', null, [6, 12], [8, 14], { kw: ['malzeme', 'depo'], src: 'S' }),
+      E('islak', 'Islak Alan / Temizlik', 'servis', null, [4, 8], [5, 9], { kw: ['islak', 'temizlik', 'lavabo'], src: 'S' }),
+      E('boya', 'Boya / Havalandırmalı Bölüm', 'teknik', null, [8, 15], [10, 18], { kw: ['boya', 'havalandirma'], req: false, noise: 'loud', src: 'S' }),
+      E('sergi', 'Sergi / Galeri', 'sosyal', null, [20, 40], [25, 45], { kw: ['sergi', 'galeri'], req: false, src: 'S' }),
+      E('ofis', 'Eğitmen / Ofis', 'ozel', null, [8, 14], [10, 16], { kw: ['egitmen', 'ofis'], noise: 'quiet', src: 'S' }),
+      E('wc', 'WC', 'servis', null, [4, 8], [5, 9], { kw: ['wc', 'tuvalet'], src: 'S' }),
+    ],
+    relations: [
+      ['atolye', 'malzeme', 'strong'], ['atolye', 'islak', 'strong'], ['atolye', 'sergi', 'weak'], ['giris', 'sergi', 'strong'], ['giris', 'ofis', 'weak'], ['atolye', 'boya', 'weak'], ['giris', 'wc', 'weak'],
+      ['atolye', 'ofis', 'avoid'],
+    ],
+  };
+
+  const GENEL = {
+    entries: [
+      E('giris', 'Giriş', 'sirkulasyon', null, [6, 15], [8, 18], { kw: ['giris', 'antre', 'lobi'], src: 'S' }),
+      E('ana', 'Ana Kullanım Alanı', 'sosyal', null, [40, 100], [60, 120], { kw: ['ana'], src: 'S' }),
+      E('wc', 'WC', 'servis', null, [3, 8], [4, 10], { kw: ['wc', 'tuvalet'], src: 'S' }),
+      E('depo', 'Depo', 'teknik', null, [4, 12], [6, 14], { kw: ['depo'], req: false, src: 'S' }),
+      E('koridor', 'Sirkülasyon', 'sirkulasyon', null, [8, 20], [10, 24], { kw: ['koridor', 'sirkulasyon', 'hol'], src: 'S' }),
+    ],
+    relations: [['giris', 'ana', 'strong'], ['giris', 'wc', 'weak'], ['ana', 'depo', 'weak']],
+  };
+
+  const k1 = konut(1, false), k2 = konut(2, false), k3 = konut(3, false), k4 = konut(4, false), kv = konut(4, true);
+
+  const TYPES = [
+    { key: 'konut', label: 'Konut', circ: [0.08, 0.14], circNote: 'Konutta antre + hol + koridor net alanın yaklaşık %8–14’ü (TOKİ örneklerinde net/brüt ≈ 0,74–0,82).',
+      notes: ['Mevzuat yalnızca asgari piyes ölçülerini verir; “tipik/ideal” değerler uygulama verisidir.', 'İl yönetmeliği PAİY’den farklı olabilir (ör. İstanbul: yatak odası 8 m², hol 1,10 m).', 'Islak hacimler tesisat şaftı etrafında gruplanır; ancak mutfak, oda ve WC/banyo havalandırmaları aynı boşluğa açılamaz.'],
+      variants: [
+        { key: '1+1', label: '1+1 Daire', entries: k1.entries, relations: k1.relations },
+        { key: '2+1', label: '2+1 Daire', entries: k2.entries, relations: k2.relations },
+        { key: '3+1', label: '3+1 Daire', entries: k3.entries, relations: k3.relations },
+        { key: '4+1', label: '4+1 Daire', entries: k4.entries, relations: k4.relations },
+        { key: 'villa', label: 'Müstakil Villa', entries: kv.entries, relations: kv.relations },
+      ] },
+    { key: 'ofis', label: 'Ofis', circ: [0.16, 0.28], circNote: 'Ofiste sirkülasyon brüt alanın yaklaşık %16’sı (UNM) ile kullanılabilir alanın %28–38’i (GSA/Gensler) arasında değişir.',
+      notes: ['Türkiye’de ofis için ulusal m²/kişi standardı yok; BCO 2022 çalışma yeri başına 10 m² öneriyor (WC/asansör hesabında efektif 16,7 m²/kişi).'],
+      variants: [{ key: '10kisi', label: '10 kişilik ofis', entries: OFIS.entries, relations: OFIS.relations }] },
+    { key: 'okul', label: 'Okul', circ: [0.33, 0.37], circNote: 'MEB 2015: sirkülasyon, eğitsel + sosyal + idari alanların %50–60’ı (brütün yaklaşık %33–37’si).',
+      notes: ['Okul modülü MEB 2015 Kılavuzu’na dayanır; derslik 30 öğrenci, ilkokulda ≥ 1,60, ortaokul/lisede ≥ 1,85 m²/öğrenci.', 'Kılavuz 2015 tarihlidir; daha yeni bir revizyon olup olmadığını kontrol edin.', 'Çift taraflı koridor ≥ 3,00 m; her 20 öğrenciye 1 WC + 1 lavabo.'],
+      variants: [{ key: 'ortaokul12', label: 'Ortaokul (12 derslik)', entries: OKUL.entries, relations: OKUL.relations }] },
+    { key: 'kres', label: 'Kreş / Anaokulu', circ: [0.15, 0.25], circNote: 'Kreş için resmî sirkülasyon oranı yok; sentez değer (kalibre edilmeli).',
+      notes: ['İki bakanlık farklı değer verir: ASHB kreş yönetmeliği (≥ 2 m²/çocuk, oda ≥ 15 m²) ve MEB anaokulu (derslik ≥ 2,40 m²/kişi). Kurumun bağlı olduğu bakanlığı seçin.', 'Yaş tanımları 2016’da değişti (0–24 ay kreş, 25–66 ay gündüz bakımevi); eski kaynaklar yanlış oda tipi önerebilir.'],
+      variants: [{ key: 'kres20', label: 'Kreş (20 çocuk)', entries: KRES.entries, relations: KRES.relations }] },
+    { key: 'otel', label: 'Otel', circ: [0.2, 0.3], circNote: 'Otel için resmî sirkülasyon oranı yok; sentez değer (kalibre edilmeli).',
+      notes: ['4★ otelde oda banyo dahil ≥ 20 m², 5★’ta ≥ 25 m² (TTNY, RG 22.12.2024).', 'Misafir ve servis akışı ayrılmalı: servis asansörü, kat ofisi, çamaşırhane ve mutfak lobiden geçmemeli.'],
+      variants: [{ key: 'otel10', label: 'Butik otel (10 oda)', entries: OTEL.entries, relations: OTEL.relations }] },
+    { key: 'saglik', label: 'Sağlık (ASM / Poliklinik)', circ: [0.2, 0.3], circNote: 'Sağlık yapıları için resmî sirkülasyon oranı yok; sentez değer (kalibre edilmeli).',
+      notes: ['İki rejimi karıştırmayın: ASM (AHUY) muayene odası ≥ 10 m²; özel poliklinik/muayenehane (ATTY) ≥ 16 m².', 'Muayene odası bekleme alanından görsel ve işitsel mahremiyeti korumalı.'],
+      variants: [
+        { key: 'asm', label: 'Aile Sağlığı Merkezi (2 hekim)', entries: ASM.entries, relations: ASM.relations },
+        { key: 'poli', label: 'Poliklinik (3 muayene odası)', entries: POLI.entries, relations: POLI.relations },
+      ] },
+    { key: 'kutuphane', label: 'Kütüphane', circ: [0.15, 0.25], circNote: 'Kütüphane için resmî sirkülasyon oranı yok; sentez değer (kalibre edilmeli).',
+      notes: ['Okuyucu koltuğu 2,3–3,7 m² (ort. 2,8 m²); raf yoğunluğu ≈ 108 cilt/m² (Dahlgren 2009).', 'Etkinlik salonu ve çocuk bölümü sessiz okumaya bitişik olmamalı.'],
+      variants: [{ key: 'halk40', label: 'Halk kütüphanesi (40 koltuk)', entries: KUTUP.entries, relations: KUTUP.relations }] },
+    { key: 'restoran', label: 'Restoran / Kafe', circ: [0.1, 0.2], circNote: 'Restoranda salon ≈ %60, mutfak + hazırlık + depo ≈ %40 (sektör kaba kuralı; orta güvenilirlik).',
+      notes: ['“Başlık sayısı = m²” gibi formüller 100 m² altındaki salonlarda yanıltıcıdır.', 'Mal kabul ve çöp çıkışı müşteri akışıyla kesişmemeli.'],
+      variants: [{ key: 'rest60', label: 'Restoran (60 kişi)', entries: RESTORAN.entries, relations: RESTORAN.relations }] },
+    { key: 'muze', label: 'Küçük Müze / Sergi', circ: [0.25, 0.35], circNote: 'Kamusal tip müzede net ≈ brütün %70’i (%30 tare); atölye/depo tipinde %20 (WBDG örneği).',
+      notes: ['Dört zon: kamusal–koleksiyonsuz, kamusal–koleksiyonlu, kamusal olmayan–koleksiyonlu (depo), kamusal olmayan–koleksiyonsuz (ofis).', 'Yükleme → kasa açma → depo → sergi için geniş ve düz bir servis rotası kurulmalı.'],
+      variants: [{ key: 'muze', label: 'Küçük müze', entries: MUZE.entries, relations: MUZE.relations }] },
+    { key: 'atolye', label: 'Atölye / Stüdyo', circ: [0.1, 0.2], circNote: 'Atölye için resmî sirkülasyon oranı yok; sentez değer.',
+      notes: ['Özel kurumda öğrenci başına 1,5 m² (ÖÖK), kamu okulunda 1,85 m² (MEB15).'],
+      variants: [{ key: 'atolye15', label: 'Atölye (15 öğrenci)', entries: ATOLYE.entries, relations: ATOLYE.relations }] },
+    { key: 'genel', label: 'Diğer / Serbest', circ: [0.1, 0.2], circNote: 'Genel varsayım (kalibre edilmeli).', notes: ['Bu tip için hazır program yok; mekanlarınızı kendiniz ekleyin.'],
+      variants: [{ key: 'serbest', label: 'Serbest program', entries: GENEL.entries, relations: GENEL.relations }] },
+  ];
+
+  /* ----------- Literatür: mekân organizasyonu (Ching, yüklenen kitap) ----------- */
+  const ORGS = [
+    { key: 'merkezi', name: 'Merkezi organizasyon', text: 'Büyük, baskın bir merkezi mekânın çevresinde toplanan ikincil mekânlardan oluşur; merkez genellikle düzenli ve sabit biçimlidir.', bubble: 'En büyük balonu (ör. salon, çok amaçlı salon, lobi) ortaya koyun, diğerlerini çevresine yerleştirin.', use: 'Konutta salon, okulda çok amaçlı salon veya avlu, otelde lobi.' },
+    { key: 'cizgisel', name: 'Çizgisel organizasyon', text: 'Mekânların bir sıra halinde dizilmesiyle oluşur; sıranın başı ve sonu girişe/dış mekâna bağlanır, tek tek mekânlar yan yana ya da bir sirkülasyon çizgisine bağlanabilir.', bubble: 'Balonları tek bir hat boyunca dizin; koridor/hol balonunu bu hattın omurgası yapın.', use: 'Derslik blokları, otel kat planları, poliklinik koridorları.' },
+    { key: 'isinsal', name: 'Işınsal (radyal) organizasyon', text: 'Merkezi bir mekândan dışa doğru uzanan çizgisel kolların birleşimidir; merkezi ve çizgisel düzenlerin karışımıdır.', bubble: 'Merkez balonundan farklı yönlere uzanan kollar çizin; her kola bir işlev grubu verin.', use: 'Büyük hastane ve otel blokları, çok kanatlı okullar.' },
+    { key: 'kumelenmis', name: 'Kümelenmiş organizasyon', text: 'Mekânlar yakınlık, ortak görsel özellik veya ortak ilişki temelinde gruplanır; boyut, biçim ve işlev bakımından farklı mekânlar bir arada olabilir.', bubble: 'Güçlü ilişkili balonları kümeler halinde toplayın (ıslak hacim kümesi, yatak kümesi, servis kümesi).', use: 'Konutta gün/gece bölgeleri, müzede kamusal/koleksiyon zonları.' },
+    { key: 'izgara', name: 'Izgara organizasyon', text: 'Mekânlar düzenli bir yapısal ızgara veya modül içinde düzenlenir; ızgara tekrar eden, esnek ve genişletilebilir bir düzen sağlar.', bubble: 'Balon boyutlarını ortak bir modüle yaklaştırın ve hizalayarak yerleştirin.', use: 'Ofis katları, atölye ve stüdyo blokları.' },
+  ];
+  const SPATIAL = [
+    { name: 'Mekân içinde mekân', text: 'Büyük bir mekânın içinde daha küçük bir mekân yer alır (ör. salon içinde yemek köşesi, galeri içinde kapalı bir oda). Balon diyagramında küçük balon büyük balonun içine alınır.' },
+    { name: 'Kenetlenen (iç içe geçen) mekânlar', text: 'İki mekânın alanları kısmen örtüşür ve ortak bölge her iki mekâna hizmet eder (ör. açık planlı salon–mutfak).' },
+    { name: 'Bitişik mekânlar', text: 'En yaygın ilişkidir; iki mekân ortak bir sınır paylaşır. Sınırın nasıl kurulacağı (kapı, açıklık, sürekli duvar) iki mekânın ilişkisinin gücünü belirler.' },
+    { name: 'Ortak bir mekânla bağlanan mekânlar', text: 'Birbirinden uzak iki mekân, aralarındaki üçüncü bir mekânla bağlanır (ör. antre/hol/koridor). Ara mekân sirkülasyon balonu olarak çizilir.' },
+  ];
+  const CIRC_PATHS = [
+    { name: 'Mekânların yanından geçen yol', text: 'Mekânların bütünlüğünü korur, serbest bir dolaşım sağlar; yola açılan bağlantı mekânın girişine bağlıdır.' },
+    { name: 'Mekânların içinden geçen yol', text: 'Yol mekânı keser; mekânın kullanım alanı azalır, ancak mekânlar arası bağlantı doğrudandır. Küçük konutlarda salonun dolaşım yolu olması bu türdendir.' },
+    { name: 'Mekânda sonlanan yol', text: 'Yol bir mekâna varır ve orada biter; mekânın önemini vurgular (ör. antre → salon).' },
+  ];
+
+  const METHOD = [
+    'Program listesi: bina tipine göre zorunlu mekânları ve kullanıcı sayısını belirleyin (öğrenci, hekim, koltuk, yatak).',
+    'Alan ataması: her mekâna asgari (mevzuat), tipik ve ideal alan verin; kişi başı kuralları uygulayın.',
+    'İlişki matrisi: her mekân çifti için güçlü, zayıf, ilişkisiz veya ayrı tutulacak olarak işaretleyin (White matris yöntemi).',
+    'Balon diyagramı: balon alanını m² ile orantılı çizin; güçlü ilişkileri kalın, zayıfları ince çizgiyle gösterin.',
+    'Zonlama: kamusal / yarı özel / özel, ıslak / kuru, gürültülü / sessiz, misafir / servis katmanlarına göre kümeleyin.',
+    'Sirkülasyon ve brüt hesap: net toplam alanı bina tipine uygun sirkülasyon payıyla artırın.',
+    'Kontrol: asgari alan ihlali, ayrı tutulması gerekenlerin bitişikliği ve verimlilik skorunu değerlendirin.',
+  ];
+  const MISTAKES = [
+    'Balon boyutlarını alanla orantısız çizmek (küçük WC’yi salon kadar göstermek).',
+    'Sirkülasyonu (antre, hol, koridor, merdiven) hiç çizmemek; brüt alan sonradan tutmaz.',
+    'Matristeki bütün ilişkileri çizip diyagramı okunmaz hale getirmek; önce güçlü ve ayrı tutulacak ilişkileri öne çıkarın.',
+    'Ayrı tutulacak ilişkileri hiç kodlamamak (ıslak hacim–yatak odası, gürültülü–sessiz, mal kabul–müşteri girişi).',
+    'Tek giriş yönünü, servis girişini ve çöp/mal kabul akışını unutmak.',
+    'Balon diyagramını kesin çözüm sanmak; statik bir araçtır ve çok işlevli mekânları iyi temsil etmez.',
+  ];
+
+  App.KB = { SOURCES: SOURCES, TYPES: TYPES, ORGS: ORGS, SPATIAL: SPATIAL, CIRC_PATHS: CIRC_PATHS, METHOD: METHOD, MISTAKES: MISTAKES };
+
+  App.kb = {
+    type: (key) => TYPES.find((t) => t.key === key) || TYPES[0],
+    variant: (typeKey, variantKey) => {
+      const t = TYPES.find((x) => x.key === typeKey) || TYPES[0];
+      return t.variants.find((v) => v.key === variantKey) || t.variants[0];
+    },
+  };
+})();
+
+/* ==========================================================================
+   20-lib-geometry.js — pafta geometrisi, ölçek, daire yarıçapı, etiket sığdırma
+   Dünya koordinatları: 1400 × 990 birim (A3 yatay oranı 1,414).
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const clamp = App.util.clamp;
+
+  const W = 1400, H = 990, FRAME = 22, TB_H = 104;
+  const geo = (App.geo = {
+    W: W, H: H, FRAME: FRAME, TB_H: TB_H,
+    MIN_R: 24, MAX_R: 230,
+    // Balonların serbestçe gezebildiği çizim alanı
+    area: { x0: FRAME + 14, y0: FRAME + 14, x1: W - FRAME - 14, y1: H - FRAME - TB_H - 14 },
+    titleBlock: { x: FRAME, y: H - FRAME - TB_H, w: W - FRAME * 2, h: TB_H },
+  });
+
+  // Toplam balon alanı çizim alanının ~%20'sini kaplayacak şekilde ölçek (px / √m²)
+  geo.scale = function (spaces) {
+    const total = spaces.reduce((t, s) => t + (s.area > 0 ? s.area : 0), 0);
+    if (!total) return 30;
+    const a = geo.area;
+    const cover = 0.2 * (a.x1 - a.x0) * (a.y1 - a.y0);
+    return Math.sqrt(cover / (Math.PI * total));
+  };
+  geo.radius = function (area, k) {
+    return clamp(k * Math.sqrt(Math.max(area, 0.1)), geo.MIN_R, geo.MAX_R);
+  };
+  geo.clampPos = function (x, y, r) {
+    const a = geo.area;
+    const lx = a.x0 + r, hx = a.x1 - r, ly = a.y0 + r, hy = a.y1 - r;
+    return {
+      x: lx > hx ? (a.x0 + a.x1) / 2 : clamp(x, lx, hx),
+      y: ly > hy ? (a.y0 + a.y1) / 2 : clamp(y, ly, hy),
+    };
+  };
+
+  // Etiket yerleşimi: ad satırlara bölünür, daireye sığacak yazı boyutu seçilir
+  geo.label = function (name, r) {
+    const outside = r < 36;
+    const maxW = outside ? 150 : r * 1.72;
+    let fs = outside ? 14 : clamp(r * 0.27, 11, 22);
+    const text = String(name || '').toLocaleUpperCase('tr');
+    const cw = 0.66; // büyük harf Chakra Petch için ortalama genişlik çarpanı
+    function wrap(size) {
+      const words = text.split(/\s+/).filter(Boolean);
+      const lines = [];
+      let cur = '';
+      const cap = Math.max(3, Math.floor(maxW / (size * cw)));
+      words.forEach((w) => {
+        const next = cur ? cur + ' ' + w : w;
+        if (next.length <= cap || !cur) cur = next;
+        else { lines.push(cur); cur = w; }
+      });
+      if (cur) lines.push(cur);
+      return { lines: lines, cap: cap };
+    }
+    let res = wrap(fs);
+    const maxLines = outside ? 2 : r > 90 ? 3 : 2;
+    while ((res.lines.length > maxLines || res.lines.some((l) => l.length > res.cap)) && fs > 9) {
+      fs -= 1;
+      res = wrap(fs);
+    }
+    let lines = res.lines.slice(0, maxLines);
+    if (res.lines.length > maxLines || lines.some((l) => l.length > res.cap)) {
+      lines = lines.map((l) => (l.length > res.cap ? l.slice(0, Math.max(1, res.cap - 1)) + '…' : l));
+      if (res.lines.length > maxLines) lines[lines.length - 1] = lines[lines.length - 1].replace(/…?$/, '…');
+    }
+    return { lines: lines, fs: fs, outside: outside };
+  };
+})();
+
+/* ==========================================================================
+   21-lib-score.js — verimlilik skoru (canlı)
+   Güçlü ilişkili daireler birbirine yaklaştıkça skor artar; ayrı tutulması
+   istenen daireler uzaklaştıkça artar; üst üste binen daireler skoru düşürür.
+   Skor = 100 × Σ(ağırlık × memnuniyet) / Σ(ağırlık) × (1 − örtüşme cezası)
+   Ağırlıklar: güçlü 3, ayrı tut 2, zayıf 1.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const geo = App.geo;
+
+  function evaluate(spaces, relations, k) {
+    const by = new Map();
+    spaces.forEach((s) => by.set(s.id, s));
+    const rad = new Map();
+    spaces.forEach((s) => rad.set(s.id, geo.radius(s.area, k)));
+
+    const pairs = [];
+    let sumW = 0, sumWS = 0;
+    const counts = { strong: [0, 0], weak: [0, 0], avoid: [0, 0] };
+
+    Object.keys(relations).forEach((key) => {
+      const ids = key.split('|');
+      const a = by.get(ids[0]), b = by.get(ids[1]);
+      if (!a || !b) return;
+      const type = relations[key];
+      const ra = rad.get(a.id), rb = rad.get(b.id);
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      const gap = d - ra - rb;
+      let s, w, ok;
+      if (type === 'strong') {
+        w = 3;
+        const tol = 8 + 0.1 * Math.min(ra, rb);
+        const L = 0.6 * (ra + rb) + 40;
+        s = gap <= tol ? 1 : Math.exp(-(gap - tol) / L);
+        ok = s >= 0.75;
+      } else if (type === 'weak') {
+        w = 1;
+        const tol = 0.5 * (ra + rb);
+        const L = 0.9 * (ra + rb) + 60;
+        s = gap <= tol ? 1 : Math.exp(-(gap - tol) / L);
+        ok = s >= 0.6;
+      } else if (type === 'avoid') {
+        w = 2;
+        const need = 0.6 * (ra + rb) + 70;
+        s = gap <= 0 ? 0 : Math.min(1, gap / need);
+        ok = s >= 0.7;
+      } else return;
+      sumW += w;
+      sumWS += w * s;
+      counts[type][0]++;
+      if (ok) counts[type][1]++;
+      pairs.push({ key: key, a: a.id, b: b.id, type: type, gap: gap, s: s, ok: ok, w: w });
+    });
+
+    // Balonların üst üste binmesi (ilişkiden bağımsız)
+    const overlaps = [];
+    for (let i = 0; i < spaces.length; i++) {
+      for (let j = i + 1; j < spaces.length; j++) {
+        const a = spaces[i], b = spaces[j];
+        const ra = rad.get(a.id), rb = rad.get(b.id);
+        const gap = Math.hypot(a.x - b.x, a.y - b.y) - ra - rb;
+        if (gap < -0.3 * Math.min(ra, rb)) overlaps.push({ a: a.id, b: b.id, gap: gap });
+      }
+    }
+    const penalty = Math.min(0.25, overlaps.length * 0.04);
+    const percent = sumW === 0 ? null : Math.round(100 * (sumWS / sumW) * (1 - penalty));
+    return { percent: percent, pairs: pairs, counts: counts, overlaps: overlaps, penalty: penalty, radii: rad };
+  }
+
+  App.score = { evaluate: evaluate };
+})();
+
+/* ==========================================================================
+   22-lib-layout.js — otomatik yerleştirme (kuvvet tabanlı)
+   Güçlü ilişki: çekme • Zayıf: yumuşak çekme • Ayrı tut: itme • Hepsi: çarpışma önleme
+   Başlangıç konumu bağlantı derecesine göre merkezden spiral (deterministik).
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const geo = App.geo;
+
+  function autoLayout(spaces, relations, k, opts) {
+    opts = opts || {};
+    const n = spaces.length;
+    const out = {};
+    if (!n) return out;
+    const a = geo.area;
+    const cx = (a.x0 + a.x1) / 2, cy = (a.y0 + a.y1) / 2;
+
+    const deg = {};
+    spaces.forEach((s) => (deg[s.id] = 0));
+    Object.keys(relations).forEach((key) => {
+      const t = relations[key];
+      const ids = key.split('|');
+      const w = t === 'strong' ? 3 : t === 'weak' ? 1 : 0.5;
+      if (deg[ids[0]] != null) deg[ids[0]] += w;
+      if (deg[ids[1]] != null) deg[ids[1]] += w;
+    });
+
+    const P = spaces
+      .map((s) => ({ id: s.id, r: geo.radius(s.area, k), x: s.x, y: s.y, d: deg[s.id] || 0 }))
+      .sort((p, q) => q.d + q.r * 0.01 - (p.d + p.r * 0.01));
+
+    if (!opts.keep) {
+      const golden = 2.399963;
+      P.forEach((p, i) => {
+        const rr = 36 * Math.sqrt(i + 0.5) * (k / 28) * 2.4;
+        p.x = cx + Math.cos(i * golden) * rr * 1.45;
+        p.y = cy + Math.sin(i * golden) * rr * 0.95;
+      });
+    }
+    const idx = new Map();
+    P.forEach((p, i) => idx.set(p.id, i));
+    const rels = [];
+    Object.keys(relations).forEach((key) => {
+      const ids = key.split('|');
+      if (idx.has(ids[0]) && idx.has(ids[1])) rels.push([idx.get(ids[0]), idx.get(ids[1]), relations[key]]);
+    });
+    const relMap = new Map();
+    rels.forEach((r) => relMap.set(r[0] + '_' + r[1], r[2]));
+
+    const ITER = opts.iter != null ? opts.iter : 520;
+    for (let it = 0; it < ITER; it++) {
+      const alpha = 1 - it / ITER;
+      const step = 0.25 + 0.75 * alpha;
+      const dx = new Array(n).fill(0), dy = new Array(n).fill(0);
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          const A = P[i], B = P[j];
+          let vx = B.x - A.x, vy = B.y - A.y;
+          let d = Math.hypot(vx, vy);
+          if (d < 0.01) { vx = Math.cos(i * 7 + j); vy = Math.sin(i * 5 + j); d = 1; }
+          const ux = vx / d, uy = vy / d;
+          const rr = A.r + B.r;
+          const type = relMap.get(i + '_' + j) || relMap.get(j + '_' + i);
+          let f = 0; // + çekme, − itme
+          if (d < rr + 10) f -= (rr + 10 - d) * 0.55; // çarpışma
+          if (type === 'strong') { const target = rr + 3; if (d > target) f += (d - target) * 0.09; }
+          else if (type === 'weak') { const target = rr * 1.3 + 16; f += (d - target) * 0.025; }
+          else if (type === 'avoid') { const need = rr + 0.6 * rr + 80; if (d < need) f -= (need - d) * 0.06; }
+          const ma = B.r / (A.r + B.r), mb = A.r / (A.r + B.r);
+          dx[i] += ux * f * ma * 2; dy[i] += uy * f * ma * 2;
+          dx[j] -= ux * f * mb * 2; dy[j] -= uy * f * mb * 2;
+        }
+      }
+      for (let i = 0; i < n; i++) {
+        const p = P[i];
+        dx[i] += (cx - p.x) * 0.006; dy[i] += (cy - p.y) * 0.006;
+        p.x += dx[i] * step; p.y += dy[i] * step;
+        const c = geo.clampPos(p.x, p.y, p.r);
+        p.x = c.x; p.y = c.y;
+      }
+    }
+    // dizilimi çizim alanının ortasına al
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    P.forEach((p) => { minX = Math.min(minX, p.x - p.r); maxX = Math.max(maxX, p.x + p.r); minY = Math.min(minY, p.y - p.r); maxY = Math.max(maxY, p.y + p.r); });
+    const sx = cx - (minX + maxX) / 2, sy = cy - (minY + maxY) / 2;
+    P.forEach((p) => {
+      const c = geo.clampPos(p.x + sx, p.y + sy, p.r);
+      out[p.id] = { x: Math.round(c.x * 10) / 10, y: Math.round(c.y * 10) / 10 };
+    });
+    return out;
+  }
+
+  // Boş bir noktaya yeni balon yerleştir (mevcutlarla çakışmayan en yakın nokta)
+  function freeSpot(spaces, area, k) {
+    const a = geo.area;
+    const r = geo.radius(area, k);
+    const cx = (a.x0 + a.x1) / 2, cy = (a.y0 + a.y1) / 2;
+    let best = { x: cx, y: cy }, bestScore = -Infinity;
+    for (let i = 0; i < 260; i++) {
+      const ang = i * 2.399963;
+      const rr = 14 * Math.sqrt(i) * 2.2;
+      const p = geo.clampPos(cx + Math.cos(ang) * rr * 1.4, cy + Math.sin(ang) * rr, r);
+      let minGap = Infinity;
+      spaces.forEach((s) => {
+        const g = Math.hypot(s.x - p.x, s.y - p.y) - geo.radius(s.area, k) - r;
+        if (g < minGap) minGap = g;
+      });
+      if (minGap >= 6) return p;
+      if (minGap > bestScore) { bestScore = minGap; best = p; }
+    }
+    return best;
+  }
+
+  App.layout = { auto: autoLayout, freeSpot: freeSpot };
+})();
+
+/* ==========================================================================
+   23-lib-match.js — kullanıcının yazdığı mekân adlarını bilgi tabanındaki
+   mekânlara eşleştirir (Türkçe karakter ve ek farklarına toleranslı).
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const N = App.util.norm;
+
+  function entryKeywords(e) {
+    return e.kw.concat([e.name]).map(N).filter(Boolean);
+  }
+
+  function scoreName(nm, e) {
+    let best = 0;
+    entryKeywords(e).forEach((kk) => {
+      if (nm === kk) best = Math.max(best, 100 + kk.length);
+      else if (nm.includes(kk)) {
+        // kısa anahtarlar (wc, lab) yalnızca tam sözcük olarak sayılır
+        const words = nm.split(' ');
+        const isWord = words.includes(kk) || kk.includes(' ');
+        if (kk.length >= 4 || isWord) best = Math.max(best, kk.length + (isWord ? 2 : 0));
+      } else if (kk.includes(nm) && nm.length >= 4) best = Math.max(best, nm.length * 0.5);
+    });
+    return best;
+  }
+
+  function matchSpaces(spaces, entries) {
+    const cand = [];
+    spaces.forEach((s) => {
+      const nm = N(s.name);
+      entries.forEach((e) => {
+        const sc = scoreName(nm, e);
+        if (sc > 0) cand.push({ s: s, e: e, score: sc });
+      });
+    });
+    cand.sort((a, b) => b.score - a.score);
+    const bySpace = new Map(), byEntry = new Map();
+    cand.forEach((c) => {
+      if (bySpace.has(c.s.id) || byEntry.has(c.e.key)) return;
+      bySpace.set(c.s.id, c.e);
+      byEntry.set(c.e.key, c.s);
+    });
+    return { bySpace: bySpace, byEntry: byEntry, missing: entries.filter((e) => !byEntry.has(e.key)) };
+  }
+
+  function zoneFor(name, typeKey, variantKey) {
+    const nm = N(name);
+    const v = App.kb.variant(typeKey, variantKey);
+    let best = null, bs = 0;
+    v.entries.forEach((e) => {
+      const sc = scoreName(nm, e);
+      if (sc > bs) { bs = sc; best = e; }
+    });
+    if (best && bs >= 4) return best.zone;
+    for (let i = 0; i < App.ZONE_HINTS.length; i++) {
+      const z = App.ZONE_HINTS[i];
+      for (let j = 0; j < z[1].length; j++) if (nm.includes(z[1][j])) return z[0];
+    }
+    return 'sosyal';
+  }
+
+  // Sorguda geçen mekânı bul: önce geçerli bina tipinde, sonra tüm tiplerde
+  function findEntryInText(text, typeKey, variantKey) {
+    const nq = N(text);
+    const words = nq.split(' ');
+    const pools = [];
+    const cur = App.kb.variant(typeKey, variantKey);
+    pools.push({ type: App.kb.type(typeKey), variant: cur });
+    App.KB.TYPES.forEach((t) => t.variants.forEach((v) => { if (v !== cur) pools.push({ type: t, variant: v }); }));
+    let best = null, bs = 0;
+    pools.forEach((p, idx) => {
+      p.variant.entries.forEach((e) => {
+        entryKeywords(e).forEach((kk) => {
+          const ok = kk.includes(' ') ? nq.includes(kk) : words.includes(kk) || (kk.length >= 4 && nq.includes(kk));
+          if (!ok) return;
+          const sc = kk.length + (idx === 0 ? 8 : 0) + (kk.includes(' ') ? 3 : 0);
+          if (sc > bs) { bs = sc; best = { entry: e, type: p.type, variant: p.variant }; }
+        });
+      });
+    });
+    return best;
+  }
+
+  App.match = { spaces: matchSpaces, zoneFor: zoneFor, findEntryInText: findEntryInText };
+})();
+
+/* ==========================================================================
+   24-lib-analyze.js — projeyi bilgi tabanına göre otomatik analiz eder
+   Çıktı: öneri kartları {id, level: hata|uyari|oneri|ok, title, detail, src, actions[]}
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const geo = App.geo;
+  const fmt = U.fmt;
+
+  const LEVEL_ORDER = { hata: 0, uyari: 1, oneri: 2, ok: 3 };
+
+  function defaultArea(e) { return U.round5(U.mid(e.typ)); }
+
+  function circulationShare(spaces) {
+    const total = U.sum(spaces, (s) => s.area);
+    const circ = U.sum(spaces.filter((s) => s.zone === 'sirkulasyon'), (s) => s.area);
+    return { total: total, circ: circ, share: total ? circ / total : 0 };
+  }
+
+  function analyze(project, k, score) {
+    const items = [];
+    const spaces = project.spaces;
+    const meta = project.meta;
+    const type = App.kb.type(meta.buildingType);
+    const variant = App.kb.variant(meta.buildingType, meta.variant);
+    const nameOf = new Map(spaces.map((s) => [s.id, s.name]));
+
+    if (!spaces.length) {
+      items.push({ id: 'empty', level: 'oneri', title: 'Projeye ilk mekânı ekleyin', detail: 'Soldaki formdan mekân adı ve m² girin ya da bir bina şablonu yükleyin. Asistan eksik mekânları ve alan sapmalarını burada listeler.', src: [], actions: [{ type: 'focusForm', label: 'Mekân ekle' }] });
+      return { items: items, counts: { hata: 0, uyari: 0, oneri: 1 }, circ: circulationShare(spaces) };
+    }
+
+    const m = App.match.spaces(spaces, variant.entries);
+    const circ = circulationShare(spaces);
+
+    // 1) Eksik mekânlar
+    const missReq = m.missing.filter((e) => e.req);
+    if (missReq.length && meta.buildingType !== 'genel') {
+      items.push({
+        id: 'missing', level: 'uyari',
+        title: missReq.length + ' gerekli mekân eksik görünüyor',
+        detail: missReq.map((e) => e.name).join(', ') + '. (' + type.label + ' · ' + variant.label + ' programına göre)',
+        src: [], actions: addActions(missReq),
+      });
+    }
+    const missOpt = m.missing.filter((e) => !e.req);
+    if (missOpt.length && meta.buildingType !== 'genel') {
+      items.push({
+        id: 'missing-opt', level: 'oneri',
+        title: 'Sık unutulan / isteğe bağlı mekânlar',
+        detail: missOpt.slice(0, 6).map((e) => e.name).join(', ') + '.',
+        src: [], actions: addActions(missOpt.slice(0, 5)),
+      });
+    }
+
+    // 2) Alan kontrolleri
+    spaces.forEach((s) => {
+      const e = m.bySpace.get(s.id);
+      if (!e) return;
+      if (e.min != null && s.area < e.min - 0.001) {
+        items.push({
+          id: 'area-min-' + s.id, level: 'hata',
+          title: s.name + ': ' + fmt(s.area) + ' m² asgari alanın altında',
+          detail: 'Asgari ' + fmt(e.min) + ' m². ' + e.note,
+          src: [e.src], actions: [{ type: 'setArea', id: s.id, area: e.min, label: 'Asgariye çıkar (' + fmt(e.min) + ' m²)' }, { type: 'select', id: s.id, label: 'Seç' }],
+        });
+      } else if (s.area < e.typ[0] - 0.001) {
+        items.push({
+          id: 'area-low-' + s.id, level: 'uyari',
+          title: s.name + ': tipik aralığın altında (' + fmt(s.area) + ' m²)',
+          detail: 'Tipik ' + fmt(e.typ[0]) + '–' + fmt(e.typ[1]) + ' m², ideal ' + fmt(e.ideal[0]) + '–' + fmt(e.ideal[1]) + ' m². ' + e.note,
+          src: [e.src], actions: [{ type: 'setArea', id: s.id, area: e.typ[0], label: 'Tipiğe çıkar (' + fmt(e.typ[0]) + ' m²)' }, { type: 'select', id: s.id, label: 'Seç' }],
+        });
+      } else if (s.area > Math.max(e.typ[1] * 1.8, e.ideal[1] * 1.6)) {
+        items.push({
+          id: 'area-high-' + s.id, level: 'oneri',
+          title: s.name + ': tipik aralığın çok üzerinde (' + fmt(s.area) + ' m²)',
+          detail: 'Tipik ' + fmt(e.typ[0]) + '–' + fmt(e.typ[1]) + ' m². Alan dengesini ve verimliliği kontrol edin.',
+          src: [e.src], actions: [{ type: 'setArea', id: s.id, area: e.typ[1], label: 'Tipik üst sınıra çek (' + fmt(e.typ[1]) + ' m²)' }, { type: 'select', id: s.id, label: 'Seç' }],
+        });
+      }
+    });
+
+    // 3) Sirkülasyon
+    const band = type.circ;
+    const nonCirc = circ.total - circ.circ;
+    const needArea = Math.max(2, U.round5((nonCirc * U.mid(band)) / (1 - U.mid(band))));
+    if (circ.circ === 0 && spaces.length >= 3) {
+      items.push({
+        id: 'circ-none', level: 'uyari', title: 'Sirkülasyon (antre / hol / koridor) çizilmemiş',
+        detail: type.circNote + ' Şu anki mekânlara göre yaklaşık ' + fmt(needArea) + ' m² sirkülasyon alanı eklenmeli.',
+        src: ['S'], actions: [{ type: 'addSpaces', list: [{ name: 'Koridor / Sirkülasyon', area: needArea, zone: 'sirkulasyon' }], label: 'Sirkülasyon ekle (' + fmt(needArea) + ' m²)' }],
+      });
+    } else if (circ.circ > 0 && circ.share < band[0] * 0.7) {
+      items.push({
+        id: 'circ-low', level: 'uyari', title: 'Sirkülasyon payı düşük: %' + fmt(circ.share * 100, 0),
+        detail: 'Önerilen aralık %' + fmt(band[0] * 100, 0) + '–' + fmt(band[1] * 100, 0) + '. ' + type.circNote, src: ['S'], actions: [],
+      });
+    } else if (circ.share > band[1] * 1.5) {
+      items.push({
+        id: 'circ-high', level: 'oneri', title: 'Sirkülasyon payı yüksek: %' + fmt(circ.share * 100, 0),
+        detail: 'Önerilen aralık %' + fmt(band[0] * 100, 0) + '–' + fmt(band[1] * 100, 0) + '. Koridorları kısaltmayı veya mekânları doğrudan bağlamayı düşünün.', src: ['S'], actions: [],
+      });
+    }
+
+    // 4) Skor kaynaklı uyarılar
+    if (score) {
+      score.pairs.filter((p) => p.type === 'strong' && !p.ok).sort((a, b) => a.s - b.s).slice(0, 3).forEach((p) => {
+        items.push({
+          id: 'far-' + p.key, level: 'uyari',
+          title: nameOf.get(p.a) + ' ↔ ' + nameOf.get(p.b) + ': güçlü ilişkili ama uzak',
+          detail: 'İki dairenin arası ' + fmt(Math.max(0, p.gap), 0) + ' birim açık. Daireleri yaklaştırın veya Otomatik yerleştir’i kullanın.',
+          src: ['White'], actions: [{ type: 'locate', a: p.a, b: p.b, label: 'Göster' }, { type: 'autolayout', label: 'Otomatik yerleştir' }],
+        });
+      });
+      score.pairs.filter((p) => p.type === 'avoid' && !p.ok).slice(0, 3).forEach((p) => {
+        items.push({
+          id: 'avoid-' + p.key, level: 'uyari',
+          title: nameOf.get(p.a) + ' ile ' + nameOf.get(p.b) + ' ayrı tutulmalı ama yakın',
+          detail: 'Bu çift “ayrı tut” olarak işaretli (gürültü, koku, mahremiyet veya hijyen).',
+          src: ['White'], actions: [{ type: 'locate', a: p.a, b: p.b, label: 'Göster' }],
+        });
+      });
+      if (score.overlaps.length) {
+        items.push({
+          id: 'overlap', level: 'uyari', title: score.overlaps.length + ' daire çiftinin üst üste bindiği görülüyor',
+          detail: 'Üst üste binen daireler okunurluğu ve skoru düşürür.', src: [], actions: [{ type: 'autolayout', label: 'Otomatik yerleştir' }],
+        });
+      }
+      // gürültülü ↔ sessiz yakınlığı (ilişki tanımlı değilse)
+      const quiet = [];
+      score && spaces.forEach((a, i) => {
+        const ea = m.bySpace.get(a.id);
+        if (!ea || ea.noise === 'mid') return;
+        for (let j = i + 1; j < spaces.length; j++) {
+          const b = spaces[j];
+          const eb = m.bySpace.get(b.id);
+          if (!eb || eb.noise === 'mid' || ea.noise === eb.noise) continue;
+          const rel = project.relations[U.pairKey(a.id, b.id)];
+          if (rel === 'strong') continue;
+          const gap = Math.hypot(a.x - b.x, a.y - b.y) - score.radii.get(a.id) - score.radii.get(b.id);
+          if (gap < 0.25 * (score.radii.get(a.id) + score.radii.get(b.id))) quiet.push([a, b, ea.noise === 'loud']);
+        }
+      });
+      quiet.slice(0, 3).forEach((q) => {
+        const loud = q[2] ? q[0] : q[1], calm = q[2] ? q[1] : q[0];
+        items.push({
+          id: 'noise-' + loud.id + calm.id, level: 'uyari',
+          title: 'Gürültülü “' + loud.name + '” sessiz “' + calm.name + '” yanına çizilmiş',
+          detail: 'Gürültülü ve sessiz mekânlar arasında tampon mekân (koridor, depo) bırakın veya ilişkiyi “ayrı tut” yapın.',
+          src: ['MEB15', 'S'], actions: [{ type: 'locate', a: loud.id, b: calm.id, label: 'Göster' }],
+        });
+      });
+    }
+
+    // 5) İlişkisi olmayan mekânlar
+    const relCount = Object.keys(project.relations).length;
+    if (spaces.length >= 2 && relCount === 0) {
+      items.push({ id: 'norel', level: 'oneri', title: 'Henüz hiç ilişki tanımlanmadı', detail: 'Skor, ilişkilere göre hesaplanır. İlişki Matrisi sekmesinden veya bir dairenin kartından güçlü / zayıf / ayrı tut bağları seçin.', src: ['White'], actions: [{ type: 'openMatrix', label: 'Matrisi aç' }] });
+    } else if (relCount > 0) {
+      const used = new Set();
+      Object.keys(project.relations).forEach((key) => key.split('|').forEach((id) => used.add(id)));
+      const lone = spaces.filter((s) => !used.has(s.id));
+      if (lone.length) {
+        items.push({ id: 'lone', level: 'oneri', title: lone.length + ' mekânın hiç ilişkisi yok', detail: lone.slice(0, 6).map((s) => s.name).join(', ') + '. Her mekânın en az bir bağı olmalı.', src: ['White'], actions: lone.slice(0, 3).map((s) => ({ type: 'select', id: s.id, label: s.name })) });
+      }
+    }
+
+    items.sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level]);
+    const counts = { hata: 0, uyari: 0, oneri: 0 };
+    items.forEach((i) => { if (counts[i.level] != null) counts[i.level]++; });
+    if (!counts.hata && !counts.uyari) {
+      items.unshift({ id: 'ok', level: 'ok', title: 'Kritik sorun görünmüyor', detail: score && score.percent != null ? 'Verimlilik skoru %' + score.percent + '. Kalan önerileri gözden geçirin.' : 'İlişkileri tanımlayarak verimlilik skorunu hesaplatın.', src: [], actions: [] });
+    }
+    return { items: items, counts: counts, circ: circ, matched: m };
+  }
+
+  function addActions(entries) {
+    const acts = entries.slice(0, 5).map((e) => ({ type: 'addSpaces', list: [{ name: e.name, area: defaultArea(e), zone: e.zone }], label: '+ ' + e.name }));
+    if (entries.length > 1) acts.push({ type: 'addSpaces', list: entries.map((e) => ({ name: e.name, area: defaultArea(e), zone: e.zone })), label: 'Hepsini ekle (' + entries.length + ')' });
+    return acts;
+  }
+
+  App.analyze = { run: analyze, circulation: circulationShare, defaultArea: defaultArea };
+})();
+
+/* ==========================================================================
+   25-lib-assistant.js — Akıllı Öneri asistanı: hazır-cevap soru motoru
+   Sorunun soruluş mantığına göre niyeti (intent) belirler ve bilgi tabanından yanıt üretir.
+   Yanıt biçimi: { blocks: [{t:'p'|'ul'|'ol'|'kv'|'actions', ...}], src: ['PAİY', ...] }
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const N = U.norm;
+  const fmt = U.fmt;
+  const KB = App.KB;
+
+  const p = (text) => ({ t: 'p', text: text });
+  const ul = (items) => ({ t: 'ul', items: items });
+  const ol = (items) => ({ t: 'ol', items: items });
+  const kv = (rows) => ({ t: 'kv', rows: rows });
+  const acts = (list) => ({ t: 'actions', actions: list });
+
+  const INTENTS = [
+    { key: 'eval',     stems: ['degerlendir', 'analiz', 'skor', 'puan', 'verim', 'projem', 'nasil olmus', 'durum', 'kontrol et', 'ozet'] },
+    { key: 'missing',  stems: ['ne eksik', 'eksik', 'unut', 'ne lazim', 'neler lazim', 'hangi mekan', 'program', 'liste', 'ne eklemeli', 'ne ekle'] },
+    { key: 'area',     stems: ['kac m', 'm2', 'metrekare', 'alan', 'buyukluk', 'olcu', 'boyut', 'ne kadar', 'minimum', 'asgari', 'kac metre'] },
+    { key: 'adj',      stems: ['yanin', 'komsu', 'bitisik', 'yakin', 'nereye', 'iliski', 'bagl', 'ayri', 'uzak', 'yan yana', 'kacin'] },
+    { key: 'circ',     stems: ['sirkulasyon', 'koridor', 'dolasim', 'hol ', 'brut', 'net alan', 'verimlilik orani'] },
+    { key: 'wet',      stems: ['islak', 'tesisat', 'saft', 'havalandirma', 'grupla'] },
+    { key: 'noise',    stems: ['gurultu', 'sessiz', 'akustik', 'ses '] },
+    { key: 'zoning',   stems: ['zon', 'mahremiyet', 'kamusal', 'servis akis', 'misafir', 'gun bolgesi', 'gece bolgesi'] },
+    { key: 'org',      stems: ['organizasyon', 'merkezi', 'cizgisel', 'isinsal', 'radyal', 'kumelen', 'izgara', 'grid', 'sema tipi', 'diyagram tipi'] },
+    { key: 'spatial',  stems: ['mekan icinde mekan', 'kenetlen', 'ic ice', 'ortak mekan', 'bitisik mekan', 'mekan iliski'] },
+    { key: 'path',     stems: ['yol', 'giris yaklas', 'dolasim yolu', 'mekanin icinden'] },
+    { key: 'method',   stems: ['nasil', 'adim', 'yontem', 'bubble', 'balon', 'matris', 'islev sema', 'fonksiyon sema', 'cizilir', 'baslayay'] },
+    { key: 'mistakes', stems: ['hata', 'yanlis', 'dikkat', 'sik yapilan', 'tuzak'] },
+    { key: 'regs',     stems: ['yonetmelik', 'mevzuat', 'standart', 'zorunlu', 'imar', 'kaynak'] },
+    { key: 'total',    stems: ['toplam', 'insaat alani', 'brut alan', 'kac m2 olur'] },
+  ];
+
+  function srcChips(list) {
+    return Array.from(new Set(list.filter(Boolean))).filter((c) => KB.SOURCES[c]);
+  }
+
+  function entryCard(found, ctx) {
+    const e = found.entry;
+    const blocks = [];
+    const rows = [];
+    rows.push(['Asgari', e.min != null ? fmt(e.min) + ' m²' : 'Sayısal asgari yok']);
+    rows.push(['Tipik', fmt(e.typ[0]) + '–' + fmt(e.typ[1]) + ' m²']);
+    rows.push(['İdeal', fmt(e.ideal[0]) + '–' + fmt(e.ideal[1]) + ' m²']);
+    blocks.push(p(e.name + ' · ' + found.type.label + ' (' + found.variant.label + ')'));
+    blocks.push(kv(rows));
+    if (e.note) blocks.push(p(e.note));
+    const mine = ctx.project.spaces.find((s) => N(s.name) === N(e.name) || ctx.analysis.matched.byEntry.get(e.key) === s);
+    const own = ctx.analysis.matched.byEntry.get(e.key);
+    if (own) {
+      let verdict = 'aralıkta';
+      if (e.min != null && own.area < e.min) verdict = 'asgarinin altında';
+      else if (own.area < e.typ[0]) verdict = 'tipik aralığın altında';
+      else if (own.area > e.typ[1]) verdict = 'tipik aralığın üzerinde';
+      blocks.push(p('Projenizdeki “' + own.name + '”: ' + fmt(own.area) + ' m² — ' + verdict + '.'));
+    }
+    return { blocks: blocks, src: srcChips([e.src]), mine: mine };
+  }
+
+  function adjacency(found, ctx) {
+    const v = found.variant, e = found.entry;
+    const nameByKey = new Map(v.entries.map((x) => [x.key, x.name]));
+    const strong = [], weak = [], avoid = [];
+    v.relations.forEach((r) => {
+      let other = null;
+      if (r[0] === e.key) other = r[1]; else if (r[1] === e.key) other = r[0];
+      if (!other || !nameByKey.has(other)) return;
+      (r[2] === 'strong' ? strong : r[2] === 'weak' ? weak : avoid).push(nameByKey.get(other));
+    });
+    const blocks = [p(e.name + ' için önerilen komşuluklar (' + found.variant.label + ')')];
+    if (strong.length) blocks.push(p('Yanında / doğrudan bağlantılı: ' + strong.join(', ') + '.'));
+    if (weak.length) blocks.push(p('Yakın olabilir (dolaylı erişim yeterli): ' + weak.join(', ') + '.'));
+    if (avoid.length) blocks.push(p('Ayrı tutulmalı: ' + avoid.join(', ') + '.'));
+    if (!strong.length && !weak.length && !avoid.length) blocks.push(p('Bu mekân için hazır bir komşuluk kuralı yok; en yakın sirkülasyon mekânına bağlayın.'));
+    return { blocks: blocks, src: srcChips(['White', 'S', e.src]) };
+  }
+
+  /* ----------------------------- yanıtlar ----------------------------- */
+  const handlers = {
+    eval(q, ctx) {
+      const a = ctx.analysis, s = ctx.score;
+      const blocks = [];
+      if (!ctx.project.spaces.length) return { blocks: [p('Projede henüz mekân yok. Önce mekân ekleyin ya da bir bina şablonu yükleyin.')], src: [] };
+      blocks.push(p(s && s.percent != null ? 'Verimlilik skoru %' + s.percent + '. ' + (s.percent >= 80 ? 'Güçlü ilişkili daireler birbirine yakın.' : s.percent >= 50 ? 'Orta düzey; birkaç güçlü bağ hâlâ uzak.' : 'Düşük; güçlü ilişkili daireleri yaklaştırın.') : 'İlişki tanımlanmadığı için skor hesaplanamadı.'));
+      blocks.push(kv([
+        ['Mekân sayısı', String(ctx.project.spaces.length)],
+        ['Toplam alan', fmt(a.circ.total) + ' m²'],
+        ['Sirkülasyon payı', '%' + fmt(a.circ.share * 100, 0)],
+        ['Uyarı / hata', a.counts.uyari + ' / ' + a.counts.hata],
+      ]));
+      const top = a.items.filter((i) => i.level === 'hata' || i.level === 'uyari').slice(0, 4);
+      if (top.length) blocks.push(ul(top.map((i) => i.title)));
+      else blocks.push(p('Kritik bir sorun görünmüyor.'));
+      if (s && s.pairs.length) {
+        const c = s.counts;
+        blocks.push(p('Güçlü bağlar: ' + c.strong[1] + '/' + c.strong[0] + ' yakın · Ayrı tutulanlar: ' + c.avoid[1] + '/' + c.avoid[0] + ' uzak.'));
+      }
+      return { blocks: blocks, src: srcChips(['White', 'S']) };
+    },
+
+    missing(q, ctx) {
+      const meta = ctx.project.meta;
+      const type = App.kb.type(meta.buildingType), variant = App.kb.variant(meta.buildingType, meta.variant);
+      const m = ctx.analysis.matched || App.match.spaces(ctx.project.spaces, variant.entries);
+      const req = m.missing.filter((e) => e.req), opt = m.missing.filter((e) => !e.req);
+      const blocks = [p(type.label + ' · ' + variant.label + ' programına göre:')];
+      if (req.length) {
+        blocks.push(p('Gerekli ve eksik: ' + req.map((e) => e.name + ' (' + fmt(U.round5(U.mid(e.typ))) + ' m²)').join(', ') + '.'));
+        blocks.push(acts([{ type: 'addSpaces', list: req.map((e) => ({ name: e.name, area: App.analyze.defaultArea(e), zone: e.zone })), label: 'Eksik gerekli mekânları ekle (' + req.length + ')' }]));
+      } else blocks.push(p('Programdaki gerekli mekânların hepsi projede var.'));
+      if (opt.length) blocks.push(p('İsteğe bağlı / sık unutulan: ' + opt.map((e) => e.name).join(', ') + '.'));
+      if (type.notes.length) blocks.push(ul(type.notes));
+      return { blocks: blocks, src: srcChips(['PAİY', 'MEB15', 'S'].concat(variant.entries.map((e) => e.src)).slice(0, 4)) };
+    },
+
+    area(q, ctx) {
+      const f = App.match.findEntryInText(q, ctx.project.meta.buildingType, ctx.project.meta.variant);
+      if (!f) return handlers.regs(q, ctx);
+      const c = entryCard(f, ctx);
+      return { blocks: c.blocks, src: c.src };
+    },
+
+    adj(q, ctx) {
+      const f = App.match.findEntryInText(q, ctx.project.meta.buildingType, ctx.project.meta.variant);
+      if (!f) return handlers.zoning(q, ctx);
+      return adjacency(f, ctx);
+    },
+
+    card(q, ctx, f) {
+      const a = entryCard(f, ctx), b = adjacency(f, ctx);
+      return { blocks: a.blocks.concat(b.blocks.slice(1)), src: srcChips(a.src.concat(b.src)) };
+    },
+
+    circ(q, ctx) {
+      const type = App.kb.type(ctx.project.meta.buildingType);
+      const a = ctx.analysis;
+      const blocks = [p(type.label + ' için sirkülasyon payı %' + fmt(type.circ[0] * 100, 0) + '–' + fmt(type.circ[1] * 100, 0) + '.'), p(type.circNote)];
+      if (ctx.project.spaces.length) blocks.push(p('Projenizde şu an sirkülasyon payı %' + fmt(a.circ.share * 100, 0) + ' (' + fmt(a.circ.circ) + ' m² / ' + fmt(a.circ.total) + ' m²).'));
+      blocks.push(ul([
+        'Konut: antre + hol + koridor net alanın yaklaşık %8–14’ü.',
+        'Ofis: brütün yaklaşık %16’sı (UNM) ile kullanılabilir alanın %28–38’i (GSA/Gensler).',
+        'Okul: eğitsel + sosyal + idari alanların %50–60’ı (MEB 2015), brütün yaklaşık %33–37’si.',
+        '“%10–20” tek bir kural değildir: açık planlı ve kısa koridorlu yapılarda geçerlidir.',
+      ]));
+      return { blocks: blocks, src: srcChips(['MEB15', 'GSA', 'TOKİ', 'S']) };
+    },
+
+    wet() {
+      return { blocks: [
+        p('Islak hacimler (banyo, WC, mutfak, çamaşır) ortak tesisat şaftı çevresinde, yatayda yan yana ve düşeyde üst üste gruplanmalı.'),
+        ul([
+          'PAİY: mutfak, oda ve WC/banyo havalandırmaları aynı boşluğa açılamaz (banyo ve WC açılabilir).',
+          'Misafir WC’si antre tarafında; mutfağa ve yemek alanına doğrudan açılmamalı.',
+          'Okulda WC’ler laboratuvar, mutfak, pano, jeneratör ve sistem odası üzerine gelmemeli (MEB 2015).',
+          'Islak hacimler müzede depo/galeri üzerinde yer almamalı; ofiste sunucu odasının yanına gelmemeli.',
+        ]),
+      ], src: srcChips(['PAİY', 'MEB15', 'S']) };
+    },
+
+    noise() {
+      return { blocks: [
+        p('Gürültülü mekânlar ile sessiz mekânlar arasında “ayrı tut” ilişkisi kurun veya aralarına tampon (koridor, depo, WC) koyun.'),
+        ul([
+          'Müzik dersliği, çok amaçlı salon, spor salonu ve yemekhane dersliklerden ve kütüphaneden uzak tutulur (MEB 2015).',
+          'İki derslik arasındaki duvarda ses yalıtımı aranır.',
+          'Kütüphanede etkinlik salonu ve çocuk bölümü sessiz okumaya bitişik olmamalı.',
+          'Konutta salon ve mutfak, yatak odalarıyla ortak duvar paylaşmamalı (küçük 1+1 daireler istisna).',
+        ]),
+      ], src: srcChips(['MEB15', 'S']) };
+    },
+
+    zoning() {
+      return { blocks: [
+        p('Zonlama, balonları ortak özelliklerine göre kümelemektir. Dört katmanı birlikte düşünün:'),
+        ul([
+          'Kamusal / yarı özel / özel (misafir – aile – uyku).',
+          'Islak / kuru (şaft çevresinde toplanan servis çekirdeği).',
+          'Gürültülü / sessiz.',
+          'Kullanıcı akışı / servis akışı (mal kabul, çöp, kirli çamaşır, mutfak servisi ayrı ve kullanıcı akışıyla kesişmez).',
+        ]),
+        p('Hizmet eden mekânlar (WC, depo, teknik, şaft, merdiven) hizmet edilen mekânların çevresinde çekirdek olarak toplanır.'),
+      ], src: srcChips(['White', 'Ching', 'S']) };
+    },
+
+    org(q) {
+      const nq = N(q);
+      const hit = KB.ORGS.filter((o) => nq.includes(N(o.name.split(' ')[0])) || (o.key === 'isinsal' && nq.includes('radyal')) || (o.key === 'kumelenmis' && nq.includes('kumelen')));
+      const list = hit.length ? hit : KB.ORGS;
+      const blocks = [];
+      list.forEach((o) => { blocks.push(p(o.name + ': ' + o.text)); blocks.push(p('Diyagramda: ' + o.bubble + ' Örnek kullanım: ' + o.use)); });
+      return { blocks: blocks, src: ['Ching'] };
+    },
+
+    spatial() {
+      return { blocks: [p('Mekânlar arasındaki dört temel ilişki türü:')].concat([ul(KB.SPATIAL.map((s) => s.name + ': ' + s.text))]), src: ['Ching'] };
+    },
+
+    path() {
+      return { blocks: [p('Dolaşım yolu ile mekân arasındaki üç temel ilişki:'), ul(KB.CIRC_PATHS.map((s) => s.name + ': ' + s.text))], src: ['Ching'] };
+    },
+
+    method() {
+      return { blocks: [p('İşlev şeması (balon diyagramı) adım adım:'), ol(KB.METHOD), p('Bu uygulamada 1–2. adım Mekanlar sekmesinde, 3. adım İlişki Matrisi’nde, 4–5. adım pafta üzerinde, 6–7. adım Akıllı Öneri panelinde yapılır.')], src: srcChips(['White', 'Ching']) };
+    },
+
+    mistakes() {
+      return { blocks: [p('Balon diyagramında sık yapılan hatalar:'), ul(KB.MISTAKES)], src: srcChips(['White', 'S']) };
+    },
+
+    regs(q, ctx) {
+      const meta = ctx.project.meta;
+      const type = App.kb.type(meta.buildingType), variant = App.kb.variant(meta.buildingType, meta.variant);
+      const withMin = variant.entries.filter((e) => e.min != null);
+      const blocks = [p(type.label + ' · ' + variant.label + ' için sayısal asgari değerler:')];
+      if (withMin.length) blocks.push(kv(withMin.map((e) => [e.name, fmt(e.min) + ' m² (' + e.src + ')'])));
+      else blocks.push(p('Bu program için mevzuatta sayısal asgari alan bulunmuyor; tipik aralıklar uygulama verisidir.'));
+      blocks.push(ul(type.notes));
+      return { blocks: blocks, src: srcChips(withMin.map((e) => e.src).concat(['S'])) };
+    },
+
+    total(q, ctx) {
+      const a = ctx.analysis;
+      const type = App.kb.type(ctx.project.meta.buildingType);
+      if (!ctx.project.spaces.length) return { blocks: [p('Önce mekânları ekleyin; toplam alan ve sirkülasyon hesabını birlikte yapayım.')], src: [] };
+      const nonCirc = a.circ.total - a.circ.circ;
+      const need = nonCirc * U.mid(type.circ) / (1 - U.mid(type.circ));
+      return { blocks: [
+        kv([['Toplam (şu an)', fmt(a.circ.total) + ' m²'], ['Sirkülasyon dışı', fmt(nonCirc) + ' m²'], ['Önerilen sirkülasyon', '≈ ' + fmt(need) + ' m² (%' + fmt(U.mid(type.circ) * 100, 0) + ')'], ['Tahmini toplam', '≈ ' + fmt(nonCirc + need) + ' m²']]),
+        p('Duvar kalınlığı ve şaft payı bu hesaba dahil değildir; brüt inşaat alanı için ayrıca eklenmelidir.'),
+      ], src: srcChips(['S', 'GSA']) };
+    },
+
+    typeProgram(q, ctx, type) {
+      const v = type.variants[0];
+      const req = v.entries.filter((e) => e.req);
+      return { blocks: [
+        p(type.label + ' (' + v.label + ') için temel program:'),
+        ul(req.map((e) => e.name + ' — tipik ' + fmt(e.typ[0]) + '–' + fmt(e.typ[1]) + ' m²')),
+        p(type.notes[0] || ''),
+        acts([{ type: 'loadTemplate', typeKey: type.key, variantKey: v.key, label: type.label + ' şablonunu yükle' }]),
+      ], src: srcChips(['S'].concat(req.map((e) => e.src)).slice(0, 4)) };
+    },
+
+    help() {
+      return { blocks: [
+        p('Bu soruyu tam eşleştiremedim. Şunları sorabilirsiniz:'),
+        ul(['“Projemde ne eksik?”', '“Salon kaç m² olmalı?”', '“Mutfak neyin yanında olmalı?”', '“Sirkülasyon payı ne olmalı?”', '“Projemi değerlendir”', '“Islak hacimleri nasıl gruplarım?”', '“Merkezi organizasyon nedir?”', '“Okul programında hangi mekânlar olmalı?”']),
+      ], src: [] };
+    },
+  };
+
+  function answer(query, ctx) {
+    const nq = N(query);
+    if (!nq) return handlers.help(query, ctx);
+
+    // bina tipi + program soruları
+    const typeHit = KB.TYPES.find((t) => t.key !== 'genel' && nq.split(' ').some((w) => w.length >= 4 && (N(t.label).includes(w) || w.includes(N(t.key)))));
+    const wantsProgram = /program|hangi mekan|mekanlar|olmali/.test(nq) && typeHit && !App.match.findEntryInText(query, typeHit.key, typeHit.variants[0].key);
+    if (typeHit && wantsProgram) return handlers.typeProgram(query, ctx, typeHit);
+
+    // niyet puanı
+    let best = null, bs = 0;
+    INTENTS.forEach((it) => {
+      let sc = 0;
+      it.stems.forEach((st) => { if ((' ' + nq + ' ').includes(st.endsWith(' ') ? ' ' + st : st)) sc += st.length > 5 ? 2 : 1; });
+      if (sc > bs) { bs = sc; best = it.key; }
+    });
+
+    const found = App.match.findEntryInText(query, ctx.project.meta.buildingType, ctx.project.meta.variant);
+    if (found && (best === null || best === 'area' || best === 'adj')) {
+      const adjCue = /yanin|komsu|bitisik|yakin|nereye|iliski|ayri|uzak|yan yana|kacin/.test(nq);
+      const areaCue = /kac m|m2|metrekare|alan|buyuk|olcu|boyut|ne kadar|minimum|asgari/.test(nq);
+      if (adjCue && !areaCue) return handlers.adj(query, ctx);
+      if (areaCue && !adjCue) return handlers.area(query, ctx);
+      return handlers.card(query, ctx, found);
+    }
+    if (best && handlers[best]) return handlers[best](query, ctx);
+    if (found) return handlers.card(query, ctx, found);
+    return handlers.help(query, ctx);
+  }
+
+  App.assistant = {
+    answer: answer,
+    chips: ['Projemde ne eksik?', 'Projemi değerlendir', 'Salon kaç m² olmalı?', 'Mutfak neyin yanında olmalı?', 'Sirkülasyon payı ne olmalı?', 'Islak hacimleri nasıl gruplarım?', 'Merkezi organizasyon nedir?'],
+  };
+})();
+
+/* ==========================================================================
+   26-lib-board.js — pafta sahnesi (primitifler) + SVG / Canvas çizicileri
+   Ekrandaki canlı pafta (SVG) ile PNG/PDF çıktısı (Canvas) aynı primitif listesinden
+   üretilir; böylece dışa aktarılan görüntü ekrandakiyle birebir aynıdır.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const PAL = App.PAL;
+  const FONTS = App.FONTS;
+  const geo = App.geo;
+  const fmt = App.util.fmt;
+
+  /* ---------------- primitif üreticiler ---------------- */
+  function staticPrims(info) {
+    const P = [];
+    const W = geo.W, H = geo.H, F = geo.FRAME, tb = geo.titleBlock;
+    P.push({ t: 'rect', x: 0, y: 0, w: W, h: H, fill: PAL.paper });
+    // modüler ızgara (Bauhaus afişlerindeki gibi ince)
+    for (let x = F + 50; x < W - F; x += 50) P.push({ t: 'line', x1: x, y1: F, x2: x, y2: tb.y, stroke: PAL.ink, sw: 1, opacity: 0.07 });
+    for (let y = F + 50; y < tb.y; y += 50) P.push({ t: 'line', x1: F, y1: y, x2: W - F, y2: y, stroke: PAL.ink, sw: 1, opacity: 0.07 });
+    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, stroke: PAL.ink, sw: 6 });
+    P.push({ t: 'line', x1: F, y1: tb.y, x2: W - F, y2: tb.y, stroke: PAL.ink, sw: 5 });
+
+    // logo bloğu
+    P.push({ t: 'rect', x: tb.x, y: tb.y, w: tb.h, h: tb.h, fill: PAL.blue });
+    P.push({ t: 'circle', cx: tb.x + 36, cy: tb.y + 36, r: 20, fill: PAL.yellow, stroke: PAL.ink, sw: 3 });
+    P.push({ t: 'rect', x: tb.x + 54, y: tb.y + 50, w: 36, h: 36, fill: PAL.red, stroke: PAL.ink, sw: 3 });
+    P.push({ t: 'poly', pts: [[tb.x + 14, tb.y + 90], [tb.x + 46, tb.y + 90], [tb.x + 30, tb.y + 58]], fill: PAL.paper, stroke: PAL.ink, sw: 3 });
+    const xs = [tb.x + tb.h, 720, 1010, 1190];
+    xs.forEach((x, i) => { if (i > 0) P.push({ t: 'line', x1: x, y1: tb.y, x2: x, y2: tb.y + tb.h, stroke: PAL.ink, sw: 4 }); });
+    P.push({ t: 'line', x1: xs[0], y1: tb.y, x2: xs[0], y2: tb.y + tb.h, stroke: PAL.ink, sw: 4 });
+
+    // proje adı
+    let name = String(info.name || 'Adsız proje').toLocaleUpperCase('tr');
+    const fs = name.length > 26 ? 24 : name.length > 20 ? 30 : 36;
+    const maxCh = Math.floor(560 / (fs * 0.66));
+    if (name.length > maxCh) name = name.slice(0, maxCh - 1) + '…';
+    P.push({ t: 'text', x: xs[0] + 22, y: tb.y + 54, s: name, size: fs, weight: 700, fam: 'd', fill: PAL.ink, ls: 1 });
+    P.push({ t: 'text', x: xs[0] + 22, y: tb.y + 84, s: (info.typeLabel + ' · ' + info.variantLabel).toLocaleUpperCase('tr'), size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 2.5, opacity: 0.8 });
+
+    // gösterge
+    const lx = xs[1] + 20;
+    P.push({ t: 'line', x1: lx, y1: tb.y + 28, x2: lx + 54, y2: tb.y + 28, stroke: PAL.ink, sw: 10 });
+    P.push({ t: 'line', x1: lx, y1: tb.y + 28, x2: lx + 54, y2: tb.y + 28, stroke: PAL.paper, sw: 3 });
+    P.push({ t: 'text', x: lx + 70, y: tb.y + 34, s: 'GÜÇLÜ İLİŞKİ', size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 1.5 });
+    P.push({ t: 'line', x1: lx, y1: tb.y + 56, x2: lx + 54, y2: tb.y + 56, stroke: PAL.ink, sw: 3, dash: [11, 8] });
+    P.push({ t: 'text', x: lx + 70, y: tb.y + 62, s: 'ZAYIF İLİŞKİ', size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 1.5 });
+    P.push({ t: 'line', x1: lx, y1: tb.y + 84, x2: lx + 54, y2: tb.y + 84, stroke: PAL.red, sw: 3, dash: [3, 8], cap: 'round' });
+    P.push({ t: 'text', x: lx + 70, y: tb.y + 90, s: 'AYRI TUT', size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 1.5 });
+
+    // istatistik
+    const sx = xs[2] + 20, ex = xs[3] - 20;
+    [['MEKAN', String(info.count)], ['TOPLAM', fmt(info.total) + ' m²'], ['TARİH', info.date]].forEach((r, i) => {
+      const y = tb.y + 34 + i * 28;
+      P.push({ t: 'text', x: sx, y: y, s: r[0], size: 12, weight: 500, fam: 'm', fill: PAL.ink, ls: 1.5, opacity: 0.7 });
+      P.push({ t: 'text', x: ex, y: y, s: r[1], size: i === 2 ? 16 : 20, weight: 700, fam: i === 2 ? 'm' : 'd', fill: PAL.ink, anchor: 'end' });
+    });
+
+    // skor bloğu
+    const pc = info.percent;
+    const bg = pc == null ? PAL.paperDark : pc >= 70 ? PAL.green : pc >= 40 ? PAL.yellow : PAL.red;
+    const fg = pc == null ? PAL.ink : pc >= 70 ? PAL.paper : pc >= 40 ? PAL.ink : PAL.paper;
+    P.push({ t: 'rect', x: xs[3], y: tb.y, w: tb.x + tb.w - xs[3], h: tb.h, fill: bg });
+    P.push({ t: 'text', x: xs[3] + 20, y: tb.y + 30, s: 'VERİMLİLİK', size: 13, weight: 500, fam: 'm', fill: fg, ls: 2 });
+    P.push({ t: 'text', x: xs[3] + 20, y: tb.y + 88, s: pc == null ? '—' : '%' + pc, size: 58, weight: 700, fam: 'd', fill: fg });
+    // üst/alt çerçeve çizgisi kapanışı
+    P.push({ t: 'rect', x: tb.x, y: tb.y, w: tb.w, h: tb.h, stroke: PAL.ink, sw: 4 });
+    return P;
+  }
+
+  function relLinePrims(a, b, type, ra, rb) {
+    const P = [];
+    if (type === 'strong') {
+      P.push({ t: 'line', x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: PAL.ink, sw: 11 });
+      P.push({ t: 'line', x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: PAL.paper, sw: 3 });
+    } else if (type === 'weak') {
+      P.push({ t: 'line', x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: PAL.ink, sw: 3, dash: [12, 9] });
+    } else if (type === 'avoid') {
+      P.push({ t: 'line', x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: PAL.red, sw: 3.5, dash: [3, 9], cap: 'round' });
+      // görünür aralığın ortasına çarpı işareti
+      const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+      const ux = (b.x - a.x) / d, uy = (b.y - a.y) / d;
+      const s0 = ra, s1 = d - rb;
+      const mid = s1 > s0 ? (s0 + s1) / 2 : d / 2;
+      const mx = a.x + ux * mid, my = a.y + uy * mid;
+      P.push({ t: 'circle', cx: mx, cy: my, r: 12, fill: PAL.paper, stroke: PAL.red, sw: 3 });
+      P.push({ t: 'line', x1: mx - 5, y1: my - 5, x2: mx + 5, y2: my + 5, stroke: PAL.red, sw: 3, cap: 'round' });
+      P.push({ t: 'line', x1: mx - 5, y1: my + 5, x2: mx + 5, y2: my - 5, stroke: PAL.red, sw: 3, cap: 'round' });
+    }
+    return P;
+  }
+
+  function bubblePrims(s, r) {
+    const z = App.ZONES[s.zone] || App.ZONES.sosyal;
+    const P = [];
+    P.push({ t: 'circle', cx: s.x, cy: s.y, r: r, fill: z.fill, stroke: PAL.ink, sw: 5 });
+    if (r >= 60) P.push({ t: 'circle', cx: s.x, cy: s.y, r: r - 11, stroke: z.text, sw: 1.5, opacity: 0.35 });
+    const lab = geo.label(s.name, r);
+    const areaTxt = fmt(s.area) + ' m²';
+    const afs = Math.max(10, Math.round(lab.fs * 0.78));
+    const lh = lab.fs * 1.12;
+    if (lab.outside) {
+      let y = s.y + r + 20;
+      lab.lines.forEach((ln, i) => { P.push({ t: 'text', x: s.x, y: y + i * lh, s: ln, size: lab.fs, weight: 700, fam: 'd', fill: PAL.ink, anchor: 'middle', ls: 0.5 }); });
+      P.push({ t: 'text', x: s.x, y: y + lab.lines.length * lh + 2, s: areaTxt, size: afs, weight: 500, fam: 'm', fill: PAL.ink, anchor: 'middle' });
+    } else {
+      const blockH = lab.lines.length * lh + afs + 4;
+      let y = s.y - blockH / 2 + lab.fs * 0.85;
+      lab.lines.forEach((ln, i) => { P.push({ t: 'text', x: s.x, y: y + i * lh, s: ln, size: lab.fs, weight: 700, fam: 'd', fill: z.text, anchor: 'middle', ls: 0.5 }); });
+      P.push({ t: 'text', x: s.x, y: y + lab.lines.length * lh + 2, s: areaTxt, size: afs, weight: 500, fam: 'm', fill: z.text, anchor: 'middle' });
+    }
+    return P;
+  }
+
+  function infoOf(project, score) {
+    const type = App.kb.type(project.meta.buildingType);
+    const variant = App.kb.variant(project.meta.buildingType, project.meta.variant);
+    return {
+      name: project.meta.name,
+      typeLabel: type.label,
+      variantLabel: variant.label,
+      count: project.spaces.length,
+      total: App.util.sum(project.spaces, (s) => s.area),
+      date: App.util.today(),
+      percent: score ? score.percent : null,
+    };
+  }
+
+  function allPrims(project, k, score) {
+    const P = staticPrims(infoOf(project, score));
+    const by = new Map(project.spaces.map((s) => [s.id, s]));
+    Object.keys(project.relations).forEach((key) => {
+      const ids = key.split('|');
+      const a = by.get(ids[0]), b = by.get(ids[1]);
+      if (!a || !b) return;
+      relLinePrims(a, b, project.relations[key], geo.radius(a.area, k), geo.radius(b.area, k)).forEach((x) => P.push(x));
+    });
+    project.spaces.forEach((s) => bubblePrims(s, geo.radius(s.area, k)).forEach((x) => P.push(x)));
+    return P;
+  }
+
+  /* ---------------- SVG çizici (sanal DOM düğümü) ---------------- */
+  function primToV(p, extra) {
+    const a = Object.assign({}, extra || {});
+    if (p.opacity != null) a.opacity = p.opacity;
+    switch (p.t) {
+      case 'rect':
+        Object.assign(a, { x: p.x, y: p.y, width: p.w, height: p.h, fill: p.fill || 'none' });
+        if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; a['stroke-linejoin'] = 'miter'; }
+        return h('rect', a);
+      case 'circle':
+        Object.assign(a, { cx: p.cx, cy: p.cy, r: p.r, fill: p.fill || 'none' });
+        if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; }
+        return h('circle', a);
+      case 'line':
+        Object.assign(a, { x1: p.x1, y1: p.y1, x2: p.x2, y2: p.y2, stroke: p.stroke, 'stroke-width': p.sw, 'stroke-linecap': p.cap || 'butt' });
+        if (p.dash) a['stroke-dasharray'] = p.dash.join(' ');
+        return h('line', a);
+      case 'poly':
+        Object.assign(a, { points: p.pts.map((q) => q.join(',')).join(' '), fill: p.fill || 'none' });
+        if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; a['stroke-linejoin'] = 'round'; }
+        return h('polygon', a);
+      case 'text':
+        Object.assign(a, { x: p.x, y: p.y, fill: p.fill, 'font-family': FONTS[p.fam], 'font-size': p.size, 'font-weight': p.weight, 'text-anchor': p.anchor || 'start' });
+        if (p.ls) a['letter-spacing'] = p.ls;
+        return h('text', a, p.s);
+    }
+    return null;
+  }
+
+  /* ---------------- Canvas çizici ---------------- */
+  function paintPrim(ctx, p) {
+    ctx.save();
+    if (p.opacity != null) ctx.globalAlpha = p.opacity;
+    ctx.setLineDash(p.dash || []);
+    ctx.lineCap = p.cap || 'butt';
+    switch (p.t) {
+      case 'rect':
+        if (p.fill) { ctx.fillStyle = p.fill; ctx.fillRect(p.x, p.y, p.w, p.h); }
+        if (p.stroke) { ctx.strokeStyle = p.stroke; ctx.lineWidth = p.sw; ctx.lineJoin = 'miter'; ctx.strokeRect(p.x, p.y, p.w, p.h); }
+        break;
+      case 'circle':
+        ctx.beginPath(); ctx.arc(p.cx, p.cy, p.r, 0, Math.PI * 2);
+        if (p.fill) { ctx.fillStyle = p.fill; ctx.fill(); }
+        if (p.stroke) { ctx.strokeStyle = p.stroke; ctx.lineWidth = p.sw; ctx.stroke(); }
+        break;
+      case 'line':
+        ctx.beginPath(); ctx.moveTo(p.x1, p.y1); ctx.lineTo(p.x2, p.y2);
+        ctx.strokeStyle = p.stroke; ctx.lineWidth = p.sw; ctx.stroke();
+        break;
+      case 'poly':
+        ctx.beginPath(); p.pts.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]))); ctx.closePath();
+        if (p.fill) { ctx.fillStyle = p.fill; ctx.fill(); }
+        if (p.stroke) { ctx.strokeStyle = p.stroke; ctx.lineWidth = p.sw; ctx.lineJoin = 'round'; ctx.stroke(); }
+        break;
+      case 'text':
+        ctx.font = p.weight + ' ' + p.size + 'px ' + FONTS[p.fam];
+        ctx.fillStyle = p.fill;
+        ctx.textAlign = p.anchor === 'middle' ? 'center' : p.anchor === 'end' ? 'right' : 'left';
+        ctx.textBaseline = 'alphabetic';
+        if ('letterSpacing' in ctx) ctx.letterSpacing = (p.ls || 0) + 'px';
+        ctx.fillText(p.s, p.x, p.y);
+        break;
+    }
+    ctx.restore();
+  }
+
+  function ensureFonts() {
+    if (!document.fonts || !document.fonts.load) return Promise.resolve();
+    const loads = [
+      "700 20px 'Chakra Petch'", "600 16px 'Jost'", "500 14px 'DM Mono'", "700 16px 'DM Mono'",
+    ].map((f) => document.fonts.load(f, 'AaİıŞşĞğÜüÖöÇç0123456789'));
+    return Promise.race([Promise.all(loads), new Promise((r) => setTimeout(r, 2500))]).catch(function () {});
+  }
+
+  function toCanvas(project, k, score, factor) {
+    return ensureFonts().then(function () {
+      const s = factor || 2;
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(geo.W * s);
+      cv.height = Math.round(geo.H * s);
+      const ctx = cv.getContext('2d');
+      ctx.scale(s, s);
+      allPrims(project, k, score).forEach((p) => paintPrim(ctx, p));
+      return cv;
+    });
+  }
+
+  App.board = {
+    staticPrims: staticPrims, relLinePrims: relLinePrims, bubblePrims: bubblePrims, infoOf: infoOf,
+    allPrims: allPrims, primToV: primToV, paintPrim: paintPrim, toCanvas: toCanvas,
+  };
+})();
+
+/* ==========================================================================
+   27-lib-files.js — JSON kaydet/yükle, PNG ve PDF dışa aktarma
+   Standart şema: "mimari-asistan.bubble-diagram" v1 (diğer modüllerle paylaşım için)
+   İndirme: önce Artifact "downloads" yeteneği, yoksa tarayıcı indirmesi.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const geo = App.geo;
+
+  const SCHEMA = 'mimari-asistan.bubble-diagram';
+  const VERSION = 1;
+
+  /* ---------------- dosya kaydetme ---------------- */
+  function saveBlob(filename, blob) {
+    const cap = window.claude && window.claude.use ? window.claude.use('downloads') : Promise.resolve(null);
+    return Promise.resolve(cap).catch(function () { return null; }).then(function (dl) {
+      if (dl && dl.save) {
+        return dl.save({ filename: filename, data: blob }).then(
+          function (r) { return { ok: true, status: r.status }; },
+          function (e) { return { ok: false, code: e && e.code, message: e && e.message }; }
+        );
+      }
+      try {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        return { ok: true, status: 'saved' };
+      } catch (e) { return { ok: false, code: 'unavailable', message: String(e) }; }
+    });
+  }
+
+  /* ---------------- JSON ---------------- */
+  function toJSON(project, k, score, circ) {
+    const now = new Date().toISOString();
+    return {
+      schema: SCHEMA,
+      version: VERSION,
+      meta: {
+        name: project.meta.name,
+        buildingType: project.meta.buildingType,
+        variant: project.meta.variant,
+        createdAt: project.meta.createdAt || now,
+        updatedAt: now,
+      },
+      world: { width: geo.W, height: geo.H, unit: 'px', scalePxPerSqrtM2: Math.round(k * 1000) / 1000 },
+      spaces: project.spaces.map((s) => ({ id: s.id, name: s.name, area: s.area, zone: s.zone, x: Math.round(s.x * 10) / 10, y: Math.round(s.y * 10) / 10 })),
+      relations: Object.keys(project.relations).map((key) => { const ids = key.split('|'); return { a: ids[0], b: ids[1], type: project.relations[key] }; }),
+      metrics: {
+        efficiencyScore: score ? score.percent : null,
+        totalArea: Math.round(U.sum(project.spaces, (s) => s.area) * 100) / 100,
+        circulationShare: circ ? Math.round(circ.share * 1000) / 1000 : null,
+      },
+    };
+  }
+
+  function fromJSON(text) {
+    let o;
+    try { o = JSON.parse(text); } catch (e) { throw new Error('Dosya geçerli bir JSON değil.'); }
+    if (!o || o.schema !== SCHEMA) throw new Error('Bu dosya bir İşlev Şeması projesi değil (şema: ' + SCHEMA + ').');
+    if (!Array.isArray(o.spaces)) throw new Error('Dosyada mekân listesi bulunamadı.');
+    const ids = new Set();
+    const spaces = o.spaces.map((s, i) => {
+      const id = String(s.id || U.uid() + i);
+      ids.add(id);
+      const area = Number(s.area);
+      if (!(area > 0)) throw new Error('“' + (s.name || i + 1) + '” için geçersiz alan.');
+      const zone = App.ZONES[s.zone] ? s.zone : App.match.zoneFor(String(s.name || ''), o.meta && o.meta.buildingType, o.meta && o.meta.variant);
+      return { id: id, name: String(s.name || 'Mekân ' + (i + 1)).slice(0, 60), area: area, zone: zone, x: Number(s.x) || geo.W / 2, y: Number(s.y) || geo.H / 2 };
+    });
+    const relations = {};
+    (o.relations || []).forEach((r) => {
+      if (!ids.has(r.a) || !ids.has(r.b) || r.a === r.b) return;
+      if (r.type === 'strong' || r.type === 'weak' || r.type === 'avoid') relations[U.pairKey(r.a, r.b)] = r.type;
+    });
+    const m = o.meta || {};
+    const typeKey = App.KB.TYPES.some((t) => t.key === m.buildingType) ? m.buildingType : 'genel';
+    const variant = App.kb.variant(typeKey, m.variant).key;
+    return { meta: { name: String(m.name || 'İçe aktarılan proje').slice(0, 80), buildingType: typeKey, variant: variant, createdAt: m.createdAt || null, example: false }, spaces: spaces, relations: relations };
+  }
+
+  /* ---------------- PNG / PDF ---------------- */
+  function canvasToBlob(cv, type, q) {
+    return new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error('Görüntü oluşturulamadı.'))), type, q));
+  }
+
+  function buildPdf(jpeg, iw, ih, title) {
+    const enc = new TextEncoder();
+    const parts = [];
+    let len = 0;
+    const offs = [];
+    const push = (x) => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+    const pw = 1190.55, ph = 841.89; // A3 yatay (pt)
+    push('%PDF-1.4\n');
+    push(new Uint8Array([0x25, 0xe2, 0xe3, 0xcf, 0xd3, 0x0a]));
+    offs[1] = len; push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+    offs[2] = len; push('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+    offs[3] = len; push('3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pw + ' ' + ph + '] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n');
+    offs[4] = len; push('4 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + iw + ' /Height ' + ih + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpeg.length + ' >>\nstream\n');
+    push(jpeg); push('\nendstream\nendobj\n');
+    const content = 'q ' + pw + ' 0 0 ' + ph + ' 0 0 cm /Im0 Do Q';
+    offs[5] = len; push('5 0 obj\n<< /Length ' + content.length + ' >>\nstream\n' + content + '\nendstream\nendobj\n');
+    const t = U.norm(title).replace(/[()\\]/g, '') || 'islev-semasi';
+    offs[6] = len; push('6 0 obj\n<< /Title (' + t + ') /Producer (Islev Semasi Simulasyonu) >>\nendobj\n');
+    const xref = len;
+    let x = 'xref\n0 7\n0000000000 65535 f \n';
+    for (let i = 1; i <= 6; i++) x += String(offs[i]).padStart(10, '0') + ' 00000 n \n';
+    push(x);
+    push('trailer\n<< /Size 7 /Root 1 0 R /Info 6 0 R >>\nstartxref\n' + xref + '\n%%EOF');
+    return new Blob(parts, { type: 'application/pdf' });
+  }
+
+  function exportPNG(project, k, score) {
+    return App.board.toCanvas(project, k, score, 2).then((cv) => canvasToBlob(cv, 'image/png')).then((blob) => saveBlob(U.slug(project.meta.name) + '-islev-semasi.png', blob));
+  }
+  function exportPDF(project, k, score) {
+    return App.board.toCanvas(project, k, score, 2.5).then((cv) =>
+      canvasToBlob(cv, 'image/jpeg', 0.93).then((b) => b.arrayBuffer()).then((buf) => buildPdf(new Uint8Array(buf), cv.width, cv.height, project.meta.name))
+    ).then((blob) => saveBlob(U.slug(project.meta.name) + '-islev-semasi.pdf', blob));
+  }
+  function exportJSON(project, k, score, circ) {
+    const text = JSON.stringify(toJSON(project, k, score, circ), null, 2);
+    return saveBlob(U.slug(project.meta.name) + '-islev-semasi.json', new Blob([text], { type: 'application/json' }));
+  }
+
+  App.files = { SCHEMA: SCHEMA, toJSON: toJSON, fromJSON: fromJSON, exportPNG: exportPNG, exportPDF: exportPDF, exportJSON: exportJSON, saveBlob: saveBlob, buildPdf: buildPdf };
+})();
+
+/* ==========================================================================
+   30-state.js — proje modeli, reducer (geri al/ileri al), türetilmiş veriler, otomatik kayıt
+   Proje modeli: { meta, spaces: [{id,name,area,zone,x,y}], relations: {"idA|idB": "strong|weak|avoid"} }
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const geo = App.geo;
+
+  const STORE_KEY = 'islev-semasi:v1:autosave';
+
+  /* ---------------- proje üretimi ---------------- */
+  function createFromTemplate(typeKey, variantKey, opts) {
+    opts = opts || {};
+    const type = App.kb.type(typeKey);
+    const v = App.kb.variant(typeKey, variantKey);
+    const entries = v.entries.filter((e) => e.req);
+    const idByKey = {};
+    const spaces = entries.map((e) => {
+      const id = U.uid() + e.key;
+      idByKey[e.key] = id;
+      return { id: id, name: e.name, area: App.analyze.defaultArea(e), zone: e.zone, x: geo.W / 2, y: geo.H / 2 };
+    });
+    const relations = {};
+    v.relations.forEach((r) => {
+      if (idByKey[r[0]] && idByKey[r[1]]) relations[U.pairKey(idByKey[r[0]], idByKey[r[1]])] = r[2];
+    });
+    const k = geo.scale(spaces);
+    const pos = App.layout.auto(spaces, relations, k, {});
+    spaces.forEach((s) => { if (pos[s.id]) { s.x = pos[s.id].x; s.y = pos[s.id].y; } });
+    if (opts.messy && spaces.length > 3) {
+      // örnek proje: bilerek dağınık başlar → "Otomatik yerleştir" farkı hemen gösterir
+      const pts = spaces.map((s) => ({ x: s.x, y: s.y }));
+      const n = spaces.length;
+      let best = null;
+      for (let shift = 1; shift < n; shift++) {
+        const moved = spaces.map((s, i) => Object.assign({}, s, pts[(i + shift) % n]));
+        const pc = App.score.evaluate(moved, relations, k).percent;
+        if (pc != null && (best === null || pc < best.pc)) best = { pc: pc, shift: shift };
+      }
+      if (best) spaces.forEach((s, i) => { const q = pts[(i + best.shift) % n]; s.x = q.x; s.y = q.y; });
+    }
+    return {
+      meta: { name: opts.name || (opts.messy ? 'Örnek: ' : '') + v.label + ' ' + type.label, buildingType: type.key, variant: v.key, createdAt: new Date().toISOString(), example: !!opts.messy },
+      spaces: spaces,
+      relations: relations,
+    };
+  }
+
+  function emptyProject() {
+    return { meta: { name: 'Yeni proje', buildingType: 'konut', variant: '2+1', createdAt: new Date().toISOString(), example: false }, spaces: [], relations: {} };
+  }
+
+  /* ---------------- otomatik kayıt (kişisel kolaylık) ---------------- */
+  function loadSaved() {
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      return App.files.fromJSON(raw);
+    } catch (e) { return null; }
+  }
+  function persist(project) {
+    try {
+      const k = geo.scale(project.spaces);
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(App.files.toJSON(project, k, null, null)));
+    } catch (e) { /* depolama yoksa sessizce atla */ }
+  }
+  function clearSaved() { try { window.localStorage.removeItem(STORE_KEY); } catch (e) {} }
+
+  /* ---------------- başlangıç durumu ---------------- */
+  function initialState() {
+    const saved = loadSaved();
+    const project = saved || createFromTemplate('konut', '2+1', { messy: true });
+    return {
+      project: project,
+      past: [], future: [],
+      selectedId: null,
+      restored: !!saved,
+      ui: {
+        tab: 'spaces', assistantOpen: false, asTab: 'analysis', messages: [], toast: null, highlight: null,
+        form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
+        busy: null, hintDismissed: false,
+      },
+    };
+  }
+
+  /* ---------------- reducer ---------------- */
+  const HISTORY = 60;
+  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations }; }
+  function withHistory(state, project) {
+    const meta = project.meta.example ? Object.assign({}, project.meta, { example: false }) : project.meta;
+    return Object.assign({}, state, {
+      project: Object.assign({}, project, { meta: meta }),
+      past: state.past.concat([snap(state.project)]).slice(-HISTORY),
+      future: [],
+    });
+  }
+  const setUi = (state, patch) => Object.assign({}, state, { ui: Object.assign({}, state.ui, patch) });
+
+  function reducer(state, a) {
+    const P = state.project;
+    switch (a.type) {
+      case 'ADD_SPACES': {
+        const spaces = P.spaces.slice();
+        const ids = [];
+        a.list.forEach((it) => {
+          const area = U.clamp(Number(it.area) || 10, 0.5, 100000);
+          const item = { id: U.uid(), name: String(it.name || 'Mekân').slice(0, 60), area: area, zone: App.ZONES[it.zone] ? it.zone : App.match.zoneFor(it.name, P.meta.buildingType, P.meta.variant), x: geo.W / 2, y: geo.H / 2 };
+          const k = geo.scale(spaces.concat(item));
+          const pos = App.layout.freeSpot(spaces, area, k);
+          item.x = pos.x; item.y = pos.y;
+          spaces.push(item);
+          ids.push(item.id);
+        });
+        if (a.list.length > 2) {
+          const k = geo.scale(spaces);
+          const pos = App.layout.auto(spaces, P.relations, k, { keep: true, iter: 260 });
+          spaces.forEach((s) => { if (pos[s.id]) { s.x = pos[s.id].x; s.y = pos[s.id].y; } });
+        }
+        const next = withHistory(state, Object.assign({}, P, { spaces: spaces }));
+        next.selectedId = ids[ids.length - 1];
+        return next;
+      }
+      case 'UPDATE_SPACE': {
+        const spaces = P.spaces.map((s) => {
+          if (s.id !== a.id) return s;
+          const patch = {};
+          if (a.patch.name != null) patch.name = String(a.patch.name).slice(0, 60);
+          if (a.patch.area != null) { const v = Number(a.patch.area); if (v > 0) patch.area = U.clamp(v, 0.5, 100000); }
+          if (a.patch.zone != null && App.ZONES[a.patch.zone]) patch.zone = a.patch.zone;
+          return Object.assign({}, s, patch);
+        });
+        return withHistory(state, Object.assign({}, P, { spaces: spaces }));
+      }
+      case 'REMOVE_SPACE': {
+        const spaces = P.spaces.filter((s) => s.id !== a.id);
+        const rel = {};
+        Object.keys(P.relations).forEach((key) => { if (key.split('|').indexOf(a.id) < 0) rel[key] = P.relations[key]; });
+        const next = withHistory(state, Object.assign({}, P, { spaces: spaces, relations: rel }));
+        if (state.selectedId === a.id) next.selectedId = null;
+        return next;
+      }
+      case 'DRAG_START': return Object.assign({}, state, { past: state.past.concat([snap(P)]).slice(-HISTORY), future: [], project: P.meta.example ? Object.assign({}, P, { meta: Object.assign({}, P.meta, { example: false }) }) : P });
+      case 'SNAPSHOT': return Object.assign({}, state, { past: state.past.concat([snap(P)]).slice(-HISTORY), future: [] });
+      case 'MOVE': {
+        const spaces = P.spaces.map((s) => (s.id === a.id ? Object.assign({}, s, { x: a.x, y: a.y }) : s));
+        return Object.assign({}, state, { project: Object.assign({}, P, { spaces: spaces }) });
+      }
+      case 'SET_POSITIONS': {
+        const spaces = P.spaces.map((s) => (a.positions[s.id] ? Object.assign({}, s, { x: a.positions[s.id].x, y: a.positions[s.id].y }) : s));
+        return Object.assign({}, state, { project: Object.assign({}, P, { spaces: spaces }) });
+      }
+      case 'SET_RELATION': {
+        const key = U.pairKey(a.a, a.b);
+        if (a.a === a.b) return state;
+        const rel = Object.assign({}, P.relations);
+        if (a.rel === 'none') delete rel[key]; else rel[key] = a.rel;
+        if ((P.relations[key] || 'none') === a.rel) return state;
+        return withHistory(state, Object.assign({}, P, { relations: rel }));
+      }
+      case 'CYCLE_RELATION': {
+        const key = U.pairKey(a.a, a.b);
+        const cur = P.relations[key] || 'none';
+        const nxt = App.REL_CYCLE[(App.REL_CYCLE.indexOf(cur) + 1) % App.REL_CYCLE.length];
+        return reducer(state, { type: 'SET_RELATION', a: a.a, b: a.b, rel: nxt });
+      }
+      case 'SET_META': return withHistory(state, Object.assign({}, P, { meta: Object.assign({}, P.meta, a.patch) }));
+      case 'LOAD_PROJECT': {
+        const next = withHistory(state, a.project);
+        next.project = a.project;
+        next.selectedId = null;
+        next.ui = Object.assign({}, state.ui, { tplType: a.project.meta.buildingType, tplVariant: a.project.meta.variant });
+        return next;
+      }
+      case 'UNDO': {
+        if (!state.past.length) return state;
+        const prev = state.past[state.past.length - 1];
+        return Object.assign({}, state, { project: Object.assign({}, prev), past: state.past.slice(0, -1), future: [snap(P)].concat(state.future), selectedId: prev.spaces.some((s) => s.id === state.selectedId) ? state.selectedId : null });
+      }
+      case 'REDO': {
+        if (!state.future.length) return state;
+        const nx = state.future[0];
+        return Object.assign({}, state, { project: Object.assign({}, nx), past: state.past.concat([snap(P)]), future: state.future.slice(1) });
+      }
+      case 'SELECT': return state.selectedId === a.id ? state : Object.assign({}, state, { selectedId: a.id });
+      case 'UI': return setUi(state, a.patch);
+      case 'FORM': return setUi(state, { form: Object.assign({}, state.ui.form, a.patch) });
+      case 'TOAST': return setUi(state, { toast: { msg: a.msg, kind: a.kind || 'info', id: Date.now() } });
+      case 'CLEAR_TOAST': return state.ui.toast ? setUi(state, { toast: null }) : state;
+      case 'CHAT_ADD': return setUi(state, { messages: state.ui.messages.concat([a.msg]).slice(-30) });
+      case 'HIGHLIGHT': return setUi(state, { highlight: a.pair });
+      default: return state;
+    }
+  }
+
+  /* ---------------- türetilmiş veriler (önbellekli) ---------------- */
+  let memo = { project: null, out: null };
+  function derive(state) {
+    if (memo.project === state.project) return memo.out;
+    const k = geo.scale(state.project.spaces);
+    const score = App.score.evaluate(state.project.spaces, state.project.relations, k);
+    const analysis = App.analyze.run(state.project, k, score);
+    memo = { project: state.project, out: { k: k, score: score, analysis: analysis } };
+    return memo.out;
+  }
+
+  App.state = { createFromTemplate: createFromTemplate, emptyProject: emptyProject, initialState: initialState, reducer: reducer, derive: derive, persist: persist, clearSaved: clearSaved };
+})();
+
+/* ==========================================================================
+   40-ui-common.js — ikonlar ve ortak arayüz yardımcıları
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = (App.ui = App.ui || {});
+
+  const ICONS = {
+    save: ['M12 3v12m0 0l-4-4m4 4l4-4', 'M4 20h16'],
+    open: ['M12 16V4m0 0L8 8m4-4l4 4', 'M4 20h16'],
+    image: ['M4 5h16v14H4z', 'M4 16l5-5 4 4 3-3 4 4', { c: [9, 9, 1.5] }],
+    pdf: ['M6 3h8l4 4v14H6z', 'M14 3v5h4', 'M9 14h6M9 17h6'],
+    undo: ['M9 14L4 9l5-5', 'M4 9h10a6 6 0 010 12h-4'],
+    redo: ['M15 14l5-5-5-5', 'M20 9H10a6 6 0 000 12h4'],
+    layout: ['M3 12a9 9 0 0115-6.7L21 8', 'M21 3v5h-5', 'M21 12a9 9 0 01-15 6.7L3 16', 'M3 21v-5h5'],
+    plus: ['M12 5v14M5 12h14'],
+    trash: ['M4 7h16', 'M9 7V4h6v3', 'M6 7l1 13h10l1-13'],
+    close: ['M6 6l12 12M18 6L6 18'],
+    chevron: ['M9 6l6 6-6 6'],
+    newdoc: ['M6 3h8l4 4v14H6z', 'M14 3v5h4', 'M12 11v6M9 14h6'],
+    spark: ['M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z'],
+    send: ['M4 12l16-8-6 16-3-7z'],
+    pin: ['M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z', { c: [12, 10, 2.5] }],
+    check: ['M5 12l5 5 9-10'],
+  };
+
+  ui.icon = function (name, size) {
+    const s = size || 18;
+    const kids = (ICONS[name] || []).map((d) => (typeof d === 'string' ? h('path', { d: d }) : h('circle', { cx: d.c[0], cy: d.c[1], r: d.c[2] })));
+    return h('svg', { viewBox: '0 0 24 24', width: s, height: s, fill: 'none', stroke: 'currentColor', 'stroke-width': 2.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true', class: 'ico' }, kids);
+  };
+
+  // Bauhaus üçlüsü: daire, kare, üçgen
+  ui.logo = function () {
+    return h('svg', { viewBox: '0 0 48 48', width: 44, height: 44, class: 'logo', 'aria-hidden': 'true' }, [
+      h('rect', { x: 2, y: 2, width: 44, height: 44, fill: App.PAL.blue, stroke: App.PAL.ink, 'stroke-width': 3 }),
+      h('circle', { cx: 17, cy: 17, r: 9, fill: App.PAL.yellow, stroke: App.PAL.ink, 'stroke-width': 2.5 }),
+      h('rect', { x: 24, y: 24, width: 16, height: 16, fill: App.PAL.red, stroke: App.PAL.ink, 'stroke-width': 2.5 }),
+      h('polygon', { points: '8,40 20,40 14,27', fill: App.PAL.paper, stroke: App.PAL.ink, 'stroke-width': 2.5, 'stroke-linejoin': 'round' }),
+    ]);
+  };
+
+  ui.btn = function (label, opts) {
+    opts = opts || {};
+    return h('button', { type: 'button', class: 'btn ' + (opts.cls || ''), onclick: opts.onclick, title: opts.title || null, disabled: !!opts.disabled, id: opts.id || null, 'aria-pressed': opts.pressed == null ? null : String(!!opts.pressed) },
+      opts.icon ? ui.icon(opts.icon, opts.iconSize) : null,
+      label ? h('span', { class: opts.labelCls || '' }, label) : null,
+      opts.badge ? h('span', { class: 'badge' + (opts.badgePulse ? ' pulse-badge' : '') }, opts.badge) : null);
+  };
+
+  ui.levelLabel = { hata: 'HATA', uyari: 'UYARI', oneri: 'ÖNERİ', ok: 'TAMAM' };
+
+  ui.zoneDot = function (zone) {
+    const z = App.ZONES[zone] || App.ZONES.sosyal;
+    return h('span', { class: 'dot', style: { background: z.fill }, title: z.label });
+  };
+})();
+
+/* ==========================================================================
+   41-ui-top.js — üst çubuk (proje, kaydet/yükle, dışa aktar) ve verimlilik skor şeridi
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const U = App.util;
+
+  ui.header = function (state, d) {
+    const ctl = App.ctl;
+    const meta = state.project.meta;
+    const issues = d.analysis.counts.hata + d.analysis.counts.uyari;
+    return h('header', { class: 'hdr' },
+      h('div', { class: 'hdr-brand' },
+        ui.logo(),
+        h('div', { class: 'hdr-titles' },
+          h('h1', { class: 'hdr-title' }, 'İŞLEV ŞEMASI'),
+          h('p', { class: 'hdr-sub' }, 'Bubble diagram simülasyonu'))),
+      h('div', { class: 'hdr-name' },
+        h('label', { for: 'project-name', class: 'lbl' }, 'Proje adı'),
+        h('div', { class: 'hdr-name-row' },
+          h('input', { id: 'project-name', class: 'inp', type: 'text', maxlength: 80, value: meta.name, keep: true, autocomplete: 'off', onchange: (e) => ctl.dispatch({ type: 'SET_META', patch: { name: e.target.value.trim() || 'Adsız proje' } }) }),
+          meta.example ? h('span', { class: 'tag-example', title: 'Bu proje bir örnektir. Düzenlemeye başladığınızda kendi projeniz olur.' }, 'ÖRNEK') : null)),
+      h('div', { class: 'hdr-actions', role: 'toolbar', 'aria-label': 'Proje işlemleri' },
+        ui.btn('Yeni', { icon: 'newdoc', onclick: ctl.newProject, title: 'Boş proje başlat (geri alınabilir)', labelCls: 'lbl-hide' }),
+        ui.btn('Kaydet', { icon: 'save', onclick: ctl.saveJSON, title: 'Projeyi bilgisayara JSON olarak indir', labelCls: 'lbl-hide' }),
+        ui.btn('Yükle', { icon: 'open', onclick: ctl.pickFile, title: 'Kaydedilmiş JSON projesini yükle', labelCls: 'lbl-hide' }),
+        h('span', { class: 'sep', 'aria-hidden': 'true' }),
+        ui.btn('PNG', { icon: 'image', onclick: ctl.exportPNG, title: 'Saf şemayı PNG resmi olarak indir', cls: 'btn-blue', disabled: !!state.ui.busy }),
+        ui.btn('PDF', { icon: 'pdf', onclick: ctl.exportPDF, title: 'Saf şemayı A3 PDF olarak indir', cls: 'btn-blue', disabled: !!state.ui.busy }),
+        h('span', { class: 'sep', 'aria-hidden': 'true' }),
+        ui.btn('Akıllı öneri', { icon: 'spark', onclick: ctl.toggleAssistant, cls: 'btn-yellow', pressed: state.ui.assistantOpen, badge: issues ? String(issues) : null, badgePulse: !state.ui.assistantOpen, title: 'Akıllı öneri panelini aç / kapat' })),
+      h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
+  };
+
+  ui.scorebar = function (state, d) {
+    const s = d.score;
+    const pc = s.percent;
+    const level = pc == null ? 'none' : pc >= 70 ? 'good' : pc >= 40 ? 'mid' : 'low';
+    const msg = pc == null ? 'İlişki ekleyerek skoru başlatın' : pc >= 85 ? 'Çok iyi yerleşim' : pc >= 70 ? 'İyi, birkaç ince ayar kaldı' : pc >= 40 ? 'Güçlü ilişkili daireleri yaklaştırın' : 'Güçlü bağlar çok uzak';
+    const c = s.counts;
+    const issues = d.analysis.counts.hata + d.analysis.counts.uyari;
+    return h('section', { class: 'scorebar', 'aria-label': 'Verimlilik skoru' },
+      h('div', { class: 'score-main score-' + level, 'aria-live': 'polite' },
+        h('span', { class: 'lbl' }, 'Verimlilik skoru'),
+        h('span', { class: 'score-num' }, pc == null ? '—' : '%' + pc)),
+      h('div', { class: 'meter-wrap' },
+        h('div', { class: 'meter', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': pc == null ? 0 : pc },
+          h('div', { class: 'meter-fill meter-' + level, style: { width: (pc == null ? 0 : pc) + '%' } }),
+          h('span', { class: 'tick', style: { left: '40%' } }),
+          h('span', { class: 'tick', style: { left: '70%' } })),
+        h('p', { class: 'meter-msg' }, msg)),
+      h('ul', { class: 'chips', 'aria-label': 'Skor ayrıntısı' },
+        h('li', { class: 'chip' }, h('i', { class: 'swatch sw-strong' }), 'Güçlü ', h('b', {}, c.strong[0] ? c.strong[1] + '/' + c.strong[0] : '0'), ' yakın'),
+        h('li', { class: 'chip' }, h('i', { class: 'swatch sw-weak' }), 'Zayıf ', h('b', {}, c.weak[0] ? c.weak[1] + '/' + c.weak[0] : '0'), ' uygun'),
+        h('li', { class: 'chip' }, h('i', { class: 'swatch sw-avoid' }), 'Ayrı ', h('b', {}, c.avoid[0] ? c.avoid[1] + '/' + c.avoid[0] : '0'), ' uzak'),
+        s.overlaps.length ? h('li', { class: 'chip chip-warn' }, 'Üst üste ', h('b', {}, String(s.overlaps.length))) : null),
+      h('button', { type: 'button', class: 'issues-btn' + (issues ? ' has-issues' : ''), onclick: App.ctl.openAnalysis },
+        issues ? h('b', { class: 'issues-n' }, String(issues)) : ui.icon('check', 16),
+        h('span', {}, issues ? ' uyarı · önerileri gör' : ' kritik sorun yok')));
+  };
+})();
+
+/* ==========================================================================
+   42-ui-board.js — canlı pafta (SVG): daireler, ilişki çizgileri, sürükle-bırak
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const geo = App.geo;
+
+  let drag = null;
+
+  function toWorld(e) {
+    const svg = ui.svgEl;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+
+  function bubbleDown(e, s, r) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const w = toWorld(e);
+    drag = { id: s.id, dx: s.x - w.x, dy: s.y - w.y, sx: e.clientX, sy: e.clientY, moved: false, r: r };
+    try { ui.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+    App.ctl.dispatch({ type: 'SELECT', id: s.id });
+  }
+  function svgMove(e) {
+    if (!drag) return;
+    if (!drag.moved) {
+      if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
+      drag.moved = true;
+      App.ctl.dispatch({ type: 'DRAG_START' });
+      ui.dragging = true;
+    }
+    const w = toWorld(e);
+    const c = geo.clampPos(w.x + drag.dx, w.y + drag.dy, drag.r);
+    App.ctl.dispatch({ type: 'MOVE', id: drag.id, x: c.x, y: c.y });
+  }
+  function svgUp(e) {
+    if (!drag) return;
+    try { ui.svgEl.releasePointerCapture(e.pointerId); } catch (err) {}
+    drag = null;
+    ui.dragging = false;
+  }
+
+  ui.board = function (state, d) {
+    const ctl = App.ctl;
+    const P = state.project;
+    const k = d.k;
+    const by = new Map(P.spaces.map((s) => [s.id, s]));
+    const farStrong = new Set(d.score.pairs.filter((p) => p.type === 'strong' && !p.ok).map((p) => p.key));
+    const badAvoid = new Set(d.score.pairs.filter((p) => p.type === 'avoid' && !p.ok).map((p) => p.key));
+    const info = App.board.infoOf(P, d.score);
+
+    const stat = App.board.staticPrims(info).map((p) => App.board.primToV(p));
+
+    const lines = [];
+    Object.keys(P.relations).forEach((key) => {
+      const ids = key.split('|');
+      const a = by.get(ids[0]), b = by.get(ids[1]);
+      if (!a || !b) return;
+      const type = P.relations[key];
+      const prims = App.board.relLinePrims(a, b, type, geo.radius(a.area, k), geo.radius(b.area, k));
+      const cls = type === 'strong' && farStrong.has(key) ? 'far-strong' : type === 'avoid' && badAvoid.has(key) ? 'far-avoid' : '';
+      const label = a.name + ' ↔ ' + b.name + ': ' + App.REL[type].label + ' (tıkla: değiştir)';
+      lines.push(h('g', { key: 'r' + key, class: 'rel ' + cls },
+        prims.map((p, i) => App.board.primToV(p, i === 0 && cls ? { class: cls } : null)),
+        h('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'rel-hit', stroke: 'transparent', 'stroke-width': 26, onclick: (e) => { e.stopPropagation(); ctl.dispatch({ type: 'CYCLE_RELATION', a: a.id, b: b.id }); } }, h('title', {}, label))));
+    });
+
+    const hl = state.ui.highlight;
+    const rings = [];
+    if (hl) [hl.a, hl.b].forEach((id) => {
+      const s = by.get(id);
+      if (s) rings.push(h('circle', { key: 'hl' + id, class: 'locate-ring', cx: s.x, cy: s.y, r: geo.radius(s.area, k) + 14, fill: 'none', stroke: App.PAL.red, 'stroke-width': 5, 'stroke-dasharray': '10 8' }));
+    });
+
+    const bubbles = P.spaces.map((s) => {
+      const r = geo.radius(s.area, k);
+      const sel = state.selectedId === s.id;
+      return h('g', { key: 'b' + s.id, class: 'bubble' + (sel ? ' selected' : ''), role: 'button', tabindex: 0, 'aria-label': s.name + ', ' + App.util.fmt(s.area) + ' metrekare', onpointerdown: (e) => bubbleDown(e, s, r), onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ctl.dispatch({ type: 'SELECT', id: s.id }); } } },
+        sel ? h('circle', { class: 'sel-ring', cx: s.x, cy: s.y, r: r + 10, fill: 'none', stroke: App.PAL.ink, 'stroke-width': 3, 'stroke-dasharray': '7 6' }) : null,
+        App.board.bubblePrims(s, r).map((p) => App.board.primToV(p)),
+        h('title', {}, s.name + ' — ' + App.util.fmt(s.area) + ' m²'));
+    });
+
+    const svg = h('svg', {
+      id: 'pafta', class: 'board-svg', viewBox: '0 0 ' + geo.W + ' ' + geo.H, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Bubble diagram paftası',
+      ref: (el) => { ui.svgEl = el; }, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp,
+      onpointerdown: () => { if (state.selectedId) ctl.dispatch({ type: 'SELECT', id: null }); },
+    }, stat, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings));
+
+    const needHelp = P.spaces.length >= 3 && d.score.percent != null && d.score.percent < 60;
+    const empty = !P.spaces.length;
+    const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Daireye tıklayıp soldan ilişkilerini düzenleyin';
+
+    return h('section', { class: 'board-wrap', 'aria-label': 'Pafta' },
+      h('div', { class: 'board-bar' },
+        ui.btn('Otomatik yerleştir', { icon: 'layout', onclick: ctl.autoLayout, cls: 'btn-yellow' + (needHelp || P.meta.example ? ' attn' : ''), title: 'İlişkilere göre daireleri otomatik yerleştir', disabled: !P.spaces.length }),
+        ui.btn('Geri al', { icon: 'undo', onclick: () => ctl.dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)', labelCls: 'lbl-hide' }),
+        ui.btn('İleri al', { icon: 'redo', onclick: () => ctl.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)', labelCls: 'lbl-hide' }),
+        h('span', { class: 'board-scale', title: 'Daire alanı m² ile orantılıdır. Çok küçük mekânlar okunabilirlik için en az 24 birim yarıçapla çizilir.' }, 'Daire alanı ∝ m²')),
+      h('div', { class: 'board-stage' },
+        svg,
+        empty ? h('div', { class: 'empty-card' },
+          h('h2', { class: 'empty-title' }, 'Pafta boş'),
+          h('p', {}, 'Soldaki formdan mekân adı ve m² girin, ya da hazır bir bina programıyla başlayın.'),
+          h('div', { class: 'empty-actions' },
+            ui.btn('Örnek konutu yükle', { icon: 'newdoc', cls: 'btn-primary', onclick: () => ctl.loadTemplate('konut', '2+1') }),
+            ui.btn('İlk mekânı ekle', { icon: 'plus', onclick: ctl.focusForm }))) : null),
+      hint ? h('p', { class: 'board-hint' }, hint, h('button', { type: 'button', class: 'hint-x', 'aria-label': 'İpucunu kapat', onclick: () => ctl.dispatch({ type: 'UI', patch: { hintDismissed: true } }) }, ui.icon('close', 14))) : null);
+  };
+})();
+
+/* ==========================================================================
+   43-ui-sidebar.js — sol panel: mekân ekleme, şablon, mekân listesi, ilişki matrisi
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const U = App.util;
+
+  const REL_BTN = [['none', '·', 'İlişkisiz'], ['strong', '●', 'Güçlü'], ['weak', '○', 'Zayıf'], ['avoid', '✕', 'Ayrı tut']];
+
+  function statusOf(d, s) {
+    const e = d.analysis.matched && d.analysis.matched.bySpace.get(s.id);
+    if (!e) return null;
+    if (e.min != null && s.area < e.min - 0.001) return { lvl: 'hata', label: 'min altı', tip: 'Asgari ' + U.fmt(e.min) + ' m² (' + e.src + ')' };
+    if (s.area < e.typ[0] - 0.001) return { lvl: 'uyari', label: 'düşük', tip: 'Tipik ' + U.fmt(e.typ[0]) + '–' + U.fmt(e.typ[1]) + ' m²' };
+    if (s.area > e.typ[1] * 1.8) return { lvl: 'oneri', label: 'büyük', tip: 'Tipik ' + U.fmt(e.typ[0]) + '–' + U.fmt(e.typ[1]) + ' m²' };
+    return { lvl: 'ok', label: 'uygun', tip: 'Tipik ' + U.fmt(e.typ[0]) + '–' + U.fmt(e.typ[1]) + ' m²' };
+  }
+
+  function formView(state) {
+    const ctl = App.ctl;
+    const f = state.ui.form;
+    const variant = App.kb.variant(state.project.meta.buildingType, state.project.meta.variant);
+    return h('form', { class: 'panel add-form', onsubmit: (e) => { e.preventDefault(); ctl.addFromForm(); }, novalidate: true },
+      h('h2', { class: 'panel-title' }, 'Mekan ekle'),
+      h('div', { class: 'add-row' },
+        h('div', { class: 'fld fld-grow' },
+          h('label', { class: 'lbl', for: 'sp-name' }, 'Mekan adı'),
+          h('input', { id: 'sp-name', class: 'inp', type: 'text', list: 'sp-list', placeholder: 'Örn. Salon', value: f.name, autocomplete: 'off', maxlength: 60, oninput: (e) => ctl.onNameInput(e.target.value) }),
+          h('datalist', { id: 'sp-list' }, variant.entries.map((e) => h('option', { key: e.key, value: e.name })))),
+        h('div', { class: 'fld fld-area' },
+          h('label', { class: 'lbl', for: 'sp-area' }, 'Alan (m²)'),
+          h('input', { id: 'sp-area', class: 'inp mono', type: 'number', inputmode: 'decimal', min: 0.5, step: 0.5, placeholder: '24', value: f.area, oninput: (e) => ctl.dispatch({ type: 'FORM', patch: { area: e.target.value, error: '' } }) }))),
+      f.error ? h('p', { class: 'form-error', role: 'alert' }, f.error) : null,
+      h('button', { type: 'submit', class: 'btn btn-primary btn-wide' }, ui.icon('plus', 18), h('span', {}, 'Mekanı ekle')));
+  }
+
+  function templateView(state) {
+    const ctl = App.ctl;
+    const t = App.kb.type(state.ui.tplType);
+    return h('details', { class: 'panel tpl' },
+      h('summary', { class: 'panel-title summary' }, 'Hazır bina programı'),
+      h('div', { class: 'tpl-body' },
+        h('div', { class: 'fld' },
+          h('label', { class: 'lbl', for: 'tpl-type' }, 'Bina tipi'),
+          h('select', { id: 'tpl-type', class: 'inp', value: state.ui.tplType, onchange: (e) => { const nt = App.kb.type(e.target.value); ctl.dispatch({ type: 'UI', patch: { tplType: nt.key, tplVariant: nt.variants[0].key } }); ctl.dispatch({ type: 'SET_META', patch: { buildingType: nt.key, variant: nt.variants[0].key } }); } },
+            App.KB.TYPES.map((x) => h('option', { key: x.key, value: x.key }, x.label)))),
+        h('div', { class: 'fld' },
+          h('label', { class: 'lbl', for: 'tpl-var' }, 'Program'),
+          h('select', { id: 'tpl-var', class: 'inp', value: state.ui.tplVariant, onchange: (e) => { ctl.dispatch({ type: 'UI', patch: { tplVariant: e.target.value } }); ctl.dispatch({ type: 'SET_META', patch: { variant: e.target.value } }); } },
+            t.variants.map((v) => h('option', { key: v.key, value: v.key }, v.label)))),
+        h('p', { class: 'note' }, 'Bina tipi, Akıllı öneri panelinin hangi programa göre kontrol yapacağını belirler. Şablonu yüklemek mevcut projenin yerine geçer (geri alınabilir).'),
+        ui.btn('Şablonu yükle', { icon: 'newdoc', cls: 'btn-blue btn-wide', onclick: () => ctl.loadTemplate(state.ui.tplType, state.ui.tplVariant) })));
+  }
+
+  function relEditor(state, s) {
+    const ctl = App.ctl;
+    const others = state.project.spaces.filter((o) => o.id !== s.id);
+    if (!others.length) return h('p', { class: 'note' }, 'İlişki kurmak için en az iki mekân gerekir.');
+    return h('div', { class: 'rel-list' },
+      others.map((o) => {
+        const cur = state.project.relations[U.pairKey(s.id, o.id)] || 'none';
+        return h('div', { class: 'rel-row', key: o.id },
+          h('span', { class: 'rel-name' }, ui.zoneDot(o.zone), h('span', {}, o.name)),
+          h('div', { class: 'seg', role: 'group', 'aria-label': s.name + ' ile ' + o.name + ' ilişkisi' },
+            REL_BTN.map((b) => h('button', { key: b[0], type: 'button', class: 'seg-btn seg-' + b[0] + (cur === b[0] ? ' on' : ''), title: b[2], 'aria-pressed': String(cur === b[0]), 'aria-label': b[2], onclick: () => ctl.dispatch({ type: 'SET_RELATION', a: s.id, b: o.id, rel: b[0] }) }, b[1]))));
+      }));
+  }
+
+  function rowView(state, d, s) {
+    const ctl = App.ctl;
+    const sel = state.selectedId === s.id;
+    const st = statusOf(d, s);
+    return h('li', { key: s.id, class: 'row' + (sel ? ' sel' : ''), id: 'row-' + s.id },
+      h('div', { class: 'row-main', onclick: () => ctl.dispatch({ type: 'SELECT', id: sel ? null : s.id }) },
+        ui.zoneDot(s.zone),
+        h('span', { class: 'row-name' }, s.name),
+        st ? h('span', { class: 'pill pill-' + st.lvl, title: st.tip }, st.label) : null,
+        h('label', { class: 'area-wrap', onclick: (e) => e.stopPropagation() },
+          h('span', { class: 'sr' }, s.name + ' alanı (m²)'),
+          h('input', { class: 'inp area-inp mono', type: 'number', min: 0.5, step: 0.5, value: s.area, keep: true, 'data-id': s.id, onchange: (e) => ctl.dispatch({ type: 'UPDATE_SPACE', id: s.id, patch: { area: e.target.value } }), onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } }),
+          h('span', { class: 'unit' }, 'm²')),
+        h('button', { type: 'button', class: 'icon-btn', title: s.name + ' sil', 'aria-label': s.name + ' sil', onclick: (e) => { e.stopPropagation(); ctl.dispatch({ type: 'REMOVE_SPACE', id: s.id }); } }, ui.icon('trash', 16))),
+      sel ? h('div', { class: 'row-detail' },
+        h('div', { class: 'detail-grid' },
+          h('div', { class: 'fld' }, h('label', { class: 'lbl', for: 'ed-name' }, 'Ad'),
+            h('input', { id: 'ed-name', class: 'inp', type: 'text', maxlength: 60, value: s.name, keep: true, onchange: (e) => { if (e.target.value.trim()) ctl.dispatch({ type: 'UPDATE_SPACE', id: s.id, patch: { name: e.target.value.trim() } }); } })),
+          h('div', { class: 'fld' }, h('label', { class: 'lbl', for: 'ed-zone' }, 'Bölge (renk)'),
+            h('select', { id: 'ed-zone', class: 'inp', value: s.zone, onchange: (e) => ctl.dispatch({ type: 'UPDATE_SPACE', id: s.id, patch: { zone: e.target.value } }) },
+              App.ZONE_ORDER.map((z) => h('option', { key: z, value: z }, App.ZONES[z].label))))),
+        h('h3', { class: 'sub-title' }, 'Diğer mekânlarla ilişkisi'),
+        relEditor(state, s)) : null);
+  }
+
+  function listView(state, d) {
+    const P = state.project;
+    const total = U.sum(P.spaces, (s) => s.area);
+    return h('div', { class: 'panel list-panel' },
+      h('div', { class: 'panel-head' },
+        h('h2', { class: 'panel-title' }, 'Mekanlar'),
+        h('span', { class: 'count mono' }, P.spaces.length + ' mekân · ' + U.fmt(total) + ' m²')),
+      P.spaces.length
+        ? h('ul', { class: 'rows' }, P.spaces.map((s) => rowView(state, d, s)))
+        : h('p', { class: 'note' }, 'Henüz mekân yok. Yukarıdan ekleyin veya hazır bina programını yükleyin.'));
+  }
+
+  function matrixView(state, d) {
+    const ctl = App.ctl;
+    const P = state.project;
+    const sp = P.spaces;
+    if (sp.length < 2) return h('div', { class: 'panel' }, h('h2', { class: 'panel-title' }, 'İlişki matrisi'), h('p', { class: 'note' }, 'Matris için en az iki mekân ekleyin.'));
+    const sel = state.selectedId;
+    return h('div', { class: 'panel matrix-panel' },
+      h('h2', { class: 'panel-title' }, 'İlişki matrisi'),
+      h('p', { class: 'note' }, 'Bir hücreye tıklayın: İlişkisiz → Güçlü → Zayıf → Ayrı tut. Her iki yönde aynıdır.'),
+      h('ul', { class: 'legend' }, REL_BTN.map((b) => h('li', { key: b[0], class: 'legend-i' }, h('span', { class: 'mcell-sym sym-' + b[0] }, b[1]), ' ' + b[2]))),
+      h('div', { class: 'matrix-scroll' },
+        h('table', { class: 'matrix' },
+          h('thead', {}, h('tr', {}, h('th', { class: 'corner' }, ''), sp.slice(0, -1).map((c) => h('th', { key: c.id, class: 'mh' + (sel === c.id ? ' on' : ''), scope: 'col' }, h('button', { type: 'button', class: 'mh-btn', onclick: () => ctl.dispatch({ type: 'SELECT', id: c.id }), title: c.name }, h('span', { class: 'vert' }, c.name)))))),
+          h('tbody', {}, sp.slice(1).map((r, ri) => h('tr', { key: r.id },
+            h('th', { class: 'rh' + (sel === r.id ? ' on' : ''), scope: 'row' }, h('button', { type: 'button', class: 'rh-btn', onclick: () => ctl.dispatch({ type: 'SELECT', id: r.id }), title: r.name }, ui.zoneDot(r.zone), h('span', {}, r.name))),
+            sp.slice(0, -1).map((c, ci) => {
+              if (ci > ri) return h('td', { key: c.id, class: 'mc-empty' });
+              const rel = P.relations[U.pairKey(r.id, c.id)] || 'none';
+              const hot = sel === r.id || sel === c.id;
+              return h('td', { key: c.id, class: 'mc' + (hot ? ' hot' : '') },
+                h('button', { type: 'button', class: 'mcell mcell-' + rel, title: r.name + ' ↔ ' + c.name + ': ' + App.REL[rel].label, 'aria-label': r.name + ' ile ' + c.name + ': ' + App.REL[rel].label, onclick: () => ctl.dispatch({ type: 'CYCLE_RELATION', a: r.id, b: c.id }) },
+                  h('span', { class: 'mcell-sym sym-' + rel }, REL_BTN.find((b) => b[0] === rel)[1])));
+            })))))));
+  }
+
+  ui.sidebar = function (state, d) {
+    const ctl = App.ctl;
+    const tab = state.ui.tab;
+    return h('aside', { class: 'sidebar', 'aria-label': 'Proje paneli' },
+      h('div', { class: 'tabs', role: 'tablist' },
+        h('button', { type: 'button', role: 'tab', id: 'tab-spaces', 'aria-selected': String(tab === 'spaces'), class: 'tab' + (tab === 'spaces' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'spaces' } }) }, 'Mekanlar', h('span', { class: 'tab-n' }, String(state.project.spaces.length))),
+        h('button', { type: 'button', role: 'tab', id: 'tab-matrix', 'aria-selected': String(tab === 'matrix'), class: 'tab' + (tab === 'matrix' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'matrix' } }) }, 'İlişki matrisi', h('span', { class: 'tab-n' }, String(Object.keys(state.project.relations).length)))),
+      h('div', { class: 'side-body', role: 'tabpanel' },
+        tab === 'spaces' ? [formView(state), listView(state, d), templateView(state)] : matrixView(state, d)));
+  };
+})();
+
+/* ==========================================================================
+   44-ui-assistant.js — Akıllı Öneri paneli (açılır/kapanır): analiz kartları + soru-cevap
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const U = App.util;
+
+  function srcChips(list) {
+    if (!list || !list.length) return null;
+    return h('div', { class: 'src-row' }, h('span', { class: 'src-lbl' }, 'Kaynak'),
+      list.filter((c) => App.KB.SOURCES[c]).map((c) => h('span', { key: c, class: 'src-chip', title: App.KB.SOURCES[c].label + ' · ' + App.KB.SOURCES[c].kind + ' · güvenilirlik: ' + App.KB.SOURCES[c].trust }, c)));
+  }
+
+  function actionBtns(actions) {
+    if (!actions || !actions.length) return null;
+    return h('div', { class: 'act-row' }, actions.map((a, i) => h('button', { key: i, type: 'button', class: 'act-btn', onclick: () => App.ctl.runAction(a) }, a.label)));
+  }
+
+  function card(item) {
+    return h('li', { key: item.id, class: 'card card-' + item.level },
+      h('div', { class: 'card-top' }, h('span', { class: 'lvl lvl-' + item.level }, ui.levelLabel[item.level]), h('h3', { class: 'card-title' }, item.title)),
+      item.detail ? h('p', { class: 'card-detail' }, item.detail) : null,
+      srcChips(item.src),
+      actionBtns(item.actions));
+  }
+
+  function renderBlock(b, i) {
+    if (b.t === 'p') return h('p', { key: i, class: 'msg-p' }, b.text);
+    if (b.t === 'ul') return h('ul', { key: i, class: 'msg-ul' }, b.items.map((x, j) => h('li', { key: j }, x)));
+    if (b.t === 'ol') return h('ol', { key: i, class: 'msg-ol' }, b.items.map((x, j) => h('li', { key: j }, x)));
+    if (b.t === 'kv') return h('dl', { key: i, class: 'msg-kv' }, b.rows.map((r, j) => [h('dt', { key: 'k' + j }, r[0]), h('dd', { key: 'v' + j, class: 'mono' }, r[1])]));
+    if (b.t === 'actions') return h('div', { key: i }, actionBtns(b.actions));
+    return null;
+  }
+
+  function messageView(m, i) {
+    if (m.role === 'user') return h('li', { key: i, class: 'msg msg-user' }, m.text);
+    return h('li', { key: i, class: 'msg msg-bot' }, m.blocks.map(renderBlock), srcChips(m.src));
+  }
+
+  ui.assistant = function (state, d) {
+    const ctl = App.ctl;
+    const open = state.ui.assistantOpen;
+    const tab = state.ui.asTab;
+    const a = d.analysis;
+    const issues = a.counts.hata + a.counts.uyari;
+    const type = App.kb.type(state.project.meta.buildingType);
+    const variant = App.kb.variant(state.project.meta.buildingType, state.project.meta.variant);
+    const nMsg = state.ui.messages.length;
+
+    const analysis = h('div', { class: 'as-body', id: 'as-analysis' },
+      h('p', { class: 'as-context' }, h('b', {}, type.label), ' · ' + variant.label + ' programına göre kontrol edildi.'),
+      h('div', { class: 'as-counts' },
+        h('span', { class: 'cnt cnt-hata' }, h('b', {}, String(a.counts.hata)), ' hata'),
+        h('span', { class: 'cnt cnt-uyari' }, h('b', {}, String(a.counts.uyari)), ' uyarı'),
+        h('span', { class: 'cnt cnt-oneri' }, h('b', {}, String(a.counts.oneri)), ' öneri')),
+      h('ul', { class: 'cards' }, a.items.map(card)));
+
+    const ask = h('div', { class: 'as-body as-ask' },
+      h('ul', { class: 'msgs', 'aria-live': 'polite' },
+        nMsg ? state.ui.messages.map(messageView) : h('li', { class: 'msg msg-bot' }, h('p', { class: 'msg-p' }, 'Merhaba. Mekân alanları, komşuluk ilişkileri, sirkülasyon ve yönetmelik sorularınızı yanıtlarım. Aşağıdaki sorulardan birini seçin veya kendi sorunuzu yazın.'))),
+      h('div', { class: 'qchips' }, App.assistant.chips.map((c) => h('button', { key: c, type: 'button', class: 'qchip', onclick: () => ctl.ask(c) }, c))),
+      h('form', { class: 'ask-form', onsubmit: (e) => { e.preventDefault(); const inp = document.getElementById('ask-input'); const v = inp.value.trim(); if (v) { ctl.ask(v); inp.value = ''; } } },
+        h('label', { class: 'sr', for: 'ask-input' }, 'Asistana soru yazın'),
+        h('input', { id: 'ask-input', class: 'inp', type: 'text', placeholder: 'Örn. Banyo kaç m² olmalı?', autocomplete: 'off', keep: true }),
+        h('button', { type: 'submit', class: 'btn btn-blue', 'aria-label': 'Gönder' }, ui.icon('send', 18))));
+
+    return h('aside', { class: 'assistant' + (open ? ' open' : ''), 'aria-label': 'Akıllı öneri paneli', 'aria-hidden': String(!open) },
+      h('div', { class: 'as-inner' },
+        h('header', { class: 'as-head' },
+          h('div', {}, h('h2', { class: 'as-title' }, 'AKILLI ÖNERİ'), h('p', { class: 'as-sub' }, 'Kitap analizleri ve yönetmelik verisine dayalı asistan')),
+          h('button', { type: 'button', class: 'icon-btn', onclick: ctl.toggleAssistant, 'aria-label': 'Paneli kapat', title: 'Paneli kapat' }, ui.icon('close', 18))),
+        h('div', { class: 'tabs tabs-sm', role: 'tablist' },
+          h('button', { type: 'button', role: 'tab', 'aria-selected': String(tab === 'analysis'), class: 'tab' + (tab === 'analysis' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { asTab: 'analysis' } }) }, 'Analiz', issues ? h('span', { class: 'tab-n tab-n-warn' }, String(issues)) : null),
+          h('button', { type: 'button', role: 'tab', 'aria-selected': String(tab === 'ask'), class: 'tab' + (tab === 'ask' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { asTab: 'ask' } }) }, 'Soru sor')),
+        tab === 'analysis' ? analysis : ask));
+  };
+})();
+
+/* ==========================================================================
+   50-controller.js — yan etkiler: dışa aktarma, dosya yükleme, animasyon, asistan eylemleri
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const geo = App.geo;
+  const ctl = (App.ctl = {});
+
+  ctl.dispatch = (a) => App.store.dispatch(a);
+  const get = () => App.store.get();
+  const derived = () => App.state.derive(get());
+
+  let toastTimer = null;
+  ctl.toast = function (msg, kind) {
+    ctl.dispatch({ type: 'TOAST', msg: msg, kind: kind });
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => ctl.dispatch({ type: 'CLEAR_TOAST' }), 3600);
+  };
+
+  ctl.toggleAssistant = () => ctl.dispatch({ type: 'UI', patch: { assistantOpen: !get().ui.assistantOpen } });
+  ctl.openAnalysis = () => ctl.dispatch({ type: 'UI', patch: { assistantOpen: true, asTab: 'analysis' } });
+
+  ctl.focusForm = function () {
+    ctl.dispatch({ type: 'UI', patch: { tab: 'spaces' } });
+    setTimeout(() => { const el = document.getElementById('sp-name'); if (el) { el.scrollIntoView({ block: 'nearest' }); el.focus(); } }, 30);
+  };
+
+  /* ---------- mekân ekleme formu ---------- */
+  ctl.onNameInput = function (value) {
+    const f = get().ui.form;
+    const patch = { name: value, error: '' };
+    // bilgi tabanındaki bir ada denk gelirse tipik alanı öner
+    if (!f.area || f.autoFilled) {
+      const v = App.kb.variant(get().project.meta.buildingType, get().project.meta.variant);
+      const hit = v.entries.find((e) => U.norm(e.name) === U.norm(value));
+      if (hit) { patch.area = String(App.analyze.defaultArea(hit)); patch.autoFilled = true; }
+      else if (f.autoFilled) { patch.area = ''; patch.autoFilled = false; }
+    }
+    ctl.dispatch({ type: 'FORM', patch: patch });
+  };
+
+  ctl.addFromForm = function () {
+    const f = get().ui.form;
+    const name = (f.name || '').trim();
+    const area = parseFloat(String(f.area).replace(',', '.'));
+    if (!name) { ctl.dispatch({ type: 'FORM', patch: { error: 'Mekân adını yazın.' } }); document.getElementById('sp-name').focus(); return; }
+    if (!(area > 0)) { ctl.dispatch({ type: 'FORM', patch: { error: 'Alan 0’dan büyük bir sayı olmalı (m²).' } }); document.getElementById('sp-area').focus(); return; }
+    if (area > 100000) { ctl.dispatch({ type: 'FORM', patch: { error: 'Alan en fazla 100.000 m² olabilir.' } }); return; }
+    ctl.dispatch({ type: 'ADD_SPACES', list: [{ name: name, area: area }] });
+    ctl.dispatch({ type: 'FORM', patch: { name: '', area: '', error: '', autoFilled: false } });
+    ctl.dispatch({ type: 'UI', patch: { tab: 'spaces' } });
+    ctl.toast('“' + name + '” eklendi (' + U.fmt(area) + ' m²)', 'success');
+    setTimeout(() => { const el = document.getElementById('sp-name'); if (el) el.focus(); }, 30);
+  };
+
+  ctl.newProject = function () {
+    ctl.dispatch({ type: 'LOAD_PROJECT', project: App.state.emptyProject() });
+    ctl.toast('Yeni proje açıldı. Önceki proje için Geri al’ı kullanabilirsiniz.');
+  };
+
+  ctl.loadTemplate = function (typeKey, variantKey) {
+    const p = App.state.createFromTemplate(typeKey, variantKey, {});
+    ctl.dispatch({ type: 'LOAD_PROJECT', project: p });
+    ctl.dispatch({ type: 'UI', patch: { tab: 'spaces' } });
+    ctl.toast(p.meta.name + ' programı yüklendi · ' + p.spaces.length + ' mekân', 'success');
+  };
+
+  /* ---------- otomatik yerleştirme (animasyonlu) ---------- */
+  let animating = false;
+  ctl.autoLayout = function () {
+    const st = get();
+    if (!st.project.spaces.length || animating) return;
+    const k = derived().k;
+    const target = App.layout.auto(st.project.spaces, st.project.relations, k, {});
+    const from = {};
+    st.project.spaces.forEach((s) => (from[s.id] = { x: s.x, y: s.y }));
+    ctl.dispatch({ type: 'SNAPSHOT' });
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dur = reduce ? 1 : 650;
+    const t0 = performance.now();
+    animating = true;
+    (function step(now) {
+      const t = U.clamp((now - t0) / dur, 0, 1);
+      const e = 1 - Math.pow(1 - t, 3);
+      const pos = {};
+      Object.keys(target).forEach((id) => { if (from[id]) pos[id] = { x: from[id].x + (target[id].x - from[id].x) * e, y: from[id].y + (target[id].y - from[id].y) * e }; });
+      ctl.dispatch({ type: 'SET_POSITIONS', positions: pos });
+      if (t < 1) requestAnimationFrame(step);
+      else {
+        animating = false;
+        const pc = derived().score.percent;
+        ctl.toast(pc == null ? 'Daireler yerleştirildi. İlişki ekleyerek skoru başlatın.' : 'Otomatik yerleştirme tamamlandı · verimlilik %' + pc, 'success');
+      }
+    })(t0);
+  };
+
+  /* ---------- dışa aktarma / kaydet / yükle ---------- */
+  function report(res, okMsg) {
+    ctl.dispatch({ type: 'UI', patch: { busy: null } });
+    if (res && res.ok) ctl.toast(okMsg, 'success');
+    else if (res && res.code === 'declined') ctl.toast('İndirme iptal edildi.');
+    else ctl.toast('Dosya indirilemedi' + (res && res.message ? ': ' + res.message : '.'), 'error');
+  }
+  function guard(fn, label) {
+    const st = get();
+    if (!st.project.spaces.length) { ctl.toast('Önce pafta’ya en az bir mekân ekleyin.', 'error'); return; }
+    ctl.dispatch({ type: 'UI', patch: { busy: label } });
+    const d = derived();
+    fn(st.project, d).then((r) => report(r, label + ' hazır')).catch((e) => report({ ok: false, message: e && e.message }));
+  }
+  ctl.exportPNG = () => guard((p, d) => App.files.exportPNG(p, d.k, d.score), 'PNG');
+  ctl.exportPDF = () => guard((p, d) => App.files.exportPDF(p, d.k, d.score), 'PDF');
+  ctl.saveJSON = function () {
+    const st = get();
+    const d = derived();
+    App.files.exportJSON(st.project, d.k, d.score, d.analysis.circ).then((r) => report(r, 'Proje kaydedildi (JSON)'));
+  };
+  ctl.pickFile = function () { const el = document.getElementById('file-load'); if (el) el.click(); };
+  ctl.onFile = function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const rd = new FileReader();
+    rd.onload = function () {
+      try {
+        const project = App.files.fromJSON(String(rd.result));
+        ctl.dispatch({ type: 'LOAD_PROJECT', project: project });
+        ctl.toast('“' + project.meta.name + '” yüklendi · ' + project.spaces.length + ' mekân', 'success');
+      } catch (err) { ctl.toast(err.message, 'error'); }
+    };
+    rd.onerror = function () { ctl.toast('Dosya okunamadı.', 'error'); };
+    rd.readAsText(file);
+    e.target.value = '';
+  };
+
+  /* ---------- asistan ---------- */
+  ctl.ask = function (q) {
+    const st = get();
+    ctl.dispatch({ type: 'UI', patch: { assistantOpen: true, asTab: 'ask' } });
+    ctl.dispatch({ type: 'CHAT_ADD', msg: { role: 'user', text: q } });
+    ctl.scrollChat();
+    const d = derived();
+    let res;
+    try { res = App.assistant.answer(q, { project: st.project, k: d.k, score: d.score, analysis: d.analysis }); }
+    catch (err) { res = { blocks: [{ t: 'p', text: 'Bu soruyu yanıtlarken bir sorun oluştu. Soruyu biraz farklı yazmayı deneyin.' }], src: [] }; }
+    setTimeout(() => { ctl.dispatch({ type: 'CHAT_ADD', msg: { role: 'bot', blocks: res.blocks, src: res.src } }); ctl.scrollChat(); }, 120);
+  };
+
+  ctl.scrollChat = function () {
+    setTimeout(() => { const el = document.querySelector('.msgs'); if (el) el.scrollTop = el.scrollHeight; }, 40);
+  };
+
+  let hlTimer = null;
+  ctl.runAction = function (a) {
+    if (a.type === 'addSpaces') {
+      ctl.dispatch({ type: 'ADD_SPACES', list: a.list });
+      ctl.toast(a.list.length === 1 ? '“' + a.list[0].name + '” eklendi' : a.list.length + ' mekân eklendi', 'success');
+    } else if (a.type === 'setArea') {
+      ctl.dispatch({ type: 'UPDATE_SPACE', id: a.id, patch: { area: a.area } });
+      ctl.toast('Alan ' + U.fmt(a.area) + ' m² olarak güncellendi', 'success');
+    } else if (a.type === 'select') {
+      ctl.dispatch({ type: 'SELECT', id: a.id });
+      ctl.dispatch({ type: 'UI', patch: { tab: 'spaces' } });
+      setTimeout(() => { const el = document.getElementById('row-' + a.id); if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 40);
+    } else if (a.type === 'locate') {
+      ctl.dispatch({ type: 'SELECT', id: a.a });
+      ctl.dispatch({ type: 'HIGHLIGHT', pair: { a: a.a, b: a.b } });
+      clearTimeout(hlTimer);
+      hlTimer = setTimeout(() => ctl.dispatch({ type: 'HIGHLIGHT', pair: null }), 3800);
+    } else if (a.type === 'autolayout') ctl.autoLayout();
+    else if (a.type === 'openMatrix') ctl.dispatch({ type: 'UI', patch: { tab: 'matrix' } });
+    else if (a.type === 'focusForm') ctl.focusForm();
+    else if (a.type === 'loadTemplate') ctl.loadTemplate(a.typeKey, a.variantKey);
+  };
+
+  /* ---------- klavye ---------- */
+  ctl.onKey = function (e) {
+    const tag = (e.target && e.target.tagName) || '';
+    const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && !typing && e.key.toLowerCase() === 'z') { e.preventDefault(); ctl.dispatch({ type: e.shiftKey ? 'REDO' : 'UNDO' }); }
+    else if (mod && !typing && e.key.toLowerCase() === 'y') { e.preventDefault(); ctl.dispatch({ type: 'REDO' }); }
+    else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && get().selectedId) { e.preventDefault(); ctl.dispatch({ type: 'REMOVE_SPACE', id: get().selectedId }); }
+    else if (e.key === 'Escape') { if (typing && tag === 'INPUT') e.target.blur(); else if (get().selectedId) ctl.dispatch({ type: 'SELECT', id: null }); }
+  };
+})();
+
+/* ==========================================================================
+   99-main.js — uygulamayı başlat
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+
+  App.store = App.createStore(App.state.reducer, App.state.initialState());
+
+  function view() {
+    const state = App.store.get();
+    const d = App.state.derive(state);
+    const t = state.ui.toast;
+    return h('div', { class: 'app' + (state.ui.assistantOpen ? ' as-open' : '') },
+      App.ui.header(state, d),
+      App.ui.scorebar(state, d),
+      h('main', { class: 'main' }, App.ui.sidebar(state, d), App.ui.board(state, d), App.ui.assistant(state, d)),
+      h('div', { class: 'toast-zone', 'aria-live': 'polite', role: 'status' },
+        t ? h('div', { key: t.id, class: 'toast toast-' + t.kind }, t.msg) : null));
+  }
+
+  const paint = App.mount(document.getElementById('root'), view);
+  const schedule = App.raf(paint);
+
+  let lastPct = null;
+  let lastProject = App.store.get().project;
+  let saveTimer = null;
+  App.store.subscribe(function (state) {
+    schedule();
+    if (state.project === lastProject) return;
+    lastProject = state.project;
+    // otomatik kayıt (kişisel kolaylık)
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () { App.state.persist(state.project); }, 500);
+    // skor eşiği kutlaması
+    const pc = App.state.derive(state).score.percent;
+    if (lastPct != null && pc != null && lastPct < 90 && pc >= 90 && state.project.spaces.length >= 3 && !state.project.meta.example) App.ctl.toast('Harika yerleşim: verimlilik %' + pc, 'success');
+    lastPct = pc;
+  });
+
+  document.addEventListener('keydown', App.ctl.onKey);
+  paint();
+
+  if (App.store.get().restored) setTimeout(function () { App.ctl.toast('Son çalışmanız geri yüklendi.'); }, 400);
+  lastPct = App.state.derive(App.store.get()).score.percent;
+})();
+
+</script>
+</body>
+</html>
