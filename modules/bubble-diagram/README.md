@@ -25,5 +25,21 @@ Bağımlılıksız saf JS; `window.App` altında ad alanlı modüller.
 }
 ```
 
-## Tasarım belirteçleri (Retro-Bauhaus)
-Açık: bg `#E7D9B8`, surface `#F5ECD5`, ink `#261D11`, blue `#00427A`, yellow `#EAAE1B`, red `#C03A22`, green `#3A8040`. Koyu tema `styles.css` içinde. Yazı tipleri: Chakra Petch, Jost, DM Mono.
+## Temalar
+`App.THEMES` (`src/10-data-palette.js`) iki tema tanımlar: `glass` (varsayılan) ve `bauhaus`. `App.theme.set(ad)` palet, bölge renkleri ve yazı tiplerini yerinde günceller; pafta çizimi ve PNG/PDF çıktısı etkin temayı kullanır.
+
+| Dosya | Görev |
+|---|---|
+| `styles.shared.css` | ortak kurallar, geçiş animasyonu (View Transitions + daire açılışı) |
+| `styles.glass.css` | minimal / buzlu cam arayüz |
+| `styles.bauhaus.css` | renkli Retro-Bauhaus arayüz |
+| `46-ui-glass.js` | glass kabuğu: kapsül üst bar, kadran, araç çubuğu, tema anahtarı |
+
+Tema CSS dosyalarına önek yazılmaz; `build.py` her kuralı `html[data-style="glass"]` veya `html[data-style="bauhaus"]` altına alır.
+
+## Tasarım belirteçleri
+**Glass:** gri tonlar. bg `#E4E5E9`, cam `rgba(255,255,255,.55)`, ink `#17181B`, ikincil `#686B73`; kabartma ve gömme gölgeler. Yazı tipleri: Unbounded (başlık, sayı), Manrope (metin). Renk yalnızca "Beni renklendir!" düğmesindeki üç noktadadır.
+
+**Bauhaus:** bg `#E7D9B8`, surface `#F5ECD5`, ink `#261D11`, blue `#00427A`, yellow `#EAAE1B`, red `#C03A22`, green `#3A8040`. Yazı tipleri: Chakra Petch, Jost, DM Mono. Kalın 3px kenarlıklar, sert ofset gölgeler.
+
+Koyu mod her iki temada `prefers-color-scheme` ile gelir; pafta her zaman açık renkli levhadır.

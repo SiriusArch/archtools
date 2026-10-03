@@ -1,0 +1,24 @@
+/* Her iki temada ortak: geçiş animasyonları (View Transitions) ve erişilebilirlik */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+button, input, select { font: inherit; color: inherit; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* "Beni renklendir!": yeni görünüm, düğmenin olduğu noktadan daire olarak açılır */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+html.vt-reveal::view-transition-new(root) { animation: vt-reveal 1.05s cubic-bezier(.7, 0, .2, 1) both; z-index: 2; }
+html.vt-reveal::view-transition-old(root) { z-index: 1; }
+@keyframes vt-reveal {
+  from { clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 0)); }
+  to { clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 50%) var(--vt-y, 0)); }
+}
+/* dönüşümden sonra daireler sırayla belirir */
+html.bloom .bubble { transform-box: fill-box; transform-origin: center; animation: bloom .8s cubic-bezier(.2, 1.5, .4, 1) both; }
+html.bloom .bubble:nth-child(1) { animation-delay: .05s; } html.bloom .bubble:nth-child(2) { animation-delay: .12s; }
+html.bloom .bubble:nth-child(3) { animation-delay: .19s; } html.bloom .bubble:nth-child(4) { animation-delay: .26s; }
+html.bloom .bubble:nth-child(5) { animation-delay: .33s; } html.bloom .bubble:nth-child(6) { animation-delay: .4s; }
+html.bloom .bubble:nth-child(7) { animation-delay: .47s; } html.bloom .bubble:nth-child(n+8) { animation-delay: .54s; }
+@keyframes bloom { from { transform: scale(.55); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+}

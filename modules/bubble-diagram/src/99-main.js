@@ -5,13 +5,22 @@
   const App = window.App;
   const h = App.h;
 
+  // tema: URL (?style=bauhaus) > kayıtlı tercih > glass
+  (function () {
+    let name = 'glass';
+    try { const q = new URLSearchParams(location.search).get('style'); const sv = window.localStorage.getItem('archtools.bubble.style'); name = q || sv || 'glass'; } catch (e) {}
+    if (!App.THEMES[name]) name = 'glass';
+    App.theme.set(name);
+    document.documentElement.setAttribute('data-style', name);
+  })();
+
   App.store = App.createStore(App.state.reducer, App.state.initialState());
 
   function view() {
     const state = App.store.get();
     const d = App.state.derive(state);
     const t = state.ui.toast;
-    return h('div', { class: 'app' + (state.ui.assistantOpen ? ' as-open' : '') },
+    return h('div', { class: 'app s-' + App.theme.name + (state.ui.assistantOpen ? ' as-open' : '') },
       App.ui.header(state, d),
       App.ui.scorebar(state, d),
       h('main', { class: 'main' }, App.ui.sidebar(state, d), App.ui.board(state, d), App.ui.assistant(state, d)),
@@ -20,6 +29,7 @@
   }
 
   const paint = App.mount(document.getElementById('root'), view);
+  App.paintNow = paint;
   const schedule = App.raf(paint);
 
   let lastPct = null;

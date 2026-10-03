@@ -42,8 +42,6 @@
   color-scheme: dark;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body { height: 100%; }
 body {
   background-color: var(--bg);
   background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px);
@@ -54,9 +52,7 @@ body {
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
 }
-button, input, select { font: inherit; color: inherit; }
 .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 :focus-visible { outline: 3px dashed var(--blue-2); outline-offset: 2px; }
 
 #root { height: 100%; }
@@ -340,3 +336,14 @@ select.inp { appearance: none; padding-right: 28px; background-image: linear-gra
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
 }
+
+/* tema anahtarı ve büyük harf başlıklar (metin dosyada cümle düzeninde tutulur) */
+.as-title, .lvl { text-transform: uppercase; }
+.btn-theme { background: var(--surface-2); }
+.theme-dots { display: inline-flex; }
+.theme-dots i { width: 13px; height: 13px; margin-left: -4px; border-radius: 50%; border: 2px solid var(--line); }
+.theme-dots i:nth-child(1) { background: #fff; margin-left: 0; }
+.theme-dots i:nth-child(2) { background: #aaa; }
+.theme-dots i:nth-child(3) { background: #333; }
+
+@media (max-width: 1599px) and (min-width: 1024px) { .hdr-actions .lbl-hide { display: none; } .hdr-name { max-width: 300px; } }

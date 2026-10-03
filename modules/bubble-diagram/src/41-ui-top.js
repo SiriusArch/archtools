@@ -8,6 +8,7 @@
   const U = App.util;
 
   ui.header = function (state, d) {
+    if (App.theme.name === 'glass') return ui.glass.header(state, d);
     const ctl = App.ctl;
     const meta = state.project.meta;
     const issues = d.analysis.counts.hata + d.analysis.counts.uyari;
@@ -30,11 +31,14 @@
         ui.btn('PNG', { icon: 'image', onclick: ctl.exportPNG, title: 'Saf şemayı PNG resmi olarak indir', cls: 'btn-blue', disabled: !!state.ui.busy }),
         ui.btn('PDF', { icon: 'pdf', onclick: ctl.exportPDF, title: 'Saf şemayı A3 PDF olarak indir', cls: 'btn-blue', disabled: !!state.ui.busy }),
         h('span', { class: 'sep', 'aria-hidden': 'true' }),
-        ui.btn('Akıllı öneri', { icon: 'spark', onclick: ctl.toggleAssistant, cls: 'btn-yellow', pressed: state.ui.assistantOpen, badge: issues ? String(issues) : null, badgePulse: !state.ui.assistantOpen, title: 'Akıllı öneri panelini aç / kapat' })),
+        ui.btn('Akıllı öneri', { icon: 'spark', onclick: ctl.toggleAssistant, cls: 'btn-yellow', pressed: state.ui.assistantOpen, badge: issues ? String(issues) : null, badgePulse: !state.ui.assistantOpen, title: 'Akıllı öneri panelini aç / kapat' }),
+        h('span', { class: 'sep', 'aria-hidden': 'true' }),
+        ui.themeToggle(state)),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
   };
 
   ui.scorebar = function (state, d) {
+    if (App.theme.name === 'glass') return null; // glass temasında skor kadranı pafta bölümünün içindedir
     const s = d.score;
     const pc = s.percent;
     const level = pc == null ? 'none' : pc >= 70 ? 'good' : pc >= 40 ? 'mid' : 'low';

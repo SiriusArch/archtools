@@ -53,7 +53,7 @@
     const badAvoid = new Set(d.score.pairs.filter((p) => p.type === 'avoid' && !p.ok).map((p) => p.key));
     const info = App.board.infoOf(P, d.score);
 
-    const stat = App.board.staticPrims(info).map((p) => App.board.primToV(p));
+    const stat = App.board.staticPrims(info, { live: true }).map((p) => App.board.primToV(p));
 
     const lines = [];
     Object.keys(P.relations).forEach((key) => {
@@ -95,20 +95,31 @@
     const empty = !P.spaces.length;
     const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Daireye tıklayıp soldan ilişkilerini düzenleyin';
 
+    const attn = needHelp || P.meta.example;
+    const stage = h('div', { class: 'board-stage' },
+      svg,
+      empty ? h('div', { class: 'empty-card' },
+        h('h2', { class: 'empty-title' }, 'Pafta boş'),
+        h('p', {}, 'Soldaki formdan mekân adı ve m² girin, ya da hazır bir bina programıyla başlayın.'),
+        h('div', { class: 'empty-actions' },
+          ui.btn('Örnek konutu yükle', { icon: 'newdoc', cls: 'btn-primary', onclick: () => ctl.loadTemplate('konut', '2+1') }),
+          ui.btn('İlk mekânı ekle', { icon: 'plus', onclick: ctl.focusForm }))) : null);
+    const hintEl = hint ? h('p', { class: 'board-hint' }, hint, h('button', { type: 'button', class: 'hint-x', 'aria-label': 'İpucunu kapat', onclick: () => ctl.dispatch({ type: 'UI', patch: { hintDismissed: true } }) }, ui.icon('close', 14))) : null;
+
+    if (App.theme.name === 'glass') {
+      return h('section', { class: 'board-wrap', 'aria-label': 'Pafta' },
+        h('div', { class: 'gstrip' }, ui.glass.dial(state, d), ui.glass.dock(state, d, attn)),
+        stage,
+        h('div', { class: 'board-foot' }, hintEl, h('span', { class: 'board-scale', title: 'Daire alanı m² ile orantılıdır. Çok küçük mekânlar okunabilirlik için en az 24 birim yarıçapla çizilir.' }, 'daire alanı ∝ m²')));
+    }
+
     return h('section', { class: 'board-wrap', 'aria-label': 'Pafta' },
       h('div', { class: 'board-bar' },
-        ui.btn('Otomatik yerleştir', { icon: 'layout', onclick: ctl.autoLayout, cls: 'btn-yellow' + (needHelp || P.meta.example ? ' attn' : ''), title: 'İlişkilere göre daireleri otomatik yerleştir', disabled: !P.spaces.length }),
+        ui.btn('Otomatik yerleştir', { icon: 'layout', onclick: ctl.autoLayout, cls: 'btn-yellow' + (attn ? ' attn' : ''), title: 'İlişkilere göre daireleri otomatik yerleştir', disabled: !P.spaces.length }),
         ui.btn('Geri al', { icon: 'undo', onclick: () => ctl.dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)', labelCls: 'lbl-hide' }),
         ui.btn('İleri al', { icon: 'redo', onclick: () => ctl.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)', labelCls: 'lbl-hide' }),
         h('span', { class: 'board-scale', title: 'Daire alanı m² ile orantılıdır. Çok küçük mekânlar okunabilirlik için en az 24 birim yarıçapla çizilir.' }, 'Daire alanı ∝ m²')),
-      h('div', { class: 'board-stage' },
-        svg,
-        empty ? h('div', { class: 'empty-card' },
-          h('h2', { class: 'empty-title' }, 'Pafta boş'),
-          h('p', {}, 'Soldaki formdan mekân adı ve m² girin, ya da hazır bir bina programıyla başlayın.'),
-          h('div', { class: 'empty-actions' },
-            ui.btn('Örnek konutu yükle', { icon: 'newdoc', cls: 'btn-primary', onclick: () => ctl.loadTemplate('konut', '2+1') }),
-            ui.btn('İlk mekânı ekle', { icon: 'plus', onclick: ctl.focusForm }))) : null),
-      hint ? h('p', { class: 'board-hint' }, hint, h('button', { type: 'button', class: 'hint-x', 'aria-label': 'İpucunu kapat', onclick: () => ctl.dispatch({ type: 'UI', patch: { hintDismissed: true } }) }, ui.icon('close', 14))) : null);
+      stage,
+      hintEl);
   };
 })();

@@ -33,6 +33,7 @@
 
   // Bauhaus üçlüsü: daire, kare, üçgen
   ui.logo = function () {
+    if (App.theme.name === 'glass' && ui.glass) return ui.glass.logo();
     return h('svg', { viewBox: '0 0 48 48', width: 44, height: 44, class: 'logo', 'aria-hidden': 'true' }, [
       h('rect', { x: 2, y: 2, width: 44, height: 44, fill: App.PAL.blue, stroke: App.PAL.ink, 'stroke-width': 3 }),
       h('circle', { cx: 17, cy: 17, r: 9, fill: App.PAL.yellow, stroke: App.PAL.ink, 'stroke-width': 2.5 }),
@@ -49,7 +50,7 @@
       opts.badge ? h('span', { class: 'badge' + (opts.badgePulse ? ' pulse-badge' : '') }, opts.badge) : null);
   };
 
-  ui.levelLabel = { hata: 'HATA', uyari: 'UYARI', oneri: 'ÖNERİ', ok: 'TAMAM' };
+  ui.levelLabel = { hata: 'Hata', uyari: 'Uyarı', oneri: 'Öneri', ok: 'Tamam' };
 
   ui.zoneDot = function (zone) {
     const z = App.ZONES[zone] || App.ZONES.sosyal;

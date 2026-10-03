@@ -70,7 +70,7 @@
     return h('aside', { class: 'assistant' + (open ? ' open' : ''), 'aria-label': 'Akıllı öneri paneli', 'aria-hidden': String(!open) },
       h('div', { class: 'as-inner' },
         h('header', { class: 'as-head' },
-          h('div', {}, h('h2', { class: 'as-title' }, 'AKILLI ÖNERİ'), h('p', { class: 'as-sub' }, 'Kitap analizleri ve yönetmelik verisine dayalı asistan')),
+          h('div', {}, h('h2', { class: 'as-title' }, 'Akıllı öneri'), h('p', { class: 'as-sub' }, 'Kitap analizleri ve yönetmelik verisine dayalı asistan')),
           h('button', { type: 'button', class: 'icon-btn', onclick: ctl.toggleAssistant, 'aria-label': 'Paneli kapat', title: 'Paneli kapat' }, ui.icon('close', 18))),
         h('div', { class: 'tabs tabs-sm', role: 'tablist' },
           h('button', { type: 'button', role: 'tab', 'aria-selected': String(tab === 'analysis'), class: 'tab' + (tab === 'analysis' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { asTab: 'analysis' } }) }, 'Analiz', issues ? h('span', { class: 'tab-n tab-n-warn' }, String(issues)) : null),

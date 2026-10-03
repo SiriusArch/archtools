@@ -26,6 +26,44 @@
     setTimeout(() => { const el = document.getElementById('sp-name'); if (el) { el.scrollIntoView({ block: 'nearest' }); el.focus(); } }, 30);
   };
 
+  /* ---------- tema: "Beni renklendir!" ↔ "Sadeleştir" ---------- */
+  const STYLE_KEY = 'archtools.bubble.style';
+  ctl.applyStyle = function (name) {
+    App.theme.set(name);
+    document.documentElement.setAttribute('data-style', name);
+    try { window.localStorage.setItem(STYLE_KEY, name); } catch (e) {}
+    ctl.dispatch({ type: 'UI', patch: { style: name } });
+    if (App.paintNow) App.paintNow();
+  };
+  let switching = false;
+  ctl.toggleStyle = function (e) {
+    if (switching) return;
+    const next = App.theme.name === 'glass' ? 'bauhaus' : 'glass';
+    const root = document.documentElement;
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const btn = e && e.currentTarget;
+    if (!document.startViewTransition || reduce) { ctl.applyStyle(next); return; }
+    // açılan daire: düğmenin olduğu yerden tüm sayfaya yayılır
+    const r = btn && btn.getBoundingClientRect ? btn.getBoundingClientRect() : { left: innerWidth / 2, top: 0, width: 0, height: 0 };
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    const rad = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    root.style.setProperty('--vt-x', x + 'px');
+    root.style.setProperty('--vt-y', y + 'px');
+    root.style.setProperty('--vt-r', Math.ceil(rad) + 'px');
+    root.classList.add('vt-reveal');
+    switching = true;
+    let vt;
+    try { vt = document.startViewTransition(function () { ctl.applyStyle(next); }); } catch (err) { switching = false; root.classList.remove('vt-reveal'); ctl.applyStyle(next); return; }
+    const done = function () {
+      switching = false;
+      root.classList.remove('vt-reveal');
+      // renklenirken daireler sırayla "açılır"
+      root.classList.add('bloom');
+      setTimeout(function () { root.classList.remove('bloom'); }, 1400);
+    };
+    vt.finished.then(done, done);
+  };
+
   /* ---------- mekân ekleme formu ---------- */
   ctl.onNameInput = function (value) {
     const f = get().ui.form;

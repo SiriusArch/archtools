@@ -40,8 +40,9 @@
     const outside = r < 36;
     const maxW = outside ? 150 : r * 1.72;
     let fs = outside ? 14 : clamp(r * 0.27, 11, 22);
-    const text = String(name || '').toLocaleUpperCase('tr');
-    const cw = 0.66; // büyük harf Chakra Petch için ortalama genişlik çarpanı
+    const T = App.theme.cur().label;
+    const text = T.upper ? String(name || '').toLocaleUpperCase('tr') : String(name || '');
+    const cw = T.cw; // tema yazı tipine göre ortalama karakter genişliği çarpanı
     function wrap(size) {
       const words = text.split(/\s+/).filter(Boolean);
       const lines = [];
@@ -66,6 +67,6 @@
       lines = lines.map((l) => (l.length > res.cap ? l.slice(0, Math.max(1, res.cap - 1)) + '…' : l));
       if (res.lines.length > maxLines) lines[lines.length - 1] = lines[lines.length - 1].replace(/…?$/, '…');
     }
-    return { lines: lines, fs: fs, outside: outside };
+    return { lines: lines, fs: fs, outside: outside, ls: T.upper ? 0.5 : 0 };
   };
 })();

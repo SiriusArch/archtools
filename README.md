@@ -6,7 +6,8 @@ Mimari yardımcı araçların toplandığı depo. Her araç `modules/` altında 
 - Mekân adı + m² ekleme, ilişki matrisi (Güçlü / Zayıf / İlişkisiz / Ayrı tut)
 - m² ile orantılı daireler, serbest sürükleme, canlı verimlilik skoru
 - Akıllı Öneri paneli (yönetmelik ve kitap verisine dayalı)
-- Retro-Bauhaus pafta, PNG/PDF dışa aktarma, JSON kaydet/yükle
+- Varsayılan görünüm minimal, buzlu cam ve tek renksiz; **Beni renklendir!** düğmesi Retro-Bauhaus temasına geçirir (**Sadeleştir** ile geri dönülür). Tercih tarayıcıda saklanır, `?style=bauhaus` ile de açılabilir.
+- PNG/PDF dışa aktarma etkin temayla çıkar; JSON kaydet/yükle
 
 Kaynak: `modules/bubble-diagram/src/`. Derlemek için:
 

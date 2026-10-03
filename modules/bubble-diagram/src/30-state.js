@@ -79,7 +79,7 @@
       ui: {
         tab: 'spaces', assistantOpen: false, asTab: 'analysis', messages: [], toast: null, highlight: null,
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
-        busy: null, hintDismissed: false,
+        busy: null, hintDismissed: false, style: App.theme.name,
       },
     };
   }

@@ -86,7 +86,7 @@
         h('div', { class: 'detail-grid' },
           h('div', { class: 'fld' }, h('label', { class: 'lbl', for: 'ed-name' }, 'Ad'),
             h('input', { id: 'ed-name', class: 'inp', type: 'text', maxlength: 60, value: s.name, keep: true, onchange: (e) => { if (e.target.value.trim()) ctl.dispatch({ type: 'UPDATE_SPACE', id: s.id, patch: { name: e.target.value.trim() } }); } })),
-          h('div', { class: 'fld' }, h('label', { class: 'lbl', for: 'ed-zone' }, 'Bölge (renk)'),
+          h('div', { class: 'fld' }, h('label', { class: 'lbl', for: 'ed-zone' }, 'Bölge'),
             h('select', { id: 'ed-zone', class: 'inp', value: s.zone, onchange: (e) => ctl.dispatch({ type: 'UPDATE_SPACE', id: s.id, patch: { zone: e.target.value } }) },
               App.ZONE_ORDER.map((z) => h('option', { key: z, value: z }, App.ZONES[z].label))))),
         h('h3', { class: 'sub-title' }, 'Diğer mekânlarla ilişkisi'),
