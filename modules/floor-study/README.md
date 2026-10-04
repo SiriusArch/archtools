@@ -22,3 +22,7 @@ Modül 1'deki mekânları katlara dağıtır ve her kat için ölçekli blok pla
 
 ## JSON: `extensions.floorStudy`
 `floors[{id,name}]`, `assignments[{spaceId,floorId}]`, `typology` (`serbest` | `koridor`), `plateRatio`, `core{auto,area}`, `plan{unit:"m", width, depth, plateArea, coreArea, floors[{id,name,netArea,voidArea,blocks[{id,kind,spaceId,name,zone,area,x,y,w,h}]}]}`, `metrics{floorStudyScore, floorBalance, fillRatio, wetStackAlignment, strongRelationsSameFloor, strongRelationsTotal}`. Plan ölçüleri metredir; blok `kind`: `space | core | corridor | void`.
+
+## Plan alternatifleri ve DXF
+- **Plan alternatifleri:** aynı kat atamasıyla altı seçenek (Serbest 1 : 1,2 · 1,5 · 2,2 ve Orta koridor 1 : 1,5 · 2 · 2,6) küçük resim, kat skoru, plak ölçüsü ve dar mekân sayısıyla gösterilir; en iyi seçenek işaretlenir, tıklayınca uygulanır (`App.study.alternatives`).
+- **DXF:** araç çubuğundaki **DXF** düğmesi katları yan yana, işlev bölgesine göre katmanlara ayrılmış (`MEKAN_*`, `CEKIRDEK`, `PLAK`, `YAZI`) ve metre birimli olarak yazar (`App.dxf`).

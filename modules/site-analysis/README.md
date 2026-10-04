@@ -28,6 +28,11 @@ Dosya adlarındaki `a … h` harfleri yükleme sırasını belirler (derleme dos
 ## Harita verisi: OpenStreetMap ya da HERE
 Varsayılan kaynak OpenStreetMap'tir. **Harita verisi** bölümünden kendi HERE API anahtarınızı girerek HERE'e geçebilirsiniz: bina, yol, yeşil ve su için HERE Vector Tile v2, adres/POI için Geocoding & Search v7, erişim için Isoline v8 kullanılır; bir HERE sorgusu başarısız olursa Overpass'a düşülür. 3B görünüm HERE JS API 3.1 ile ayrı bir pencerede açılır (**3B**). Anahtar yalnızca bu tarayıcıda (`archtools.here.key`) durur; proje JSON'una, paylaşım bağlantısına, dışa aktarmalara ve depoya girmez. wego.here.com sayfaları kazınmaz; yalnızca HERE Platform API'leri kullanılır. HERE kullanım koşulları ve kotaları anahtar sahibine aittir.
 
+## Karne, Sor ve işlev yoğunluğu (`39-lib-a2-insight.js`)
+- **Karne sekmesi:** 15 dakikalık şehir karnesi. Sekiz işlev türü, toplu taşıma ve park için yürüme süresi (5 / 10 / 15 dk dilimleri), yüzde ve A–E harf notu.
+- **Sor kutusu:** çözümlenmiş veriden yanıt veren **kural tabanlı** soru-cevap (anahtar sözcük eşleştirme; yapay zekâ değildir, yalnızca hesaplanmış sayıları okur; anlamadığı soruda örnek sorular gösterir). Yanıttan ilgili katmana ya da sekmeye geçilebilir.
+- **İşlev yoğunluğu katmanı:** altıgen ısı hücreleri, işlev noktası sayısı; tüm türler ya da seçilen tür; harita ve izometrik kipte çizilir.
+
 ## Veri ve sınırlar
 - **Kaynak:** OpenStreetMap (Overpass), adres araması Nominatim, iklim ve yükselti Open-Meteo. Tarayıcıdan doğrudan istenir; sonuçlar bellekte ve (sığdığı kadarıyla) tarayıcı deposunda önbelleğe alınır.
 - **Demo bölge** sentetiktir ve ağ olmadan çalışır; skorlar yalnızca arayüzü denemek içindir.

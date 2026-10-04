@@ -21,7 +21,7 @@
 
   /* ---------------- görünüm varsayılanları (state.ui içinde) ---------------- */
   App.siteUi = {
-    arsa: () => ({ mode: 'map', layers: ['erisim', 'yapi', 'yesil', 'ulasim', 'islev'], labels: true, sunDay: 'yaz', sunHour: 15, parcel: true, yaw: 35, pitch: 38, explode: 1, zx: 1.6, sel: null, tab: 'konum' }),
+    arsa: () => ({ mode: 'map', layers: ['erisim', 'yapi', 'yesil', 'ulasim', 'islev'], labels: true, sunDay: 'yaz', sunHour: 15, parcel: true, yaw: 35, pitch: 38, explode: 1, zx: 1.6, sel: null, tab: 'konum', qa: [], hexCat: 'all' }),
     imar: () => ({ mode: 'plan', shadow: true, labels: true, handles: true, yaw: 35, pitch: 45, zx: 1, tab: 'parsel', tool: null, draft: null, fixed: null }),
     yer: () => ({ tab: 'adaylar', pick: null, step: 120, n: 5 }),
   };
@@ -234,6 +234,35 @@
     ];
   }
 
+  /* ---------------- 15 dakikalık şehir karnesi + Sor ---------------- */
+  function karneTab(state, A) {
+    const v = state.ui.site, c = ctl();
+    if (!A) return [h('p', { class: 'note' }, 'Karne için önce konum verisi gerekli.')];
+    const K = site.karne(A);
+    const rows = K.rows.map((r) => h('li', { key: r.id, class: 'kn-row kn-' + r.st },
+      h('span', { class: 'kn-l' }, r.label),
+      h('span', { class: 'kn-bar', 'aria-hidden': 'true' }, h('i', { style: { width: (r.min == null ? 0 : Math.max(6, Math.min(100, 100 - (r.min / 15) * 100 + 6))) + '%' } })),
+      h('span', { class: 'kn-m mono' }, r.min == null ? '—' : (r.min < 10 ? fmt(r.min, 1) : Math.round(r.min)) + ' dk'),
+      h('span', { class: 'kn-n' }, (r.name ? r.name + ' · ' : '') + site.KARNE_STATUS[r.st] + (r.c10 ? ' · 10 dk içinde ' + r.c10 : ''))));
+    const qa = v.qa || [];
+    const submit = () => { const el = document.getElementById('site-ask'); if (!el) return; const t = el.value.trim(); if (t) { c.siteAsk(t); el.value = ''; } };
+    return [
+      ui.section('15 dakikalık şehir karnesi', h('div', { class: 'sec-box' },
+        h('div', { class: 'kn-head' }, h('b', { class: 'kn-grade' }, K.grade), h('div', {}, h('b', {}, '%' + K.pct + ' · ' + K.pass + '/' + K.total + ' ihtiyaç 15 dk içinde'), h('p', { class: 'note' }, K.label + '.'))),
+        h('ul', { class: 'kn-list' }, rows),
+        h('p', { class: 'note' }, 'Yürüme süresi gerçek yol ağı üzerinden, 80 m/dk ile hesaplanır. Harita verisinde eksik nokta olabilir.')), null, 'skarne'),
+      ui.section('Sor', h('div', { class: 'sec-box' },
+        h('p', { class: 'note' }, 'Çözümlenen veriden yanıtlayan kural tabanlı soru kutusu (yapay zekâ değildir; yalnızca hesaplanmış sayıları okur).'),
+        h('div', { class: 'ask-row' },
+          h('input', { id: 'site-ask', class: 'inp', type: 'text', maxlength: 120, placeholder: site.ASK_EXAMPLES[0], keep: true, autocomplete: 'off', 'aria-label': 'Soru', onkeydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } } }),
+          ui.btn('Sor', { icon: 'check', cls: 'btn-primary', onclick: submit })),
+        h('div', { class: 'ask-ex' }, site.ASK_EXAMPLES.map((q) => h('button', { key: q, type: 'button', class: 'chip', onclick: () => c.siteAsk(q) }, q))),
+        qa.length ? h('ul', { class: 'ask-list', 'aria-live': 'polite' }, qa.slice().reverse().map((x) => h('li', { key: x.id, class: 'ask-i' },
+          h('p', { class: 'ask-q' }, x.q), h('p', { class: 'ask-a' }, x.a),
+          x.go ? h('button', { type: 'button', class: 'act-btn', onclick: () => c.siteGo(x.go) }, x.go.label) : null))) : null), null, 'sask'),
+    ];
+  }
+
   function gorunumTab(state, A) {
     const v = state.ui.site, c = ctl(), s = state.project.site;
     const iso = v.mode === 'iso';
@@ -251,6 +280,10 @@
           h('span', { class: 'lyr-t' }, h('b', {}, l.name), h('small', {}, l.sub))));
       })), v.layers.length + '/' + site.LAYERS.length, 'slayers'),
     ];
+    if (v.layers.indexOf('yogunluk') >= 0) {
+      secs.push(ui.section('İşlev yoğunluğu', h('div', { class: 'sec-box' },
+        ui.fld2('İşlev türü', h('select', { id: 'site-hexcat', class: 'inp', value: v.hexCat || 'all', onchange: (e) => c.siteView({ hexCat: e.target.value }) }, [h('option', { key: 'all', value: 'all' }, 'Tümü')].concat(App.osm.CATS.map((k) => h('option', { key: k.id, value: k.id }, k.label)))), 'Altıgen hücre başına işlev noktası sayısı; koyu hücreler daha yoğun.')), null, 'shex'));
+    }
     if (v.layers.indexOf('gunes') >= 0) {
       secs.push(ui.section('Güneş', h('div', { class: 'sec-box' },
         ui.fld2('Gün', ui.segmented({ label: 'Gün', wide: true, value: v.sunDay, options: App.gis.SUN_DAYS.map((d) => ({ v: d.id, label: d.label })), onchange: (x) => c.siteView({ sunDay: x }) })),
@@ -275,11 +308,13 @@
     const tabs = ui.tabsBar([
       { id: 'konum', label: 'Konum' },
       { id: 'gorunum', label: 'Görünüm' },
+      { id: 'karne', label: 'Karne' },
       { id: 'bulgular', label: 'Bulgular', n: A ? c.hata + c.uyari + c.oneri : null, warn: c.hata + c.uyari > 0 },
     ], tab, (id) => ctl().siteView({ tab: id }));
     let body;
     if (tab === 'konum') body = konumTab(state);
     else if (tab === 'gorunum') body = gorunumTab(state, A);
+    else if (tab === 'karne') body = karneTab(state, A);
     else body = A ? [ui.findingList({ items: A.items, counts: A.counts }, 'Yürüme erişimi, toplu taşıma, yeşil alan, gürültü göstergesi ve çevre dokusunun seçili programa göre kontrolü.')] : [h('p', { class: 'note' }, 'Bulgular için önce konum verisi gerekli.')];
     return ui.sideShell('sb-arsa', 'Arsa analizi paneli', tabs, body);
   };

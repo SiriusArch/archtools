@@ -193,6 +193,23 @@
     AV.set({ layers: order.filter((x) => (x === id ? !on : v.layers.indexOf(x) >= 0)), sel: v.sel === id && on ? null : v.sel });
   };
 
+  /* ---------------- Sor (kural tabanlı) ---------------- */
+  ctl.siteAsk = function (text) {
+    const st = get(), s = st.project.site, e = site.entry(s), A = e ? site.analyze(s, e) : null;
+    const r = site.ask(A, s, text);
+    const qa = (st.ui.site.qa || []).concat([{ id: Date.now() + Math.random(), q: text, a: r.a, go: r.go }]).slice(-5);
+    AV.set({ qa: qa });
+  };
+  ctl.siteGo = function (go) {
+    if (!go) return;
+    if (go.layer) {
+      const v = get().ui.site;
+      if (v.layers.indexOf(go.layer) < 0) ctl.siteLayer(go.layer);
+      if (v.mode !== 'map') AV.set({ mode: 'map' });
+    }
+    if (go.tab) AV.set({ tab: go.tab });
+  };
+
   /* ---------------- dışa aktarma altyapısı ---------------- */
   ctl.xmenu = function (open) { ctl.dispatch({ type: 'UI', patch: { xmenu: !!open } }); };
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && get().ui.xmenu) ctl.xmenu(false); });

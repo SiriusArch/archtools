@@ -69,6 +69,16 @@ html.bloom .bubble:nth-child(7) { animation-delay: .47s; } html.bloom .bubble:nt
 .fcell.over .fcell-hit { fill: rgba(23, 24, 27, .05); }
 .fghost { filter: drop-shadow(0 8px 14px rgba(23, 24, 27, .28)); }
 
+/* plan alternatifleri galerisi */
+.altc-grid { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.altc-b { position: relative; display: grid; gap: 4px; width: 100%; padding: 8px; text-align: left; cursor: pointer; border: 0; background: transparent; color: var(--ink); font: inherit; }
+.altc-svg { width: 100%; height: 74px; display: block; }
+.altc-t { font-size: 12.5px; font-weight: 700; }
+.altc-s { font-size: 11.5px; color: var(--ink-2); }
+.altc-best, .altc-w { font-size: 10.5px; font-weight: 700; }
+.altc-best { position: absolute; top: 6px; right: 6px; padding: 1px 7px; }
+.altc-w { color: var(--ink-2); }
+
 /* Modül 3 — Mekân Analizi: iki temada ortak yerleşim */
 .board-svg-analiz { cursor: grab; }
 .board-svg-analiz:active { cursor: grabbing; }
@@ -216,6 +226,26 @@ body.kbd .board-svg-arsa:focus-visible, body.kbd .board-svg-imar:focus-visible, 
 .h3d-state.err { color: var(--ink); font-weight: 600; }
 .h3d-foot { margin: 0; font-size: 11.5px; color: var(--ink-2); }
 @media (max-width: 640px) { .h3d { padding: 8px; } }
+
+/* 15 dakikalık şehir karnesi ve Sor */
+.kn-head { display: flex; align-items: center; gap: 14px; }
+.kn-grade { flex: none; display: inline-grid; place-items: center; width: 56px; height: 56px; font-size: 30px; line-height: 1; }
+.kn-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.kn-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 52px; gap: 2px 10px; align-items: center; }
+.kn-l { font-size: 13px; font-weight: 700; }
+.kn-bar { height: 8px; background: var(--line); opacity: .95; position: relative; overflow: hidden; }
+.kn-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink); }
+.kn-m { text-align: right; font-size: 12.5px; font-weight: 700; }
+.kn-n { grid-column: 1 / -1; font-size: 11.5px; color: var(--ink-2); }
+.kn-yok .kn-bar i { opacity: .25; }
+.kn-yok .kn-l { opacity: .7; }
+.ask-row { display: flex; gap: 8px; align-items: center; }
+.ask-row .inp { flex: 1 1 auto; min-width: 0; }
+.ask-ex { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ask-ex .chip { padding: 4px 10px; font-size: 11.5px; font-weight: 600; cursor: pointer; border: 0; background: var(--inset-bg, transparent); color: var(--ink); }
+.ask-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.ask-q { margin: 0; font-size: 12px; font-weight: 700; color: var(--ink-2); }
+.ask-a { margin: 2px 0 6px; font-size: 13.5px; line-height: 1.45; }
 
 /* Modül 7 · 8 */
 .mix-row { display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--faint, rgba(0,0,0,.08)); }
@@ -646,6 +676,9 @@ html[data-style="glass"] .frow .row-main { padding: 5px 4px 5px 12px; }
 html[data-style="glass"] .fblock-hit:hover { fill: rgba(23, 24, 27, .07); }
 html[data-style="glass"] .fblock-hit:focus-visible { stroke: var(--ink); stroke-width: 3; }
 html[data-style="glass"] .core-row .tgl { flex: none; }
+html[data-style="glass"] .altc-b { border-radius: 18px; background: var(--glass-2); box-shadow: var(--raise-sm); }
+html[data-style="glass"] .altc.on .altc-b { box-shadow: var(--press-sm); background: var(--inset-bg); }
+html[data-style="glass"] .altc-best { border-radius: 99px; background: var(--ink); color: var(--on-ink); }
 html[data-style="glass"] .an-chip { padding: 6px 8px 6px 16px; border-radius: 99px; background: var(--glass-2); border: 1px solid var(--stroke); box-shadow: var(--raise-sm); font-weight: 700; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 html[data-style="glass"] .aflr { border-radius: 24px; transition: background-color .18s, box-shadow .18s; }
 html[data-style="glass"] .aflr .row-main.aflr-btn { padding: 9px 12px 10px; border-radius: 24px; }
@@ -708,6 +741,11 @@ html[data-style="glass"] .flt .tgl { align-self: flex-start; }
 html[data-style="glass"] .scn-form .btn { flex: none; }
 html[data-style="glass"] .h3d { background: var(--bg-2, var(--bg)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 html[data-style="glass"] .h3d-map { border-radius: 28px; box-shadow: var(--raise); }
+html[data-style="glass"] .kn-grade { border-radius: 50%; background: var(--glass-2); box-shadow: var(--raise-sm); font-family: var(--f-display); }
+html[data-style="glass"] .kn-bar { border-radius: 99px; background: var(--inset-bg); box-shadow: var(--press-sm); }
+html[data-style="glass"] .kn-bar i { border-radius: 99px; }
+html[data-style="glass"] .ask-ex .chip { border-radius: 99px; box-shadow: var(--raise-sm); background: var(--glass-2); }
+html[data-style="glass"] .ask-i { padding: 10px 14px; border-radius: 18px; background: var(--inset-bg); box-shadow: var(--press-sm); }
 html[data-style="glass"] .alt-card.alt-on { box-shadow: var(--press-sm); background: var(--inset-bg); }
 html[data-style="glass"] .alt-card .alt-score { color: var(--ink-2); }
 html[data-style="glass"] .intro { background-color: var(--bg); background-image: radial-gradient(70% 55% at 10% 6%, var(--bg-2), transparent 62%), radial-gradient(55% 50% at 94% 92%, var(--bg-3), transparent 70%); color: var(--ink); }
@@ -1130,6 +1168,9 @@ html[data-style="bauhaus"] .frow .row-main { padding: 4px 4px 4px 8px; }
 html[data-style="bauhaus"] .fblock-hit:hover { fill: rgba(38, 29, 17, .09); }
 html[data-style="bauhaus"] .fblock-hit:focus-visible { stroke: var(--blue-2); stroke-width: 3; }
 html[data-style="bauhaus"] .fcell.over .fcell-hit { fill: rgba(234, 174, 27, .22); }
+html[data-style="bauhaus"] .altc-b { border: 2px solid var(--ink); background: var(--surface); }
+html[data-style="bauhaus"] .altc.on .altc-b { box-shadow: 4px 4px 0 var(--blue); border-color: var(--blue); }
+html[data-style="bauhaus"] .altc-best { background: var(--yellow); color: var(--on-yellow); border: 2px solid var(--ink); }
 html[data-style="bauhaus"] .an-chip { padding: 5px 6px 5px 12px; border: 3px solid var(--line); background: var(--surface); box-shadow: 4px 4px 0 var(--shadow); font: 700 13px var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
 html[data-style="bauhaus"] .aflr .row-main.aflr-btn { padding: 7px 8px; }
 html[data-style="bauhaus"] .aflr .row-main.aflr-btn:hover { background: var(--surface-2); }
@@ -1200,6 +1241,13 @@ html[data-style="bauhaus"] .tabs > .tab:first-child:nth-last-child(4), html[data
 html[data-style="bauhaus"] .h3d { background: var(--surface); }
 html[data-style="bauhaus"] .h3d-map { border: 3px solid var(--line); box-shadow: 6px 6px 0 var(--shadow); }
 html[data-style="bauhaus"] .h3d-head > b { font: 700 13px var(--f-display); letter-spacing: .1em; text-transform: uppercase; }
+html[data-style="bauhaus"] .kn-grade { background: var(--ink); color: var(--paper); font-family: var(--f-display); }
+html[data-style="bauhaus"] .kn-bar { border: 2px solid var(--ink); background: var(--surface); }
+html[data-style="bauhaus"] .kn-bar i { background: var(--green); }
+html[data-style="bauhaus"] .kn-sinirda .kn-bar i { background: var(--yellow); }
+html[data-style="bauhaus"] .kn-cok .kn-bar i { background: var(--blue); }
+html[data-style="bauhaus"] .ask-ex .chip { border: 2px solid var(--ink); background: var(--surface); }
+html[data-style="bauhaus"] .ask-i { border-left: 4px solid var(--blue); padding-left: 10px; }
 html[data-style="bauhaus"] .alt-card.alt-on { outline: 4px solid var(--line); outline-offset: -4px; background: var(--paper-dark, var(--surface)); }
 html[data-style="bauhaus"] .mix-row { border-bottom: 2px dashed var(--line); }
 html[data-style="bauhaus"] .intro { background-color: var(--bg); background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px); background-size: 20px 20px; color: var(--ink); }
@@ -5276,9 +5324,9 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
 
   /* ---------- kat planı üretimi ---------- */
   const memo = { key: null, plan: null };
-  function layout(project) {
+  function layout(project, noMemo) {
     const st = project.study;
-    if (memo.key && memo.key[0] === project.spaces && memo.key[1] === project.relations && memo.key[2] === st) return memo.plan;
+    if (!noMemo && memo.key && memo.key[0] === project.spaces && memo.key[1] === project.relations && memo.key[2] === st) return memo.plan;
     const floors = st.floors;
     const n = floors.length;
     const useCore = n > 1;
@@ -5335,8 +5383,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     });
 
     const plan = { Wp: Wp, Dp: Dp, plateArea: Wp * Dp, coreArea: coreArea, cwid: cwid, typology: typ, ratio: r, useCore: useCore, coreSpaces: coreSpaces, corridorW: cw, floors: out };
-    memo.key = [project.spaces, project.relations, st];
-    memo.plan = plan;
+    if (!noMemo) { memo.key = [project.spaces, project.relations, st]; memo.plan = plan; }
     return plan;
   }
 
@@ -5459,7 +5506,33 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     return derivedMemo.out;
   }
 
+  /* ---------- plan alternatifleri: yerleşim düzeni × plak oranı, aynı kat ataması ile ---------- */
+  const ALT_SPECS = [['serbest', 1.2], ['serbest', 1.5], ['serbest', 2.2], ['koridor', 1.5], ['koridor', 2.0], ['koridor', 2.6]];
+  const altMemo = { k: null, v: null };
+  function alternatives(project) {
+    const st = project.study;
+    if (!st || !project.spaces.length) return [];
+    const key = [project.spaces, project.relations, st.floors, st.assign, st.core];
+    if (altMemo.k && altMemo.k.every((x, i) => x === key[i])) return altMemo.v;
+    const list = ALT_SPECS.map((sp) => {
+      const pj = Object.assign({}, project, { study: Object.assign({}, st, { typology: sp[0], ratio: sp[1] }) });
+      const plan = layout(pj, true);
+      const m = metricsOf(pj, plan);
+      let thin = 0;
+      plan.floors.forEach((f) => f.blocks.forEach((b) => { if (b.kind === 'space' && b.zone !== 'sirkulasyon' && (b.minSide < 1.4 || b.aspect > 4)) thin++; }));
+      // plak boşluğu: ortak plakta kullanılmayan oran
+      const voidShare = plan.floors.length ? plan.floors.reduce((t, f) => t + f.void, 0) / (plan.plateArea * plan.floors.length || 1) : 0;
+      return { typology: sp[0], ratio: sp[1], plan: plan, score: m.score, thin: thin, voidShare: voidShare, strongCross: m.strongCross.length };
+    });
+    // en iyi: skor, sonra az dar mekân, sonra az boşluk
+    const rank = list.slice().sort((a, b) => ((b.score == null ? -1 : b.score) - (a.score == null ? -1 : a.score)) || (a.thin - b.thin) || (a.voidShare - b.voidShare));
+    list.forEach((a) => { a.best = a === rank[0]; });
+    altMemo.k = key; altMemo.v = list;
+    return list;
+  }
+
   App.study = App.study || {};
+  App.study.alternatives = alternatives;
   Object.assign(App.study, {
     init: init, isCore: isCore, floorName: floorName, makeFloors: makeFloors, autoAssign: autoAssign, suggestCount: suggestCount,
     layout: layout, metrics: metricsOf, findings: findings, derive: derive, touching: touching, rectGap: rectGap, overlapArea: overlapArea, MIN_CORE: MIN_CORE, CORRIDOR_W: CORRIDOR_W,
@@ -12658,6 +12731,171 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
 })();
 
 /* ==========================================================================
+   39-lib-a2-insight.js — Arsa Analizi ek içgörüleri (Modül 4)
+   · site.karne(A)   15 dakikalık şehir karnesi: her işlev türü ve ulaşım için yürüme süresi, harf notu
+   · site.ask(A, s, q) "Sor": çözümlenmiş veriden soruları yanıtlayan KURAL TABANLI soru-cevap
+                       (yapay zekâ değildir; yalnızca hesaplanmış sayıları okur, uydurma yapmaz)
+   · site.hex(A, cat) altıgen yoğunluk hücreleri (işlev noktası sayısı), ısı katmanı için
+   Saf mantık: arayüz bilmez.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const site = App.site;
+  const osm = App.osm;
+  const U = App.util;
+  const fmt = U.fmt;
+
+  site.LAYERS.push({ id: 'yogunluk', name: 'İşlev yoğunluğu', sub: 'Altıgen ısı hücreleri: nerede ne kadar işlev var' });
+
+  /* ---------------- 15 dakikalık şehir karnesi ---------------- */
+  const GRADES = [
+    { min: 90, g: 'A', label: 'Çok güçlü 15 dakikalık çevre' },
+    { min: 70, g: 'B', label: 'İyi: eksikler az' },
+    { min: 50, g: 'C', label: 'Orta: birkaç ihtiyaç için taşıt gerekebilir' },
+    { min: 30, g: 'D', label: 'Zayıf: çoğu ihtiyaç yürüyerek karşılanmıyor' },
+    { min: 0, g: 'E', label: 'Araca bağımlı çevre' },
+  ];
+  const status = (m) => (m == null || !isFinite(m) ? 'yok' : m <= 5 ? 'cok' : m <= 10 ? 'iyi' : m <= 15 ? 'sinirda' : 'yok');
+  const STATUS_LABEL = { cok: '5 dk içinde', iyi: '10 dk içinde', sinirda: '15 dk içinde', yok: '15 dk dışında' };
+  site.KARNE_STATUS = STATUS_LABEL;
+
+  site.karne = function (A) {
+    if (!A) return null;
+    const rows = A.cats.map((c) => ({ id: c.id, label: c.label, min: c.nearMin, name: c.nearest ? c.nearest.name || null : null, c10: c.c10, c15: c.c15, st: status(c.nearMin), kind: 'islev' }));
+    const bus = A.transit.nearBus, rail = A.transit.nearRail;
+    const tr = A.transit.stops[0] || null;
+    rows.push({ id: 'ulasim', label: 'Toplu taşıma', min: tr ? tr.min : null, name: tr ? (tr.name || site.TRANSIT_LABEL[tr.kind] || 'Durak') : null, c10: A.transit.in10, c15: A.transit.stops.filter((t) => t.min <= 15).length, st: status(tr && tr.min), kind: 'ulasim' });
+    const park = A.green.nearPark;
+    rows.push({ id: 'yesil', label: 'Park', min: park ? park.min : null, name: park ? park.name || 'Park' : null, c10: A.green.parkCount, c15: A.green.parkCount, st: status(park && park.min), kind: 'yesil' });
+    const pass = rows.filter((r) => r.st !== 'yok').length;
+    const near = rows.filter((r) => r.st === 'cok' || r.st === 'iyi').length;
+    // 15 dk içindeki her ihtiyaç 1 puan; 10 dk içindekiler +0,5 bonus (en çok %100)
+    const pctN = Math.min(100, Math.round(((pass + 0.5 * near) / (rows.length * 1.5)) * 100));
+    const gr = GRADES.find((x) => pctN >= x.min);
+    return { rows: rows, pass: pass, near: near, total: rows.length, pct: pctN, grade: gr.g, label: gr.label, missing: rows.filter((r) => r.st === 'yok').map((r) => r.label) };
+  };
+
+  /* ---------------- Sor: kural tabanlı soru-cevap ---------------- */
+  const norm = (s) => String(s || '').toLocaleLowerCase('tr').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ğ/g, 'g').replace(/[^a-z0-9\s]/g, ' ');
+  const KEY = {
+    gunluk: ['market', 'bakkal', 'gunluk', 'manav', 'firin', 'kasap'],
+    yeme: ['yemek', 'restoran', 'kafe', 'cafe', 'kahve', 'lokanta', 'yeme'],
+    egitim: ['okul', 'egitim', 'lise', 'kres', 'anaokul', 'universite', 'ilkokul', 'ortaokul'],
+    saglik: ['saglik', 'hastane', 'klinik', 'eczane', 'doktor', 'hekim'],
+    rekreasyon: ['spor', 'oyun', 'rekreasyon', 'fitness'],
+    kultur: ['kultur', 'cami', 'kutuphane', 'muze', 'sinema', 'ibadet', 'kilise'],
+    hizmet: ['banka', 'postane', 'belediye', 'kamu', 'atm', 'polis', 'hizmet'],
+    alisveris: ['alisveris', 'avm', 'magaza', 'carsi', 'pazar'],
+  };
+  const has = (q, list) => list.some((k) => q.indexOf(k) >= 0);
+  const mins = (m) => (m == null || !isFinite(m) ? 'erişilemiyor' : (m < 10 ? fmt(m, 1) : String(Math.round(m))) + ' dakika');
+  const dist = (m) => (m == null ? '' : Math.round(m / 10) * 10 + ' m');
+
+  site.ASK_EXAMPLES = ['En yakın park nerede?', 'Okul 10 dakika içinde mi?', 'Toplu taşıma nasıl?', 'Burası sessiz mi?', '15 dakikalık şehir notu ne?', 'Genel skor nedir?'];
+
+  site.ask = function (A, s, text) {
+    if (!A) return { a: 'Önce bir konum seçin; sorular çözümlenmiş çevre verisinden yanıtlanır.', go: null };
+    const q = norm(text);
+    if (!q.trim()) return { a: 'Bir soru yazın. Örnek: “' + site.ASK_EXAMPLES[0] + '”', go: null };
+    const out = (a, go) => ({ a: a, go: go || null });
+    const catRow = (id) => A.cats.find((c) => c.id === id);
+    const catAnswer = (id) => {
+      const c = catRow(id);
+      const nm = c.nearest ? (c.nearest.name ? '“' + c.nearest.name + '”' : 'adsız bir nokta') : null;
+      if (!c.nearest) return c.label + ' için çözümleme alanında (' + A.R + ' m) 15 dakika içinde ulaşılabilir nokta bulunamadı. Harita verisinde eksik olabilir; sahada doğrulayın.';
+      return c.label + ': en yakını ' + nm + ', yürüyerek ' + mins(c.nearMin) + ' (≈' + dist(c.nearest.m) + '). 10 dakika içinde ' + c.c10 + ', 15 dakika içinde ' + c.c15 + ' nokta var.';
+    };
+    // belirli bir süre eşiği ("10 dakika içinde mi")
+    const th = q.match(/(\d{1,2})\s*(dk|dakika)/);
+    const limit = th ? parseInt(th[1], 10) : null;
+    const goLayer = (id, label) => ({ layer: id, label: label || 'Haritada göster' });
+
+    if (has(q, ['karne', 'sehir not', '15 dakikalik', '15 dk', 'on bes'])) {
+      const k = site.karne(A);
+      return out('15 dakikalık şehir karnesi: ' + k.grade + ' (%' + k.pct + '). ' + k.label + '. ' + k.pass + '/' + k.total + ' ihtiyaç 15 dakika içinde' + (k.missing.length ? '; eksikler: ' + k.missing.join(', ') + '.' : '.'), { tab: 'karne', label: 'Karneyi aç' });
+    }
+    if (has(q, ['durak', 'otobus', 'metro', 'tramvay', 'tren', 'toplu', 'ulasim', 'iskele', 'vapur'])) {
+      const t = A.transit;
+      if (!t.stops.length) return out('Çözümleme alanında yürüme erişimi olan toplu taşıma durağı bulunamadı.', goLayer('ulasim'));
+      const kinds = Object.keys(t.byKind).map((k) => t.byKind[k] + ' ' + (site.TRANSIT_LABEL[k] || k).toLowerCase()).join(', ');
+      const parts = ['En yakın durak ' + mins(t.stops[0].min) + ' uzaklıkta' + (t.stops[0].name ? ' (“' + t.stops[0].name + '”)' : '') + '.'];
+      if (t.nearRail) parts.push('Raylı sistem: ' + mins(t.nearRail.min) + '.');
+      parts.push('10 dakika içinde ' + t.in10 + ' durak var (' + kinds + ').');
+      return out(parts.join(' '), goLayer('ulasim'));
+    }
+    if (has(q, ['sessiz', 'gurultu', 'trafik', 'ses '])) {
+      const n = A.noise;
+      return out('Çalışma noktasında gürültü göstergesi: ' + n.cls.label.toLowerCase() + (n.src ? ' (baskın kaynak: ' + (n.src.name || n.src.cls) + (n.d != null ? ', ≈' + Math.round(n.d) + ' m' : '') + ')' : '') + '. Bu ölçüm değil, yol sınıfı ve uzaklığa dayanan bir göstergedir.', goLayer('gurultu'));
+    }
+    if (has(q, ['park', 'yesil', 'agac', 'bahce'])) {
+      const g = A.green;
+      if (!g.nearPark) return out('Çözümleme alanında yürüme erişimi olan park bulunamadı. Yeşil alan payı %' + Math.round(g.share * 100) + '.', goLayer('yesil'));
+      return out('En yakın park' + (g.nearPark.name ? ' “' + g.nearPark.name + '”' : '') + ' yürüyerek ' + mins(g.nearPark.min) + '. Alanın %' + Math.round(g.share * 100) + '’i yeşil; alanda ' + g.parkCount + ' park/spor noktası var.', goLayer('yesil'));
+    }
+    for (const id of Object.keys(KEY)) {
+      if (has(q, KEY[id])) {
+        const c = catRow(id);
+        let a = catAnswer(id);
+        if (limit != null && c.nearest) a = (c.nearMin <= limit ? 'Evet: ' : 'Hayır: ') + a;
+        return out(a, goLayer('islev'));
+      }
+    }
+    if (has(q, ['bina', 'yapi', 'kat', 'yogun', 'emsal', 'yukseklik', 'dokusu'])) {
+      const b = A.built;
+      return out('Çözümleme alanında ' + b.count + ' bina var; taban alanı oranı yaklaşık %' + Math.round(b.coverage * 100) + ', emsal ≈' + fmt(b.far, 2) + '. En yüksek bina ≈' + fmt(b.maxH, 0) + ' m' + (b.avgLevels ? '; kat bilgisi olanlarda ortalama ' + fmt(b.avgLevels, 1) + ' kat' : '') + '. Kat bilgisi olmayan binalarda yükseklik tahmin edilir (bilinen oranı %' + Math.round(b.levelKnown * 100) + ').', goLayer('yapi'));
+    }
+    if (has(q, ['yol', 'kavsak', 'yaya', 'baglanti', 'ag '])) {
+      const m = A.mob;
+      return out('Yol ağı ' + fmt(m.roadKm, 1) + ' km (yoğunluk ' + fmt(m.density, 1) + ' km/km²), kavşak yoğunluğu ' + fmt(m.interDensity, 0) + '/km²; yaya ve bisiklet yollarının payı %' + Math.round(m.pedShare * 100) + '.', goLayer('ulasim'));
+    }
+    if (has(q, ['gunes', 'golge', 'iklim', 'gun isigi'])) {
+      const d = A.sun.find((x) => x.id === 'yaz') || A.sun[0], w = A.sun.find((x) => x.id === 'kis') || A.sun[A.sun.length - 1];
+      return out('Gün uzunluğu: ' + d.label + ' ≈' + fmt(d.len, 1) + ' saat (öğle güneş yüksekliği ' + Math.round(d.noonAlt) + '°), ' + w.label + ' ≈' + fmt(w.len, 1) + ' saat (' + Math.round(w.noonAlt) + '°). Bina gölgeleri için Güneş katmanını açın.', goLayer('gunes'));
+    }
+    if (has(q, ['skor', 'puan', 'ozet', 'genel', 'nasil', 'uygun', 'not'])) {
+      const best = A.parts.slice().sort((x, y) => y.v - x.v), worst = best[best.length - 1];
+      return out('Konum skoru %' + A.score + ' (“' + A.template.label + '” programına göre). En güçlü: ' + best[0].label.toLowerCase() + ' (%' + Math.round(best[0].v * 100) + '); en zayıf: ' + worst.label.toLowerCase() + ' (%' + Math.round(worst.v * 100) + ').', { tab: 'bulgular', label: 'Bulgulara git' });
+    }
+    return out('Bu soruyu anlayamadım. Şunları sorabilirsiniz: ' + site.ASK_EXAMPLES.map((x) => '“' + x + '”').join(', ') + '. Not: yanıtlar yalnızca çözümlenen harita verisinden gelir.');
+  };
+
+  /* ---------------- altıgen yoğunluk ---------------- */
+  const memo = new WeakMap();
+  site.hex = function (A, cat) {
+    if (!A) return null;
+    const key = cat || 'all';
+    let m = memo.get(A);
+    if (!m) { m = {}; memo.set(A, m); }
+    if (m[key]) return m[key];
+    const R = A.R, hr = R / 7.5;
+    const pts = A.pois.filter((p) => p.inR && (!cat || cat === 'all' || p.cat === cat));
+    const cells = new Map();
+    const hexOf = (x, y) => {
+      // eksenel koordinatlar, sivri üstü olmayan (flat-top) altıgen ızgara
+      const qf = (2 / 3 * x) / hr, rf = (-1 / 3 * x + Math.sqrt(3) / 3 * y) / hr;
+      let rx = Math.round(qf), rz = Math.round(rf), ry = Math.round(-qf - rf);
+      const dx = Math.abs(rx - qf), dz = Math.abs(rz - rf), dy = Math.abs(ry + qf + rf);
+      if (dx > dz && dx > dy) rx = -rz - ry; else if (dz > dy) rz = -rx - ry;
+      return [rx, rz];
+    };
+    pts.forEach((p) => { const h = hexOf(p.x, p.y); const k = h[0] + ',' + h[1]; const c = cells.get(k) || { q: h[0], r: h[1], n: 0 }; c.n++; cells.set(k, c); });
+    const list = [];
+    let max = 0;
+    cells.forEach((c) => {
+      const cx = hr * 1.5 * c.q, cy = hr * Math.sqrt(3) * (c.r + c.q / 2);
+      if (Math.hypot(cx, cy) > R - hr * 0.25) return;
+      const poly = [];
+      for (let i = 0; i < 6; i++) { const a = (Math.PI / 3) * i; poly.push([cx + hr * 0.96 * Math.cos(a), cy + hr * 0.96 * Math.sin(a)]); }
+      list.push({ x: cx, y: cy, n: c.n, poly: poly });
+      if (c.n > max) max = c.n;
+    });
+    list.forEach((c) => { c.lv = max ? Math.min(4, Math.floor((c.n / max) * 4.999)) : 0; });
+    const peak = list.slice().sort((a, b) => b.n - a.n)[0] || null;
+    return (m[key] = { cells: list, max: max, hr: hr, peak: peak, total: pts.length });
+  };
+})();
+
+/* ==========================================================================
    39-lib-b-zoning.js — İmar ve kapasite hesapları (Modül 5)
    Parsel (yerel metre halkası) + imar parametreleri (TAKS, KAKS/emsal, yençok, çekmeler) →
    yapılabilir zarf, kütle, kat sayısı, alanlar, birim / otopark / nüfus tahmini, güneş gölgesi, bulgular.
@@ -13736,6 +13974,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
         isoBand: ['#2E3036', '#80848E', '#C5C8CF'], isoOp: [0.78, 0.55, 0.42],
         cat: { gunluk: '#17181B', yeme: '#3A3C42', egitim: '#55585F', saglik: '#26272B', rekreasyon: '#6C6F77', kultur: '#8A8D95', hizmet: '#44464D', alisveris: '#9A9DA5' },
         noise: ['rgba(23,24,27,.14)', 'rgba(23,24,27,.36)'], noiseSolid: ['#B9BCC4', '#585B63'],
+        heat: ['rgba(23,24,27,.10)', 'rgba(23,24,27,.22)', 'rgba(23,24,27,.36)', 'rgba(23,24,27,.52)', 'rgba(23,24,27,.72)'],
         topo: ['#F4F5F7', '#E8EAED', '#DCDEE3', '#CFD2D8', '#C2C5CC', '#B5B8C0', '#A8ABB3', '#9A9EA7'], contour: 'rgba(23,24,27,.45)',
         accent: P.ink, accent2: '#55585F', parcelFill: 'rgba(23,24,27,.10)', env: P.ink, shadow: 'rgba(23,24,27,.30)', sun: P.ink,
         good: '#2A2B30', warn: '#6C6F77', bad: '#17181B', score: ['#E8E9ED', '#B5B8C0', '#7A7E88', '#4C4F57', '#17181B'],
@@ -13749,6 +13988,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
       isoBand: ['#C03A22', '#E87E1B', '#EAAE1B'], isoOp: [0.6, 0.5, 0.4],
       cat: { gunluk: P.yellow, yeme: P.orange, egitim: P.blue, saglik: P.red, rekreasyon: P.green, kultur: P.indigo, hizmet: P.ink, alisveris: P.blueBright },
       noise: ['rgba(234,174,27,.38)', 'rgba(192,58,34,.5)'], noiseSolid: ['#EAAE1B', '#C03A22'],
+      heat: ['rgba(234,174,27,.30)', 'rgba(232,126,27,.48)', 'rgba(224,90,30,.60)', 'rgba(192,58,34,.72)', 'rgba(140,47,27,.85)'],
       topo: ['#F2E8CC', '#EADDB7', '#E1D0A0', '#D7C28B', '#CCB276', '#C0A263', '#B49252', '#A68343'], contour: 'rgba(38,29,17,.55)',
       accent: P.red, accent2: P.blue, parcelFill: 'rgba(192,58,34,.18)', env: P.blue, shadow: 'rgba(38,29,17,.34)', sun: P.orange,
       good: P.green, warn: P.yellow, bad: P.red, score: ['#E8DCBA', '#EAAE1B', '#E87E1B', '#3A8040', '#00427A'],
@@ -13959,6 +14199,17 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     });
     if (mid.length) P.push({ t: 'path', d: mid.join(''), fill: C.noise[0], stroke: C.noise[0], sw: 0.5 });
     if (hi.length) P.push({ t: 'path', d: hi.join(''), fill: C.noise[1], stroke: C.noise[1], sw: 0.5 });
+    return P;
+  };
+
+  /* ---------------- işlev yoğunluğu (altıgen ısı hücreleri) ---------------- */
+  D.density = function (T, A, C, z, cat) {
+    const H = App.site.hex(A, cat);
+    const P = [];
+    if (!H || !H.cells.length) return P;
+    const byLv = [[], [], [], [], []];
+    H.cells.forEach((c) => byLv[c.lv].push(ringD(T, c.poly, z)));
+    byLv.forEach((arr, i) => { if (arr.length) P.push({ t: 'path', d: arr.join(''), fill: C.heat[i], stroke: C.glass ? 'rgba(23,24,27,.18)' : 'rgba(38,29,17,.28)', sw: 0.6 }); });
     return P;
   };
 
@@ -14289,6 +14540,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
       else if (id === 'yapi') { sw('Alçak bina', C.bTone[1]); sw('Orta', C.bTone[2]); sw('Yüksek', C.bTone[4]); }
       else if (id === 'yesil') { sw('Yeşil alan', C.green); sw('Su', C.water); }
       else if (id === 'gurultu') { sw('Orta gürültü', C.noiseSolid[0]); sw('Gürültülü', C.noiseSolid[1]); }
+      else if (id === 'yogunluk') { sw('Az işlev', C.heat[0]); sw('Yoğun işlev', C.heat[4]); }
       else if (id === 'ulasim') sw('Durak', C.glass ? C.ink : C.accent);
       else if (id === 'gunes') sw('Bina gölgesi', C.shadow);
       else if (id === 'topo') sw('Yükselti', C.topo[5]);
@@ -14296,7 +14548,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     return L.slice(0, 8);
   }
 
-  function layerNote(id, A, sun) {
+  function layerNote(id, A, sun, hexCat) {
     const T = A.topo;
     if (id === 'topo') return T ? 'Kot ' + fmt(T.min, 0) + '–' + fmt(T.max, 0) + ' m · eğim %' + fmt(T.slope, 1) + (T.aspect != null ? ' · ' + gis.compass(T.aspect) + ' bakı' : '') : 'Yükselti verisi yok';
     if (id === 'yapi') return A.built.count + ' bina · emsal ~' + fmt(A.built.far, 2);
@@ -14305,6 +14557,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     if (id === 'erisim') return A.iso.map((b) => fmt(b.ha, 0)).join(' / ') + ' ha (5 / 10 / 15 dk)';
     if (id === 'islev') return A.pois.filter((p) => p.inR).length + ' işlev noktası';
     if (id === 'gurultu') return 'Çalışma noktasında: ' + A.noise.cls.label.toLowerCase();
+    if (id === 'yogunluk') { const H = App.site.hex(A, hexCat); return H.total + ' nokta · en yoğun hücre ' + (H.peak ? H.peak.n : 0); }
     if (id === 'gunes') return sun.day.label + ' ' + fmt(sun.hour, 0) + ':00 · ' + Math.round(sun.alt) + '° yükseklik';
     return '';
   }
@@ -14395,6 +14648,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     add(D.green(T, A.clip, C, 0, { opacity: on('yesil') ? 1 : 0.5, deep: on('yesil') }));
     add(D.water(T, A.clip, C, 0));
     if (on('gurultu')) add(D.noise(T, A, C, 0));
+    if (on('yogunluk')) add(D.density(T, A, C, 0, view.hexCat));
     if (on('erisim')) add(D.access(T, A, C, 0));
     add(D.roads(T, A.clip, C, 0, { emph: on('ulasim') || on('yapi') === false }));
     if (on('ulasim')) add(D.rails(T, A.clip, C, 0));
@@ -14510,6 +14764,9 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
         add(D.noise(T, A, C, z));
         add(D.roads(T, A.clip, C, z, { emph: true, opacity: 0.8 }));
         add(D.rails(T, A.clip, C, z));
+      } else if (id === 'yogunluk') {
+        add(D.ground(T, A, C, z, { greenOpacity: 0.3, buildings: true, bOpacity: 0.5 }).slice(1));
+        add(D.density(T, A, C, z, view.hexCat));
       } else if (id === 'gunes') {
         add(D.ground(T, A, C, z, { greenOpacity: 0.3, buildings: true }).slice(1));
         add(D.shadows(T, A, C, z, sun));
@@ -14545,7 +14802,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
       const Pg = [];
       Pg.push({ t: 'text', x: x0, y: y0, s: g ? meta.name : meta.name.toLocaleUpperCase('tr'), size: 17, weight: g ? 400 : 700, fam: 'd', fill: C.ink, ls: g ? 0 : 1 });
       Pg.push({ t: 'line', x1: x0, y1: y0 + 8, x2: xe, y2: y0 + 8, stroke: C.ink, sw: g ? 1.2 : 2.5, opacity: g ? 0.5 : 1 });
-      Pg.push({ t: 'text', x: x0, y: y0 + 26, s: layerNote(id, A, sun), size: 12, weight: 700, fam: g ? 'b' : 'm', fill: C.ink, opacity: 0.7 });
+      Pg.push({ t: 'text', x: x0, y: y0 + 26, s: layerNote(id, A, sun, view.hexCat), size: 12, weight: 700, fam: g ? 'b' : 'm', fill: C.ink, opacity: 0.7 });
       if (showLeg) legendFor([id], C).slice(0, 3).forEach((it, j) => {
         const yy = y0 + 46 + j * 18;
         Pg.push({ t: 'rect', x: x0, y: yy - 11, w: 14, h: 14, rx: g ? 7 : 0, fill: it.fill, stroke: g ? 'rgba(23,24,27,.3)' : C.ink, sw: g ? 1 : 1.6 });
@@ -17420,6 +17677,34 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
   let drag = null;
 
   /* ---------------- sol panel ---------------- */
+  /* plan alternatifleri galerisi: küçük resimler aynı kat atamasıyla farklı düzen ve oranlar */
+  function altView(state, sd) {
+    const P = state.project, S = P.study;
+    const list = st.alternatives(P);
+    if (!list.length) return null;
+    const g = App.theme.name === 'glass';
+    const cards = list.map((a, i) => {
+      // en dolu katı göster
+      const fl0 = a.plan.floors.reduce((m, f) => (f.net > m.net ? f : m), a.plan.floors[0]);
+      const cur = S.typology === a.typology && Math.abs((S.ratio || 1.5) - a.ratio) < 0.01;
+      const W = a.plan.Wp, D = a.plan.Dp;
+      const rects = fl0.blocks.map((b) => {
+        const z = App.ZONES[b.zone] || App.ZONES.sosyal;
+        return h('rect', { key: b.id, x: b.x, y: b.y, width: b.w, height: b.h, fill: z.fill, stroke: App.PAL.ink, 'stroke-width': Math.max(W, D) / 160, 'stroke-opacity': 0.8 });
+      });
+      return h('li', { key: i, class: 'altc' + (cur ? ' on' : '') },
+        h('button', { type: 'button', class: 'altc-b', 'aria-pressed': String(cur), title: (a.typology === 'koridor' ? 'Orta koridor' : 'Serbest') + ' · 1 : ' + fmt(a.ratio, 2) + ' — uygula', onclick: () => ctl().studySet({ typology: a.typology, ratio: a.ratio }) },
+          h('svg', { class: 'altc-svg', viewBox: '-0.5 -0.5 ' + (W + 1) + ' ' + (D + 1), role: 'img', 'aria-label': 'Plan küçük resmi' }, h('rect', { x: 0, y: 0, width: W, height: D, fill: 'none', stroke: App.PAL.ink, 'stroke-width': Math.max(W, D) / 90 }), rects),
+          h('span', { class: 'altc-t' }, (a.typology === 'koridor' ? 'Koridor' : 'Serbest') + ' · 1 : ' + fmt(a.ratio, 1)),
+          h('span', { class: 'altc-s mono' }, (a.score == null ? '—' : '%' + a.score) + ' · ' + fmt(W, 0) + '×' + fmt(D, 0) + ' m'),
+          a.best ? h('span', { class: 'altc-best' }, 'en iyi') : null,
+          a.thin ? h('span', { class: 'altc-w' }, a.thin + ' dar mekân') : null));
+    });
+    return ui.section('Plan alternatifleri', h('div', { class: 'sec-box' },
+      h('p', { class: 'note' }, 'Aynı kat ataması için düzen ve plak oranı seçenekleri; skor ilişki, kat dengesi ve ıslak hacim hizasından gelir. Birine tıklayarak uygulayın.'),
+      h('ul', { class: 'altc-grid' }, cards)), list.length + ' seçenek', 'stalt');
+  }
+
   function setupView(state, sd) {
     const P = state.project;
     const S = P.study;
@@ -17491,7 +17776,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
       { id: 'bulgular', label: 'Bulgular', n: c.hata + c.uyari + c.oneri, warn: c.hata + c.uyari > 0 },
     ], tab, (id) => ctl().dispatch({ type: 'UI', patch: { stTab: id } }));
     const body = tab === 'katlar'
-      ? [setupView(state, sd), floorsView(state, sd)]
+      ? [setupView(state, sd), altView(state, sd), floorsView(state, sd)].filter(Boolean)
       : [ui.findingList(sd.findings, 'Kat dağılımının ilişkilere, ıslak hacim hizasına ve plak dengesine göre kontrolü.')];
     return ui.sideShell('sb-kat', 'Kat etüdü paneli', tabs, body);
   };
@@ -17616,6 +17901,8 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
         { k: 'sep' },
         { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => ctl().dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
         { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => ctl().dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },
+        { k: 'sep' },
+        { k: 'btn', label: 'DXF', icon: 'download', onclick: () => ctl().studyDxf(), disabled: !P.spaces.length || !!state.ui.busy, title: 'Kat planlarını katmanlı DXF (metre) olarak indir' },
       ],
     });
   };
@@ -17667,6 +17954,38 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     });
   };
 
+  /* DXF: her kat yan yana; mekân blokları işlev bölgesine göre katmanlara ayrılır (metre) */
+  const ZONE_ACI = { sosyal: 40, ozel: 5, servis: 4, calisma: 3, sirkulasyon: 8, teknik: 9, acik: 2 };
+  function dxfDoc(P, sd) {
+    const plan = sd.plan;
+    const doc = { title: P.meta.name, units: 'm', layers: { PLAK: { color: 7, label: 'Kat plağı sınırı' }, YAZI: { color: 7, label: 'Yazılar' }, CEKIRDEK: { color: 30, label: 'Çekirdek' } }, entities: [] };
+    Object.keys(ZONE_ACI).forEach((z) => { doc.layers['MEKAN_' + z.toUpperCase()] = { color: ZONE_ACI[z], label: (App.ZONES[z] || {}).label || z }; });
+    const gap = 8;
+    const D = plan.Dp;
+    plan.floors.forEach((f, i) => {
+      const ox = i * (plan.Wp + gap);
+      const rect = (x, y, w, h) => [[ox + x, D - y - h], [ox + x + w, D - y - h], [ox + x + w, D - y], [ox + x, D - y]];
+      doc.entities.push({ layer: 'PLAK', kind: 'poly', closed: true, pts: rect(0, 0, plan.Wp, D) });
+      f.blocks.forEach((b) => {
+        const layer = b.kind === 'core' ? 'CEKIRDEK' : b.kind === 'void' ? 'MEKAN_ACIK' : 'MEKAN_' + String(b.zone || 'sosyal').toUpperCase();
+        if (!doc.layers[layer]) doc.layers[layer] = { color: 7 };
+        doc.entities.push({ layer: layer, kind: 'poly', closed: true, pts: rect(b.x, b.y, b.w, b.h) });
+        const fs = Math.max(0.25, Math.min(0.5, Math.min(b.w, b.h) / 7));
+        doc.entities.push({ layer: 'YAZI', kind: 'text', at: [ox + b.x + b.w / 2, D - b.y - b.h / 2 + fs * 0.7], text: b.name, h: fs, align: 'center' });
+        doc.entities.push({ layer: 'YAZI', kind: 'text', at: [ox + b.x + b.w / 2, D - b.y - b.h / 2 - fs * 0.7], text: U.fmt(b.area, 1) + ' m2', h: fs * 0.8, align: 'center' });
+      });
+      doc.entities.push({ layer: 'YAZI', kind: 'text', at: [ox, D + 1.2], text: f.name + ' · ' + U.fmt(plan.Wp, 1) + ' x ' + U.fmt(D, 1) + ' m', h: 0.6 });
+    });
+    return doc;
+  }
+  ctl.studyDxf = function () {
+    ctl.runExport('DXF', (P) => {
+      if (!App.dxf) return Promise.reject(new Error('DXF yazıcısı yüklenemedi.'));
+      const sd = App.study.derive(P);
+      return ctl.saveText(U.slug(P.meta.name) + '-kat-etudu.dxf', App.dxf.build(dxfDoc(P, sd)), 'application/dxf');
+    });
+  };
+
   /* asistan kartlarının eylemleri: modüller arası köprü */
   const baseRun = ctl.runAction;
   ctl.runAction = function (a) {
@@ -17709,7 +18028,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
 
   /* ---------------- görünüm varsayılanları (state.ui içinde) ---------------- */
   App.siteUi = {
-    arsa: () => ({ mode: 'map', layers: ['erisim', 'yapi', 'yesil', 'ulasim', 'islev'], labels: true, sunDay: 'yaz', sunHour: 15, parcel: true, yaw: 35, pitch: 38, explode: 1, zx: 1.6, sel: null, tab: 'konum' }),
+    arsa: () => ({ mode: 'map', layers: ['erisim', 'yapi', 'yesil', 'ulasim', 'islev'], labels: true, sunDay: 'yaz', sunHour: 15, parcel: true, yaw: 35, pitch: 38, explode: 1, zx: 1.6, sel: null, tab: 'konum', qa: [], hexCat: 'all' }),
     imar: () => ({ mode: 'plan', shadow: true, labels: true, handles: true, yaw: 35, pitch: 45, zx: 1, tab: 'parsel', tool: null, draft: null, fixed: null }),
     yer: () => ({ tab: 'adaylar', pick: null, step: 120, n: 5 }),
   };
@@ -17922,6 +18241,35 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     ];
   }
 
+  /* ---------------- 15 dakikalık şehir karnesi + Sor ---------------- */
+  function karneTab(state, A) {
+    const v = state.ui.site, c = ctl();
+    if (!A) return [h('p', { class: 'note' }, 'Karne için önce konum verisi gerekli.')];
+    const K = site.karne(A);
+    const rows = K.rows.map((r) => h('li', { key: r.id, class: 'kn-row kn-' + r.st },
+      h('span', { class: 'kn-l' }, r.label),
+      h('span', { class: 'kn-bar', 'aria-hidden': 'true' }, h('i', { style: { width: (r.min == null ? 0 : Math.max(6, Math.min(100, 100 - (r.min / 15) * 100 + 6))) + '%' } })),
+      h('span', { class: 'kn-m mono' }, r.min == null ? '—' : (r.min < 10 ? fmt(r.min, 1) : Math.round(r.min)) + ' dk'),
+      h('span', { class: 'kn-n' }, (r.name ? r.name + ' · ' : '') + site.KARNE_STATUS[r.st] + (r.c10 ? ' · 10 dk içinde ' + r.c10 : ''))));
+    const qa = v.qa || [];
+    const submit = () => { const el = document.getElementById('site-ask'); if (!el) return; const t = el.value.trim(); if (t) { c.siteAsk(t); el.value = ''; } };
+    return [
+      ui.section('15 dakikalık şehir karnesi', h('div', { class: 'sec-box' },
+        h('div', { class: 'kn-head' }, h('b', { class: 'kn-grade' }, K.grade), h('div', {}, h('b', {}, '%' + K.pct + ' · ' + K.pass + '/' + K.total + ' ihtiyaç 15 dk içinde'), h('p', { class: 'note' }, K.label + '.'))),
+        h('ul', { class: 'kn-list' }, rows),
+        h('p', { class: 'note' }, 'Yürüme süresi gerçek yol ağı üzerinden, 80 m/dk ile hesaplanır. Harita verisinde eksik nokta olabilir.')), null, 'skarne'),
+      ui.section('Sor', h('div', { class: 'sec-box' },
+        h('p', { class: 'note' }, 'Çözümlenen veriden yanıtlayan kural tabanlı soru kutusu (yapay zekâ değildir; yalnızca hesaplanmış sayıları okur).'),
+        h('div', { class: 'ask-row' },
+          h('input', { id: 'site-ask', class: 'inp', type: 'text', maxlength: 120, placeholder: site.ASK_EXAMPLES[0], keep: true, autocomplete: 'off', 'aria-label': 'Soru', onkeydown: (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } } }),
+          ui.btn('Sor', { icon: 'check', cls: 'btn-primary', onclick: submit })),
+        h('div', { class: 'ask-ex' }, site.ASK_EXAMPLES.map((q) => h('button', { key: q, type: 'button', class: 'chip', onclick: () => c.siteAsk(q) }, q))),
+        qa.length ? h('ul', { class: 'ask-list', 'aria-live': 'polite' }, qa.slice().reverse().map((x) => h('li', { key: x.id, class: 'ask-i' },
+          h('p', { class: 'ask-q' }, x.q), h('p', { class: 'ask-a' }, x.a),
+          x.go ? h('button', { type: 'button', class: 'act-btn', onclick: () => c.siteGo(x.go) }, x.go.label) : null))) : null), null, 'sask'),
+    ];
+  }
+
   function gorunumTab(state, A) {
     const v = state.ui.site, c = ctl(), s = state.project.site;
     const iso = v.mode === 'iso';
@@ -17939,6 +18287,10 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
           h('span', { class: 'lyr-t' }, h('b', {}, l.name), h('small', {}, l.sub))));
       })), v.layers.length + '/' + site.LAYERS.length, 'slayers'),
     ];
+    if (v.layers.indexOf('yogunluk') >= 0) {
+      secs.push(ui.section('İşlev yoğunluğu', h('div', { class: 'sec-box' },
+        ui.fld2('İşlev türü', h('select', { id: 'site-hexcat', class: 'inp', value: v.hexCat || 'all', onchange: (e) => c.siteView({ hexCat: e.target.value }) }, [h('option', { key: 'all', value: 'all' }, 'Tümü')].concat(App.osm.CATS.map((k) => h('option', { key: k.id, value: k.id }, k.label)))), 'Altıgen hücre başına işlev noktası sayısı; koyu hücreler daha yoğun.')), null, 'shex'));
+    }
     if (v.layers.indexOf('gunes') >= 0) {
       secs.push(ui.section('Güneş', h('div', { class: 'sec-box' },
         ui.fld2('Gün', ui.segmented({ label: 'Gün', wide: true, value: v.sunDay, options: App.gis.SUN_DAYS.map((d) => ({ v: d.id, label: d.label })), onchange: (x) => c.siteView({ sunDay: x }) })),
@@ -17963,11 +18315,13 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     const tabs = ui.tabsBar([
       { id: 'konum', label: 'Konum' },
       { id: 'gorunum', label: 'Görünüm' },
+      { id: 'karne', label: 'Karne' },
       { id: 'bulgular', label: 'Bulgular', n: A ? c.hata + c.uyari + c.oneri : null, warn: c.hata + c.uyari > 0 },
     ], tab, (id) => ctl().siteView({ tab: id }));
     let body;
     if (tab === 'konum') body = konumTab(state);
     else if (tab === 'gorunum') body = gorunumTab(state, A);
+    else if (tab === 'karne') body = karneTab(state, A);
     else body = A ? [ui.findingList({ items: A.items, counts: A.counts }, 'Yürüme erişimi, toplu taşıma, yeşil alan, gürültü göstergesi ve çevre dokusunun seçili programa göre kontrolü.')] : [h('p', { class: 'note' }, 'Bulgular için önce konum verisi gerekli.')];
     return ui.sideShell('sb-arsa', 'Arsa analizi paneli', tabs, body);
   };
@@ -18266,6 +18620,23 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     if (on && v.layers.length === 1) { ctl.toast('En az bir katman açık kalmalı.'); return; }
     const order = site.LAYERS.map((l) => l.id);
     AV.set({ layers: order.filter((x) => (x === id ? !on : v.layers.indexOf(x) >= 0)), sel: v.sel === id && on ? null : v.sel });
+  };
+
+  /* ---------------- Sor (kural tabanlı) ---------------- */
+  ctl.siteAsk = function (text) {
+    const st = get(), s = st.project.site, e = site.entry(s), A = e ? site.analyze(s, e) : null;
+    const r = site.ask(A, s, text);
+    const qa = (st.ui.site.qa || []).concat([{ id: Date.now() + Math.random(), q: text, a: r.a, go: r.go }]).slice(-5);
+    AV.set({ qa: qa });
+  };
+  ctl.siteGo = function (go) {
+    if (!go) return;
+    if (go.layer) {
+      const v = get().ui.site;
+      if (v.layers.indexOf(go.layer) < 0) ctl.siteLayer(go.layer);
+      if (v.mode !== 'map') AV.set({ mode: 'map' });
+    }
+    if (go.tab) AV.set({ tab: go.tab });
   };
 
   /* ---------------- dışa aktarma altyapısı ---------------- */

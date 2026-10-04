@@ -161,9 +161,9 @@
 
   /* ---------- kat planı üretimi ---------- */
   const memo = { key: null, plan: null };
-  function layout(project) {
+  function layout(project, noMemo) {
     const st = project.study;
-    if (memo.key && memo.key[0] === project.spaces && memo.key[1] === project.relations && memo.key[2] === st) return memo.plan;
+    if (!noMemo && memo.key && memo.key[0] === project.spaces && memo.key[1] === project.relations && memo.key[2] === st) return memo.plan;
     const floors = st.floors;
     const n = floors.length;
     const useCore = n > 1;
@@ -220,8 +220,7 @@
     });
 
     const plan = { Wp: Wp, Dp: Dp, plateArea: Wp * Dp, coreArea: coreArea, cwid: cwid, typology: typ, ratio: r, useCore: useCore, coreSpaces: coreSpaces, corridorW: cw, floors: out };
-    memo.key = [project.spaces, project.relations, st];
-    memo.plan = plan;
+    if (!noMemo) { memo.key = [project.spaces, project.relations, st]; memo.plan = plan; }
     return plan;
   }
 
@@ -344,7 +343,33 @@
     return derivedMemo.out;
   }
 
+  /* ---------- plan alternatifleri: yerleşim düzeni × plak oranı, aynı kat ataması ile ---------- */
+  const ALT_SPECS = [['serbest', 1.2], ['serbest', 1.5], ['serbest', 2.2], ['koridor', 1.5], ['koridor', 2.0], ['koridor', 2.6]];
+  const altMemo = { k: null, v: null };
+  function alternatives(project) {
+    const st = project.study;
+    if (!st || !project.spaces.length) return [];
+    const key = [project.spaces, project.relations, st.floors, st.assign, st.core];
+    if (altMemo.k && altMemo.k.every((x, i) => x === key[i])) return altMemo.v;
+    const list = ALT_SPECS.map((sp) => {
+      const pj = Object.assign({}, project, { study: Object.assign({}, st, { typology: sp[0], ratio: sp[1] }) });
+      const plan = layout(pj, true);
+      const m = metricsOf(pj, plan);
+      let thin = 0;
+      plan.floors.forEach((f) => f.blocks.forEach((b) => { if (b.kind === 'space' && b.zone !== 'sirkulasyon' && (b.minSide < 1.4 || b.aspect > 4)) thin++; }));
+      // plak boşluğu: ortak plakta kullanılmayan oran
+      const voidShare = plan.floors.length ? plan.floors.reduce((t, f) => t + f.void, 0) / (plan.plateArea * plan.floors.length || 1) : 0;
+      return { typology: sp[0], ratio: sp[1], plan: plan, score: m.score, thin: thin, voidShare: voidShare, strongCross: m.strongCross.length };
+    });
+    // en iyi: skor, sonra az dar mekân, sonra az boşluk
+    const rank = list.slice().sort((a, b) => ((b.score == null ? -1 : b.score) - (a.score == null ? -1 : a.score)) || (a.thin - b.thin) || (a.voidShare - b.voidShare));
+    list.forEach((a) => { a.best = a === rank[0]; });
+    altMemo.k = key; altMemo.v = list;
+    return list;
+  }
+
   App.study = App.study || {};
+  App.study.alternatives = alternatives;
   Object.assign(App.study, {
     init: init, isCore: isCore, floorName: floorName, makeFloors: makeFloors, autoAssign: autoAssign, suggestCount: suggestCount,
     layout: layout, metrics: metricsOf, findings: findings, derive: derive, touching: touching, rectGap: rectGap, overlapArea: overlapArea, MIN_CORE: MIN_CORE, CORRIDOR_W: CORRIDOR_W,

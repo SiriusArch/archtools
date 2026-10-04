@@ -51,3 +51,9 @@
 
 .h3d { background: var(--bg-2, var(--bg)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 .h3d-map { border-radius: 28px; box-shadow: var(--raise); }
+
+.kn-grade { border-radius: 50%; background: var(--glass-2); box-shadow: var(--raise-sm); font-family: var(--f-display); }
+.kn-bar { border-radius: 99px; background: var(--inset-bg); box-shadow: var(--press-sm); }
+.kn-bar i { border-radius: 99px; }
+.ask-ex .chip { border-radius: 99px; box-shadow: var(--raise-sm); background: var(--glass-2); }
+.ask-i { padding: 10px 14px; border-radius: 18px; background: var(--inset-bg); box-shadow: var(--press-sm); }

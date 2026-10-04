@@ -46,6 +46,7 @@
       else if (id === 'yapi') { sw('Alçak bina', C.bTone[1]); sw('Orta', C.bTone[2]); sw('Yüksek', C.bTone[4]); }
       else if (id === 'yesil') { sw('Yeşil alan', C.green); sw('Su', C.water); }
       else if (id === 'gurultu') { sw('Orta gürültü', C.noiseSolid[0]); sw('Gürültülü', C.noiseSolid[1]); }
+      else if (id === 'yogunluk') { sw('Az işlev', C.heat[0]); sw('Yoğun işlev', C.heat[4]); }
       else if (id === 'ulasim') sw('Durak', C.glass ? C.ink : C.accent);
       else if (id === 'gunes') sw('Bina gölgesi', C.shadow);
       else if (id === 'topo') sw('Yükselti', C.topo[5]);
@@ -53,7 +54,7 @@
     return L.slice(0, 8);
   }
 
-  function layerNote(id, A, sun) {
+  function layerNote(id, A, sun, hexCat) {
     const T = A.topo;
     if (id === 'topo') return T ? 'Kot ' + fmt(T.min, 0) + '–' + fmt(T.max, 0) + ' m · eğim %' + fmt(T.slope, 1) + (T.aspect != null ? ' · ' + gis.compass(T.aspect) + ' bakı' : '') : 'Yükselti verisi yok';
     if (id === 'yapi') return A.built.count + ' bina · emsal ~' + fmt(A.built.far, 2);
@@ -62,6 +63,7 @@
     if (id === 'erisim') return A.iso.map((b) => fmt(b.ha, 0)).join(' / ') + ' ha (5 / 10 / 15 dk)';
     if (id === 'islev') return A.pois.filter((p) => p.inR).length + ' işlev noktası';
     if (id === 'gurultu') return 'Çalışma noktasında: ' + A.noise.cls.label.toLowerCase();
+    if (id === 'yogunluk') { const H = App.site.hex(A, hexCat); return H.total + ' nokta · en yoğun hücre ' + (H.peak ? H.peak.n : 0); }
     if (id === 'gunes') return sun.day.label + ' ' + fmt(sun.hour, 0) + ':00 · ' + Math.round(sun.alt) + '° yükseklik';
     return '';
   }
@@ -152,6 +154,7 @@
     add(D.green(T, A.clip, C, 0, { opacity: on('yesil') ? 1 : 0.5, deep: on('yesil') }));
     add(D.water(T, A.clip, C, 0));
     if (on('gurultu')) add(D.noise(T, A, C, 0));
+    if (on('yogunluk')) add(D.density(T, A, C, 0, view.hexCat));
     if (on('erisim')) add(D.access(T, A, C, 0));
     add(D.roads(T, A.clip, C, 0, { emph: on('ulasim') || on('yapi') === false }));
     if (on('ulasim')) add(D.rails(T, A.clip, C, 0));
@@ -267,6 +270,9 @@
         add(D.noise(T, A, C, z));
         add(D.roads(T, A.clip, C, z, { emph: true, opacity: 0.8 }));
         add(D.rails(T, A.clip, C, z));
+      } else if (id === 'yogunluk') {
+        add(D.ground(T, A, C, z, { greenOpacity: 0.3, buildings: true, bOpacity: 0.5 }).slice(1));
+        add(D.density(T, A, C, z, view.hexCat));
       } else if (id === 'gunes') {
         add(D.ground(T, A, C, z, { greenOpacity: 0.3, buildings: true }).slice(1));
         add(D.shadows(T, A, C, z, sun));
@@ -302,7 +308,7 @@
       const Pg = [];
       Pg.push({ t: 'text', x: x0, y: y0, s: g ? meta.name : meta.name.toLocaleUpperCase('tr'), size: 17, weight: g ? 400 : 700, fam: 'd', fill: C.ink, ls: g ? 0 : 1 });
       Pg.push({ t: 'line', x1: x0, y1: y0 + 8, x2: xe, y2: y0 + 8, stroke: C.ink, sw: g ? 1.2 : 2.5, opacity: g ? 0.5 : 1 });
-      Pg.push({ t: 'text', x: x0, y: y0 + 26, s: layerNote(id, A, sun), size: 12, weight: 700, fam: g ? 'b' : 'm', fill: C.ink, opacity: 0.7 });
+      Pg.push({ t: 'text', x: x0, y: y0 + 26, s: layerNote(id, A, sun, view.hexCat), size: 12, weight: 700, fam: g ? 'b' : 'm', fill: C.ink, opacity: 0.7 });
       if (showLeg) legendFor([id], C).slice(0, 3).forEach((it, j) => {
         const yy = y0 + 46 + j * 18;
         Pg.push({ t: 'rect', x: x0, y: yy - 11, w: 14, h: 14, rx: g ? 7 : 0, fill: it.fill, stroke: g ? 'rgba(23,24,27,.3)' : C.ink, sw: g ? 1 : 1.6 });

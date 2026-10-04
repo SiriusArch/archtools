@@ -5,3 +5,7 @@
 .fblock-hit:hover { fill: rgba(38, 29, 17, .09); }
 .fblock-hit:focus-visible { stroke: var(--blue-2); stroke-width: 3; }
 .fcell.over .fcell-hit { fill: rgba(234, 174, 27, .22); }
+
+.altc-b { border: 2px solid var(--ink); background: var(--surface); }
+.altc.on .altc-b { box-shadow: 4px 4px 0 var(--blue); border-color: var(--blue); }
+.altc-best { background: var(--yellow); color: var(--on-yellow); border: 2px solid var(--ink); }

@@ -60,3 +60,11 @@
 .h3d { background: var(--surface); }
 .h3d-map { border: 3px solid var(--line); box-shadow: 6px 6px 0 var(--shadow); }
 .h3d-head > b { font: 700 13px var(--f-display); letter-spacing: .1em; text-transform: uppercase; }
+
+.kn-grade { background: var(--ink); color: var(--paper); font-family: var(--f-display); }
+.kn-bar { border: 2px solid var(--ink); background: var(--surface); }
+.kn-bar i { background: var(--green); }
+.kn-sinirda .kn-bar i { background: var(--yellow); }
+.kn-cok .kn-bar i { background: var(--blue); }
+.ask-ex .chip { border: 2px solid var(--ink); background: var(--surface); }
+.ask-i { border-left: 4px solid var(--blue); padding-left: 10px; }

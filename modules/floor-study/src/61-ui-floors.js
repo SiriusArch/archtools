@@ -17,6 +17,34 @@
   let drag = null;
 
   /* ---------------- sol panel ---------------- */
+  /* plan alternatifleri galerisi: küçük resimler aynı kat atamasıyla farklı düzen ve oranlar */
+  function altView(state, sd) {
+    const P = state.project, S = P.study;
+    const list = st.alternatives(P);
+    if (!list.length) return null;
+    const g = App.theme.name === 'glass';
+    const cards = list.map((a, i) => {
+      // en dolu katı göster
+      const fl0 = a.plan.floors.reduce((m, f) => (f.net > m.net ? f : m), a.plan.floors[0]);
+      const cur = S.typology === a.typology && Math.abs((S.ratio || 1.5) - a.ratio) < 0.01;
+      const W = a.plan.Wp, D = a.plan.Dp;
+      const rects = fl0.blocks.map((b) => {
+        const z = App.ZONES[b.zone] || App.ZONES.sosyal;
+        return h('rect', { key: b.id, x: b.x, y: b.y, width: b.w, height: b.h, fill: z.fill, stroke: App.PAL.ink, 'stroke-width': Math.max(W, D) / 160, 'stroke-opacity': 0.8 });
+      });
+      return h('li', { key: i, class: 'altc' + (cur ? ' on' : '') },
+        h('button', { type: 'button', class: 'altc-b', 'aria-pressed': String(cur), title: (a.typology === 'koridor' ? 'Orta koridor' : 'Serbest') + ' · 1 : ' + fmt(a.ratio, 2) + ' — uygula', onclick: () => ctl().studySet({ typology: a.typology, ratio: a.ratio }) },
+          h('svg', { class: 'altc-svg', viewBox: '-0.5 -0.5 ' + (W + 1) + ' ' + (D + 1), role: 'img', 'aria-label': 'Plan küçük resmi' }, h('rect', { x: 0, y: 0, width: W, height: D, fill: 'none', stroke: App.PAL.ink, 'stroke-width': Math.max(W, D) / 90 }), rects),
+          h('span', { class: 'altc-t' }, (a.typology === 'koridor' ? 'Koridor' : 'Serbest') + ' · 1 : ' + fmt(a.ratio, 1)),
+          h('span', { class: 'altc-s mono' }, (a.score == null ? '—' : '%' + a.score) + ' · ' + fmt(W, 0) + '×' + fmt(D, 0) + ' m'),
+          a.best ? h('span', { class: 'altc-best' }, 'en iyi') : null,
+          a.thin ? h('span', { class: 'altc-w' }, a.thin + ' dar mekân') : null));
+    });
+    return ui.section('Plan alternatifleri', h('div', { class: 'sec-box' },
+      h('p', { class: 'note' }, 'Aynı kat ataması için düzen ve plak oranı seçenekleri; skor ilişki, kat dengesi ve ıslak hacim hizasından gelir. Birine tıklayarak uygulayın.'),
+      h('ul', { class: 'altc-grid' }, cards)), list.length + ' seçenek', 'stalt');
+  }
+
   function setupView(state, sd) {
     const P = state.project;
     const S = P.study;
@@ -88,7 +116,7 @@
       { id: 'bulgular', label: 'Bulgular', n: c.hata + c.uyari + c.oneri, warn: c.hata + c.uyari > 0 },
     ], tab, (id) => ctl().dispatch({ type: 'UI', patch: { stTab: id } }));
     const body = tab === 'katlar'
-      ? [setupView(state, sd), floorsView(state, sd)]
+      ? [setupView(state, sd), altView(state, sd), floorsView(state, sd)].filter(Boolean)
       : [ui.findingList(sd.findings, 'Kat dağılımının ilişkilere, ıslak hacim hizasına ve plak dengesine göre kontrolü.')];
     return ui.sideShell('sb-kat', 'Kat etüdü paneli', tabs, body);
   };
@@ -213,6 +241,8 @@
         { k: 'sep' },
         { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => ctl().dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
         { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => ctl().dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },
+        { k: 'sep' },
+        { k: 'btn', label: 'DXF', icon: 'download', onclick: () => ctl().studyDxf(), disabled: !P.spaces.length || !!state.ui.busy, title: 'Kat planlarını katmanlı DXF (metre) olarak indir' },
       ],
     });
   };

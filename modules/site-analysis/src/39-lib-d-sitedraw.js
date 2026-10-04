@@ -29,6 +29,7 @@
         isoBand: ['#2E3036', '#80848E', '#C5C8CF'], isoOp: [0.78, 0.55, 0.42],
         cat: { gunluk: '#17181B', yeme: '#3A3C42', egitim: '#55585F', saglik: '#26272B', rekreasyon: '#6C6F77', kultur: '#8A8D95', hizmet: '#44464D', alisveris: '#9A9DA5' },
         noise: ['rgba(23,24,27,.14)', 'rgba(23,24,27,.36)'], noiseSolid: ['#B9BCC4', '#585B63'],
+        heat: ['rgba(23,24,27,.10)', 'rgba(23,24,27,.22)', 'rgba(23,24,27,.36)', 'rgba(23,24,27,.52)', 'rgba(23,24,27,.72)'],
         topo: ['#F4F5F7', '#E8EAED', '#DCDEE3', '#CFD2D8', '#C2C5CC', '#B5B8C0', '#A8ABB3', '#9A9EA7'], contour: 'rgba(23,24,27,.45)',
         accent: P.ink, accent2: '#55585F', parcelFill: 'rgba(23,24,27,.10)', env: P.ink, shadow: 'rgba(23,24,27,.30)', sun: P.ink,
         good: '#2A2B30', warn: '#6C6F77', bad: '#17181B', score: ['#E8E9ED', '#B5B8C0', '#7A7E88', '#4C4F57', '#17181B'],
@@ -42,6 +43,7 @@
       isoBand: ['#C03A22', '#E87E1B', '#EAAE1B'], isoOp: [0.6, 0.5, 0.4],
       cat: { gunluk: P.yellow, yeme: P.orange, egitim: P.blue, saglik: P.red, rekreasyon: P.green, kultur: P.indigo, hizmet: P.ink, alisveris: P.blueBright },
       noise: ['rgba(234,174,27,.38)', 'rgba(192,58,34,.5)'], noiseSolid: ['#EAAE1B', '#C03A22'],
+      heat: ['rgba(234,174,27,.30)', 'rgba(232,126,27,.48)', 'rgba(224,90,30,.60)', 'rgba(192,58,34,.72)', 'rgba(140,47,27,.85)'],
       topo: ['#F2E8CC', '#EADDB7', '#E1D0A0', '#D7C28B', '#CCB276', '#C0A263', '#B49252', '#A68343'], contour: 'rgba(38,29,17,.55)',
       accent: P.red, accent2: P.blue, parcelFill: 'rgba(192,58,34,.18)', env: P.blue, shadow: 'rgba(38,29,17,.34)', sun: P.orange,
       good: P.green, warn: P.yellow, bad: P.red, score: ['#E8DCBA', '#EAAE1B', '#E87E1B', '#3A8040', '#00427A'],
@@ -252,6 +254,17 @@
     });
     if (mid.length) P.push({ t: 'path', d: mid.join(''), fill: C.noise[0], stroke: C.noise[0], sw: 0.5 });
     if (hi.length) P.push({ t: 'path', d: hi.join(''), fill: C.noise[1], stroke: C.noise[1], sw: 0.5 });
+    return P;
+  };
+
+  /* ---------------- işlev yoğunluğu (altıgen ısı hücreleri) ---------------- */
+  D.density = function (T, A, C, z, cat) {
+    const H = App.site.hex(A, cat);
+    const P = [];
+    if (!H || !H.cells.length) return P;
+    const byLv = [[], [], [], [], []];
+    H.cells.forEach((c) => byLv[c.lv].push(ringD(T, c.poly, z)));
+    byLv.forEach((arr, i) => { if (arr.length) P.push({ t: 'path', d: arr.join(''), fill: C.heat[i], stroke: C.glass ? 'rgba(23,24,27,.18)' : 'rgba(38,29,17,.28)', sw: 0.6 }); });
     return P;
   };
 

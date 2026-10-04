@@ -6,3 +6,7 @@
 .fblock-hit:hover { fill: rgba(23, 24, 27, .07); }
 .fblock-hit:focus-visible { stroke: var(--ink); stroke-width: 3; }
 .core-row .tgl { flex: none; }
+
+.altc-b { border-radius: 18px; background: var(--glass-2); box-shadow: var(--raise-sm); }
+.altc.on .altc-b { box-shadow: var(--press-sm); background: var(--inset-bg); }
+.altc-best { border-radius: 99px; background: var(--ink); color: var(--on-ink); }

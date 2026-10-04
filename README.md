@@ -13,7 +13,7 @@ Mimari yardımcı araçların toplandığı depo. Sekiz modül tek sitede, ortak
 | 07 | **Tasarım Üretici** | İmar ve parselden kütle, tipik kat planı (daire karması slider'larıyla), bodrum otopark, alternatif karşılaştırma; DXF · IFC4 · Excel · GeoJSON · KML | `#/tasarim` |
 | 08 | **Maliyet ve Fizibilite** | Seçili tasarımdan metraj, maliyet, gelir, nakit akışı, kâr, başabaş ve artık arsa değeri, duyarlılık; canlı formüllü Excel | `#/fizibilite` |
 
-Üst çubuktaki **Rapor** düğmesi, verisi olan tüm modüllerin paftalarını kapak, içindekiler ve yöntem/kaynaklar sayfasıyla tek çok sayfalı PDF'te toplar.
+Arsa Analizi'nde 15 dakikalık şehir karnesi, kural tabanlı **Sor** kutusu ve işlev yoğunluğu katmanı; Kat Etüdü'nde plan alternatifleri galerisi ve DXF çıktısı vardır. Üst çubuktaki **Rapor** düğmesi, verisi olan tüm modüllerin paftalarını kapak, içindekiler ve yöntem/kaynaklar sayfasıyla tek çok sayfalı PDF'te toplar.
 
 Siteye girişte marka simgesi ve "archtools" adının yumuşakça belirdiği kısa bir açılış oynar (oturum başına bir kez; `?intro=1` ile zorlanır, `?intro=0` ile kapanır; **Geç** ile atlanır).
 
