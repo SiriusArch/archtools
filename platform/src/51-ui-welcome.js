@@ -22,6 +22,8 @@
     { id: 'sunum', label: 'Sunum için haritalar hazırlayın', sub: 'Katman katman izometrik pafta; PNG, PDF ve SVG olarak alın.', icon: 'image' },
     { id: 'cad', label: 'Verileri CAD veya GIS’e aktarın', sub: 'DXF, GeoJSON ve CSV: gerçek koordinatlı, metre birimli katmanlar.', icon: 'download' },
     { id: 'imar', label: 'Parselin imar kapasitesini hesaplayın', sub: 'TAKS, KAKS, çekmeler ve yençok ile kütleyi ve birim sayısını görün.', icon: 'parcel' },
+    { id: 'tasarim', label: 'Parsele bina tasarımı üretin', sub: 'Kütle alternatifleri, tipik kat planı, daire karması ve otopark; CAD, IFC ve Excel çıktısı.', icon: 'layers' },
+    { id: 'fizibilite', label: 'Maliyet ve fizibilite hesaplayın', sub: 'Metraj, maliyet, satış geliri, kâr, başabaş fiyat ve nakit akışı.', icon: 'compare' },
     { id: 'bina', label: 'Bina programı kurgulayın', sub: 'İşlev şeması, kat etüdü ve mekân analizi ile bina içini tasarlayın.', icon: 'layout' },
     { id: 'kesif', label: 'Sadece keşfediyorum', sub: 'Örnek verilerle gezin; istediğiniz modülü üst çubuktan açın.', icon: 'spark' },
   ];
@@ -78,8 +80,10 @@
       else if (id === 'sunum') { c.go('arsa'); later(function () { c.siteMode && c.siteMode('iso'); c.toast('Katmanlar “Görünüm” sekmesinden seçilir; “Dışa aktar” ile PNG, PDF ve SVG alın.'); }); }
       else if (id === 'cad') { c.go('arsa'); later(function () { c.xmenu && c.xmenu(true); }, 300); }
       else if (id === 'imar') { c.go('imar'); }
+      else if (id === 'tasarim') { c.go('tasarim'); }
+      else if (id === 'fizibilite') { c.go('fizibilite'); }
       else if (id === 'bina') { c.go('islev'); }
-      else c.toast('İyi keşifler: üst çubuktan altı modül arasında gezinebilirsiniz.');
+      else c.toast('İyi keşifler: üst çubuktan sekiz modül arasında gezinebilirsiniz.');
     },
   });
   ui.helpBtn = function () { W.open(1); };

@@ -31,6 +31,7 @@
         h('span', { class: 'sep', 'aria-hidden': 'true' }),
         ui.btn('PNG', { icon: 'image', onclick: ctl.exportPNG, title: 'Saf şemayı PNG resmi olarak indir', cls: 'btn-blue', disabled: !!state.ui.busy }),
         ui.btn('PDF', { icon: 'pdf', onclick: ctl.exportPDF, title: 'Saf şemayı A3 PDF olarak indir', cls: 'btn-blue', disabled: !!state.ui.busy }),
+        ui.btn('Rapor', { icon: 'layers', onclick: () => ctl.exportReport(), title: 'Tüm modüllerden çok sayfalı proje raporu (PDF)', cls: 'btn-yellow', disabled: !!state.ui.busy }),
         h('span', { class: 'sep', 'aria-hidden': 'true' }),
         state.ui.module === 'islev' ? ui.btn('Akıllı öneri', { icon: 'spark', onclick: ctl.toggleAssistant, cls: 'btn-yellow', pressed: state.ui.assistantOpen, badge: issues ? String(issues) : null, badgePulse: !state.ui.assistantOpen, title: 'Akıllı öneri panelini aç / kapat' }) : null,
         state.ui.module === 'islev' ? h('span', { class: 'sep', 'aria-hidden': 'true' }) : null,

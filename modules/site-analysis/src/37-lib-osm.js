@@ -524,7 +524,7 @@
         const arr = JSON.parse(raw);
         const hit = arr.find((x) => x.k === k && x.d.R >= Rneed - 1);
         if (hit) {
-          const ent = { key: k, data: osm.unpack(hit.d), elev: hit.e || null, climate: hit.c || null, demo: false };
+          const ent = { key: k, data: osm.unpack(hit.d), elev: hit.e || null, climate: hit.c || null, demo: false, source: hit.s || 'osm', iso: hit.i || null };
           mem.set(k, ent);
           return ent;
         }
@@ -540,7 +540,7 @@
       const raw = window.localStorage.getItem(LS_KEY);
       let arr = raw ? JSON.parse(raw) : [];
       arr = arr.filter((x) => x.k !== ent.key);
-      arr.unshift({ k: ent.key, d: osm.pack(ent.data), e: ent.elev, c: ent.climate });
+      arr.unshift({ k: ent.key, d: osm.pack(ent.data), e: ent.elev, c: ent.climate, s: ent.source || 'osm', i: ent.iso || null });
       arr = arr.slice(0, 3);
       let s = JSON.stringify(arr);
       while (s.length > 2.4e6 && arr.length > 1) { arr.pop(); s = JSON.stringify(arr); }

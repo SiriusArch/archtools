@@ -1,7 +1,7 @@
 /* ==========================================================================
    47-ui-shell.js — archtools kabuğu: modül gezgini, ortak skor kadranı verisi,
    araç çubuğu ve sayfa iskeleti. Modüller yalnızca kendi içeriğini üretir.
-   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer
+   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -16,6 +16,8 @@
     { id: 'arsa', n: '04', label: 'Arsa Analizi', sub: 'Arsa analizi · çevre, erişim, ulaşım', shape: 'diamond' },
     { id: 'imar', n: '05', label: 'İmar ve Kapasite', sub: 'İmar ve kapasite · parsel ve kütle', shape: 'plot' },
     { id: 'yer', n: '06', label: 'Yer Seçimi', sub: 'Yer seçimi · aday karşılaştırma ve tarama', shape: 'target' },
+    { id: 'tasarim', n: '07', label: 'Tasarım Üretici', sub: 'Tasarım üretici · kütle, tipik kat ve otopark', shape: 'tower' },
+    { id: 'fizibilite', n: '08', label: 'Maliyet ve Fizibilite', sub: 'Maliyet ve fizibilite · metraj, kâr, nakit akışı', shape: 'coin' },
   ];
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
@@ -31,6 +33,8 @@
     else if (shape === 'diamond') g = h('path', Object.assign({ d: 'M9 2L16 9 9 16 2 9z' }, p));
     else if (shape === 'plot') g = h('path', Object.assign({ d: 'M2.6 6.6L9 2.4l6.4 4.6-2.2 8.2H5z' }, p));
     else if (shape === 'target') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.4 }, q)), h('circle', Object.assign({ cx: 9, cy: 9, r: 2.6 }, p)));
+    else if (shape === 'tower') g = h('g', {}, h('rect', Object.assign({ x: 4.2, y: 2, width: 9.6, height: 14, rx: 1.2 }, p)), h('path', { d: 'M7 6h4M7 9h4M7 12h4', stroke: 'var(--on-ink, #fff)', 'stroke-width': 1.2, fill: 'none', 'stroke-linecap': 'round' }));
+    else if (shape === 'coin') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.6 }, q)), h('path', { d: 'M9 5.2v7.6M6.8 7.4c0-1 .9-1.7 2.2-1.7s2.2.7 2.2 1.6c0 2.3-4.4 1.1-4.4 3.4 0 .9 1 1.7 2.2 1.7s2.2-.7 2.2-1.7', stroke: 'currentColor', 'stroke-width': 1.3, fill: 'none', 'stroke-linecap': 'round' }));
     else g = h('path', Object.assign({ d: 'M2.5 15.2L9 3l6.5 12.2z' }, p));
     return h('svg', { viewBox: '0 0 18 18', width: 16, height: 16, class: 'msh msh-' + shape, 'aria-hidden': 'true' }, g);
   }
@@ -107,7 +111,7 @@
      items: { k:'btn', label, icon, onclick, disabled, strong, attn, title } | { k:'icon', ... } | { k:'sep' } | { k:'seg', ...ui.segmented } */
   ui.toolbar = function (items, extra) {
     const g = App.theme.name === 'glass';
-    const nodes = items.map((it, i) => {
+    const nodes = items.filter(Boolean).map((it, i) => {
       if (it.k === 'sep') return g ? h('span', { key: 's' + i, class: 'gh-sep', 'aria-hidden': 'true' }) : null;
       if (it.k === 'seg') return h('div', { key: 'g' + i, class: 'tb-seg' }, ui.segmented(it));
       if (it.k === 'icon') {
@@ -155,6 +159,8 @@
     if (m === 'analiz' && ui.analysis) return h('main', { class: 'main main-analiz', key: 'main-analiz' }, ui.analysis.sidebar(state, d), ui.analysis.board(state, d));
     if (m === 'arsa' && ui.site) return h('main', { class: 'main main-arsa', key: 'main-arsa' }, ui.site.sidebar(state, d), ui.site.board(state, d));
     if (m === 'imar' && ui.imar) return h('main', { class: 'main main-imar', key: 'main-imar' }, ui.imar.sidebar(state, d), ui.imar.board(state, d));
+    if (m === 'tasarim' && ui.design) return h('main', { class: 'main main-tasarim', key: 'main-tasarim' }, ui.design.sidebar(state, d), ui.design.board(state, d));
+    if (m === 'fizibilite' && ui.fizb) return h('main', { class: 'main main-fizibilite', key: 'main-fizibilite' }, ui.fizb.sidebar(state, d), ui.fizb.board(state, d));
     if (m === 'yer' && ui.yer) return h('main', { class: 'main main-yer', key: 'main-yer' }, ui.yer.sidebar(state, d), ui.yer.board(state, d));
     return h('main', { class: 'main main-islev', key: 'main-islev' }, ui.sidebar(state, d), ui.board(state, d), ui.assistant(state, d));
   };

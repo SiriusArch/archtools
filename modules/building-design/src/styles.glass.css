@@ -1,0 +1,2 @@
+.alt-card.alt-on { box-shadow: var(--press-sm); background: var(--inset-bg); }
+.alt-card .alt-score { color: var(--ink-2); }

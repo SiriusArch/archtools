@@ -48,3 +48,6 @@
 .flt .tgl { align-self: flex-start; }
 .scn-form .btn { flex: none; }
 
+
+.h3d { background: var(--bg-2, var(--bg)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+.h3d-map { border-radius: 28px; box-shadow: var(--raise); }

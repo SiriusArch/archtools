@@ -133,6 +133,30 @@
   const dxfLayer = (id) => (DXF_LAYERS[id] || ['ARCH_' + String(id).toUpperCase().replace(/[^A-Z0-9_]/g, '_'), 7]);
   const n6 = (v) => (Math.round(v * 1e4) / 1e4).toFixed(4);
 
+  /* KML (Google Earth): GeoJSON ile aynı geometri, katman başına klasör */
+  GX.kml = function (features, lat0, lon0, name) {
+    const P = gis.makeProj(lat0, lon0);
+    const esc = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const ll = (q) => { const p = P.inv(q[0], q[1]); return r7(p[1]) + ',' + r7(p[0]) + ',0'; };
+    const byLayer = {};
+    features.forEach((f) => { if (f.type === 'text') return; (byLayer[f.layer || 'katman'] = byLayer[f.layer || 'katman'] || []).push(f); });
+    let x = '<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>' + esc(name || 'archtools') + '</name>\n';
+    Object.keys(byLayer).forEach((ly) => {
+      x += '<Folder><name>' + esc(ly) + '</name>\n';
+      byLayer[ly].forEach((f) => {
+        const props = f.props || {};
+        const ext = Object.keys(props).map((k) => '<Data name="' + esc(k) + '"><value>' + esc(props[k]) + '</value></Data>').join('');
+        let g;
+        if (f.type === 'point') g = '<Point><coordinates>' + ll(f.pts[0]) + '</coordinates></Point>';
+        else if (f.type === 'line') g = '<LineString><coordinates>' + f.pts.map(ll).join(' ') + '</coordinates></LineString>';
+        else { const ring = f.pts.map(ll); ring.push(ring[0]); g = '<Polygon><outerBoundaryIs><LinearRing><coordinates>' + ring.join(' ') + '</coordinates></LinearRing></outerBoundaryIs></Polygon>'; }
+        x += '<Placemark><name>' + esc(props.name || props.label || ly) + '</name><ExtendedData>' + ext + '</ExtendedData>' + g + '</Placemark>\n';
+      });
+      x += '</Folder>\n';
+    });
+    return x + '</Document></kml>';
+  };
+
   GX.dxf = function (features) {
     const used = {};
     const E = [];
@@ -184,7 +208,7 @@
 
   GX.csvArsa = function (project, A) {
     const s = project.site;
-    const rows = [['archtools · Arsa analizi'], ['Konum', s.loc.name], ['Enlem', s.loc.lat], ['Boylam', s.loc.lon], ['Yarıçap (m)', A.R], ['Yürüme süresi (dk)', s.walkMin], ['Program', A.template.label], ['Veri', A.demo ? 'Demo (sentetik)' : 'OpenStreetMap'], ['Konum skoru (%)', A.score], []];
+    const rows = [['archtools · Arsa analizi'], ['Konum', s.loc.name], ['Enlem', s.loc.lat], ['Boylam', s.loc.lon], ['Yarıçap (m)', A.R], ['Yürüme süresi (dk)', s.walkMin], ['Program', A.template.label], ['Veri', A.demo ? 'Demo (sentetik)' : (App.ui.site && App.ui.site.sourceName ? App.ui.site.sourceName(App.site.entry(s)) : 'OpenStreetMap')], ['Konum skoru (%)', A.score], []];
     rows.push(['Skor bileşeni', 'Değer (0-1)', 'Ağırlık']);
     A.parts.forEach((p) => rows.push([p.label, Math.round(p.v * 1000) / 1000, p.w]));
     rows.push([]);

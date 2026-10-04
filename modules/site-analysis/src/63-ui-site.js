@@ -16,6 +16,7 @@
   const Z = App.zoning;
 
   const ctl = () => App.ctl;
+  const here = App.here;
   const S = (ui.site = {});
 
   /* ---------------- görünüm varsayılanları (state.ui içinde) ---------------- */
@@ -172,6 +173,7 @@
       { k: 'svg', tag: 'SVG', label: 'Vektör pafta', sub: 'Illustrator / Inkscape’te düzenlenir' },
       { k: 'dxf', tag: 'DXF', label: 'CAD çizimi', sub: 'Katmanlı, metre birimli (AutoCAD, Rhino, Revit)', strong: true },
       { k: 'geojson', tag: 'GEO', label: 'GeoJSON', sub: 'QGIS / ArcGIS için gerçek koordinatlı katmanlar', strong: true },
+      { k: 'kml', tag: 'KML', label: 'Google Earth (KML)', sub: 'Katmanlar klasör olarak Google Earth’te açılır' },
       { k: 'csv', tag: 'CSV', label: 'Tablo', sub: 'Skorlar, erişim süreleri, işlev listesi (Excel)' },
     ],
     imar: [
@@ -180,6 +182,7 @@
       { k: 'svg', tag: 'SVG', label: 'Vektör pafta', sub: 'Illustrator / Inkscape’te düzenlenir' },
       { k: 'dxf', tag: 'DXF', label: 'CAD çizimi', sub: 'Parsel, zarf, kütle ve çevre (metre)', strong: true },
       { k: 'geojson', tag: 'GEO', label: 'GeoJSON', sub: 'Parsel ve kütle gerçek koordinatlarla', strong: true },
+      { k: 'kml', tag: 'KML', label: 'Google Earth (KML)', sub: 'Katmanlar klasör olarak Google Earth’te açılır' },
       { k: 'csv', tag: 'CSV', label: 'Tablo', sub: 'Parametreler, alanlar, senaryolar (Excel)' },
     ],
     yer: [
@@ -187,6 +190,7 @@
       { k: 'pdf', tag: 'PDF', label: 'Pafta (A3)', sub: 'Baskıya uygun yatay A3' },
       { k: 'svg', tag: 'SVG', label: 'Vektör pafta', sub: 'Illustrator / Inkscape’te düzenlenir' },
       { k: 'geojson', tag: 'GEO', label: 'GeoJSON', sub: 'Adaylar ve tarama hücreleri (QGIS / ArcGIS)', strong: true },
+      { k: 'kml', tag: 'KML', label: 'Google Earth (KML)', sub: 'Katmanlar klasör olarak Google Earth’te açılır' },
       { k: 'csv', tag: 'CSV', label: 'Tablo', sub: 'Sıralama, ölçütler, tarama hücreleri (Excel)' },
     ],
   };
@@ -207,8 +211,8 @@
       h('div', { class: 'loc-top' },
         ui.icon('pin', 18),
         h('div', { class: 'loc-t' }, h('b', { class: 'loc-name' }, s.loc.name), h('span', { class: 'loc-sub mono' }, s.loc.lat.toFixed(5) + ', ' + s.loc.lon.toFixed(5))),
-        h('span', { class: 'loc-tag' + (s.loc.src === 'demo' ? ' demo' : '') }, s.loc.src === 'demo' ? 'demo' : 'OSM')),
-      s.loc.src === 'demo' ? h('p', { class: 'note' }, 'Sentetik bir kent: gerçek bir yeri temsil etmez. Gerçek veriyle çalışmak için yukarıdan konum arayın.') : h('p', { class: 'note' }, e ? 'Harita verisi bu tarayıcıda hazır' + (e.climate ? ' · iklim verisi var' : ' · iklim verisi alınamadı') + (e.elev ? ' · yükselti var' : ' · yükselti alınamadı') + '.' : 'Bu konumun verisi bu tarayıcıda yok; “Verileri çek” ile OpenStreetMap’ten alınır.'),
+        h('span', { class: 'loc-tag' + (s.loc.src === 'demo' ? ' demo' : '') }, s.loc.src === 'demo' ? 'demo' : e ? (S.sourceName(e) === 'OpenStreetMap' ? 'OSM' : S.sourceName(e)) : here.active() ? 'HERE' : 'OSM')),
+      s.loc.src === 'demo' ? h('p', { class: 'note' }, 'Sentetik bir kent: gerçek bir yeri temsil etmez. Gerçek veriyle çalışmak için yukarıdan konum arayın.') : h('p', { class: 'note' }, e ? 'Harita verisi bu tarayıcıda hazır' + (e.climate ? ' · iklim verisi var' : ' · iklim verisi alınamadı') + (e.elev ? ' · yükselti var' : ' · yükselti alınamadı') + '.' : 'Bu konumun verisi bu tarayıcıda yok; “Verileri çek” ile ' + (here.active() ? 'HERE’den' : 'OpenStreetMap’ten') + ' alınır.'),
       h('div', { class: 'loc-act' },
         s.loc.src === 'demo' ? ui.btn('Konum ara', { icon: 'search', onclick: () => { const el = document.getElementById('site-q'); if (el) el.focus(); } }) : ui.btn(e ? 'Verileri yenile' : 'Verileri çek', { icon: 'reset', cls: e ? '' : 'btn-primary', onclick: () => ctl().siteFetch(true), disabled: !!g.busy }),
         s.loc.src !== 'demo' ? ui.btn('Demo bölge', { icon: 'layers', onclick: () => ctl().siteDemo(), title: 'Sentetik demo kente dön' }) : null));
@@ -222,6 +226,7 @@
       ui.section('Konum', h('div', { class: 'sec-box' },
         S.searchBox(state, { id: 'site-q', pickLabel: 'Analiz et', onPick: (r) => c.siteSetLoc(r) }),
         S.locCard(state)), null, 'sloc'),
+      S.sourceSection(state),
       ui.section('Analiz ayarları', h('div', { class: 'sec-box' },
         ui.range({ id: 'site-r', label: 'Yarıçap', min: 250, max: 1000, step: 50, value: s.radius, text: s.radius + ' m', oninput: (v) => c.siteLive({ radius: v }), onchange: () => c.siteLiveEnd() }),
         ui.fld2('Yürüme süresi', ui.segmented({ label: 'Yürüme süresi', wide: true, value: s.walkMin, options: [{ v: 5, label: '5 dk' }, { v: 10, label: '10 dk' }, { v: 15, label: '15 dk' }], onchange: (v) => c.siteSet({ walkMin: v }) }), 'Erişim bantları 5 / 10 / 15 dakikalık yürüme (80 m/dk) ile çizilir; seçili süre skorda öne çıkar.'),
@@ -250,7 +255,7 @@
       secs.push(ui.section('Güneş', h('div', { class: 'sec-box' },
         ui.fld2('Gün', ui.segmented({ label: 'Gün', wide: true, value: v.sunDay, options: App.gis.SUN_DAYS.map((d) => ({ v: d.id, label: d.label })), onchange: (x) => c.siteView({ sunDay: x }) })),
         ui.range({ id: 'site-hour', label: 'Saat', min: 6, max: 19, step: 0.5, value: v.sunHour, text: fmt(v.sunHour, 1).replace(',0', '') + ':' + (v.sunHour % 1 ? '30' : '00'), oninput: (x) => c.siteView({ sunHour: x }, true), onchange: () => c.siteView({}) }),
-        A ? h('p', { class: 'note' }, 'Binalar OpenStreetMap yüksekliklerine göre gölge düşürür; kat bilgisi olmayanlar tahmin edilir.') : null), null, 'ssun'));
+        A ? h('p', { class: 'note' }, 'Binalar harita verisindeki yüksekliklere göre gölge düşürür; kat bilgisi olmayanlar tahmin edilir.') : null), null, 'ssun'));
     }
     if (iso) {
       secs.push(ui.section('İzometrik', h('div', { class: 'sec-box' },
@@ -319,7 +324,7 @@
   S.noData = function (state, title) {
     const P = state.project, s = P.site, g = state.ui.geo || S.GEO0;
     if (g.busy) return ui.emptyCard(g.busy === 'fetch' ? 'Konum verisi alınıyor' : 'Aranıyor', g.msg || 'Lütfen bekleyin…', []);
-    return ui.emptyCard(title || 'Konum verisi yok', '“' + s.loc.name + '” için harita verisi bu tarayıcıda hazır değil. OpenStreetMap’ten alınır (yaklaşık ' + (site.fetchRadius(s)) + ' m yarıçap); birkaç saniye sürer.' + (g.err ? ' ' + g.err : ''), [
+    return ui.emptyCard(title || 'Konum verisi yok', '“' + s.loc.name + '” için harita verisi bu tarayıcıda hazır değil. ' + (here.active() ? 'HERE’den (eksikse OpenStreetMap’ten)' : 'OpenStreetMap’ten') + ' alınır (yaklaşık ' + (site.fetchRadius(s)) + ' m yarıçap); birkaç saniye sürer.' + (g.err ? ' ' + g.err : ''), [
       ui.btn('Verileri çek', { icon: 'download', cls: 'btn-primary', onclick: () => ctl().siteFetch(true) }),
       ui.btn('Demo bölgeyi aç', { icon: 'layers', onclick: () => ctl().siteDemo() })]);
   };
@@ -362,13 +367,14 @@
     return ui.boardPage(state, d, {
       label: 'Arsa analizi paftası',
       stage: stage,
-      scale: A ? (A.demo ? 'Demo veri · sentetik kent' : 'Veri: OpenStreetMap · Open-Meteo') : 'Veri bekleniyor',
+      scale: A ? S.sourceFull(site.entry(state.project.site)) : 'Veri bekleniyor',
       foot: h('p', { class: 'board-hint' }, iso ? 'Sürükleyerek döndürün · bir levhaya tıklayarak öne çıkarın · ok ve +/− tuşları da çalışır' : 'Yuvarlak işaretlerin üzerine gelince ad ve yürüme süresi görünür · katmanları “Görünüm” sekmesinden açıp kapatın'),
       tools: [
         { k: 'seg', label: 'Görünüm kipi', value: v.mode, options: [{ v: 'map', label: 'Harita' }, { v: 'iso', label: 'Katmanlar' }], onchange: (m) => c.siteMode(m) },
         { k: 'sep' },
         iso ? { k: 'btn', label: v.explode > 0.5 ? 'Topla' : 'Aç', icon: 'layers', strong: true, onclick: () => c.siteToggleExplode(), title: 'Levhaları aç / kapat (animasyonlu)' } : null,
         iso ? { k: 'icon', label: 'Görünümü sıfırla', icon: 'reset', onclick: () => c.siteResetView(), title: 'Dönüş ve eğimi varsayılana al' } : null,
+        S.here3dTool(),
         { k: 'btn', label: 'Dışa aktar', icon: 'download', onclick: () => c.xmenu(!state.ui.xmenu), disabled: !A, pressed: !!state.ui.xmenu, title: 'PNG, PDF, SVG, DXF, GeoJSON, CSV' },
         { k: 'icon', label: 'Bağlantıyı kopyala', icon: 'share', onclick: () => c.shareLink(), title: 'Bu konuma giden bağlantıyı kopyala' },
         { k: 'sep' },

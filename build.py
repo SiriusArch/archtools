@@ -6,6 +6,7 @@ Kaynak klasörleri (CSS bu sırayla birleşir):
   modules/floor-study/src      Modül 2 — Kat Etüdü
   modules/space-analysis/src   Modül 3 — Mekân Analizi (patlatılmış izometrik)
   modules/site-analysis/src    Modül 4 · 5 · 6 — Arsa Analizi, İmar ve Kapasite, Yer Seçimi (OpenStreetMap tabanlı)
+  modules/building-design/src  Modül 7 · 8 — Tasarım Üretici, Maliyet ve Fizibilite (IFC yazıcısı da burada)
   platform/src                 Kabuk: marka, intro, modül geçişi, başlatma
 
 JS dosyaları klasörden bağımsız olarak dosya adındaki sayı önekine göre (00–99) sıralanır:
@@ -26,6 +27,7 @@ SRC_DIRS = [
     os.path.join(root, 'modules', 'floor-study', 'src'),
     os.path.join(root, 'modules', 'space-analysis', 'src'),
     os.path.join(root, 'modules', 'site-analysis', 'src'),
+    os.path.join(root, 'modules', 'building-design', 'src'),
     os.path.join(root, 'platform', 'src'),
 ]
 

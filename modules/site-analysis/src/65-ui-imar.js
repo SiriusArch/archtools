@@ -53,6 +53,7 @@
     out.push(ui.section('Konum', h('div', { class: 'sec-box' },
       S.searchBox(state, { id: 'imar-q', pickLabel: 'Buraya git', onPick: (r) => c.siteSetLoc(r) }),
       S.locCard(state)), null, 'iloc'));
+    out.push(S.sourceSection(state));
     const area = s.parcel ? Math.abs(gis.area(s.parcel)) : 0;
     out.push(ui.section('Parsel', h('div', { class: 'sec-box' },
       h('div', { class: 'tool-row', role: 'group', 'aria-label': 'Parsel çizim araçları' },
@@ -317,7 +318,7 @@
     return ui.boardPage(state, d, {
       label: 'İmar ve kapasite paftası',
       stage: stage,
-      scale: s.parcel ? 'Parsel ' + fmt(Math.abs(gis.area(s.parcel)), 0) + ' m² · ' + (cx.A && cx.A.demo ? 'demo veri' : cx.e ? 'OpenStreetMap' : 'çevre verisi yok') : 'Parsel bekleniyor',
+      scale: s.parcel ? 'Parsel ' + fmt(Math.abs(gis.area(s.parcel)), 0) + ' m² · ' + (cx.A && cx.A.demo ? 'demo veri' : cx.e ? S.sourceName(cx.e) : 'çevre verisi yok') : 'Parsel bekleniyor',
       foot: h('p', { class: 'board-hint' }, hint),
       tools: [
         { k: 'btn', label: 'Çokgen', icon: 'draw', onclick: () => c.imarTool(tool === 'draw' ? null : 'draw'), pressed: tool === 'draw', strong: tool === 'draw', title: 'Parsel çiz (çokgen)' },
@@ -325,6 +326,7 @@
         { k: 'sep' },
         s.parcel ? { k: 'seg', label: 'Görünüm kipi', value: mode, options: [{ v: 'plan', label: 'Plan' }, { v: 'iso', label: 'Kütle' }], onchange: (m) => c.imarView({ mode: m }) } : null,
         { k: 'btn', label: 'Gölge', icon: 'sun', onclick: () => c.imarView({ shadow: !v.shadow }), pressed: !!v.shadow, title: 'Gölgeyi göster / gizle' },
+        S.here3dTool(),
         { k: 'btn', label: 'Dışa aktar', icon: 'download', onclick: () => c.xmenu(!state.ui.xmenu), disabled: !s.parcel, pressed: !!state.ui.xmenu, title: 'PNG, PDF, SVG, DXF, GeoJSON, CSV' },
         { k: 'icon', label: 'Bağlantıyı kopyala', icon: 'share', onclick: () => c.shareLink(), title: 'Bu konuma giden bağlantıyı kopyala' },
         { k: 'sep' },

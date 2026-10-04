@@ -1,0 +1,6 @@
+/* Modül 7 · 8 */
+.mix-row { display: flex; flex-direction: column; gap: 6px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--faint, rgba(0,0,0,.08)); }
+.price-row { margin-bottom: 4px; }
+.alt-card .alt-score { margin-left: auto; margin-right: 6px; font-size: 12px; font-weight: 700; }
+.alt-card.alt-on { outline-offset: 0; }
+.board-svg-dsn, .board-svg-fiz { width: 100%; height: 100%; display: block; }

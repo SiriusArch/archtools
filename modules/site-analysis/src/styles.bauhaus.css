@@ -56,3 +56,7 @@
 
 /* dört sekmeli çubuk (İmar): dar yan panelde taşmasın */
 .tabs > .tab:first-child:nth-last-child(4), .tabs > .tab:first-child:nth-last-child(4) ~ .tab { padding: 11px 4px; font-size: 12px; letter-spacing: .03em; min-width: 0; }
+
+.h3d { background: var(--surface); }
+.h3d-map { border: 3px solid var(--line); box-shadow: 6px 6px 0 var(--shadow); }
+.h3d-head > b { font: 700 13px var(--f-display); letter-spacing: .1em; text-transform: uppercase; }

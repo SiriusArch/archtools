@@ -49,7 +49,7 @@
     if (!force && osm.cacheGet(s.loc.lat, s.loc.lon, Rf)) { bump(); return; }
     const tok = ++fetchTok;
     const key = osm.key(s.loc.lat, s.loc.lon);
-    GEO({ busy: 'fetch', msg: 'OpenStreetMap’e bağlanılıyor…', err: null });
+    GEO({ busy: 'fetch', msg: (App.here && App.here.active() ? 'HERE' : 'OpenStreetMap') + '’e bağlanılıyor…', err: null });
     fetchOne(s.loc, Rf, function (m) { if (tok === fetchTok) GEO({ msg: m }); }).then(function (ent) {
       if (tok !== fetchTok) return;
       GEO({ busy: null, msg: '', tick: (get().ui.geo.tick || 0) + 1 });
@@ -219,6 +219,7 @@
     if (kind === 'svg') return ctl.saveText(slug + '.svg', GX.svg(o.prims, o.W, o.H, o.name), 'image/svg+xml');
     if (kind === 'dxf') return ctl.saveText(slug + '.dxf', GX.dxf(o.features()), 'application/dxf');
     if (kind === 'geojson') return ctl.saveText(slug + '.geojson', GX.geojson(o.features(), o.lat0, o.lon0, o.meta), 'application/geo+json');
+    if (kind === 'kml') return ctl.saveText(slug + '.kml', GX.kml(o.features(), o.lat0, o.lon0, o.name), 'application/vnd.google-earth.kml+xml');
     if (kind === 'csv') return ctl.saveText(slug + '.csv', o.csv(), 'text/csv;charset=utf-8');
     return Promise.reject(new Error('Bilinmeyen biçim.'));
   };
@@ -231,7 +232,7 @@
     return ctl.siteWrite(kind, {
       name: P.meta.name + '-arsa-analizi', prims: sc.prims, W: sc.W, H: sc.H,
       features: () => GX.collectArsa(P, A), lat0: e.data.lat0, lon0: e.data.lon0,
-      meta: { module: 'arsa-analizi', location: s.loc.name, source: A.demo ? 'demo (sentetik)' : 'OpenStreetMap', score: A.score },
+      meta: { module: 'arsa-analizi', location: s.loc.name, source: A.demo ? 'demo (sentetik)' : App.ui.site.sourceName(site.entry(s)), score: A.score },
       csv: () => GX.csvArsa(P, A),
     });
   };

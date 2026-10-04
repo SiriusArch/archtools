@@ -106,6 +106,7 @@
     const w = cx.cmp.w;
     const T = site.template(s.template);
     const out = [];
+    out.push(S.sourceSection(state));
     out.push(ui.section('Analiz ayarları', h('div', { class: 'sec-box' },
       ui.fld2('Program', h('select', { id: 'yer-tpl', class: 'inp', value: s.template, onchange: (e) => c.siteSet({ template: e.target.value }) }, site.TEMPLATES.map((t) => h('option', { key: t.id, value: t.id }, t.label))), T.desc),
       ui.range({ id: 'yer-r', label: 'Yarıçap', min: 250, max: 1000, step: 50, value: s.radius, text: s.radius + ' m', oninput: (x) => c.siteLive({ radius: x }), onchange: () => c.siteLiveEnd() }),
@@ -210,6 +211,7 @@
         { k: 'seg', label: 'Yer seçimi kipi', value: mode, options: [{ v: 'karsilastir', label: 'Karşılaştır' }, { v: 'bul', label: 'Konum bul' }], onchange: (m) => c.candMode(m) },
         { k: 'sep' },
         mode === 'bul' ? { k: 'btn', label: scan ? 'Yeniden tara' : 'Tara', icon: 'target', strong: true, onclick: () => c.yerRun(), disabled: !entry || !!g.busy, title: 'Izgara taramasını çalıştır' } : { k: 'btn', label: 'Aday ekle', icon: 'plus', strong: true, onclick: () => { c.yerView({ tab: 'adaylar' }); setTimeout(() => { const el = document.getElementById('yer-q'); if (el) el.focus(); }, 40); }, title: 'Aday konum ekle' },
+        S.here3dTool(),
         { k: 'btn', label: 'Dışa aktar', icon: 'download', onclick: () => c.xmenu(!state.ui.xmenu), disabled: mode === 'bul' ? !scan : !cx.cmp.ranked.length, pressed: !!state.ui.xmenu, title: 'PNG, PDF, SVG, GeoJSON, CSV' },
         { k: 'icon', label: 'Bağlantıyı kopyala', icon: 'share', onclick: () => c.shareLink(), title: 'Bu konuma giden bağlantıyı kopyala' },
         { k: 'sep' },

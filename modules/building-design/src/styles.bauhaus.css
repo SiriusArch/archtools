@@ -1,0 +1,2 @@
+.alt-card.alt-on { outline: 4px solid var(--line); outline-offset: -4px; background: var(--paper-dark, var(--surface)); }
+.mix-row { border-bottom: 2px dashed var(--line); }

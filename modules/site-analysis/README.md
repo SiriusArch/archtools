@@ -25,6 +25,9 @@ Bina çevresini ve parseli ele alan üç modül. Ortak bir konum / veri katmanı
 
 Dosya adlarındaki `a … h` harfleri yükleme sırasını belirler (derleme dosyaları ad sırasıyla birleştirir).
 
+## Harita verisi: OpenStreetMap ya da HERE
+Varsayılan kaynak OpenStreetMap'tir. **Harita verisi** bölümünden kendi HERE API anahtarınızı girerek HERE'e geçebilirsiniz: bina, yol, yeşil ve su için HERE Vector Tile v2, adres/POI için Geocoding & Search v7, erişim için Isoline v8 kullanılır; bir HERE sorgusu başarısız olursa Overpass'a düşülür. 3B görünüm HERE JS API 3.1 ile ayrı bir pencerede açılır (**3B**). Anahtar yalnızca bu tarayıcıda (`archtools.here.key`) durur; proje JSON'una, paylaşım bağlantısına, dışa aktarmalara ve depoya girmez. wego.here.com sayfaları kazınmaz; yalnızca HERE Platform API'leri kullanılır. HERE kullanım koşulları ve kotaları anahtar sahibine aittir.
+
 ## Veri ve sınırlar
 - **Kaynak:** OpenStreetMap (Overpass), adres araması Nominatim, iklim ve yükselti Open-Meteo. Tarayıcıdan doğrudan istenir; sonuçlar bellekte ve (sığdığı kadarıyla) tarayıcı deposunda önbelleğe alınır.
 - **Demo bölge** sentetiktir ve ağ olmadan çalışır; skorlar yalnızca arayüzü denemek içindir.
@@ -41,4 +44,4 @@ Dosya adlarındaki `a … h` harfleri yükleme sırasını belirler (derleme dos
 - `extensions.siteSelection` — `candidates[{id, name, lat, lon, source}]`, `weights`, `filters`, salt okunur `ranking`.
 
 ## Dışa aktarma
-PNG, PDF, SVG (pafta) · DXF (R12, metre, `ARCH_*` katmanları) · GeoJSON (WGS84, `archtools` üst verisiyle) · CSV (Türkçe Excel için `;` ayraçlı, UTF-8 BOM). DXF yerel metre koordinatlarında yazılır; GeoJSON gerçek enlem–boylamdadır.
+PNG, PDF, SVG (pafta) · KML (Google Earth) · DXF (R12, metre, `ARCH_*` katmanları) · GeoJSON (WGS84, `archtools` üst verisiyle) · CSV (Türkçe Excel için `;` ayraçlı, UTF-8 BOM). DXF yerel metre koordinatlarında yazılır; GeoJSON gerçek enlem–boylamdadır.
