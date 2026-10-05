@@ -313,6 +313,28 @@ body.kbd .board-svg-arsa:focus-visible, body.kbd .board-svg-imar:focus-visible, 
 .ustep-t { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ustep-s { font-size: 12px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* Modül 10 — Vaziyet Planı: iki temada ortak yerleşim */
+.board-svg-plan { touch-action: none; cursor: grab; }
+.board-svg-plan.tool-yeni, .board-svg-plan.tool-mevcut, .board-svg-plan.tool-road, .board-svg-plan.tool-yaya, .board-svg-plan.tool-green, .board-svg-plan.tool-water,
+.board-svg-plan.tool-plaza, .board-svg-plan.tool-park, .board-svg-plan.tool-bound, .board-svg-plan.tool-tree, .board-svg-plan.tool-text { cursor: crosshair; }
+.phit { cursor: move; pointer-events: all; outline: none; }
+.phit:hover { fill: rgba(23, 24, 27, .06); }
+.pvtx { fill: var(--surface, #fff); stroke: var(--ink); stroke-width: 2.2; cursor: pointer; pointer-events: all; }
+.pvtx:hover { fill: var(--ink); }
+.pmid { fill: var(--surface, #fff); stroke: var(--ink); stroke-width: 1.4; opacity: .65; cursor: copy; pointer-events: all; }
+.pmid:hover { opacity: 1; }
+.ptool[aria-pressed="true"], .ptool.on { background: var(--ink); color: var(--on-ink, #fff); }
+.pl-chip { position: absolute; left: 50%; top: 22px; transform: translateX(-50%); z-index: 3; display: inline-flex; align-items: center; gap: 10px; max-width: calc(100% - 40px); padding: 5px 8px 5px 14px; background: var(--surface, #fff); color: var(--ink); font: 700 13px var(--f-body); white-space: nowrap; }
+.pl-chip .mono { font-size: 12.5px; color: var(--ink-2); }
+.pl-chip .pl-fin { min-height: 30px; padding: 0 12px; }
+.pkind { flex: none; width: 14px; height: 14px; display: inline-block; background: var(--ink); }
+.pkind-road { height: 4px; margin: 5px 0; }
+.pkind-tree { border-radius: 50%; background: var(--ink-3, #8C9199); width: 10px; height: 10px; margin: 2px; }
+.pkind-green, .pkind-water { border-radius: 50%; background: var(--ink-3, #8C9199); }
+.pkind-bound { background: transparent; box-shadow: inset 0 0 0 2px var(--ink); }
+.pkind-bld.pk-mevcut { background: var(--ink-3, #8C9199); }
+.pkind-text { background: transparent; box-shadow: inset 0 -2px 0 var(--ink); }
+
 /* archtools kabuğu — iki temada ortak: açılış (intro) yapısı, modül geçişi, gezgin düzeni */
 
 /* ---------- açılış ---------- */
@@ -823,6 +845,8 @@ html[data-style="glass"] .uchip { border-radius: 99px; box-shadow: var(--raise-s
 html[data-style="glass"] .uchip.on { box-shadow: var(--press-sm); background: var(--ink); }
 html[data-style="glass"] .ustep-n { border-radius: 50%; }
 html[data-style="glass"] .ustep-desc { border-radius: 14px; }
+html[data-style="glass"] .ptool[aria-pressed="true"] { box-shadow: var(--press-sm); }
+html[data-style="glass"] .pl-chip { border-radius: 99px; background: var(--glass-2, #fff); border: 1px solid var(--stroke); box-shadow: var(--raise-sm); }
 html[data-style="glass"] .intro { background-color: var(--bg); background-image: radial-gradient(70% 55% at 10% 6%, var(--bg-2), transparent 62%), radial-gradient(55% 50% at 94% 92%, var(--bg-3), transparent 70%); color: var(--ink); }
 html[data-style="glass"] .intro-glow { background: radial-gradient(closest-side, var(--hi), transparent 72%); }
 html[data-style="glass"] .intro-disc { border-radius: 50%; background: var(--glass-2); border: 1px solid var(--stroke); box-shadow: var(--raise); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
@@ -1402,6 +1426,9 @@ html[data-style="bauhaus"] .uchip.on { background: var(--blue); color: #fff; box
 html[data-style="bauhaus"] .uhit:hover { fill: rgba(38, 29, 17, .09); }
 html[data-style="bauhaus"] .ustep-n { box-shadow: inset 0 0 0 2.5px var(--ink); }
 html[data-style="bauhaus"] .ukind-void { box-shadow: inset 0 0 0 2px var(--ink); }
+html[data-style="bauhaus"] .ptool[aria-pressed="true"] { background: var(--blue); color: #fff; box-shadow: 4px 4px 0 var(--shadow); }
+html[data-style="bauhaus"] .phit:hover { fill: rgba(38, 29, 17, .09); }
+html[data-style="bauhaus"] .pl-chip { border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--shadow); text-transform: uppercase; letter-spacing: .05em; }
 html[data-style="bauhaus"] .intro { background-color: var(--bg); background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px); background-size: 20px 20px; color: var(--ink); }
 html[data-style="bauhaus"] .intro::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 16px; border-top: 4px solid var(--line); background: linear-gradient(90deg, var(--blue) 0 33.33%, var(--yellow) 33.33% 66.66%, var(--red) 66.66%); transform: scaleY(0); transform-origin: bottom; }
 html[data-style="bauhaus"] .run.intro::before { animation: ib-rise .6s 2.6s cubic-bezier(.2, .9, .3, 1) forwards; }
@@ -3219,6 +3246,12 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const a = Object.assign({}, extra || {});
     if (p.opacity != null) a.opacity = p.opacity;
     switch (p.t) {
+      case 'g': {
+        // kırpmalı grup: p.clip = { id, x, y, w, h } (dikdörtgen) ya da { id, pts } (çokgen); p.items = primitifler
+        const cid = 'clip-' + (p.clip.id || 'g');
+        const shape = p.clip.pts ? h('polygon', { points: p.clip.pts.map((q) => q.join(',')).join(' ') }) : h('rect', { x: p.clip.x, y: p.clip.y, width: p.clip.w, height: p.clip.h });
+        return h('g', a, h('clipPath', { id: cid }, shape), h('g', { 'clip-path': 'url(#' + cid + ')' }, p.items.map((q) => primToV(q))));
+      }
       case 'rect':
         Object.assign(a, { x: p.x, y: p.y, width: p.w, height: p.h, fill: p.fill || 'none' });
         if (p.rx) a.rx = p.rx;
@@ -3263,6 +3296,16 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   }
 
   function paintPrim(ctx, p) {
+    if (p.t === 'g') {
+      ctx.save();
+      if (p.opacity != null) ctx.globalAlpha = p.opacity;
+      ctx.beginPath();
+      if (p.clip.pts) { p.clip.pts.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]))); ctx.closePath(); } else ctx.rect(p.clip.x, p.clip.y, p.clip.w, p.clip.h);
+      ctx.clip();
+      p.items.forEach((q) => paintPrim(ctx, q));
+      ctx.restore();
+      return;
+    }
     ctx.save();
     if (p.opacity != null) ctx.globalAlpha = p.opacity;
     ctx.setLineDash(p.dash || []);
@@ -5255,6 +5298,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (App.design && !project.design) project = Object.assign({}, project, { design: App.design.defaults() });
     if (App.cost && !project.fiz) project = Object.assign({}, project, { fiz: App.cost.defaults() });
     if (App.unit && !project.unit) project = Object.assign({}, project, { unit: App.unit.init(project) });
+    if (App.plan && !project.plan) project = Object.assign({}, project, { plan: App.plan.defaults() });
     return {
       project: project,
       past: [], future: [],
@@ -5263,7 +5307,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       ui: {
         module: 'islev', tab: 'spaces', assistantOpen: false, asTab: 'analysis', messages: [], toast: null, highlight: null,
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
-        site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, unit: App.unitDefaults ? App.unitDefaults() : {}, geo: { busy: null, msg: '', err: null },
+        site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, unit: App.unitDefaults ? App.unitDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
         busy: null, hintDismissed: false, style: App.theme.name, boardWide: readWide(),
       },
@@ -5275,7 +5319,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
   // geri al/ileri al: kat etüdü (study), arsa / imar (site) ve aday konumlar (cand) da projeyle birlikte geri alınır
-  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, unit: project.unit }; }
+  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, unit: project.unit, plan: project.plan }; }
   function withHistory(state, project) {
     const meta = project.meta.example ? Object.assign({}, project.meta, { example: false }) : project.meta;
     return Object.assign({}, state, {
@@ -13566,6 +13610,319 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
+   38-lib-plan.js — Modül 10 · Vaziyet Planı: veri modeli, geometri, ölçüler, örnek vaziyet, içe aktarma
+   Veri : project.plan = { v, title, scale, cx, cy, style, snap, grid, shadow, labels, els[] }
+   Birim: metre. x doğu (sağ), y güney (aşağı). (cx, cy) pafta penceresinin merkezi.
+   Ölçek: pafta A3 yatay (420 mm) kabul edilir; 1 px = 0,3 mm → px/m = 3333 / ölçek paydası.
+   Öğe  : { id, t, ... }
+     bound  proje / parsel sınırı     { pts[] }
+     bld    bina                       { pts[], floors, k:'yeni'|'mevcut' }
+     road   yol                        { pts[], w, k:'arac'|'yaya', smooth }
+     green  yeşil alan                 { pts[], smooth, k:'cim'|'orman' }
+     water  su                         { pts[], smooth }
+     plaza  meydan / sert zemin        { pts[], smooth }
+     park   otopark                    { pts[] }
+     tree   ağaç                       { x, y, r }
+     text   yazı                       { x, y, s, size }
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const plan = (App.plan = {});
+
+  const r1 = (v) => Math.round(v * 10) / 10;
+  const num = (v, d) => (isFinite(Number(v)) && v !== '' && v !== null ? Number(v) : d);
+  const uid = () => 'p' + Math.random().toString(36).slice(2, 8);
+  const FH = 3.2;
+
+  plan.SCALES = [200, 500, 1000, 2000, 5000];
+  plan.FH = FH;
+  plan.pxPerM = (scale) => 3333 / scale;
+  plan.TYPES = {
+    bound: { label: 'Proje sınırı', poly: true },
+    bld: { label: 'Bina', poly: true },
+    road: { label: 'Yol', poly: false },
+    green: { label: 'Yeşil alan', poly: true },
+    water: { label: 'Su', poly: true },
+    plaza: { label: 'Meydan', poly: true },
+    park: { label: 'Otopark', poly: true },
+    tree: { label: 'Ağaç', poly: false },
+    text: { label: 'Yazı', poly: false },
+  };
+  plan.ROAD_KINDS = [{ v: 'arac', label: 'Taşıt yolu' }, { v: 'yaya', label: 'Yaya yolu' }];
+
+  /* ---------- tohumlu rastgele ---------- */
+  function rng(seed) {
+    let a = (seed >>> 0) + 0x6d2b79f5;
+    return function () {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  plan.rng = rng;
+
+  /* ---------- geometri ---------- */
+  const area = (p) => { let a = 0; for (let i = 0; i < p.length; i++) { const q = p[(i + 1) % p.length]; a += p[i][0] * q[1] - q[0] * p[i][1]; } return Math.abs(a) / 2; };
+  const centroid = (p) => {
+    let a = 0, cx = 0, cy = 0;
+    for (let i = 0; i < p.length; i++) { const q = p[(i + 1) % p.length]; const f = p[i][0] * q[1] - q[0] * p[i][1]; a += f; cx += (p[i][0] + q[0]) * f; cy += (p[i][1] + q[1]) * f; }
+    if (Math.abs(a) < 1e-9) { const n = p.length; return [p.reduce((s, q) => s + q[0], 0) / n, p.reduce((s, q) => s + q[1], 0) / n]; }
+    return [cx / (3 * a), cy / (3 * a)];
+  };
+  const inPoly = (pt, p) => {
+    let c = false;
+    for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+      if ((p[i][1] > pt[1]) !== (p[j][1] > pt[1]) && pt[0] < ((p[j][0] - p[i][0]) * (pt[1] - p[i][1])) / (p[j][1] - p[i][1]) + p[i][0]) c = !c;
+    }
+    return c;
+  };
+  const bbox = (p) => { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; p.forEach((q) => { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }); return { x0: x0, y0: y0, x1: x1, y1: y1 }; };
+  const hull = (pts) => {
+    const p = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    if (p.length < 3) return p;
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const lo = [];
+    p.forEach((q) => { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); });
+    const up = [];
+    for (let i = p.length - 1; i >= 0; i--) { const q = p[i]; while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+    lo.pop(); up.pop();
+    return lo.concat(up);
+  };
+  const rectPts = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  const circlePts = (cx, cy, r, n) => { const o = []; for (let i = 0; i < (n || 20); i++) { const a = (i / (n || 20)) * Math.PI * 2; o.push([r1(cx + Math.cos(a) * r), r1(cy + Math.sin(a) * r)]); } return o; };
+  const polyLen = (p) => { let l = 0; for (let i = 1; i < p.length; i++) l += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]); return l; };
+  plan.geo = { area: area, centroid: centroid, inPoly: inPoly, bbox: bbox, hull: hull, rectPts: rectPts, circlePts: circlePts, polyLen: polyLen };
+
+  // düzgünleştirilmiş yol (ekran noktaları): kapalı → orta nokta Bezier halkası, açık → uçlar sabit
+  plan.smoothPath = function (pts, closed) {
+    const n = pts.length;
+    const f = (v) => v.toFixed(1);
+    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    if (n < 3) return 'M' + pts.map((q) => f(q[0]) + ' ' + f(q[1])).join(' L');
+    if (closed) {
+      const m0 = mid(pts[n - 1], pts[0]);
+      let d = 'M' + f(m0[0]) + ' ' + f(m0[1]);
+      for (let i = 0; i < n; i++) { const m = mid(pts[i], pts[(i + 1) % n]); d += ' Q' + f(pts[i][0]) + ' ' + f(pts[i][1]) + ' ' + f(m[0]) + ' ' + f(m[1]); }
+      return d + ' Z';
+    }
+    let d = 'M' + f(pts[0][0]) + ' ' + f(pts[0][1]);
+    for (let i = 1; i < n - 1; i++) { const m = mid(pts[i], pts[i + 1]); d += ' Q' + f(pts[i][0]) + ' ' + f(pts[i][1]) + ' ' + f(m[0]) + ' ' + f(m[1]); }
+    return d + ' L' + f(pts[n - 1][0]) + ' ' + f(pts[n - 1][1]);
+  };
+  plan.linePath = function (pts, closed) { return 'M' + pts.map((q) => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' L') + (closed ? ' Z' : ''); };
+
+  /* ---------- öğe fabrikaları ---------- */
+  const make = {
+    bound: (pts) => ({ id: uid(), t: 'bound', pts: pts }),
+    bld: (pts, o) => Object.assign({ id: uid(), t: 'bld', pts: pts, floors: 4, k: 'yeni' }, o || {}),
+    road: (pts, o) => Object.assign({ id: uid(), t: 'road', pts: pts, w: 8, k: 'arac', smooth: false }, o || {}),
+    green: (pts, o) => Object.assign({ id: uid(), t: 'green', pts: pts, smooth: true, k: 'cim' }, o || {}),
+    water: (pts, o) => Object.assign({ id: uid(), t: 'water', pts: pts, smooth: true }, o || {}),
+    plaza: (pts, o) => Object.assign({ id: uid(), t: 'plaza', pts: pts, smooth: false }, o || {}),
+    park: (pts) => ({ id: uid(), t: 'park', pts: pts }),
+    tree: (x, y, r) => ({ id: uid(), t: 'tree', x: x, y: y, r: r || 3 }),
+    text: (x, y, s) => ({ id: uid(), t: 'text', x: x, y: y, s: s || 'Yazı', size: 15 }),
+  };
+  plan.make = make;
+
+  /* ---------- doğrulama ---------- */
+  const cleanPts = (pts, min) => {
+    if (!Array.isArray(pts)) return null;
+    const o = pts.slice(0, 400).map((q) => [r1(U.clamp(num(q && q[0], 0), -8000, 8000)), r1(U.clamp(num(q && q[1], 0), -8000, 8000))]);
+    return o.length >= min ? o : null;
+  };
+  plan.clean = function (el, patch) {
+    const o = Object.assign({}, el, patch || {});
+    const t = o.t;
+    if (!plan.TYPES[t]) return null;
+    const base = { id: o.id, t: t };
+    if (t === 'tree') return Object.assign(base, { x: r1(U.clamp(num(o.x, 0), -8000, 8000)), y: r1(U.clamp(num(o.y, 0), -8000, 8000)), r: r1(U.clamp(num(o.r, 3), 0.5, 20)) });
+    if (t === 'text') return Object.assign(base, { x: r1(U.clamp(num(o.x, 0), -8000, 8000)), y: r1(U.clamp(num(o.y, 0), -8000, 8000)), s: String(o.s == null ? '' : o.s).slice(0, 80) || 'Yazı', size: Math.round(U.clamp(num(o.size, 15), 8, 64)) });
+    const pts = cleanPts(o.pts, t === 'road' ? 2 : 3);
+    if (!pts) return null;
+    base.pts = pts;
+    if (t === 'bld') return Object.assign(base, { floors: Math.round(U.clamp(num(o.floors, 4), 1, 80)), k: o.k === 'mevcut' ? 'mevcut' : 'yeni' });
+    if (t === 'road') return Object.assign(base, { w: r1(U.clamp(num(o.w, 8), 1, 60)), k: o.k === 'yaya' ? 'yaya' : 'arac', smooth: !!o.smooth });
+    if (t === 'green') return Object.assign(base, { smooth: o.smooth !== false, k: o.k === 'orman' ? 'orman' : 'cim' });
+    if (t === 'water' || t === 'plaza') return Object.assign(base, { smooth: !!o.smooth });
+    return base;
+  };
+
+  plan.moveEl = function (el, dx, dy) {
+    if (el.t === 'tree' || el.t === 'text') return { x: r1(el.x + dx), y: r1(el.y + dy) };
+    return { pts: el.pts.map((q) => [r1(q[0] + dx), r1(q[1] + dy)]) };
+  };
+  plan.center = function (el) {
+    if (el.t === 'tree' || el.t === 'text') return [el.x, el.y];
+    if (el.t === 'road') return el.pts[Math.floor(el.pts.length / 2)];
+    return centroid(el.pts);
+  };
+
+  /* ---------- ölçüler ---------- */
+  plan.metrics = function (P) {
+    const els = P.els;
+    const bound = els.find((e) => e.t === 'bound');
+    const A = bound ? area(bound.pts) : 0;
+    const inside = (e) => !bound || inPoly(plan.center(e), bound.pts);
+    let newFoot = 0, newGfa = 0, oldFoot = 0, nNew = 0, nOld = 0, green = 0, water = 0, plaza = 0, park = 0, roadLen = 0, pathLen = 0, trees = 0, maxF = 0;
+    els.forEach((e) => {
+      if (e.t === 'bld') {
+        const a = area(e.pts);
+        if (e.k === 'mevcut') { oldFoot += a; nOld++; }
+        else if (inside(e)) { newFoot += a; newGfa += a * e.floors; nNew++; maxF = Math.max(maxF, e.floors); }
+      } else if (e.t === 'green' && inside(e)) green += area(e.pts);
+      else if (e.t === 'water' && inside(e)) water += area(e.pts);
+      else if (e.t === 'plaza' && inside(e)) plaza += area(e.pts);
+      else if (e.t === 'park' && inside(e)) park += area(e.pts);
+      else if (e.t === 'road') { if (e.k === 'yaya') pathLen += polyLen(e.pts); else roadLen += polyLen(e.pts); }
+      else if (e.t === 'tree' && inside(e)) trees++;
+    });
+    return { boundArea: A, hasBound: !!bound, newFoot: newFoot, newGfa: newGfa, oldFoot: oldFoot, nNew: nNew, nOld: nOld, green: green, water: water, plaza: plaza, park: park, roadLen: roadLen, pathLen: pathLen, trees: trees, maxFloors: maxF, taks: A ? newFoot / A : null, kaks: A ? newGfa / A : null, greenShare: A ? Math.min(1, green / A) : null, count: els.length };
+  };
+
+  /* ---------- boş belge ---------- */
+  plan.defaults = function () {
+    return { v: 1, title: '', scale: 1000, cx: 0, cy: 0, style: 'auto', snap: 1, grid: false, shadow: true, labels: true, els: [] };
+  };
+  plan.cleanDoc = function (p) {
+    const d = plan.defaults();
+    const o = Object.assign({}, d, p || {});
+    o.title = String(o.title || '').slice(0, 60);
+    o.scale = plan.SCALES.indexOf(Number(o.scale)) >= 0 ? Number(o.scale) : 1000;
+    o.cx = r1(U.clamp(num(o.cx, 0), -8000, 8000)); o.cy = r1(U.clamp(num(o.cy, 0), -8000, 8000));
+    o.style = ['auto', 'sade', 'renkli'].indexOf(o.style) >= 0 ? o.style : 'auto';
+    o.snap = [0.5, 1, 2, 5].indexOf(Number(o.snap)) >= 0 ? Number(o.snap) : 1;
+    o.grid = !!o.grid; o.shadow = o.shadow !== false; o.labels = o.labels !== false;
+    o.els = (Array.isArray(o.els) ? o.els : []).slice(0, 1800).map((e) => plan.clean(e)).filter(Boolean);
+    return o;
+  };
+
+  /* ---------- ağaç serpme / sıra ağaç ---------- */
+  plan.scatterIn = function (pts, count, seed, rMin, rMax, avoid) {
+    const R = rng(seed || Math.floor(Math.random() * 1e6));
+    const b = bbox(pts);
+    const out = [];
+    let guard = 0;
+    while (out.length < count && guard++ < count * 40) {
+      const x = r1(b.x0 + R() * (b.x1 - b.x0)), y = r1(b.y0 + R() * (b.y1 - b.y0));
+      if (!inPoly([x, y], pts)) continue;
+      if (avoid && avoid.some((a) => inPoly([x, y], a))) continue;
+      out.push(make.tree(x, y, r1(rMin + R() * (rMax - rMin))));
+    }
+    return out;
+  };
+  plan.alongRoad = function (road, gap, r) {
+    const out = [];
+    const off = road.w / 2 + r + 0.6;
+    let carry = gap / 2;
+    for (let i = 1; i < road.pts.length; i++) {
+      const a = road.pts[i - 1], b = road.pts[i];
+      const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (L < 1e-6) continue;
+      const ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L, nx = -uy, ny = ux;
+      for (let s = carry; s < L; s += gap) {
+        const x = a[0] + ux * s, y = a[1] + uy * s;
+        out.push(make.tree(r1(x + nx * off), r1(y + ny * off), r), make.tree(r1(x - nx * off), r1(y - ny * off), r));
+        carry = s + gap - L;
+      }
+      if (carry >= gap) carry = 0;
+    }
+    return out;
+  };
+
+  /* ---------- örnek vaziyet: mahalle + proje parseli ---------- */
+  plan.sample = function (seed) {
+    const R = rng(seed || 7);
+    const els = [];
+    const xr = [-250, -150, -50, 50, 150, 250], yr = [-180, -90, 0, 90, 180];
+    xr.forEach((x) => els.push(make.road([[x, -180], [x, 180]], { w: 10 })));
+    yr.forEach((y) => els.push(make.road([[-250, y], [250, y]], { w: 10 })));
+    // mevcut bloklar (proje bloğu hariç): 5 sütun × 4 satır
+    for (let k = 0; k < 5; k++) {
+      for (let j = 0; j < 4; j++) {
+        const bx0 = -245 + k * 100, by0 = -175 + j * 90;
+        if (bx0 === -45 && by0 === -85) continue;
+        const n = 3 + Math.floor(R() * 4);
+        for (let m = 0; m < n; m++) {
+          const w = 16 + R() * 26, d = 10 + R() * 14;
+          const x = bx0 + 4 + R() * (90 - 8 - w), y = by0 + 4 + R() * (80 - 8 - d);
+          els.push(make.bld(rectPts(r1(x), r1(y), r1(x + w), r1(y + d)), { k: 'mevcut', floors: 2 + Math.floor(R() * 5) }));
+        }
+        for (let m = 0; m < 8; m++) els.push(make.tree(r1(bx0 + 4 + R() * 82), r1(by0 + 4 + R() * 72), r1(2 + R() * 1.6)));
+      }
+    }
+    // proje bloğu: (-45,-85)–(45,-5)
+    const bnd = [[-45, -85], [45, -85], [45, -5], [-45, -5]];
+    els.push(make.bound(bnd));
+    els.push(make.green([[-41, -81], [41, -81], [43, -50], [30, -30], [-6, -22], [-30, -12], [-41, -22]], { smooth: true }));
+    els.push(make.water([[-24, -66], [-8, -72], [4, -64], [0, -52], [-14, -46], [-26, -54]], { smooth: true }));
+    els.push(make.road([[-40, -10], [-22, -30], [-8, -38], [8, -36], [26, -48], [38, -76]], { w: 3, k: 'yaya', smooth: true }));
+    els.push(make.road([[-42, -62], [-30, -44], [-12, -30]], { w: 2.4, k: 'yaya', smooth: true }));
+    els.push(make.plaza(rectPts(14, -26, 40, -8), { smooth: false }));
+    els.push(make.park(rectPts(-40, -12, -18, -6)));
+    els.push(make.bld(rectPts(-38, -80, -8, -70), { floors: 5, k: 'yeni' }));
+    els.push(make.bld([[14, -80], [40, -80], [40, -62], [28, -62], [28, -70], [14, -70]], { floors: 4, k: 'yeni' }));
+    els.push(make.bld(rectPts(18, -24, 38, -10), { floors: 3, k: 'yeni' }));
+    const g = els.find((e) => e.t === 'green' && e.pts.length === 7);
+    plan.scatterIn(g.pts, 46, 11, 1.8, 3.6, [els.find((e) => e.t === 'water').pts]).forEach((t) => els.push(t));
+    return els;
+  };
+
+  /* ---------- Birim Oluşturucu'dan (Modül 9) ---------- */
+  plan.fromUnit = function (u) {
+    const S = u.site;
+    const ox = -S.w / 2, oy = -S.d / 2;
+    const T = (q) => [r1(q[0] + ox), r1(q[1] + oy)];
+    const step = u.steps[Math.min(u.cur, u.steps.length - 1)];
+    const els = [];
+    // çevre sokakları
+    const sw = 5, off = 3;
+    els.push(make.road([[ox - off, oy - off], [ox + S.w + off, oy - off], [ox + S.w + off, oy + S.d + off], [ox - off, oy + S.d + off], [ox - off, oy - off]], { w: sw }));
+    u.ctx.forEach((c) => els.push(make.bld(rectPts(r1(c.x + ox), r1(c.y + oy), r1(c.x + c.w + ox), r1(c.y + c.d + oy)), { k: 'mevcut', floors: Math.max(1, Math.round(c.h / FH)) })));
+    els.push(make.bound(rectPts(ox, oy, ox + S.w, oy + S.d)));
+    step.els.forEach((e) => {
+      if (e.t === 'green') els.push(make.green(e.round ? circlePts(e.x + e.w / 2 + ox, e.y + e.d / 2 + oy, Math.min(e.w, e.d) / 2, 20) : rectPts(r1(e.x + ox), r1(e.y + oy), r1(e.x + e.w + ox), r1(e.y + e.d + oy)), { smooth: !!e.round }));
+      else if (e.t === 'void') els.push(make.plaza(rectPts(r1(e.x + ox), r1(e.y + oy), r1(e.x + e.w + ox), r1(e.y + e.d + oy))));
+      else if (e.t === 'tree') els.push(make.tree(r1(e.x + ox), r1(e.y + oy), e.r));
+      else if (e.t === 'arrow' && e.k !== 'entry') els.push(make.road([T([e.x1, e.y1]), T([e.x2, e.y2])], { w: 2.4, k: 'yaya' }));
+      else if (e.t === 'mass') els.push(make.bld(App.unit.ring(e).map(T), { k: 'yeni', floors: e.floors }));
+    });
+    return els;
+  };
+
+  /* ---------- İmar ve Kapasite'den (Modül 5) ---------- */
+  plan.fromImar = function (P) {
+    const s = P.site;
+    if (!s || !s.parcel || s.parcel.length < 3) return null;
+    const flip = (q) => [r1(q[0]), r1(-q[1])];
+    const els = [make.bound(s.parcel.map(flip))];
+    try {
+      const Z = App.zoning;
+      const e = App.site.entry && App.site.entry(s);
+      let ctx = null;
+      if (e) { const A = App.site.analyze(s, e); ctx = { data: e.data, A: A, lat: e.data.lat0, parcel: s.parcel }; }
+      const R = Z.compute(s.imar, s.parcel, ctx);
+      if (R && R.ok && R.pieces) R.pieces.forEach((pc) => els.push(make.bld(pc.map(flip), { k: 'yeni', floors: R.floors || 4 })));
+    } catch (err) { /* hesap yoksa yalnızca sınır alınır */ }
+    return els;
+  };
+
+  plan.fit = function (els) {
+    if (!els.length) return { cx: 0, cy: 0 };
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    els.forEach((e) => {
+      if (e.t === 'road' && e.w > 6 && els.some((q) => q.t === 'bound')) return;
+      if (e.pts) e.pts.forEach((q) => { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); });
+      else { x0 = Math.min(x0, e.x); y0 = Math.min(y0, e.y); x1 = Math.max(x1, e.x); y1 = Math.max(y1, e.y); }
+    });
+    return { cx: r1((x0 + x1) / 2), cy: r1((y0 + y1) / 2), w: x1 - x0, h: y1 - y0 };
+  };
+})();
+
+/* ==========================================================================
    38-lib-unit.js — Modül 9 · Birim Oluşturucu: veri modeli ve hesaplar (saf fonksiyonlar)
    Fikir: bir yapı kütlesi (birim) kurulur, sonra adım adım şekillendirilir. Her adım, bir önceki adımın
           kopyasıdır; üzerinde istediğiniz değişiklik yapılır. Adımlar yan yana "süreç paftası" olur.
@@ -17614,6 +17971,191 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
+   39-lib-planscene.js — Modül 10 · Vaziyet Planı paftası (ölçekli)
+   Canlı SVG ve PNG/PDF çıktısı aynı primitif listesinden çizilir. Çizim, pafta alanına kırpılır (g grubu).
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const sheet = App.sheet;
+  const plan = App.plan;
+  const U = App.util;
+  const fmt = U.fmt;
+  const G = plan.geo;
+
+  const glass = () => App.theme.name === 'glass';
+  const AREA = () => ({ x: 64, y: 54, w: sheet.W - 128, h: sheet.tb.y - 54 - 22 });
+  plan.area = AREA;
+
+  plan.styleOf = (P) => (P.style === 'sade' || P.style === 'renkli' ? P.style : (glass() ? 'sade' : 'renkli'));
+
+  /* iki çizim stili: sade (gri tonlu, sunum) ve renkli */
+  function palette(style) {
+    const PAL = App.PAL;
+    if (style === 'sade') {
+      return { name: 'sade', ink: PAL.ink, ground: '#F4F4F2', grid: 'rgba(23,24,27,.07)', road: '#DADAD7', roadEdge: '#C4C4C0', center: '#FFFFFF', path: '#EEEDE8', pathEdge: '#D2D1CA', plaza: '#E8E8E4', plazaEdge: '#D2D2CC', park: '#D5D5D1', parkLine: '#BDBDB8',
+        green: '#CBD6C3', greenEdge: '#B2C0A9', forest: '#B7C6AD', water: '#CAD8DE', waterEdge: '#AFC3CC', bldOld: '#EDEDEA', bldOldEdge: '#B9B9B5', bldNew: '#FFFFFF', bldNewEdge: '#17181B', shadow: 'rgba(40,44,52,.16)',
+        tree: '#B6C6AD', treeEdge: '#98AB8F', treeHi: '#D2DECA', treeShade: 'rgba(40,44,52,.12)', bound: '#17181B', text: '#17181B', panel: '#F1F2F5', panelStroke: 'rgba(23,24,27,.16)' };
+    }
+    return { name: 'renkli', ink: PAL.ink, ground: '#EDE7D6', grid: 'rgba(38,29,17,.09)', road: '#9A9C9E', roadEdge: '#75787B', center: '#F4F1E6', path: '#F2E9D3', pathEdge: '#D4C6A4', plaza: '#E4D4B2', plazaEdge: '#C9B88F', park: '#B3B1AA', parkLine: '#F1ECDC',
+      green: '#98BA74', greenEdge: '#6F9553', forest: '#6E9A56', water: '#7FB1D2', waterEdge: '#4E86AB', bldOld: '#D9D2C0', bldOldEdge: '#8F8874', bldNew: '#FFFDF6', bldNewEdge: '#261D11', shadow: 'rgba(38,29,17,.22)',
+      tree: '#5F9249', treeEdge: '#3F6A31', treeHi: '#8DBB6B', treeShade: 'rgba(38,29,17,.2)', bound: '#C03A22', text: '#261D11', panel: PAL.paperDark, panelStroke: PAL.ink };
+  }
+  plan.palette = palette;
+
+  /* pafta penceresi: (cx, cy) merkez, ölçek → px/m */
+  plan.view = function (P) {
+    const a = AREA();
+    const ppm = plan.pxPerM(P.scale);
+    const X = (x) => a.x + a.w / 2 + (x - P.cx) * ppm;
+    const Y = (y) => a.y + a.h / 2 + (y - P.cy) * ppm;
+    return { area: a, ppm: ppm, X: X, Y: Y, wx: (px) => P.cx + (px - a.x - a.w / 2) / ppm, wy: (py) => P.cy + (py - a.y - a.h / 2) / ppm, win: { x0: P.cx - a.w / 2 / ppm, y0: P.cy - a.h / 2 / ppm, x1: P.cx + a.w / 2 / ppm, y1: P.cy + a.h / 2 / ppm } };
+  };
+
+  const toPx = (pts, v) => pts.map((q) => [v.X(q[0]), v.Y(q[1])]);
+  const pathOf = (px, smooth, closed) => (smooth ? plan.smoothPath(px, closed) : plan.linePath(px, closed));
+
+  function legendOf(P, C) {
+    const has = (t, f) => P.els.some((e) => e.t === t && (!f || f(e)));
+    const out = [];
+    const lineLg = (label, stroke, sw, dash) => ({ label: label, line: { stroke: stroke, sw: sw, dash: dash, cap: 'round' } });
+    if (has('bld', (e) => e.k === 'yeni')) out.push({ label: 'Yeni yapı', fill: C.bldNew });
+    if (has('bld', (e) => e.k === 'mevcut')) out.push({ label: 'Mevcut yapı', fill: C.bldOld });
+    if (has('green')) out.push({ label: 'Yeşil alan', fill: C.green });
+    if (has('water')) out.push({ label: 'Su', fill: C.water });
+    if (has('road', (e) => e.k === 'arac')) out.push(lineLg('Taşıt yolu', C.road, 8));
+    if (has('road', (e) => e.k === 'yaya')) out.push(lineLg('Yaya yolu', C.pathEdge, 4));
+    if (has('plaza')) out.push({ label: 'Meydan', fill: C.plaza });
+    if (has('park')) out.push({ label: 'Otopark', fill: C.park });
+    if (has('bound') && out.length < 8) out.push(lineLg('Proje sınırı', C.bound, 2.5, [7, 4]));
+    return out.slice(0, 8);
+  }
+
+  function gridPrims(v, C, P) {
+    const out = [];
+    const step = v.ppm >= 6 ? 10 : v.ppm >= 1.6 ? 50 : 100;
+    const w = v.win;
+    for (let x = Math.ceil(w.x0 / step) * step; x <= w.x1; x += step) out.push({ t: 'line', x1: v.X(x), y1: v.area.y, x2: v.X(x), y2: v.area.y + v.area.h, stroke: C.ink, sw: 0.8, opacity: 0.1 });
+    for (let y = Math.ceil(w.y0 / step) * step; y <= w.y1; y += step) out.push({ t: 'line', x1: v.area.x, y1: v.Y(y), x2: v.area.x + v.area.w, y2: v.Y(y), stroke: C.ink, sw: 0.8, opacity: 0.1 });
+    void P;
+    return out;
+  }
+
+  // otopark çizgileri: çokgenin içine kırpılmış 45° tarama
+  function parkPrims(e, v, C) {
+    const px = toPx(e.pts, v);
+    const b = G.bbox(px);
+    const items = [];
+    const gap = Math.max(4, 2.5 * v.ppm);
+    for (let k = -(b.y1 - b.y0); k < b.x1 - b.x0 + (b.y1 - b.y0); k += gap) items.push({ t: 'line', x1: b.x0 + k, y1: b.y0, x2: b.x0 + k - (b.y1 - b.y0), y2: b.y1, stroke: C.parkLine, sw: 1.1 });
+    return [{ t: 'poly', pts: px, fill: C.park, stroke: C.plazaEdge, sw: 1 }, { t: 'g', clip: { id: 'pk' + e.id, pts: px }, items: items }];
+  }
+
+  function bldPrims(e, v, C, P, shadowsOnly) {
+    const out = [];
+    const px = toPx(e.pts, v);
+    if (shadowsOnly) {
+      const len = Math.min(40, e.floors * plan.FH * 0.5);
+      const dx = len * 0.7, dy = len * 0.7;
+      const hl = G.hull(e.pts.concat(e.pts.map((q) => [q[0] + dx, q[1] + dy])));
+      if (hl.length >= 3) out.push({ t: 'poly', pts: toPx(hl, v), fill: C.shadow });
+      return out;
+    }
+    const neu = e.k === 'yeni';
+    out.push({ t: 'poly', pts: px, fill: neu ? C.bldNew : C.bldOld, stroke: neu ? C.bldNewEdge : C.bldOldEdge, sw: neu ? 1.7 : 1.1 });
+    if (P.labels && neu) {
+      const b = G.bbox(px);
+      if (b.x1 - b.x0 > 34 && b.y1 - b.y0 > 18) {
+        const c = G.centroid(px);
+        out.push({ t: 'text', x: c[0], y: c[1] + 4, s: e.floors + ' kat', size: 11.5, weight: 700, fam: 'b', fill: C.ink, anchor: 'middle', opacity: 0.75, pe: false });
+      }
+    }
+    return out;
+  }
+
+  function scaleBar(v, C, x, y) {
+    const out = [];
+    const cand = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000];
+    let m = cand[0];
+    cand.forEach((c) => { if (c * v.ppm <= 170) m = c; });
+    const len = m * v.ppm;
+    const st = { stroke: C.ink, sw: 2, opacity: 0.8 };
+    out.push({ t: 'rect', x: x - 12, y: y - 30, w: len + 24, h: 48, rx: glass() ? 10 : 0, fill: C.panel, opacity: 0.9 });
+    out.push(Object.assign({ t: 'line', x1: x, y1: y, x2: x + len, y2: y }, st));
+    [0, 0.5, 1].forEach((f) => out.push(Object.assign({ t: 'line', x1: x + len * f, y1: y - (f === 0.5 ? 3 : 6), x2: x + len * f, y2: y + (f === 0.5 ? 3 : 6) }, st)));
+    out.push({ t: 'text', x: x, y: y - 11, s: '0', size: 11, weight: 700, fam: 'm', fill: C.ink, opacity: 0.8, anchor: 'middle' });
+    out.push({ t: 'text', x: x + len, y: y - 11, s: m + ' m', size: 11, weight: 700, fam: 'm', fill: C.ink, opacity: 0.8, anchor: 'middle' });
+    return out;
+  }
+  function northArrow(C, x, y) {
+    return [
+      { t: 'circle', cx: x, cy: y, r: 17, fill: C.panel, stroke: C.ink, sw: 1.6, opacity: 0.9 },
+      { t: 'poly', pts: [[x, y - 13], [x - 6, y + 9], [x, y + 4], [x + 6, y + 9]], fill: C.ink, opacity: 0.85 },
+      { t: 'text', x: x, y: y - 24, s: 'K', size: 12, weight: 700, fam: 'm', fill: C.ink, opacity: 0.8, anchor: 'middle' },
+    ];
+  }
+
+  /* opts: { live, grid } */
+  plan.scene = function (P, opts) {
+    opts = opts || {};
+    const style = plan.styleOf(P);
+    const C = palette(style);
+    const v = plan.view(P);
+    const a = v.area;
+    const M = plan.metrics(P);
+    const info = {
+      name: P.title || (App.store && App.store.get().project.meta.name) || 'Vaziyet planı',
+      subtitle: 'Vaziyet planı · 1/' + P.scale + ' · A3',
+      legend: legendOf(P, C),
+      stats: M.hasBound
+        ? [['Parsel alanı', fmt(M.boundArea) + ' m²'], ['TAKS / KAKS', fmt(M.taks, 2) + ' / ' + fmt(M.kaks, 2)], ['Yeşil alan', fmt(M.green) + ' m²']]
+        : [['Yeni yapı', M.nNew + ' · ' + fmt(M.newFoot) + ' m²'], ['Mevcut yapı', String(M.nOld)], ['Ağaç', String(M.trees)]],
+      scoreLabel: 'Yeşil oranı', percent: M.greenShare == null ? null : Math.round(M.greenShare * 100),
+    };
+    const prims = sheet.frame(info, opts.live !== false);
+    const items = [];
+    items.push({ t: 'rect', x: a.x, y: a.y, w: a.w, h: a.h, fill: C.ground });
+    if (P.grid) gridPrims(v, C, P).forEach((p) => items.push(p));
+    const by = (t, f) => P.els.filter((e) => e.t === t && (!f || f(e)));
+    const sw = (m, min) => Math.max(min || 1.2, m * v.ppm);
+
+    by('water').forEach((e) => { const px = toPx(e.pts, v); items.push({ t: 'path', d: pathOf(px, e.smooth, true), fill: C.water, stroke: C.waterEdge, sw: 1.4 }); });
+    by('green').forEach((e) => { const px = toPx(e.pts, v); items.push({ t: 'path', d: pathOf(px, e.smooth, true), fill: e.k === 'orman' ? C.forest : C.green, stroke: C.greenEdge, sw: 1.2 }); });
+    by('plaza').forEach((e) => { const px = toPx(e.pts, v); items.push({ t: 'path', d: pathOf(px, e.smooth, true), fill: C.plaza, stroke: C.plazaEdge, sw: 1.1 }); });
+    by('park').forEach((e) => parkPrims(e, v, C).forEach((p) => items.push(p)));
+    // yollar: önce kenarlıklar, sonra dolgular (kesişimler birleşir)
+    const roads = by('road', (e) => e.k !== 'yaya'), paths = by('road', (e) => e.k === 'yaya');
+    roads.forEach((e) => items.push({ t: 'path', d: pathOf(toPx(e.pts, v), e.smooth, false), stroke: C.roadEdge, sw: sw(e.w, 2) + 2.6, cap: 'round' }));
+    roads.forEach((e) => items.push({ t: 'path', d: pathOf(toPx(e.pts, v), e.smooth, false), stroke: C.road, sw: sw(e.w, 2), cap: 'round' }));
+    roads.forEach((e) => { if (e.w * v.ppm >= 22) items.push({ t: 'path', d: pathOf(toPx(e.pts, v), e.smooth, false), stroke: C.center, sw: 1.1, dash: [9, 9], opacity: 0.55 }); });
+    paths.forEach((e) => items.push({ t: 'path', d: pathOf(toPx(e.pts, v), e.smooth, false), stroke: C.pathEdge, sw: sw(e.w, 1.6) + 1.8, cap: 'round' }));
+    paths.forEach((e) => items.push({ t: 'path', d: pathOf(toPx(e.pts, v), e.smooth, false), stroke: C.path, sw: sw(e.w, 1.6), cap: 'round' }));
+    if (P.shadow) by('bld').forEach((e) => bldPrims(e, v, C, P, true).forEach((p) => items.push(p)));
+    by('bld', (e) => e.k === 'mevcut').forEach((e) => bldPrims(e, v, C, P).forEach((p) => items.push(p)));
+    by('bld', (e) => e.k === 'yeni').forEach((e) => bldPrims(e, v, C, P).forEach((p) => items.push(p)));
+    by('bound').forEach((e) => items.push({ t: 'poly', pts: toPx(e.pts, v), stroke: C.bound, sw: 2.6, dash: [11, 6] }));
+    const trees = by('tree');
+    if (P.shadow) trees.forEach((e) => items.push({ t: 'circle', cx: v.X(e.x) + e.r * v.ppm * 0.35, cy: v.Y(e.y) + e.r * v.ppm * 0.35, r: Math.max(1.5, e.r * v.ppm), fill: C.treeShade }));
+    trees.forEach((e) => {
+      const r = Math.max(1.5, e.r * v.ppm);
+      items.push({ t: 'circle', cx: v.X(e.x), cy: v.Y(e.y), r: r, fill: C.tree, stroke: C.treeEdge, sw: 0.9, opacity: 0.94 });
+      if (r > 4) items.push({ t: 'circle', cx: v.X(e.x) - r * 0.22, cy: v.Y(e.y) - r * 0.22, r: r * 0.46, fill: C.treeHi, opacity: 0.55 });
+    });
+    by('text').forEach((e) => items.push({ t: 'text', x: v.X(e.x), y: v.Y(e.y) + e.size * 0.34, s: e.s, size: e.size, weight: 700, fam: 'd', fill: C.text, anchor: 'middle', ls: App.theme.cur().label.upper ? 0.6 : 0, pe: false }));
+
+    prims.push({ t: 'g', clip: { id: 'plan-area', x: a.x, y: a.y, w: a.w, h: a.h }, items: items });
+    prims.push(glass() ? { t: 'rect', x: a.x, y: a.y, w: a.w, h: a.h, rx: 8, stroke: C.panelStroke, sw: 1 } : { t: 'rect', x: a.x, y: a.y, w: a.w, h: a.h, stroke: C.ink, sw: 4 });
+    scaleBar(v, C, a.x + 36, a.y + a.h - 24).forEach((p) => prims.push(p));
+    northArrow(C, a.x + a.w - 36, a.y + 44).forEach((p) => prims.push(p));
+    // ölçek etiketi
+    const lab = '1/' + P.scale;
+    const lw = sheet.tw(lab, 17, 700, 'd', 0) + 24;
+    prims.push({ t: 'rect', x: a.x + 12, y: a.y + 12, w: lw, h: 32, rx: glass() ? 10 : 0, fill: C.panel, opacity: 0.92 });
+    prims.push({ t: 'text', x: a.x + 24, y: a.y + 34, s: lab, size: 17, weight: 700, fam: 'd', fill: C.ink });
+    return { prims: prims, view: v, metrics: M };
+  };
+})();
+
+/* ==========================================================================
    39-lib-unitscene.js — Modül 9 · Birim Oluşturucu paftaları (plan · izometrik · süreç afişi)
    Canlı SVG ve PNG/PDF çıktısı aynı primitif listesinden çizilir (App.board.primToV / primsToCanvas).
    ========================================================================== */
@@ -18223,6 +18765,155 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (ext.design && ext.design.parameters) out.design = D.clamp(ext.design.parameters);
     if (ext.feasibility && ext.feasibility.assumptions) out.fiz = Cst.clamp(ext.feasibility.assumptions);
     return out;
+  });
+})();
+
+/* ==========================================================================
+   39-state-plan.js — Vaziyet Planı eylemleri (reducer eklentisi) ve JSON uzantısı
+   Veri project.plan içinde durur; geri al / ileri al, otomatik kayıt ve JSON akışı Modül 1 ile ortaktır.
+   Eylemler:
+     PLAN_SET {patch}  PLAN_SET_LIVE {patch}     başlık, stil, gölge, ızgara, yakalama (ölçek ve görünüm: PLAN_VIEW)
+     PLAN_VIEW {patch}                           ölçek, merkez (geri alma noktası açmaz)
+     PLAN_EL_ADD {el}  PLAN_EL_ADD_MANY {els}  PLAN_EL_SET {id, patch}  PLAN_EL_SET_LIVE {id, patch}
+     PLAN_EL_DEL {id}  PLAN_EL_DUP {id}  PLAN_EL_ORDER {id, dir}
+     PLAN_LOAD {els, merge, fit}                 örnek / diğer modüllerden içe alma
+     PLAN_CLEAR
+   JSON uzantısı: extensions.sitePlan
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const S = App.state;
+  const plan = App.plan;
+
+  const withPlan = (P, p) => Object.assign({}, P, { plan: p });
+  const r1 = (v) => Math.round(v * 10) / 10;
+
+  S.hooks.push(function (next, a, prev) {
+    let P = next.project;
+    let state = next;
+    if (!plan) return undefined;
+    if (!P.plan || !Array.isArray(P.plan.els)) { P = withPlan(P, plan.defaults()); state = Object.assign({}, state, { project: P }); }
+    const same = () => (state === next ? undefined : state);
+    if (!a.type || a.type.indexOf('PLAN_') !== 0) return same();
+    const p = P.plan;
+    const apply = (np, history) => (history ? Object.assign(S.withHistory(state, withPlan(P, np)), { selectedId: state.selectedId }) : Object.assign({}, state, { project: withPlan(P, np) }));
+    const setEls = (els, history) => apply(Object.assign({}, p, { els: els.slice(0, 1800) }), history);
+
+    switch (a.type) {
+      case 'PLAN_SET':
+      case 'PLAN_SET_LIVE': {
+        const o = plan.cleanDoc(Object.assign({}, p, a.patch || {}, { els: p.els }));
+        o.cx = p.cx; o.cy = p.cy; o.scale = p.scale;
+        return apply(o, a.type === 'PLAN_SET');
+      }
+      case 'PLAN_VIEW': {
+        const q = a.patch || {};
+        const o = Object.assign({}, p);
+        if (q.scale != null && plan.SCALES.indexOf(Number(q.scale)) >= 0) o.scale = Number(q.scale);
+        if (q.cx != null) o.cx = r1(U.clamp(Number(q.cx) || 0, -8000, 8000));
+        if (q.cy != null) o.cy = r1(U.clamp(Number(q.cy) || 0, -8000, 8000));
+        if (o.scale === p.scale && o.cx === p.cx && o.cy === p.cy) return same();
+        return apply(o, false);
+      }
+      case 'PLAN_EL_ADD': {
+        const el = plan.clean(a.el);
+        if (!el) return same();
+        const r = setEls(p.els.concat([el]), true);
+        r.selectedId = el.id;
+        return r;
+      }
+      case 'PLAN_EL_ADD_MANY': {
+        const els = (a.els || []).map((e) => plan.clean(e)).filter(Boolean);
+        if (!els.length) return same();
+        return setEls(p.els.concat(els), true);
+      }
+      case 'PLAN_EL_SET':
+      case 'PLAN_EL_SET_LIVE': {
+        const el = p.els.find((e) => e.id === a.id);
+        if (!el) return same();
+        const nx = plan.clean(el, a.patch);
+        if (!nx) return same();
+        if (Object.keys(nx).every((k) => nx[k] === el[k])) return same();
+        return setEls(p.els.map((e) => (e.id === a.id ? nx : e)), a.type === 'PLAN_EL_SET');
+      }
+      case 'PLAN_EL_DEL': {
+        if (!p.els.some((e) => e.id === a.id)) return same();
+        const r = setEls(p.els.filter((e) => e.id !== a.id), true);
+        if (state.selectedId === a.id) r.selectedId = null;
+        return r;
+      }
+      case 'PLAN_EL_DUP': {
+        const el = p.els.find((e) => e.id === a.id);
+        if (!el) return same();
+        const off = Math.max(2, p.snap * 3);
+        const cp = plan.clean(Object.assign({}, el, { id: 'p' + Math.random().toString(36).slice(2, 8) }), plan.moveEl(el, off, off));
+        const r = setEls(p.els.concat([cp]), true);
+        r.selectedId = cp.id;
+        return r;
+      }
+      case 'PLAN_EL_ORDER': {
+        const i = p.els.findIndex((e) => e.id === a.id);
+        const j = i + (a.dir < 0 ? -1 : 1);
+        if (i < 0 || j < 0 || j >= p.els.length) return same();
+        const els = p.els.slice();
+        const t = els[i]; els[i] = els[j]; els[j] = t;
+        return setEls(els, true);
+      }
+      case 'PLAN_LOAD': {
+        const incoming = (a.els || []).map((e) => plan.clean(e)).filter(Boolean);
+        if (!incoming.length) return same();
+        const els = a.merge ? p.els.concat(incoming) : incoming;
+        const o = Object.assign({}, p, { els: els.slice(0, 1800) });
+        if (a.fit !== false) { const f = plan.fit(o.els); o.cx = f.cx; o.cy = f.cy; }
+        if (a.scale && plan.SCALES.indexOf(a.scale) >= 0) o.scale = a.scale;
+        return Object.assign(apply(o, true), { selectedId: null });
+      }
+      case 'PLAN_CLEAR':
+        return Object.assign(apply(Object.assign({}, plan.defaults(), { title: p.title, style: p.style }), true), { selectedId: null });
+      default:
+    }
+    return same();
+  });
+
+  /* ---------- JSON uzantısı: extensions.sitePlan ---------- */
+  const r2 = (v) => Math.round(v * 100) / 100;
+  plan.toExt = function (project) {
+    const p = project.plan;
+    if (!p || !p.els.length) return {};
+    const M = plan.metrics(p);
+    return {
+      sitePlan: {
+        version: 1, unit: 'm', title: p.title, scale: p.scale, center: [p.cx, p.cy], style: p.style, snap: p.snap, grid: p.grid, shadow: p.shadow, labels: p.labels,
+        elements: p.els.map((e) => {
+          if (e.t === 'tree') return { type: 'tree', id: e.id, x: e.x, y: e.y, radius: e.r };
+          if (e.t === 'text') return { type: 'text', id: e.id, x: e.x, y: e.y, text: e.s, size: e.size };
+          const o = { type: e.t, id: e.id, points: e.pts.map((q) => [q[0], q[1]]) };
+          if (e.t === 'bld') { o.floors = e.floors; o.kind = e.k; o.area = r2(plan.geo.area(e.pts)); }
+          if (e.t === 'road') { o.width = e.w; o.kind = e.k; o.smooth = e.smooth; }
+          if (e.t === 'green') { o.kind = e.k; o.smooth = e.smooth; }
+          if (e.t === 'water' || e.t === 'plaza') o.smooth = e.smooth;
+          return o;
+        }),
+        metrics: { parcelArea: r2(M.boundArea), newFootprint: r2(M.newFoot), newGrossFloorArea: r2(M.newGfa), coverageTaks: M.taks == null ? null : r2(M.taks), floorAreaKaks: M.kaks == null ? null : r2(M.kaks), greenArea: r2(M.green), roadLength: r2(M.roadLen), pathLength: r2(M.pathLen), treeCount: M.trees, newBuildings: M.nNew, existingBuildings: M.nOld },
+      },
+    };
+  };
+  App.extProviders.push(plan.toExt);
+
+  App.extImporters = App.extImporters || [];
+  App.extImporters.push(function (ext) {
+    const x = ext && ext.sitePlan;
+    if (!x || !Array.isArray(x.elements)) return {};
+    const els = x.elements.map((e) => {
+      const id = e.id ? String(e.id).slice(0, 12) : 'p' + Math.random().toString(36).slice(2, 8);
+      if (e.type === 'tree') return { id: id, t: 'tree', x: e.x, y: e.y, r: e.radius };
+      if (e.type === 'text') return { id: id, t: 'text', x: e.x, y: e.y, s: e.text, size: e.size };
+      if (!plan.TYPES[e.type]) return null;
+      return { id: id, t: e.type, pts: e.points, floors: e.floors, k: e.kind, w: e.width, smooth: e.smooth };
+    }).filter(Boolean);
+    const doc = plan.cleanDoc({ title: x.title, scale: x.scale, cx: x.center && x.center[0], cy: x.center && x.center[1], style: x.style, snap: x.snap, grid: x.grid, shadow: x.shadow, labels: x.labels, els: els });
+    return { plan: doc };
   });
 })();
 
@@ -19235,7 +19926,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 /* ==========================================================================
    47-ui-shell.js — archtools kabuğu: modül gezgini, ortak skor kadranı verisi,
    araç çubuğu ve sayfa iskeleti. Modüller yalnızca kendi içeriğini üretir.
-   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · birim
+   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · birim · vaziyet
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -19253,6 +19944,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     { id: 'tasarim', n: '07', label: 'Tasarım Üretici', sub: 'Tasarım üretici · kütle, tipik kat ve otopark', shape: 'tower' },
     { id: 'fizibilite', n: '08', label: 'Maliyet ve Fizibilite', sub: 'Maliyet ve fizibilite · metraj, kâr, nakit akışı', shape: 'coin' },
     { id: 'birim', n: '09', label: 'Birim Oluşturucu', sub: 'Birim oluşturucu · adım adım kütle şekillendirme', shape: 'stack' },
+    { id: 'vaziyet', n: '10', label: 'Vaziyet Planı', sub: 'Vaziyet planı · ölçekli yerleşim paftası', shape: 'sitemap' },
   ];
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
@@ -19270,6 +19962,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     else if (shape === 'target') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.4 }, q)), h('circle', Object.assign({ cx: 9, cy: 9, r: 2.6 }, p)));
     else if (shape === 'tower') g = h('g', {}, h('rect', Object.assign({ x: 4.2, y: 2, width: 9.6, height: 14, rx: 1.2 }, p)), h('path', { d: 'M7 6h4M7 9h4M7 12h4', stroke: 'var(--on-ink, #fff)', 'stroke-width': 1.2, fill: 'none', 'stroke-linecap': 'round' }));
     else if (shape === 'stack') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 9.6, width: 8.4, height: 6, rx: 1 }, p)), h('rect', Object.assign({ x: 7.2, y: 2.4, width: 8.4, height: 6, rx: 1 }, q)));
+    else if (shape === 'sitemap') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 2.4, width: 13.2, height: 13.2, rx: 1 }, q)), h('rect', Object.assign({ x: 5, y: 5.4, width: 4.6, height: 4.2, rx: 0.6 }, p)), h('path', { d: 'M2.6 12.6h12.8', stroke: 'currentColor', 'stroke-width': 1.6, fill: 'none' }), h('circle', Object.assign({ cx: 12.6, cy: 6.4, r: 1.7 }, p)));
     else if (shape === 'coin') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.6 }, q)), h('path', { d: 'M9 5.2v7.6M6.8 7.4c0-1 .9-1.7 2.2-1.7s2.2.7 2.2 1.6c0 2.3-4.4 1.1-4.4 3.4 0 .9 1 1.7 2.2 1.7s2.2-.7 2.2-1.7', stroke: 'currentColor', 'stroke-width': 1.3, fill: 'none', 'stroke-linecap': 'round' }));
     else g = h('path', Object.assign({ d: 'M2.5 15.2L9 3l6.5 12.2z' }, p));
     return h('svg', { viewBox: '0 0 18 18', width: 16, height: 16, class: 'msh msh-' + shape, 'aria-hidden': 'true' }, g);
@@ -19383,7 +20076,24 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     };
   }
 
-  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, birim: birimMeter };
+  function vaziyetMeter(state) {
+    const p = state.project.plan;
+    if (!p || !App.plan) return { label: 'Yeşil oranı', percent: null, msg: '', chips: [], issues: 0 };
+    const M = App.plan.metrics(p);
+    return {
+      label: 'Yeşil oranı', percent: M.greenShare == null ? null : Math.round(M.greenShare * 100),
+      msg: !p.els.length ? 'Bir araç seçip çizmeye başlayın' : !M.hasBound ? '1/' + p.scale + ' · ' + p.els.length + ' öğe · TAKS ve KAKS için proje sınırı çizin' : '1/' + p.scale + ' · parsel ' + U.fmt(M.boundArea) + ' m² · TAKS ' + U.fmt(M.taks, 2) + ' · KAKS ' + U.fmt(M.kaks, 2),
+      chips: [
+        { label: 'Ölçek', value: '1/' + p.scale, cls: 'dot' },
+        { label: 'TAKS', value: M.taks == null ? '–' : U.fmt(M.taks, 2), cls: 'dot' },
+        { label: 'KAKS', value: M.kaks == null ? '–' : U.fmt(M.kaks, 2), cls: 'dot' },
+        { label: 'Ağaç', value: String(M.trees), cls: 'dot' },
+      ],
+      issues: 0, issuesText: '', onIssues: null,
+    };
+  }
+
+  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, birim: birimMeter, vaziyet: vaziyetMeter };
   ui.meterFor = (state, d) => (ui.meterOpts[state.ui.module] || islevMeter)(state, d);
 
   /* ---------------- araç çubuğu ----------------
@@ -19441,6 +20151,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (m === 'tasarim' && ui.design) return h('main', { class: 'main main-tasarim', key: 'main-tasarim' }, ui.design.sidebar(state, d), ui.design.board(state, d));
     if (m === 'fizibilite' && ui.fizb) return h('main', { class: 'main main-fizibilite', key: 'main-fizibilite' }, ui.fizb.sidebar(state, d), ui.fizb.board(state, d));
     if (m === 'birim' && ui.unit) return h('main', { class: 'main main-birim', key: 'main-birim' }, ui.unit.sidebar(state, d), ui.unit.board(state, d));
+    if (m === 'vaziyet' && ui.plan) return h('main', { class: 'main main-vaziyet', key: 'main-vaziyet' }, ui.plan.sidebar(state, d), ui.plan.board(state, d));
     if (m === 'yer' && ui.yer) return h('main', { class: 'main main-yer', key: 'main-yer' }, ui.yer.sidebar(state, d), ui.yer.board(state, d));
     return h('main', { class: 'main main-islev', key: 'main-islev' }, ui.sidebar(state, d), ui.board(state, d), ui.assistant(state, d));
   };
@@ -19751,7 +20462,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const exporter = (kind) => (ctl.exporters[get().ui.module] || ctl.exporters.islev)(kind);
   ctl.exportPNG = () => exporter('png');
   ctl.exportPDF = () => exporter('pdf');
-  const JSON_SUFFIX = { islev: undefined, kat: 'kat-etudu', analiz: 'mekan-analizi', arsa: 'arsa-analizi', imar: 'imar-kapasite', yer: 'yer-secimi', tasarim: 'tasarim-uretici', fizibilite: 'maliyet-fizibilite', birim: 'birim-olusturucu' };
+  const JSON_SUFFIX = { islev: undefined, kat: 'kat-etudu', analiz: 'mekan-analizi', arsa: 'arsa-analizi', imar: 'imar-kapasite', yer: 'yer-secimi', tasarim: 'tasarim-uretici', fizibilite: 'maliyet-fizibilite', birim: 'birim-olusturucu', vaziyet: 'vaziyet-plani' };
   ctl.saveJSON = function () {
     const st = get();
     const d = derived();
@@ -19853,6 +20564,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     { id: 'tasarim', label: 'Parsele bina tasarımı üretin', sub: 'Kütle alternatifleri, tipik kat planı, daire karması ve otopark; CAD, IFC ve Excel çıktısı.', icon: 'layers' },
     { id: 'fizibilite', label: 'Maliyet ve fizibilite hesaplayın', sub: 'Metraj, maliyet, satış geliri, kâr, başabaş fiyat ve nakit akışı.', icon: 'compare' },
     { id: 'birim', label: 'Bir kütleyi adım adım şekillendirin', sub: 'Parselde bir birim kurun; böl, boşluk aç, yeşil ekle ve süreci tek afişte görün.', icon: 'cube' },
+    { id: 'vaziyet', label: 'Ölçekli vaziyet planı çizin', sub: 'Yapılar, yollar, yeşil alan ve ağaçlarla 1/200–1/5000 ölçekli vaziyet paftası; PNG, PDF ve DXF.', icon: 'parcel' },
     { id: 'bina', label: 'Bina programı kurgulayın', sub: 'İşlev şeması, kat etüdü ve mekân analizi ile bina içini tasarlayın.', icon: 'layout' },
     { id: 'kesif', label: 'Sadece keşfediyorum', sub: 'Örnek verilerle gezin; istediğiniz modülü üst çubuktan açın.', icon: 'spark' },
   ];
@@ -19912,8 +20624,9 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       else if (id === 'tasarim') { c.go('tasarim'); }
       else if (id === 'fizibilite') { c.go('fizibilite'); }
       else if (id === 'birim') { c.go('birim'); }
+      else if (id === 'vaziyet') { c.go('vaziyet'); }
       else if (id === 'bina') { c.go('islev'); }
-      else c.toast('İyi keşifler: üst çubuktan dokuz modül arasında gezinebilirsiniz.');
+      else c.toast('İyi keşifler: üst çubuktan on modül arasında gezinebilirsiniz.');
     },
   });
   ui.helpBtn = function () { W.open(1); };
@@ -24387,13 +25100,771 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
-   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/birim
+   78-ui-plan.js — Modül 10 arayüzü: Vaziyet Planı
+   Sol panel: Çizim (araçlar · seçili öğe · başlangıç) · Sayfa (ölçek, stil, çıktı) · Liste (alanlar, öğeler).
+   Pafta: ölçekli A3 vaziyet planı. Seç aracı: öğeyi sürükle, köşe tutamacını çek, ortadaki + ile köşe ekle,
+   sağ tık / Alt+tık köşe siler, boş yeri sürükleyerek kaydır, tekerlekle ölçek değiştir.
+   Çizim araçları: sürükleyerek dikdörtgen ya da köşeleri tıklayarak çokgen/çizgi; çift tık / Enter bitirir, Esc iptal eder.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const U = App.util;
+  const fmt = U.fmt;
+  const plan = App.plan;
+  const G = plan.geo;
+  const ctl = () => App.ctl;
+  const pl = (ui.plan = {});
+  const get = () => App.store.get();
+
+  App.planDefaults = () => ({ tab: 'cizim', tool: 'select', draft: null, floors: 4, treeR: 3, stick: 0 });
+
+  /* araç tanımları: poly (çokgen), line (çizgi), pt (tek tık) */
+  const TOOLS = [
+    { id: 'select', label: 'Seç', icon: 'target', hint: 'Öğeyi tıklayıp sürükleyin · köşe tutamaçlarını çekin · ortadaki + köşe ekler · sağ tık köşe siler · boş yeri sürükleyerek kaydırın · tekerlek ölçeği değiştirir' },
+    { id: 'yeni', label: 'Yeni yapı', icon: 'rect', kind: 'poly', hint: 'Sürükleyerek dikdörtgen çizin ya da köşeleri tıklayın · çift tık veya Enter bitirir · Backspace son köşeyi siler · Esc iptal' },
+    { id: 'mevcut', label: 'Mevcut', full: 'Mevcut yapı', icon: 'cube', kind: 'poly', hint: 'Çevredeki mevcut yapıyı çizin: sürükleyerek dikdörtgen ya da köşeleri tıklayarak · çift tık veya Enter bitirir' },
+    { id: 'road', label: 'Yol', icon: 'draw', kind: 'line', hint: 'Yol eksenini noktalarla çizin · çift tık veya Enter bitirir · genişlik panelden ayarlanır' },
+    { id: 'yaya', label: 'Yaya yolu', icon: 'link', kind: 'line', hint: 'Yaya yolu eksenini noktalarla çizin · çift tık veya Enter bitirir' },
+    { id: 'green', label: 'Yeşil alan', icon: 'sun', kind: 'poly', hint: 'Sürükleyin ya da köşeleri tıklayın · köşeli çizilen yeşil alan yumuşatılmış olur' },
+    { id: 'water', label: 'Su', icon: 'layers', kind: 'poly', hint: 'Su yüzeyini sürükleyin ya da köşeleri tıklayın' },
+    { id: 'plaza', label: 'Meydan', icon: 'grid', kind: 'poly', hint: 'Meydan / sert zemini sürükleyin ya da köşeleri tıklayın' },
+    { id: 'park', label: 'Otopark', icon: 'layout', kind: 'poly', hint: 'Otopark alanını sürükleyin ya da köşeleri tıklayın; park çizgileri otomatik eklenir' },
+    { id: 'bound', label: 'Sınır', full: 'Proje sınırı', icon: 'parcel', kind: 'poly', hint: 'Parsel / proje sınırını çizin; TAKS, KAKS ve yeşil oranı buna göre hesaplanır' },
+    { id: 'tree', label: 'Ağaç', icon: 'pin', kind: 'pt', hint: 'Tıklayarak ağaç dikin; yarıçap panelden ayarlanır' },
+    { id: 'text', label: 'Yazı', icon: 'newdoc', kind: 'pt', hint: 'Yazının yerini tıklayın; metni panelden değiştirin' },
+  ];
+  const toolOf = (id) => TOOLS.find((t) => t.id === id) || TOOLS[0];
+  const NAME = { bound: 'Proje sınırı', bld: 'Bina', road: 'Yol', green: 'Yeşil alan', water: 'Su', plaza: 'Meydan', park: 'Otopark', tree: 'Ağaç', text: 'Yazı' };
+  const nameOf = (e) => (e.t === 'bld' ? (e.k === 'mevcut' ? 'Mevcut yapı' : 'Yeni yapı') : e.t === 'road' && e.k === 'yaya' ? 'Yaya yolu' : NAME[e.t]);
+  const minPts = (tool) => (toolOf(tool).kind === 'line' ? 2 : 3);
+
+  /* ---------------- yardımcılar ---------------- */
+  function numField(label, id, val, o) {
+    return h('label', { class: 'nfld', for: id },
+      h('span', { class: 'nfld-l' }, label),
+      h('span', { class: 'nfld-c' },
+        h('input', { id: id, class: 'inp mono nfld-i', type: 'number', min: o.min, max: o.max, step: o.step, value: val, keep: true, onchange: (e) => { const v = parseFloat(e.target.value); if (isFinite(v)) o.onchange(v); }, onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } }),
+        h('span', { class: 'unit' }, o.unit || 'm')));
+  }
+  const areaOf = (e) => (e.pts && e.t !== 'road' ? G.area(e.pts) : 0);
+
+  /* ---------------- sol panel ---------------- */
+  function toolsSection(state) {
+    const c = ctl();
+    const cur = state.ui.plan.tool;
+    return ui.section('Çizim araçları', h('div', { class: 'sec-box' },
+      h('div', { class: 'tool-grid ptools' }, TOOLS.map((t) => ui.btn(t.label, { icon: t.icon, cls: 'btn-tool ptool' + (cur === t.id ? ' on' : ''), pressed: cur === t.id, title: (t.full || t.label) + ' aracı', onclick: () => c.planTool(t.id) }))),
+      h('p', { class: 'note' }, toolOf(cur).hint)), null, 'pl-tools');
+  }
+
+  function selectedSection(state, p) {
+    const c = ctl();
+    const el = p.els.find((e) => e.id === state.selectedId);
+    if (!el) return ui.section('Seçili öğe', h('p', { class: 'note' }, 'Düzenlemek için pafta üzerinde ya da Liste sekmesinden bir öğe seçin.'), null, 'pl-sel');
+    const set = (patch) => c.planSetEl(el.id, patch);
+    const live = (patch) => c.planLive(el.id, patch);
+    const tail = h('div', { class: 'btn-row' },
+      ui.btn('Çoğalt', { icon: 'copy', onclick: () => c.planDup(el.id) }),
+      ui.btn('Sil', { icon: 'trash', onclick: () => c.planDel(el.id) }));
+    const order = h('div', { class: 'btn-row' },
+      ui.btn('Öne al', { onclick: () => c.planOrder(el.id, 1), title: 'Aynı türdeki öğelerin önüne al' }),
+      ui.btn('Arkaya al', { onclick: () => c.planOrder(el.id, -1) }));
+    const smooth = h('div', { class: 'tgl-row' }, ui.toggle({ label: 'Yumuşat', on: !!el.smooth, onclick: () => set({ smooth: !el.smooth }), title: 'Köşeleri eğri çizgiyle birleştir' }));
+    const head = h('p', { class: 'fr-area' }, h('b', {}, nameOf(el)));
+    let body = [];
+    if (el.t === 'bld') {
+      const a = areaOf(el);
+      body = [
+        ui.fld2('Tür', ui.segmented({ label: 'Yapı türü', wide: true, value: el.k, options: [{ v: 'yeni', label: 'Yeni' }, { v: 'mevcut', label: 'Mevcut' }], onchange: (v) => set({ k: v }) })),
+        ui.fld2('Kat sayısı', ui.stepper({ label: 'Kat sayısı', value: el.floors, min: 1, max: 80, unit: 'kat', onchange: (v) => set({ floors: v }) }), 'Gölge uzunluğu kat sayısıyla büyür.'),
+        h('p', { class: 'fr-area' }, h('b', { class: 'mono' }, fmt(a, 1) + ' m²'), ' taban · ', h('span', { class: 'mono' }, fmt(a * el.floors) + ' m²'), ' toplam'),
+      ];
+    } else if (el.t === 'road') {
+      body = [
+        ui.fld2('Tür', ui.segmented({ label: 'Yol türü', wide: true, value: el.k, options: plan.ROAD_KINDS.map((k) => ({ v: k.v, label: k.label })), onchange: (v) => set({ k: v, w: v === 'yaya' ? 2.5 : 8 }) })),
+        ui.range({ id: 'pl-rw', label: 'Genişlik', min: 1, max: 30, step: 0.5, value: el.w, text: fmt(el.w, 1) + ' m', oninput: (v) => live({ w: v }), onchange: () => c.planLiveEnd() }),
+        smooth,
+        h('p', { class: 'fr-area' }, h('b', { class: 'mono' }, fmt(G.polyLen(el.pts)) + ' m'), ' uzunluk'),
+        ui.btn('Yol ağacı dik', { icon: 'pin', onclick: () => c.planRoadTrees(el.id), title: 'Yolun iki yanına sıralı ağaç ekle' }),
+      ];
+    } else if (el.t === 'green') {
+      body = [
+        ui.fld2('Tür', ui.segmented({ label: 'Yeşil alan türü', wide: true, value: el.k, options: [{ v: 'cim', label: 'Çim' }, { v: 'orman', label: 'Orman' }], onchange: (v) => set({ k: v }) })),
+        smooth,
+        h('p', { class: 'fr-area' }, h('b', { class: 'mono' }, fmt(areaOf(el)) + ' m²')),
+        ui.btn('Ağaç serp', { icon: 'spark', onclick: () => c.planScatter(el.id), title: 'Alanın içine rastgele ağaç ekle' }),
+      ];
+    } else if (el.t === 'water' || el.t === 'plaza') {
+      body = [smooth, h('p', { class: 'fr-area' }, h('b', { class: 'mono' }, fmt(areaOf(el)) + ' m²')), el.t === 'plaza' ? ui.btn('Ağaç serp', { icon: 'spark', onclick: () => c.planScatter(el.id) }) : null];
+    } else if (el.t === 'park' || el.t === 'bound') {
+      body = [h('p', { class: 'fr-area' }, h('b', { class: 'mono' }, fmt(areaOf(el)) + ' m²')), el.t === 'bound' ? ui.btn('Ağaç serp', { icon: 'spark', onclick: () => c.planScatter(el.id), title: 'Parselin boş yerlerine ağaç ekle' }) : null];
+    } else if (el.t === 'tree') {
+      body = [
+        ui.range({ id: 'pl-tr', label: 'Taç yarıçapı', min: 1, max: 12, step: 0.5, value: el.r, text: fmt(el.r, 1) + ' m', oninput: (v) => live({ r: v }), onchange: () => c.planLiveEnd() }),
+        h('div', { class: 'nfld-grid' }, numField('X', 'pl-x', el.x, { step: p.snap, onchange: (v) => set({ x: v }) }), numField('Y', 'pl-y', el.y, { step: p.snap, onchange: (v) => set({ y: v }) })),
+      ];
+    } else if (el.t === 'text') {
+      body = [
+        ui.fld2('Metin', h('input', { id: 'pl-text', class: 'inp', type: 'text', maxlength: 80, value: el.s, keep: true, onchange: (e) => set({ s: e.target.value.trim() || 'Yazı' }), onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } })),
+        ui.range({ id: 'pl-ts', label: 'Boyut', min: 8, max: 48, step: 1, value: el.size, text: el.size + ' px', oninput: (v) => live({ size: v }), onchange: () => c.planLiveEnd() }),
+      ];
+    }
+    return ui.section('Seçili öğe', h('div', { class: 'sec-box' }, head, body, el.t === 'tree' || el.t === 'text' ? null : order, tail), null, 'pl-sel');
+  }
+
+  function startSection(state, p) {
+    const c = ctl();
+    const P = state.project;
+    const hasParcel = !!(P.site && P.site.parcel && P.site.parcel.length >= 3);
+    const u = P.unit;
+    const hasUnit = !!(u && u.steps && u.steps.some((s) => s.els.some((e) => e.t === 'mass')));
+    return ui.section('Başlangıç', h('div', { class: 'sec-box' },
+      ui.btn('Örnek vaziyet', { icon: 'play', onclick: () => c.planSample(), title: 'Mahalle dokusu, yollar, yeşil alan ve proje parseliyle dolu örnek' }),
+      ui.btn('Birim Oluşturucu’dan al', { icon: 'cube', disabled: !hasUnit, onclick: () => c.planFromUnit(), title: hasUnit ? 'Modül 09’daki seçili adımı vaziyet planına aktar' : 'Önce Birim Oluşturucu’da bir kütle kurun' }),
+      ui.btn('İmar parselinden al', { icon: 'parcel', disabled: !hasParcel, onclick: () => c.planFromImar(), title: hasParcel ? 'Modül 05’teki parseli ve kütle parçalarını aktar' : 'Önce Arsa / İmar modülünde bir parsel çizin' }),
+      p.els.length ? ui.btn('Temizle', { icon: 'trash', onclick: () => c.planClear(), title: 'Tüm öğeleri sil (Geri al ile döndürülebilir)' }) : null,
+      h('p', { class: 'note' }, 'Aktarılan öğeler üst üste eklenmez; mevcut çizimin yerini alır. Geri al ile dönebilirsiniz.')), null, 'pl-start');
+  }
+
+  function pageTab(state, p) {
+    const c = ctl();
+    const dxf = () => c.planDxf();
+    return [
+      ui.section('Sayfa', h('div', { class: 'sec-box' },
+        ui.fld2('Pafta başlığı', h('input', { id: 'pl-title', class: 'inp', type: 'text', maxlength: 60, placeholder: 'Örn. Vaziyet planı', value: p.title, keep: true, onchange: (e) => c.planSet({ title: e.target.value.trim() }), onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } }), 'Boş bırakılırsa proje adı kullanılır.'),
+        ui.fld2('Ölçek', ui.segmented({ label: 'Pafta ölçeği', wide: true, value: p.scale, options: plan.SCALES.map((s) => ({ v: s, label: '1/' + s })), onchange: (v) => c.planScale(v) }), 'A3 yatay: 1/1000’de pafta yaklaşık ' + fmt(plan.area().w / plan.pxPerM(1000)) + ' m genişliğindedir. Tekerlek de ölçeği değiştirir.'),
+        h('div', { class: 'btn-row' }, ui.btn('Çizime sığdır', { icon: 'expand', onclick: () => c.planFit(), disabled: !p.els.length }))), null, 'pl-page'),
+      ui.section('Görünüm', h('div', { class: 'sec-box' },
+        ui.fld2('Stil', ui.segmented({ label: 'Çizim stili', wide: true, value: p.style, options: [{ v: 'auto', label: 'Tema' }, { v: 'sade', label: 'Sade' }, { v: 'renkli', label: 'Renkli' }], onchange: (v) => c.planSet({ style: v }) }), '“Tema” seçiliyken stil, uygulama temasına göre belirlenir.'),
+        h('div', { class: 'tgl-row' },
+          ui.toggle({ label: 'Gölgeler', on: p.shadow, onclick: () => c.planSet({ shadow: !p.shadow }) }),
+          ui.toggle({ label: 'Izgara', on: p.grid, onclick: () => c.planSet({ grid: !p.grid }) }),
+          ui.toggle({ label: 'Kat etiketi', on: p.labels, onclick: () => c.planSet({ labels: !p.labels }) })),
+        ui.fld2('Yakalama', ui.segmented({ label: 'Izgara yakalama', wide: true, value: p.snap, options: [{ v: 0.5, label: '0,5 m' }, { v: 1, label: '1 m' }, { v: 2, label: '2 m' }, { v: 5, label: '5 m' }], onchange: (v) => c.planSet({ snap: v }) }), 'Çizim ve taşıma bu adımlarla yapılır; köşeler komşu köşelere yapışır (Alt: kapat).')), null, 'pl-look'),
+      ui.section('Çıktı', h('div', { class: 'sec-box' },
+        ui.btn('DXF olarak indir', { icon: 'download', onclick: dxf, disabled: !p.els.length, title: 'Gerçek koordinatlı (m) katmanlı DXF: AutoCAD, Rhino, Revit' }),
+        h('p', { class: 'note' }, 'PNG ve PDF için üstteki Dışa aktar düğmesini kullanın. DXF’te her tür ayrı katmandır (YAPI_YENI, YAPI_MEVCUT, YOL, YESIL…).')), null, 'pl-out'),
+    ];
+  }
+
+  function listTab(state, p) {
+    const c = ctl();
+    const M = plan.metrics(p);
+    const sel = state.selectedId;
+    const kv = (k, v) => h('div', {}, h('span', { class: 'kv-k' }, k), h('b', { class: 'kv-v mono' }, v));
+    const rows = p.els.map((e, i) => {
+      const nm = e.t === 'bld' ? e.floors + ' kat · ' + fmt(areaOf(e)) + ' m²' : e.t === 'road' ? fmt(G.polyLen(e.pts)) + ' m · ' + fmt(e.w, 1) + ' m' : e.t === 'tree' ? 'r ' + fmt(e.r, 1) + ' m' : e.t === 'text' ? e.s : fmt(areaOf(e)) + ' m²';
+      return h('li', { key: e.id, id: 'prow-' + e.id, class: 'row frow' + (sel === e.id ? ' sel' : '') },
+        h('div', { class: 'row-main', onclick: () => c.dispatch({ type: 'SELECT', id: sel === e.id ? null : e.id }) },
+          h('span', { class: 'pkind pkind-' + e.t + (e.k ? ' pk-' + e.k : ''), 'aria-hidden': 'true' }),
+          h('span', { class: 'row-name' }, nameOf(e) + ' ' + (p.els.slice(0, i + 1).filter((q) => nameOf(q) === nameOf(e)).length)),
+          h('span', { class: 'frow-area mono' }, nm)));
+    });
+    const shown = rows.slice(0, 80);
+    return [
+      ui.section('Alan ve oranlar', h('div', { class: 'sec-box' },
+        M.hasBound ? h('div', { class: 'kv-grid' },
+          kv('Parsel', fmt(M.boundArea) + ' m²'), kv('Yeni taban', fmt(M.newFoot) + ' m²'),
+          kv('Yeni inşaat', fmt(M.newGfa) + ' m²'), kv('En yüksek', M.maxFloors + ' kat'),
+          kv('TAKS', fmt(M.taks, 2)), kv('KAKS', fmt(M.kaks, 2)),
+          kv('Yeşil', fmt(M.green) + ' m²'), kv('Yeşil oranı', '%' + Math.round(M.greenShare * 100)),
+          kv('Ağaç', String(M.trees)), kv('Otopark', fmt(M.park) + ' m²'))
+          : h('p', { class: 'note' }, 'TAKS, KAKS ve yeşil oranı için “Proje sınırı” aracıyla parseli çizin. Sınırın içinde kalan yeni yapılar ve yeşil alanlar hesaba katılır.'),
+        h('div', { class: 'kv-grid' }, kv('Yeni yapı', String(M.nNew)), kv('Mevcut yapı', String(M.nOld)), kv('Yol', fmt(M.roadLen) + ' m'), kv('Yaya yolu', fmt(M.pathLen) + ' m'))), null, 'pl-met'),
+      ui.section('Öğeler', rows.length ? h('ul', { class: 'rows' }, shown) : h('p', { class: 'note' }, 'Henüz öğe yok. Çizim sekmesinden bir araç seçin ya da “Örnek vaziyet” ile başlayın.'), p.els.length + ' öğe' + (rows.length > 80 ? ' · ilk 80' : ''), 'pl-list'),
+    ];
+  }
+
+  pl.sidebar = function (state, d) {
+    const p = state.project.plan;
+    const c = ctl();
+    const tab = ['cizim', 'sayfa', 'liste'].indexOf(state.ui.plan.tab) >= 0 ? state.ui.plan.tab : 'cizim';
+    const tabs = ui.tabsBar([
+      { id: 'cizim', label: 'Çizim' },
+      { id: 'sayfa', label: 'Sayfa', n: '1/' + p.scale },
+      { id: 'liste', label: 'Liste', n: p.els.length },
+    ], tab, (id) => c.planView({ tab: id }, true));
+    let body;
+    if (tab === 'cizim') body = [toolsSection(state), selectedSection(state, p), startSection(state, p)];
+    else if (tab === 'sayfa') body = pageTab(state, p);
+    else body = listTab(state, p);
+    return ui.sideShell('sb-vaziyet', 'Vaziyet planı paneli', tabs, body);
+  };
+
+  /* ---------------- pafta ---------------- */
+  let memo = { k: null, v: null };
+  function sceneOf(P) {
+    const key = [P.plan, P.meta.name, App.theme.name, App.sheet.W];
+    if (memo.k && memo.k.every((x, i) => x === key[i])) return memo.v;
+    memo = { k: key, v: plan.scene(P.plan, { live: true }) };
+    return memo.v;
+  }
+
+  let gest = null;
+  pl.svgEl = null;
+  function toSvg(e) {
+    const svg = pl.svgEl;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  const viewNow = () => plan.view(get().project.plan);
+  const r2 = (v) => Math.round(v * 100) / 100;
+  const gridSnap = (v, s) => r2(Math.round(v / s) * s);
+
+  /* yakalama: önce komşu köşe (9 px), sonra ızgara */
+  function snapPt(sx, sy, o) {
+    const P = get().project.plan;
+    const v = plan.view(P);
+    const w = [v.wx(sx), v.wy(sy)];
+    if (o && o.alt) return { p: [r2(w[0]), r2(w[1])], v: false };
+    let best = null, bd = 10;
+    const test = (q) => { const d = Math.hypot(v.X(q[0]) - sx, v.Y(q[1]) - sy); if (d < bd) { bd = d; best = q; } };
+    P.els.forEach((e) => { if (e.pts && e.id !== (o && o.skip)) e.pts.forEach(test); });
+    const dr = get().ui.plan.draft;
+    if (dr) dr.pts.forEach(test);
+    if (best) return { p: [best[0], best[1]], v: true };
+    return { p: [gridSnap(w[0], P.snap), gridSnap(w[1], P.snap)], v: false };
+  }
+
+  function makeEl(tool, pts, rect) {
+    const f = get().ui.plan;
+    if (tool === 'yeni') return plan.make.bld(pts, { k: 'yeni', floors: f.floors || 4 });
+    if (tool === 'mevcut') return plan.make.bld(pts, { k: 'mevcut', floors: 3 });
+    if (tool === 'road') return plan.make.road(pts, { k: 'arac', w: 8 });
+    if (tool === 'yaya') return plan.make.road(pts, { k: 'yaya', w: 2.5 });
+    if (tool === 'green') return plan.make.green(pts, { smooth: !rect });
+    if (tool === 'water') return plan.make.water(pts, { smooth: !rect });
+    if (tool === 'plaza') return plan.make.plaza(pts);
+    if (tool === 'park') return plan.make.park(pts);
+    if (tool === 'bound') return plan.make.bound(pts);
+    return null;
+  }
+
+  function overlayEls() {
+    const q = (id) => document.getElementById(id);
+    return { rub: q('pd-rub'), rect: q('pd-rect'), cur: q('pd-cur') };
+  }
+  function showRub(pts) {
+    const o = overlayEls();
+    if (o.rub) o.rub.setAttribute('points', pts.map((q) => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' '));
+  }
+  function hideAll() {
+    const o = overlayEls();
+    if (o.rub) o.rub.setAttribute('points', '');
+    if (o.rect) o.rect.setAttribute('visibility', 'hidden');
+    if (o.cur) o.cur.setAttribute('visibility', 'hidden');
+  }
+
+  function drawDown(e) {
+    const st = get().ui.plan;
+    const t = toolOf(st.tool);
+    const s = toSvg(e);
+    const v = viewNow();
+    const sn = snapPt(s.x, s.y, { alt: e.altKey });
+    if (t.kind === 'pt') {
+      e.preventDefault();
+      if (t.id === 'tree') ctl().planAdd(plan.make.tree(sn.p[0], sn.p[1], st.treeR || 3));
+      else {
+        ctl().planAdd(plan.make.text(sn.p[0], sn.p[1], 'Yazı'));
+        ctl().planTool('select');
+        setTimeout(() => { const i = document.getElementById('pl-text'); if (i) { i.focus(); i.select(); } }, 90);
+      }
+      return;
+    }
+    gest = { t: 'draw', sx: s.x, sy: s.y, start: sn.p, moved: false, view: v, pid: e.pointerId };
+    try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+  }
+
+  function selectBgDown(e) {
+    const s = toSvg(e);
+    const P = get().project.plan;
+    gest = { t: 'pan', sx: s.x, sy: s.y, cx: P.cx, cy: P.cy, ppm: plan.pxPerM(P.scale), moved: false, pid: e.pointerId, cX: e.clientX, cY: e.clientY };
+    try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+  }
+
+  function svgDown(e) {
+    const st = get().ui.plan;
+    if (e.pointerType === 'mouse' && e.button === 2) return;
+    if (e.pointerType === 'mouse' && e.button === 1) { e.preventDefault(); selectBgDown(e); return; }
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (st.tool !== 'select') { drawDown(e); return; }
+    if (get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
+    selectBgDown(e);
+  }
+
+  function elDown(e, el) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (get().ui.plan.tool !== 'select') return; // çizim araçlarında olay svg'ye düşer
+    e.stopPropagation(); e.preventDefault();
+    const s = toSvg(e);
+    gest = { t: 'move', id: el.id, sx: s.x, sy: s.y, orig: el, moved: false, cX: e.clientX, cY: e.clientY, view: viewNow() };
+    try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+    ctl().dispatch({ type: 'SELECT', id: el.id });
+  }
+
+  function vtxDown(e, el, i, insert) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.stopPropagation(); e.preventDefault();
+    const s = toSvg(e);
+    if (!insert && e.altKey) { deleteVertex(el, i); return; }
+    gest = { t: 'vtx', id: el.id, i: i, orig: el, moved: false, cX: e.clientX, cY: e.clientY, view: viewNow(), insert: insert || null, sx: s.x, sy: s.y };
+    try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+  }
+  function deleteVertex(el, i) {
+    const min = el.t === 'road' ? 2 : 3;
+    if (!el.pts || el.pts.length <= min) { ctl().toast(nameOf(el) + ' için en az ' + min + ' köşe gerekir.', 'error'); return; }
+    ctl().planSetEl(el.id, { pts: el.pts.filter((q, k) => k !== i) });
+  }
+
+  function svgMove(e) {
+    if (!gest) {
+      const st = get().ui.plan;
+      const t = toolOf(st.tool);
+      if (t.id === 'select' || t.kind === 'pt') { if (t.kind === 'pt') cursorOnly(e); return; }
+      cursorOnly(e);
+      if (st.draft && st.draft.pts.length) {
+        const v = viewNow();
+        const s = toSvg(e);
+        const sn = snapPt(s.x, s.y, { alt: e.altKey });
+        const pts = st.draft.pts.map((q) => [v.X(q[0]), v.Y(q[1])]);
+        pts.push([v.X(sn.p[0]), v.Y(sn.p[1])]);
+        showRub(pts);
+      }
+      return;
+    }
+    const s = toSvg(e);
+    if (gest.t === 'pan') {
+      if (!gest.moved && Math.hypot(e.clientX - gest.cX, e.clientY - gest.cY) < 3) return;
+      gest.moved = true;
+      ctl().planVp({ cx: gest.cx - (s.x - gest.sx) / gest.ppm, cy: gest.cy - (s.y - gest.sy) / gest.ppm });
+      return;
+    }
+    if (gest.t === 'draw') {
+      const st = get().ui.plan;
+      const t = toolOf(st.tool);
+      const o = overlayEls();
+      if (!gest.moved && Math.hypot(s.x - gest.sx, s.y - gest.sy) < 7) return;
+      gest.moved = true;
+      const hasDraft = st.draft && st.draft.pts.length;
+      if (t.kind === 'poly' && !hasDraft) {
+        const sn = snapPt(s.x, s.y, { alt: e.altKey });
+        const v = gest.view;
+        const x0 = Math.min(v.X(gest.start[0]), v.X(sn.p[0])), y0 = Math.min(v.Y(gest.start[1]), v.Y(sn.p[1]));
+        const w = Math.abs(v.X(sn.p[0]) - v.X(gest.start[0])), hh = Math.abs(v.Y(sn.p[1]) - v.Y(gest.start[1]));
+        if (o.rect) { o.rect.setAttribute('x', x0); o.rect.setAttribute('y', y0); o.rect.setAttribute('width', w); o.rect.setAttribute('height', hh); o.rect.setAttribute('visibility', 'visible'); }
+        gest.end = sn.p;
+      }
+      return;
+    }
+    if (gest.t === 'move') {
+      if (!gest.moved) {
+        if (Math.hypot(e.clientX - gest.cX, e.clientY - gest.cY) < 3) return;
+        gest.moved = true;
+        ctl().planLiveBegin();
+      }
+      const P = get().project.plan;
+      const ppm = gest.view.ppm;
+      let dx = (s.x - gest.sx) / ppm, dy = (s.y - gest.sy) / ppm;
+      if (!e.altKey) { dx = gridSnap(dx, P.snap); dy = gridSnap(dy, P.snap); }
+      ctl().planLive(gest.id, plan.moveEl(gest.orig, dx, dy));
+      return;
+    }
+    if (gest.t === 'vtx') {
+      if (!gest.moved) {
+        if (Math.hypot(e.clientX - gest.cX, e.clientY - gest.cY) < 3) return;
+        gest.moved = true;
+        ctl().planLiveBegin();
+        if (gest.insert) {
+          const pts = gest.orig.pts.slice();
+          pts.splice(gest.i, 0, gest.insert);
+          gest.orig = Object.assign({}, gest.orig, { pts: pts });
+          ctl().planLive(gest.id, { pts: pts });
+        }
+      }
+      const sn = snapPt(s.x, s.y, { alt: e.altKey, skip: gest.id });
+      const cur = get().project.plan.els.find((q) => q.id === gest.id);
+      if (!cur) return;
+      const pts = cur.pts.slice();
+      pts[gest.i] = sn.p;
+      ctl().planLive(gest.id, { pts: pts });
+    }
+  }
+
+  function cursorOnly(e) {
+    const o = overlayEls();
+    if (!o.cur) return;
+    const s = toSvg(e);
+    const v = viewNow();
+    const sn = snapPt(s.x, s.y, { alt: e.altKey });
+    o.cur.setAttribute('cx', v.X(sn.p[0])); o.cur.setAttribute('cy', v.Y(sn.p[1]));
+    o.cur.setAttribute('r', sn.v ? 7 : 4);
+    o.cur.setAttribute('visibility', 'visible');
+  }
+
+  function addDraftPt(tool, p) {
+    const st = get().ui.plan;
+    const pts = st.draft && st.draft.tool === tool ? st.draft.pts : [];
+    const last = pts[pts.length - 1];
+    if (last && Math.hypot(last[0] - p[0], last[1] - p[1]) < 0.01) return;
+    ctl().planView({ draft: { tool: tool, pts: pts.concat([p]) } }, true);
+  }
+
+  function svgUp(e) {
+    const g = gest;
+    if (!g) return;
+    gest = null;
+    try { pl.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+    if (g.t === 'pan') { return; }
+    if (g.t === 'move' || g.t === 'vtx') { ctl().planLiveEnd(); return; }
+    if (g.t === 'draw') {
+      const st = get().ui.plan;
+      const t = toolOf(st.tool);
+      hideAll();
+      const hasDraft = st.draft && st.draft.pts.length;
+      if (g.moved && t.kind === 'poly' && !hasDraft && g.end) {
+        const a = g.start, b = g.end;
+        if (Math.abs(a[0] - b[0]) > 0.4 && Math.abs(a[1] - b[1]) > 0.4) {
+          const el = makeEl(t.id, G.rectPts(Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])), true);
+          if (el) ctl().planAdd(el);
+        }
+        return;
+      }
+      const s = toSvg(e);
+      const sn = snapPt(s.x, s.y, { alt: e.altKey });
+      // ilk köşeye tıklamak çokgeni kapatır
+      if (hasDraft && st.draft.pts.length >= 3 && t.kind === 'poly') {
+        const f = st.draft.pts[0];
+        if (Math.hypot(g.view.X(f[0]) - s.x, g.view.Y(f[1]) - s.y) < 11) { finishDraft(); return; }
+      }
+      addDraftPt(t.id, sn.p);
+    }
+  }
+
+  function finishDraft() {
+    const st = get().ui.plan;
+    const d = st.draft;
+    if (!d) return;
+    if (d.pts.length < minPts(d.tool)) { ctl().toast((toolOf(d.tool).full || toolOf(d.tool).label) + ' için en az ' + minPts(d.tool) + ' nokta gerekir.', 'error'); return; }
+    const el = makeEl(d.tool, d.pts, false);
+    ctl().planView({ draft: null }, true);
+    hideAll();
+    if (el) ctl().planAdd(el);
+  }
+  pl.finishDraft = finishDraft;
+
+  /* tekerlek: imleç altındaki nokta sabit kalacak şekilde ölçek değiştir */
+  let wheelAt = 0;
+  function svgWheel(e) {
+    e.preventDefault();
+    const now = Date.now();
+    if (now - wheelAt < 220) return;
+    const P = get().project.plan;
+    const i = plan.SCALES.indexOf(P.scale);
+    const j = U.clamp(i + (e.deltaY > 0 ? 1 : -1), 0, plan.SCALES.length - 1);
+    if (j === i) return;
+    wheelAt = now;
+    const s = toSvg(e);
+    const v = plan.view(P);
+    const wx = v.wx(s.x), wy = v.wy(s.y);
+    const a = v.area, ppm2 = plan.pxPerM(plan.SCALES[j]);
+    ctl().planVp({ scale: plan.SCALES[j], cx: wx - (s.x - a.x - a.w / 2) / ppm2, cy: wy - (s.y - a.y - a.h / 2) / ppm2 });
+  }
+
+  /* klavye (yalnızca bu modülde, yazı alanı odakta değilken) */
+  document.addEventListener('keydown', function (e) {
+    const S = get();
+    if (S.ui.module !== 'vaziyet') return;
+    const tg = e.target;
+    if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT' || tg.isContentEditable)) return;
+    const st = S.ui.plan;
+    const c = ctl();
+    if (e.key === 'Enter' && st.draft) { e.preventDefault(); finishDraft(); }
+    else if (e.key === 'Escape') {
+      if (st.draft) { c.planView({ draft: null }, true); hideAll(); }
+      else if (S.selectedId) c.dispatch({ type: 'SELECT', id: null });
+      else if (st.tool !== 'select') c.planTool('select');
+    } else if (e.key === 'Backspace' && st.draft) { e.preventDefault(); const pts = st.draft.pts.slice(0, -1); c.planView({ draft: pts.length ? { tool: st.draft.tool, pts: pts } : null }, true); hideAll(); }
+    else if ((e.key === 'Delete' || e.key === 'Backspace') && S.selectedId && st.tool === 'select') { e.preventDefault(); c.planDel(S.selectedId); }
+    else if (S.selectedId && st.tool === 'select' && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) >= 0) {
+      const el = S.project.plan.els.find((q) => q.id === S.selectedId);
+      if (!el) return;
+      e.preventDefault();
+      const sn = S.project.plan.snap * (e.shiftKey ? 5 : 1);
+      const dv = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+      c.planSetEl(el.id, plan.moveEl(el, dv[0] * sn, dv[1] * sn));
+    }
+  });
+
+  /* seçim katmanı: öğelerin üzerindeki görünmez hedefler, seçili öğenin tutamaçları */
+  const HIT_ORDER = ['water', 'green', 'plaza', 'park', 'road', 'bld', 'bound', 'tree', 'text'];
+  function hitsLayer(state, P, view) {
+    const sel = state.selectedId;
+    const X = view.X, Y = view.Y;
+    const out = [];
+    const px = (el) => el.pts.map((q) => [X(q[0]), Y(q[1])]);
+    const base = (el) => ({ key: 'h' + el.id, class: 'phit', fill: 'transparent', onpointerdown: (e) => elDown(e, el) });
+    const els = P.els.slice().sort((a, b) => HIT_ORDER.indexOf(a.t) - HIT_ORDER.indexOf(b.t) || 0);
+    els.forEach((el) => {
+      let node;
+      if (el.t === 'tree') node = h('circle', Object.assign(base(el), { cx: X(el.x), cy: Y(el.y), r: Math.max(8, el.r * view.ppm) }));
+      else if (el.t === 'text') node = h('rect', Object.assign(base(el), { x: X(el.x) - Math.max(20, el.s.length * el.size * 0.32), y: Y(el.y) - el.size * 0.7, width: Math.max(40, el.s.length * el.size * 0.64), height: el.size * 1.3 }));
+      else if (el.t === 'road') node = h('path', Object.assign(base(el), { d: el.smooth ? plan.smoothPath(px(el), false) : plan.linePath(px(el), false), fill: 'none', stroke: 'transparent', 'stroke-width': Math.max(16, el.w * view.ppm), 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      else if (el.t === 'bound') node = h('path', Object.assign(base(el), { d: plan.linePath(px(el), true), fill: 'none', stroke: 'transparent', 'stroke-width': 14 }));
+      else node = h('path', Object.assign(base(el), { d: el.smooth && (el.t === 'green' || el.t === 'water' || el.t === 'plaza') ? plan.smoothPath(px(el), true) : plan.linePath(px(el), true) }));
+      out.push(node);
+    });
+    const el = P.els.find((e) => e.id === sel);
+    if (el) {
+      const ink = App.PAL.ink;
+      if (el.pts) {
+        const pp = px(el);
+        const closed = el.t !== 'road';
+        out.push(h('path', { key: 'selring', d: plan.linePath(pp, closed), fill: 'none', stroke: ink, 'stroke-width': 2.2, 'stroke-dasharray': '7 5', 'stroke-linejoin': 'round', 'pointer-events': 'none' }));
+        const n = pp.length;
+        const segs = closed ? n : n - 1;
+        for (let i = 0; i < segs; i++) {
+          const a = pp[i], b = pp[(i + 1) % n];
+          if (Math.hypot(a[0] - b[0], a[1] - b[1]) < 26) continue;
+          const mp = [(el.pts[i][0] + el.pts[(i + 1) % n][0]) / 2, (el.pts[i][1] + el.pts[(i + 1) % n][1]) / 2];
+          out.push(h('circle', { key: 'mid' + i, class: 'pmid', cx: (a[0] + b[0]) / 2, cy: (a[1] + b[1]) / 2, r: 4.5, onpointerdown: (e) => vtxDown(e, el, i + 1, [r2(mp[0]), r2(mp[1])]) }));
+        }
+        pp.forEach((q, i) => out.push(h('circle', { key: 'v' + i, class: 'pvtx', cx: q[0], cy: q[1], r: 6.5, onpointerdown: (e) => vtxDown(e, el, i), oncontextmenu: (e) => { e.preventDefault(); deleteVertex(el, i); } })));
+      } else if (el.t === 'tree') {
+        out.push(h('circle', { key: 'selring', cx: X(el.x), cy: Y(el.y), r: Math.max(8, el.r * view.ppm) + 3, fill: 'none', stroke: ink, 'stroke-width': 2.2, 'stroke-dasharray': '5 4', 'pointer-events': 'none' }));
+      } else if (el.t === 'text') {
+        const w = Math.max(40, el.s.length * el.size * 0.64);
+        out.push(h('rect', { key: 'selring', x: X(el.x) - w / 2 - 4, y: Y(el.y) - el.size * 0.7, width: w + 8, height: el.size * 1.3, fill: 'none', stroke: ink, 'stroke-width': 2, 'stroke-dasharray': '5 4', 'pointer-events': 'none' }));
+      }
+    }
+    return out;
+  }
+
+  function draftLayer(state, view) {
+    const dr = state.ui.plan.draft;
+    const out = [];
+    const ink = App.PAL.ink;
+    if (dr && dr.pts.length) {
+      const pp = dr.pts.map((q) => [view.X(q[0]), view.Y(q[1])]);
+      out.push(h('polyline', { key: 'dl', points: pp.map((q) => q[0].toFixed(1) + ',' + q[1].toFixed(1)).join(' '), fill: 'none', stroke: ink, 'stroke-width': 2.4, 'pointer-events': 'none' }));
+      pp.forEach((q, i) => out.push(h('circle', { key: 'dp' + i, cx: q[0], cy: q[1], r: i === 0 && pp.length >= 3 && toolOf(dr.tool).kind === 'poly' ? 7 : 4, fill: i === 0 ? App.PAL.yellow : '#fff', stroke: ink, 'stroke-width': 2, 'pointer-events': 'none' })));
+    }
+    out.push(h('polyline', { key: 'rub', id: 'pd-rub', points: '', fill: 'none', stroke: ink, 'stroke-width': 1.8, 'stroke-dasharray': '6 5', 'pointer-events': 'none' }));
+    out.push(h('rect', { key: 'rct', id: 'pd-rect', x: 0, y: 0, width: 0, height: 0, fill: 'rgba(0,0,0,.06)', stroke: ink, 'stroke-width': 1.8, 'stroke-dasharray': '6 5', visibility: 'hidden', 'pointer-events': 'none' }));
+    out.push(h('circle', { key: 'cur', id: 'pd-cur', cx: 0, cy: 0, r: 4, fill: 'none', stroke: ink, 'stroke-width': 1.8, visibility: 'hidden', 'pointer-events': 'none' }));
+    return out;
+  }
+
+  pl.board = function (state, d) {
+    const P = state.project;
+    const p = P.plan;
+    const st = state.ui.plan;
+    const c = ctl();
+    const sc = sceneOf(P);
+    const t = toolOf(st.tool);
+    const dr = st.draft;
+    const sel = p.els.find((e) => e.id === state.selectedId);
+    const svg = h('svg', {
+      id: 'pafta-vaziyet', class: 'board-svg board-svg-plan tool-' + st.tool, viewBox: '0 0 ' + App.sheet.W + ' ' + App.sheet.H, preserveAspectRatio: 'xMidYMid meet', role: 'group',
+      'aria-label': 'Vaziyet planı paftası, ölçek 1/' + p.scale + ', ' + p.els.length + ' öğe',
+      ref: (el) => { pl.svgEl = el; }, onpointerdown: svgDown, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp, onwheel: svgWheel, ondblclick: () => { if (get().ui.plan.draft) finishDraft(); }, oncontextmenu: (e) => e.preventDefault(),
+    }, sc.prims.map((q) => App.board.primToV(q)),
+    h('g', { class: 'phits' }, st.tool === 'select' ? hitsLayer(state, p, sc.view) : null),
+    h('g', { class: 'pdraft' }, draftLayer(state, sc.view)));
+    const empty = !p.els.length && !dr;
+    const chipTxt = t.id === 'select' ? null : (t.full || t.label);
+    const stage = h('div', { class: 'board-stage' }, svg,
+      chipTxt ? h('div', { class: 'pl-chip' }, h('b', {}, chipTxt + (dr ? ' · ' + dr.pts.length + ' nokta' : '')),
+        dr && dr.pts.length >= minPts(dr.tool) ? h('button', { type: 'button', class: 'btn btn-yellow pl-fin', onclick: finishDraft }, 'Bitir') : null,
+        dr ? h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Çizimi iptal et', title: 'İptal (Esc)', onclick: () => { c.planView({ draft: null }, true); hideAll(); } }, ui.icon('close', 14)) : h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seç aracına dön', title: 'Seç aracına dön (Esc)', onclick: () => c.planTool('select') }, ui.icon('close', 14)))
+        : (sel ? h('div', { class: 'pl-chip' }, h('b', {}, nameOf(sel)),
+          sel.t === 'bld' ? h('span', { class: 'mono' }, fmt(areaOf(sel)) + ' m² · ' + sel.floors + ' kat') : sel.t === 'road' ? h('span', { class: 'mono' }, fmt(G.polyLen(sel.pts)) + ' m · ' + fmt(sel.w, 1) + ' m') : sel.pts && sel.t !== 'road' ? h('span', { class: 'mono' }, fmt(areaOf(sel)) + ' m²') : null,
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null),
+      empty ? ui.emptyCard('Önce bir vaziyet çizin', 'Soldan bir araç seçip paftada çizin ya da hazır bir başlangıçla ilerleyin: örnek mahalle, Birim Oluşturucu’daki kütleniz ya da İmar modülündeki parseliniz.', [
+        ui.btn('Örnek vaziyet', { icon: 'play', cls: 'btn-primary', onclick: () => c.planSample() }),
+        ui.btn('Yeni yapı çiz', { icon: 'rect', onclick: () => c.planTool('yeni') })]) : null);
+
+    return ui.boardPage(state, d, {
+      label: 'Vaziyet planı paftası',
+      stage: stage,
+      scale: 'Ölçek 1/' + p.scale + ' · A3 · 1 cm = ' + fmt(p.scale / 100, p.scale < 500 ? 1 : 0) + ' m',
+      foot: h('p', { class: 'board-hint' }, t.hint),
+      tools: [
+        { k: 'seg', label: 'Pafta ölçeği', value: p.scale, options: plan.SCALES.map((s) => ({ v: s, label: '1/' + s })), onchange: (v) => c.planScale(v) },
+        { k: 'sep' },
+        { k: 'btn', label: 'Sığdır', icon: 'expand', onclick: () => c.planFit(), disabled: !p.els.length, title: 'Çizimi pafta ortasına ve uygun ölçeğe getir' },
+        { k: 'sep' },
+        { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => c.dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
+        { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => c.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },
+      ],
+    });
+  };
+})();
+
+/* ==========================================================================
+   79-ctl-plan.js — Vaziyet Planı yan etkileri: görünüm, canlı düzenleme, içe alma, dışa aktarma (PNG · PDF · DXF)
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const ctl = App.ctl;
+  const U = App.util;
+  const plan = App.plan;
+  const get = () => App.store.get();
+  const cur = () => get().project.plan;
+
+  /* ---------------- arayüz durumu ---------------- */
+  const BV = ctl.makeView('plan', 'archtools.view.vaziyet', ['tab']);
+  ctl.planView = BV.set;
+  ctl.loadPlanView = function () {
+    BV.load(function (o) { return ['cizim', 'sayfa', 'liste'].indexOf(o.tab) >= 0 ? { tab: o.tab } : null; });
+  };
+  ctl.planTool = function (id) { ctl.planView({ tool: id, draft: null }, true); };
+
+  /* ---------------- belge ---------------- */
+  let liveOn = false;
+  ctl.planLiveBegin = function () { if (!liveOn) { liveOn = true; ctl.dispatch({ type: 'SNAPSHOT' }); } };
+  ctl.planLiveEnd = function () { liveOn = false; };
+  ctl.planSet = (patch) => ctl.dispatch({ type: 'PLAN_SET', patch: patch });
+  ctl.planVp = (patch) => ctl.dispatch({ type: 'PLAN_VIEW', patch: patch });
+  ctl.planScale = function (s) {
+    const P = cur();
+    if (s === P.scale) return;
+    ctl.planVp({ scale: s });
+  };
+
+  /* ölçek seç: verilen genişlik/yükseklik pafta alanına sığan en büyük ölçek */
+  plan.pickScale = function (w, hh) {
+    const a = plan.area();
+    for (let i = 0; i < plan.SCALES.length; i++) {
+      const ppm = plan.pxPerM(plan.SCALES[i]);
+      if (w * ppm <= a.w * 0.82 && hh * ppm <= a.h * 0.82) return plan.SCALES[i];
+    }
+    return plan.SCALES[plan.SCALES.length - 1];
+  };
+  ctl.planFit = function () {
+    const P = cur();
+    if (!P.els.length) return;
+    const f = plan.fit(P.els);
+    ctl.planVp({ cx: f.cx, cy: f.cy, scale: plan.pickScale(f.w || 10, f.h || 10) });
+  };
+
+  /* ---------------- öğeler ---------------- */
+  ctl.planAdd = function (el) { ctl.dispatch({ type: 'PLAN_EL_ADD', el: el }); };
+  ctl.planSetEl = (id, patch) => ctl.dispatch({ type: 'PLAN_EL_SET', id: id, patch: patch });
+  ctl.planLive = function (id, patch) { ctl.planLiveBegin(); ctl.dispatch({ type: 'PLAN_EL_SET_LIVE', id: id, patch: patch }); };
+  ctl.planDel = (id) => ctl.dispatch({ type: 'PLAN_EL_DEL', id: id });
+  ctl.planDup = (id) => ctl.dispatch({ type: 'PLAN_EL_DUP', id: id });
+  ctl.planOrder = (id, dir) => ctl.dispatch({ type: 'PLAN_EL_ORDER', id: id, dir: dir });
+
+  ctl.planRoadTrees = function (id) {
+    const el = cur().els.find((e) => e.id === id);
+    if (!el || el.t !== 'road') return;
+    const trees = plan.alongRoad(el, 9, 2.6);
+    if (!trees.length) { ctl.toast('Yol çok kısa; ağaç eklenemedi.', 'error'); return; }
+    ctl.dispatch({ type: 'PLAN_EL_ADD_MANY', els: trees });
+    ctl.toast(trees.length + ' ağaç yolun iki yanına dikildi.', 'success');
+  };
+  ctl.planScatter = function (id) {
+    const P = cur();
+    const el = P.els.find((e) => e.id === id);
+    if (!el || !el.pts || el.t === 'road') return;
+    const n = U.clamp(Math.round(plan.geo.area(el.pts) / 160), 4, 80);
+    const avoid = P.els.filter((e) => e.t === 'bld').map((e) => e.pts);
+    const trees = plan.scatterIn(el.pts, n, null, 2.4, 4.4, avoid);
+    if (!trees.length) { ctl.toast('Bu alana ağaç sığmadı.', 'error'); return; }
+    ctl.dispatch({ type: 'PLAN_EL_ADD_MANY', els: trees });
+    ctl.toast(trees.length + ' ağaç serpildi.', 'success');
+  };
+
+  /* ---------------- içe alma ---------------- */
+  function load(els, o) {
+    const f = plan.fit(els);
+    const scale = plan.pickScale(f.w || 10, f.h || 10);
+    ctl.dispatch({ type: 'PLAN_LOAD', els: els, scale: o && o.scale ? o.scale : scale });
+    ctl.planView({ tool: 'select', draft: null, tab: 'cizim' }, true);
+  }
+  ctl.planSample = function () {
+    const els = plan.sample(Math.floor(Math.random() * 1e6) + 1);
+    ctl.dispatch({ type: 'PLAN_LOAD', els: els, scale: 1000 });
+    ctl.planView({ tool: 'select', draft: null }, true);
+    ctl.toast('Örnek vaziyet yüklendi. Öğeleri sürükleyin, köşeleri çekin, kendi çiziminizi ekleyin.', 'success');
+  };
+  ctl.planFromUnit = function () {
+    const u = get().project.unit;
+    if (!u) return;
+    // seçili adımda kütle yoksa kütle içeren son adım alınır
+    let i = Math.min(u.cur, u.steps.length - 1);
+    if (!u.steps[i].els.some((e) => e.t === 'mass')) {
+      for (let k = u.steps.length - 1; k >= 0; k--) if (u.steps[k].els.some((e) => e.t === 'mass')) { i = k; break; }
+    }
+    const els = plan.fromUnit(Object.assign({}, u, { cur: i }));
+    load(els, { scale: 500 });
+    ctl.toast('Birim Oluşturucu’daki “' + (u.steps[i].title || 'adım') + '” adımı aktarıldı.', 'success');
+  };
+  ctl.planFromImar = function () {
+    const els = plan.fromImar(get().project);
+    if (!els) { ctl.toast('Önce Arsa / İmar modülünde bir parsel çizin.', 'error'); return; }
+    load(els);
+    ctl.toast('İmar parseli aktarıldı' + (els.length > 1 ? ' (' + (els.length - 1) + ' kütle parçasıyla).' : '.'), 'success');
+  };
+  ctl.planClear = function () { ctl.dispatch({ type: 'PLAN_CLEAR' }); ctl.toast('Vaziyet temizlendi. Geri al ile döndürebilirsiniz.', 'info'); };
+
+  /* ---------------- dışa aktarma ---------------- */
+  ctl.exporters.vaziyet = function (kind) {
+    const label = kind === 'png' ? 'PNG' : 'PDF';
+    ctl.dispatch({ type: 'UI', patch: { busy: label } });
+    const P = get().project;
+    const sc = plan.scene(P.plan, { live: false });
+    App.sheet.exportScene(sc.prims, App.sheet.W, App.sheet.H, P.meta.name + '-vaziyet-1-' + P.plan.scale, kind).then((r) => ctl.report(r, label + ' hazır')).catch((e) => ctl.report({ ok: false, message: e && e.message }));
+  };
+
+  /* DXF: gerçek koordinat (m), y yukarı; her tür ayrı katman */
+  const LAYERS = {
+    SINIR: { color: 1, label: 'Proje sınırı' }, YAPI_YENI: { color: 7, label: 'Yeni yapılar' }, YAPI_MEVCUT: { color: 8, label: 'Mevcut yapılar' },
+    YOL: { color: 9, label: 'Taşıt yolu (eksen)' }, YAYA: { color: 30, label: 'Yaya yolu (eksen)' }, YESIL: { color: 3, label: 'Yeşil alan' },
+    SU: { color: 5, label: 'Su' }, MEYDAN: { color: 40, label: 'Meydan' }, OTOPARK: { color: 8, label: 'Otopark' }, AGAC: { color: 3, label: 'Ağaçlar' }, YAZI: { color: 7, label: 'Yazılar' },
+  };
+  function dxfDoc(P) {
+    const p = P.plan;
+    const doc = { title: P.meta.name, units: 'm', layers: LAYERS, entities: [] };
+    const fy = (q) => [q[0], -q[1]];
+    p.els.forEach((e) => {
+      if (e.t === 'tree') { doc.entities.push({ layer: 'AGAC', kind: 'circle', at: fy([e.x, e.y]), r: e.r }); return; }
+      if (e.t === 'text') { doc.entities.push({ layer: 'YAZI', kind: 'text', at: fy([e.x, e.y]), text: e.s, h: Math.max(1, e.size * p.scale / 3333 * 0.9), align: 'center' }); return; }
+      const layer = e.t === 'bound' ? 'SINIR' : e.t === 'bld' ? (e.k === 'mevcut' ? 'YAPI_MEVCUT' : 'YAPI_YENI') : e.t === 'road' ? (e.k === 'yaya' ? 'YAYA' : 'YOL') : e.t === 'green' ? 'YESIL' : e.t === 'water' ? 'SU' : e.t === 'plaza' ? 'MEYDAN' : 'OTOPARK';
+      doc.entities.push({ layer: layer, kind: 'poly', closed: e.t !== 'road', pts: e.pts.map(fy) });
+      if (e.t === 'bld' && e.k === 'yeni') {
+        const c = plan.geo.centroid(e.pts);
+        doc.entities.push({ layer: 'YAZI', kind: 'text', at: fy(c), text: e.floors + ' kat', h: 1.2, align: 'center' });
+      }
+    });
+    return doc;
+  }
+  ctl.planDxf = function () {
+    ctl.runExport('DXF', (P) => {
+      if (!App.dxf) return Promise.reject(new Error('DXF yazıcısı yüklenemedi.'));
+      return ctl.saveText(U.slug(P.meta.name) + '-vaziyet.dxf', App.dxf.build(dxfDoc(P)), 'application/dxf');
+    });
+  };
+
+  /* asistan kartı eylemleri */
+  const baseRun = ctl.runAction;
+  ctl.runAction = function (a) {
+    if (a.type === 'select' && get().ui.module === 'vaziyet') { ctl.dispatch({ type: 'SELECT', id: a.id }); ctl.planView({ tab: 'cizim' }, true); return; }
+    baseRun(a);
+  };
+})();
+
+/* ==========================================================================
+   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/birim · #/vaziyet
    Geçiş: View Transitions varsa yumuşak çapraz solma, yoksa anında.
    ========================================================================== */
 (function () {
   const App = window.App;
   const ctl = App.ctl;
-  const IDS = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'birim'];
+  const IDS = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'birim', 'vaziyet'];
   const get = () => App.store.get();
 
   const fromHash = function () {
@@ -24471,6 +25942,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   App.ctl.loadDsnView();
   App.ctl.loadFizView();
   App.ctl.loadUnitView();
+  App.ctl.loadPlanView();
   const fromLink = App.ctl.hashSite(); // #/arsa?lat=…&lon=… paylaşım bağlantısı
 
   function view() {

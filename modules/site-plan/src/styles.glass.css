@@ -1,0 +1,3 @@
+/* Modül 10 — cam teması */
+.ptool[aria-pressed="true"] { box-shadow: var(--press-sm); }
+.pl-chip { border-radius: 99px; background: var(--glass-2, #fff); border: 1px solid var(--stroke); box-shadow: var(--raise-sm); }

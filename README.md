@@ -1,6 +1,6 @@
 # archtools — Mimari Tasarım Asistanı Platformu
 
-Mimari yardımcı araçların toplandığı depo. Dokuz modül tek sitede, ortak proje verisiyle çalışır: bir modülde yaptığınız değişiklik diğerlerine otomatik yansır. İlk üçü bina içini, sonraki üçü bina çevresini ve parseli, sonraki ikisi tasarım üretimini ve maliyeti, sonuncusu bir yapı kütlesinin adım adım şekillendirilmesini ele alır.
+Mimari yardımcı araçların toplandığı depo. On modül tek sitede, ortak proje verisiyle çalışır: bir modülde yaptığınız değişiklik diğerlerine otomatik yansır. İlk üçü bina içini, sonraki üçü bina çevresini ve parseli, sonraki ikisi tasarım üretimini ve maliyeti, sonuncusu bir yapı kütlesinin adım adım şekillendirilmesini ele alır.
 
 | # | Modül | Ne yapar | Rota |
 |---|---|---|---|
@@ -13,6 +13,7 @@ Mimari yardımcı araçların toplandığı depo. Dokuz modül tek sitede, ortak
 | 07 | **Tasarım Üretici** | İmar ve parselden kütle, tipik kat planı (daire karması slider'larıyla), bodrum otopark, alternatif karşılaştırma; DXF · IFC4 · Excel · GeoJSON · KML | `#/tasarim` |
 | 08 | **Maliyet ve Fizibilite** | Seçili tasarımdan metraj, maliyet, gelir, nakit akışı, kâr, başabaş ve artık arsa değeri, duyarlılık; canlı formüllü Excel | `#/fizibilite` |
 | 09 | **Birim Oluşturucu** | Parsel üzerinde bir yapı kütlesi kur (dikdörtgen / L / T / U, kat sayısı), her adımı bir öncekinin kopyası olarak şekillendir (böl, boşluk aç, yeşil ve ağaç ekle, yaya akışı / geçit / giriş okları); plan, izometrik ve tüm adımları yan yana gösteren **süreç afişi**; TAKS / KAKS / yeşil oranı; PNG · PDF | `#/birim` |
+| 10 | **Vaziyet Planı** | 1/200 – 1/5000 ölçekli A3 vaziyet paftası: sürükleyerek / köşe tıklayarak yeni ve mevcut yapı, taşıt ve yaya yolu, yeşil alan, su, meydan, otopark, proje sınırı, ağaç ve yazı çiz; köşe tutamaçları, kaydır, tekerlekle ölçek, komşu köşeye yapışma; gölge, kat etiketi, ölçek çubuğu, kuzey oku, lejant; TAKS / KAKS / yeşil oranı; örnek mahalle, Birim Oluşturucu ve İmar parselinden içe alma; PNG · PDF · DXF | `#/vaziyet` |
 
 Arsa Analizi'nde 15 dakikalık şehir karnesi, kural tabanlı **Sor** kutusu ve işlev yoğunluğu katmanı; Mekân Etüdü'nün kat kipinde plan alternatifleri galerisi, her iki kipte DXF çıktısı vardır. Üst çubuktaki **Rapor** düğmesi, verisi olan tüm modüllerin paftalarını kapak, içindekiler ve yöntem/kaynaklar sayfasıyla tek çok sayfalı PDF'te toplar.
 
@@ -36,6 +37,7 @@ modules/space-analysis/src   Modül 3 — izometrik motor, analiz, arayüz, cont
 modules/site-analysis/src    Modül 4 · 5 · 6 — GIS / OSM / HERE kitaplığı, imar hesabı, yer seçimi, paftalar, dışa aktarma, arayüz, controller
 modules/building-design/src  Modül 7 · 8 — tasarım motoru, maliyet motoru, IFC yazıcısı, paftalar, arayüz, controller, proje raporu
 modules/mass-builder/src     Modül 9 — birim oluşturucu: veri modeli, plan / izometrik / süreç paftası, adım ve öğe eylemleri, arayüz, controller
+modules/site-plan/src        Modül 10 — vaziyet planı: ölçekli veri modeli, pafta sahnesi, çizim araçları, içe alma, PNG / PDF / DXF
 platform/src                 Kabuk: ortak pafta çerçevesi, DXF / XLSX / PDF yazıcıları, modül gezgini, kontroller, intro, rota, başlatma
 ```
 JS dosyaları klasörden bağımsız olarak **dosya adındaki sayı önekine** göre birleşir: 00–27 çekirdek ve ortak mantık · 28–29 ortak pafta · 30 state · 31–39 modül mantığı · 40–49 ortak arayüz · 50–59 controller (Modül 1) · 60–79 modül arayüzleri ve controller'ları · 90–99 kabuk ve başlatma. Yeni modül eklemek için `modules/<ad>/src` klasörünü `build.py` içindeki `SRC_DIRS` listesine ekleyin.
@@ -57,7 +59,8 @@ Dosya şeması `mimari-asistan.bubble-diagram` v1'dir; `platform: "archtools"` a
     "siteSelection": { "candidates": [], "weights": {}, "filters": {}, "ranking": [] },
     "design":        { "version": 1, "parameters": {}, "selected": "", "result": {}, "alternatives": [] },
     "feasibility":   { "assumptions": {}, "result": {} },
-    "massBuilder":   { "version": 1, "unit": "m", "site": {}, "context": {}, "steps": [ { "title": "", "elements": [], "metrics": {} } ] }
+    "massBuilder":   { "version": 1, "unit": "m", "site": {}, "context": {}, "steps": [ { "title": "", "elements": [], "metrics": {} } ] },
+    "sitePlan":      { "version": 1, "unit": "m", "scale": 1000, "center": [0, 0], "elements": [ { "type": "bld", "points": [], "floors": 4, "kind": "yeni" } ], "metrics": {} }
   }
 }
 ```

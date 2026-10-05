@@ -166,6 +166,12 @@
     const a = Object.assign({}, extra || {});
     if (p.opacity != null) a.opacity = p.opacity;
     switch (p.t) {
+      case 'g': {
+        // kırpmalı grup: p.clip = { id, x, y, w, h } (dikdörtgen) ya da { id, pts } (çokgen); p.items = primitifler
+        const cid = 'clip-' + (p.clip.id || 'g');
+        const shape = p.clip.pts ? h('polygon', { points: p.clip.pts.map((q) => q.join(',')).join(' ') }) : h('rect', { x: p.clip.x, y: p.clip.y, width: p.clip.w, height: p.clip.h });
+        return h('g', a, h('clipPath', { id: cid }, shape), h('g', { 'clip-path': 'url(#' + cid + ')' }, p.items.map((q) => primToV(q))));
+      }
       case 'rect':
         Object.assign(a, { x: p.x, y: p.y, width: p.w, height: p.h, fill: p.fill || 'none' });
         if (p.rx) a.rx = p.rx;
@@ -210,6 +216,16 @@
   }
 
   function paintPrim(ctx, p) {
+    if (p.t === 'g') {
+      ctx.save();
+      if (p.opacity != null) ctx.globalAlpha = p.opacity;
+      ctx.beginPath();
+      if (p.clip.pts) { p.clip.pts.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]))); ctx.closePath(); } else ctx.rect(p.clip.x, p.clip.y, p.clip.w, p.clip.h);
+      ctx.clip();
+      p.items.forEach((q) => paintPrim(ctx, q));
+      ctx.restore();
+      return;
+    }
     ctx.save();
     if (p.opacity != null) ctx.globalAlpha = p.opacity;
     ctx.setLineDash(p.dash || []);

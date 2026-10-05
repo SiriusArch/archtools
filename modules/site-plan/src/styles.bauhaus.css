@@ -1,0 +1,4 @@
+/* Modül 10 — Bauhaus teması */
+.ptool[aria-pressed="true"] { background: var(--blue); color: #fff; box-shadow: 4px 4px 0 var(--shadow); }
+.phit:hover { fill: rgba(38, 29, 17, .09); }
+.pl-chip { border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--shadow); text-transform: uppercase; letter-spacing: .05em; }
