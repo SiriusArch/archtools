@@ -9,3 +9,8 @@
 .altc-b { border: 2px solid var(--ink); background: var(--surface); }
 .altc.on .altc-b { box-shadow: 4px 4px 0 var(--blue); border-color: var(--blue); }
 .altc-best { background: var(--yellow); color: var(--on-yellow); border: 2px solid var(--ink); }
+.rel-chip { text-transform: uppercase; letter-spacing: .06em; }
+.rel-chip.rel-strong { background: var(--blue); color: #fff; }
+.fr-bad { background: var(--red); color: #fff; }
+.fitem-hit:hover { fill: rgba(38, 29, 17, .09); }
+.fhandle { stroke: var(--blue-2); }

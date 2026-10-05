@@ -79,6 +79,33 @@ html.bloom .bubble:nth-child(7) { animation-delay: .47s; } html.bloom .bubble:nt
 .altc-best { position: absolute; top: 6px; right: 6px; padding: 1px 7px; }
 .altc-w { color: var(--ink-2); }
 
+/* Mekân Etüdü — serbest düzen kipi */
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.fr-add { display: flex; align-items: center; gap: 8px; }
+.fr-add .inp:first-child { flex: 1 1 auto; min-width: 0; }
+.fr-add .btn-icon { flex: none; }
+.fr-shape { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.fr-ico { display: inline-grid; place-items: center; }
+.nfld-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.nfld { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.nfld-l { font-size: 12.5px; color: var(--ink-2); font-weight: 600; }
+.nfld-c { display: flex; align-items: center; gap: 6px; }
+.nfld-i { width: 100%; min-width: 0; }
+.fr-area { margin: 2px 0 0; font-size: 13.5px; }
+.fr-dev.warn { font-weight: 700; }
+.fr-bad { flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; font-weight: 800; font-size: 12px; background: var(--ink); color: var(--on-ink, #fff); }
+.frel .row-main { flex-wrap: wrap; }
+.frel-act { display: flex; align-items: center; gap: 6px; padding: 0 4px 4px 12px; }
+.rel-chip { display: inline-flex; align-items: center; padding: 2px 9px; font: 700 11.5px var(--f-body); border: 0; cursor: pointer; color: var(--ink); background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
+.rel-chip.rel-strong { background: var(--ink); color: var(--on-ink, #fff); box-shadow: none; }
+.rel-chip.rel-none { opacity: .55; }
+.rel-chip.rel-avoid { text-decoration: line-through; }
+.board-svg-mekan { touch-action: none; }
+.fitem-hit { cursor: grab; pointer-events: all; outline: none; }
+.fitem-hit:hover { fill: rgba(23, 24, 27, .07); }
+.fitem-hit:focus-visible { stroke: var(--ink); stroke-width: 3; }
+.fhandle { fill: var(--surface, #fff); stroke: var(--ink); stroke-width: 2; pointer-events: all; }
+
 /* Modül 3 — Mekân Analizi: iki temada ortak yerleşim */
 .board-svg-analiz { cursor: grab; }
 .board-svg-analiz:active { cursor: grabbing; }
@@ -689,6 +716,8 @@ html[data-style="glass"] .core-row .tgl { flex: none; }
 html[data-style="glass"] .altc-b { border-radius: 18px; background: var(--glass-2); box-shadow: var(--raise-sm); }
 html[data-style="glass"] .altc.on .altc-b { box-shadow: var(--press-sm); background: var(--inset-bg); }
 html[data-style="glass"] .altc-best { border-radius: 99px; background: var(--ink); color: var(--on-ink); }
+html[data-style="glass"] .rel-chip { border-radius: 99px; }
+html[data-style="glass"] .fr-bad { border-radius: 50%; }
 html[data-style="glass"] .an-chip { padding: 6px 8px 6px 16px; border-radius: 99px; background: var(--glass-2); border: 1px solid var(--stroke); box-shadow: var(--raise-sm); font-weight: 700; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 html[data-style="glass"] .aflr { border-radius: 24px; transition: background-color .18s, box-shadow .18s; }
 html[data-style="glass"] .aflr .row-main.aflr-btn { padding: 9px 12px 10px; border-radius: 24px; }
@@ -1248,6 +1277,11 @@ html[data-style="bauhaus"] .fcell.over .fcell-hit { fill: rgba(234, 174, 27, .22
 html[data-style="bauhaus"] .altc-b { border: 2px solid var(--ink); background: var(--surface); }
 html[data-style="bauhaus"] .altc.on .altc-b { box-shadow: 4px 4px 0 var(--blue); border-color: var(--blue); }
 html[data-style="bauhaus"] .altc-best { background: var(--yellow); color: var(--on-yellow); border: 2px solid var(--ink); }
+html[data-style="bauhaus"] .rel-chip { text-transform: uppercase; letter-spacing: .06em; }
+html[data-style="bauhaus"] .rel-chip.rel-strong { background: var(--blue); color: #fff; }
+html[data-style="bauhaus"] .fr-bad { background: var(--red); color: #fff; }
+html[data-style="bauhaus"] .fitem-hit:hover { fill: rgba(38, 29, 17, .09); }
+html[data-style="bauhaus"] .fhandle { stroke: var(--blue-2); }
 html[data-style="bauhaus"] .an-chip { padding: 5px 6px 5px 12px; border: 3px solid var(--line); background: var(--surface); box-shadow: 4px 4px 0 var(--shadow); font: 700 13px var(--f-display); letter-spacing: .08em; text-transform: uppercase; }
 html[data-style="bauhaus"] .aflr .row-main.aflr-btn { padding: 7px 8px; }
 html[data-style="bauhaus"] .aflr .row-main.aflr-btn:hover { background: var(--surface-2); }
@@ -6022,7 +6056,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 /* ==========================================================================
    34-lib-analysis.js — Modül 3: mekân analizi (patlatılmış izometrik simülasyon)
    Veri : Modül 2'nin kat planı (App.study.derive) + Modül 1'in ilişkileri / bilgi tabanı
-   Mod  : 'floors'  → her kat bir levha, işlev renkli, düşey çizgiler, kat göstergesi
+   Mod  : 'modules' → mekânlar (Modül 2 serbest düzen) yan yana: her mekân kendi şekliyle ayrı bir hacim
+          'floors'  → her kat bir levha, işlev renkli, düşey çizgiler, kat göstergesi
           'layers'  → seçili katın analiz katmanları (taban, işlev, sirkülasyon, doluluk, ilişki, gürültü)
    Çıktı: primitif listesi (SVG + PNG/PDF aynı listeden) + etkileşim bölgeleri + bulgular
    ========================================================================== */
@@ -6043,7 +6078,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   ];
 
   App.analysisDefaults = function () {
-    return { mode: 'floors', explode: 1, yaw: -34, pitch: 36, labels: true, arrows: true, guides: true, volume: true, floorId: null, sel: null, layers: ['taban', 'islev', 'sirk', 'doluluk', 'iliski'] };
+    return { mode: 'floors', arrange: 'yerlesim', color: 'islev', explode: 1, yaw: -34, pitch: 36, labels: true, arrows: true, guides: true, volume: true, floorId: null, sel: null, layers: ['taban', 'islev', 'sirk', 'doluluk', 'iliski'] };
   };
 
   /* ---------- tema renkleri ---------- */
@@ -6385,6 +6420,201 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     return P;
   }
 
+  /* ---------- yan yana kip: serbest düzendeki mekânlar ayrı hacimler olarak açılır ---------- */
+  function hull(pts) {
+    const p = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    if (p.length < 3) return p;
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const lo = [], up = [];
+    p.forEach((q) => { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); });
+    for (let i = p.length - 1; i >= 0; i--) { const q = p[i]; while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+    lo.pop(); up.pop();
+    return lo.concat(up);
+  }
+
+  // yerleşimi koruyarak açma katsayısı: kutular arası en az gap kalana dek
+  function spreadFactor(items, gap) {
+    for (let k = 1; k <= 8; k += 0.1) {
+      let ok = true;
+      for (let i = 0; i < items.length && ok; i++) for (let j = i + 1; j < items.length; j++) {
+        const A = items[i], B = items[j];
+        const dx = Math.abs(A.cx0 - B.cx0) * k - (A.w + B.w) / 2, dy = Math.abs(A.cy0 - B.cy0) * k - (A.h + B.h) / 2;
+        if (dx < gap && dy < gap) { ok = false; break; }
+      }
+      if (ok) return k;
+    }
+    return 8;
+  }
+
+  // sıralı dizilim: bölgeye göre gruplanmış raf düzeni
+  function rowLayout(items, gap) {
+    const zi = (z) => { const i = App.ZONE_ORDER.indexOf(z); return i < 0 ? 99 : i; };
+    const sorted = items.slice().sort((a, b) => zi(a.zone) - zi(b.zone) || b.area - a.area);
+    const total = U.sum(sorted, (i) => i.w * i.h);
+    const target = Math.max(Math.sqrt(total) * 2.3, Math.max.apply(null, sorted.map((i) => i.w)));
+    let x = 0, y = 0, rh = 0, maxX = 0;
+    const pos = {};
+    sorted.forEach((it) => {
+      if (x > 0 && x + it.w > target) { x = 0; y += rh + gap; rh = 0; }
+      pos[it.id] = [x, y];
+      x += it.w + gap; rh = Math.max(rh, it.h); maxX = Math.max(maxX, x - gap);
+    });
+    return { pos: pos, w: maxX, h: y + rh };
+  }
+
+  function sceneModules(project, d, view, live) {
+    const fd = App.study.freeDerive(project);
+    const A = analyze(project, d);
+    const C = cols();
+    const g = C.glass;
+    const tb = sheet.tb;
+    const ex = U.clamp(view.explode, 0, 1);
+    const eased = ex;
+    const raw = fd.items;
+    const items = raw.map((it) => Object.assign({}, it, { cx0: it.x + it.w / 2, cy0: it.y + it.h / 2 }));
+    const n = items.length;
+    const gapMin = 2.4;
+    // yerleşim merkezi
+    let C0x = 0, C0y = 0;
+    items.forEach((it) => { C0x += it.cx0; C0y += it.cy0; });
+    if (n) { C0x /= n; C0y /= n; }
+    const disp = new Map();
+    if (view.arrange === 'sira') {
+      const R = rowLayout(items, gapMin);
+      const ox = C0x - R.w / 2, oy = C0y - R.h / 2;
+      items.forEach((it) => { const p = R.pos[it.id]; disp.set(it.id, [it.x + (ox + p[0] - it.x) * eased, it.y + (oy + p[1] - it.y) * eased]); });
+    } else {
+      const K = n > 1 ? spreadFactor(items, gapMin) : 1;
+      const k = 1 + eased * (K - 1);
+      items.forEach((it) => disp.set(it.id, [C0x + (it.cx0 - C0x) * k - it.w / 2, C0y + (it.cy0 - C0y) * k - it.h / 2]));
+    }
+    const moved = items.map((it) => {
+      const p = disp.get(it.id);
+      const dx = p[0] - it.x, dy = p[1] - it.y;
+      return Object.assign({}, it, { x: p[0], y: p[1], ring: it.ring.map((q) => [q[0] + dx, q[1] + dy]), cx: it.cx + dx, cy: it.cy + dy, dx: dx, dy: dy, hgt: view.volume ? U.clamp(2.4 + 0.14 * Math.sqrt(it.area), 2.6, 4.4) : 0.12 });
+    });
+    // sınırlar (yer levhası)
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const grow = (it) => { x0 = Math.min(x0, it.x); y0 = Math.min(y0, it.y); x1 = Math.max(x1, it.x + it.w); y1 = Math.max(y1, it.y + it.h); };
+    moved.forEach(grow); items.forEach(grow);
+    if (!isFinite(x0)) { x0 = 0; y0 = 0; x1 = 12; y1 = 8; }
+    const m = 1.6;
+    x0 -= m; y0 -= m; x1 += m; y1 += m;
+    const area = { x: 56, y: 62, w: 960, h: tb.y - 62 - 30 };
+    const cu = (x0 + x1) / 2, cv = (y0 + y1) / 2;
+    // ölçek: tüm köşelerin ekran kutusu
+    const I0 = iso.make({ yaw: view.yaw, pitch: view.pitch, s: 1, cx: 0, cy: 0, center: [cu, cv] });
+    let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+    const acc = (q) => { bx0 = Math.min(bx0, q[0]); bx1 = Math.max(bx1, q[0]); by0 = Math.min(by0, q[1]); by1 = Math.max(by1, q[1]); };
+    [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].forEach((q) => { acc(I0.proj(q[0], q[1], -0.3)); });
+    moved.forEach((it) => it.ring.forEach((q) => { acc(I0.proj(q[0], q[1], it.hgt)); }));
+    const s = Math.min(area.w / Math.max(1, bx1 - bx0), area.h / Math.max(1, by1 - by0), 80) * 0.95;
+    const I = iso.make({ yaw: view.yaw, pitch: view.pitch, s: s, cx: area.x + area.w / 2 - ((bx0 + bx1) / 2) * s, cy: area.y + area.h / 2 - ((by0 + by1) / 2) * s, center: [cu, cv] });
+
+    const colorMode = view.color === 'gurultu' ? 'gurultu' : 'islev';
+    const fillOf = (it) => (colorMode === 'gurultu' ? C.noise[A.noise.get(it.id) || 'mid'] : (App.ZONES[it.zone] || App.ZONES.sosyal).fill);
+    const textOf = (it) => (colorMode === 'gurultu' ? C.noiseText[A.noise.get(it.id) || 'mid'] : (App.ZONES[it.zone] || App.ZONES.sosyal).text);
+
+    const zones = [];
+    project.spaces.forEach((sp) => { if (zones.indexOf(sp.zone) < 0) zones.push(sp.zone); });
+    const legend = colorMode === 'gurultu'
+      ? [{ label: 'Gürültülü', fill: C.noise.loud }, { label: 'Orta', fill: C.noise.mid }, { label: 'Sessiz', fill: C.noise.quiet }]
+      : sheet.zoneLegend(zones).slice(0, 5);
+    const lineLg = (label, stroke, sw, dash) => ({ label: label, line: { stroke: stroke, sw: sw, dash: dash, cap: 'round' } });
+    legend.push(lineLg('Güçlü ilişki', C.strongLine, 3), lineLg('Ayrı tut', C.glass ? C.ink : App.PAL.red, 2, [1.5, 5]));
+    const info = {
+      name: project.meta.name,
+      subtitle: 'Mekân analizi · ' + n + ' mekân yan yana' + (view.arrange === 'sira' ? ' · sıralı' : ''),
+      legend: legend.slice(0, 8),
+      stats: [['Mekân', String(n)], ['Toplam alan', fmt(fd.metrics.total) + ' m²'], ['Kaplama', fmt(fd.bounds.w, 1) + ' × ' + fmt(fd.bounds.h, 1) + ' m']],
+      scoreLabel: 'Düzen skoru', percent: fd.metrics.score,
+    };
+    const prims = sheet.frame(info, live);
+    const hits = [];
+    const add = (arr) => arr.forEach((p) => prims.push(p));
+
+    // zemin levhası + ızgara
+    add(iso.prism(I, x0, y0, x1 - x0, y1 - y0, -0.3, 0, C.slabTop, { stroke: C.slabStroke, sw: C.sw }));
+    // hayalet: özgün (birleşik) konum izleri
+    if (view.guides && ex > 0.04) {
+      items.forEach((it) => {
+        const pts = it.ring.map((q) => I.proj(q[0], q[1], 0.02));
+        prims.push({ t: 'poly', pts: pts, stroke: C.ink, sw: 1, dash: [4, 4], opacity: 0.4 * Math.min(1, ex * 4) });
+      });
+      moved.forEach((it) => {
+        const a = I.proj(it.cx - it.dx, it.cy - it.dy, 0.02), b = I.proj(it.cx, it.cy, 0.02);
+        if (Math.hypot(a[0] - b[0], a[1] - b[1]) > 8) prims.push({ t: 'line', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: C.guide, sw: 1, dash: [2, 5], opacity: 0.5 });
+      });
+    }
+    const dimK = (it) => (view.msel && view.msel !== it.id ? 0.3 : 1);
+    // ilişkiler (zeminde)
+    const byId = new Map(moved.map((it) => [it.id, it]));
+    const relP = [];
+    if (view.arrows) {
+      fd.pairs.forEach((p) => {
+        const a = byId.get(p.a), b = byId.get(p.b);
+        if (!a || !b || p.state === 'overlap') return;
+        const ea = App.study.freeExitPoint(a, b.x + b.w / 2, b.y + b.h / 2), eb = App.study.freeExitPoint(b, a.x + a.w / 2, a.y + a.h / 2);
+        const pa = I.proj(ea[0], ea[1], 0.05), pb = I.proj(eb[0], eb[1], 0.05);
+        const mid = [(pa[0] + pb[0]) / 2, (pa[1] + pb[1]) / 2];
+        const bad = C.glass ? C.ink : App.PAL.red;
+        const dist = Math.hypot(pa[0] - pb[0], pa[1] - pb[1]);
+        const dm = view.msel && view.msel !== p.a && view.msel !== p.b ? 0.3 : 1;
+        if (dist < 9) {
+          relP.push({ t: 'circle', cx: mid[0], cy: mid[1], r: p.type === 'strong' ? 5.5 : 4, fill: p.type === 'avoid' ? C.slabTop : p.type === 'strong' ? C.strongLine : C.slabTop, stroke: p.type === 'avoid' ? bad : p.type === 'strong' ? C.slabTop : C.ink, sw: 1.8, opacity: dm });
+          return;
+        }
+        if (p.type === 'strong') relP.push({ t: 'line', x1: pa[0], y1: pa[1], x2: pb[0], y2: pb[1], stroke: C.strongLine, sw: 3.2, cap: 'round', dash: p.ok >= 0.99 ? undefined : [9, 6], opacity: dm });
+        else if (p.type === 'weak') relP.push({ t: 'line', x1: pa[0], y1: pa[1], x2: pb[0], y2: pb[1], stroke: C.ink, sw: 1.5, dash: [6, 6], opacity: 0.6 * dm });
+        else {
+          relP.push({ t: 'line', x1: pa[0], y1: pa[1], x2: pb[0], y2: pb[1], stroke: bad, sw: 2, dash: [1.5, 6], cap: 'round', opacity: (p.ok >= 1 ? 0.5 : 0.95) * dm });
+          if (p.ok < 1) {
+            relP.push({ t: 'circle', cx: mid[0], cy: mid[1], r: 7, fill: C.slabTop, stroke: bad, sw: 1.6, opacity: dm });
+            relP.push({ t: 'line', x1: mid[0] - 3, y1: mid[1] - 3, x2: mid[0] + 3, y2: mid[1] + 3, stroke: bad, sw: 1.6, cap: 'round', opacity: dm });
+            relP.push({ t: 'line', x1: mid[0] - 3, y1: mid[1] + 3, x2: mid[0] + 3, y2: mid[1] - 3, stroke: bad, sw: 1.6, cap: 'round', opacity: dm });
+          }
+        }
+        [pa, pb].forEach((q) => relP.push({ t: 'circle', cx: q[0], cy: q[1], r: p.type === 'strong' ? 3.6 : 2.6, fill: p.type === 'avoid' ? bad : p.type === 'strong' ? C.strongLine : C.ink, opacity: dm }));
+      });
+    }
+    add(relP);
+    // hacimler: arkadan öne
+    const order = moved.slice().sort((a, b) => I.depth(a.cx, a.cy) - I.depth(b.cx, b.cy));
+    order.forEach((it) => {
+      const dim = dimK(it);
+      const P = iso.extrude(I, it.ring, 0, it.hgt, fillOf(it), { stroke: C.blockStroke, sw: C.sw });
+      dimOp(P, dim).forEach((p) => prims.push(p));
+      const sel = view.msel === it.id;
+      if (sel) prims.push({ t: 'poly', pts: it.ring.map((q) => I.proj(q[0], q[1], it.hgt + 0.03)), stroke: C.ink, sw: 2.6, dash: [7, 5] });
+      const pts = [];
+      it.ring.forEach((q) => { pts.push(I.proj(q[0], q[1], 0)); pts.push(I.proj(q[0], q[1], it.hgt)); });
+      hits.push({ kind: 'block', id: it.id, floorId: null, name: it.name, area: it.area, pts: hull(pts) });
+    });
+    if (view.labels) order.forEach((it) => {
+      const lr = App.study.freeLabelRect(it);
+      const lb = { x: lr.x, y: lr.y, w: lr.w, h: lr.h, name: it.name, area: it.area };
+      dimOp(blockLabel(I, lb, it.hgt + 0.03, textOf(it), { max: 16 }), dimK(it)).forEach((p) => prims.push(p));
+    });
+
+    // sağ liste: mekânlar
+    const lx = 1074, lw = 290, top = 62, hAll = tb.y - top - 30;
+    const rowH = 25, head = 34;
+    prims.push({ t: 'rect', x: lx, y: top, w: lw, h: head, rx: g ? 17 : 0, fill: C.numBg[0], stroke: g ? undefined : C.ink, sw: g ? 0 : 2.5 });
+    prims.push({ t: 'text', x: lx + 16, y: top + 22, s: g ? 'Mekânlar' : 'MEKÂNLAR', size: 12.5, weight: 700, fam: 'b', fill: C.numFg[0], ls: g ? 0 : 1 });
+    prims.push({ t: 'text', x: lx + lw - 14, y: top + 22, s: fmt(fd.metrics.total) + ' m²', size: 12, weight: 600, fam: 'm', fill: C.numFg[0], anchor: 'end', opacity: 0.85 });
+    const rows = Math.max(0, Math.floor((hAll - head - 10) / rowH));
+    const list = items.slice().sort((a, b) => b.area - a.area);
+    list.slice(0, rows).forEach((it, j) => {
+      const yy = top + head + 22 + j * rowH;
+      const dm = view.msel && view.msel !== it.id ? 0.4 : 1;
+      prims.push({ t: 'circle', cx: lx + 9, cy: yy - 4, r: 5, fill: fillOf(it), stroke: g ? 'rgba(23,24,27,.3)' : C.ink, sw: g ? 1 : 1.6, opacity: dm });
+      prims.push({ t: 'text', x: lx + 24, y: yy, s: it.name.length > 22 ? it.name.slice(0, 21) + '…' : it.name, size: 12.5, weight: 600, fam: 'b', fill: C.ink, opacity: 0.88 * dm });
+      prims.push({ t: 'text', x: lx + lw - 2, y: yy, s: fmt(it.area) + ' m²' + (it.shape !== 'rect' ? ' · ' + it.shape : ''), size: 11.5, weight: 500, fam: 'm', fill: C.ink, opacity: 0.6 * dm, anchor: 'end' });
+    });
+    if (list.length > rows && rows > 0) prims.push({ t: 'text', x: lx + 24, y: top + head + 22 + rows * rowH, s: '+ ' + (list.length - rows) + ' mekân daha', size: 11.5, weight: 600, fam: 'b', fill: C.ink, opacity: 0.45 });
+    return { prims: prims, hits: hits, A: A, scale: s, floor: null, mode: 'modules', W: sheet.W, H: sheet.H, fd: fd };
+  }
+
   /* ---------- sahne ---------- */
   function layerLegend(id, C, A, plan, f) {
     const sq = (label, fill, stroke) => ({ label: label, fill: fill, stroke: stroke });
@@ -6410,6 +6640,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 
   function scene(project, d, view, live) {
     const plan = d.plan;
+    if (view.mode === 'modules') return sceneModules(project, d, view, live);
     const A = analyze(project, d);
     const C = cols();
     const g = C.glass;
@@ -6587,7 +6818,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
-   35-lib-floorscene.js — kat etüdü paftası: kat planları yan yana (primitifler)
+   35-lib-floorscene.js — mekân etüdü (kat kipi) paftası: kat planları yan yana (primitifler)
    Canlı SVG ve PNG/PDF çıktısı aynı listeden çizilir.
    ========================================================================== */
 (function () {
@@ -6696,7 +6927,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     project.spaces.forEach((s) => { if (zones.indexOf(s.zone) < 0) zones.push(s.zone); });
     const info = {
       name: project.meta.name,
-      subtitle: 'Kat etüdü · ' + plan.floors.length + ' kat · ' + TYP[plan.typology],
+      subtitle: 'Mekân etüdü · kat kipi · ' + plan.floors.length + ' kat · ' + TYP[plan.typology],
       legend: sheet.zoneLegend(zones),
       stats: [['Kat', String(plan.floors.length)], ['Net toplam', fmt(m.totalNet) + ' m²'], ['Plak', fmt(plan.Wp, 1) + ' × ' + fmt(plan.Dp, 1) + ' m']],
       scoreLabel: 'Kat skoru', percent: m.score,
@@ -6709,6 +6940,737 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   App.study.boardLayout = boardLayout;
   App.study.scene = scene;
   App.study.TYPOLOGY = TYP;
+})();
+
+/* ==========================================================================
+   35-lib-freescene.js — Mekân Etüdü paftası (serbest düzen): ölçekli mekân çokgenleri + ilişkiler
+   Canlı SVG ve PNG/PDF çıktısı aynı primitif listesinden çizilir.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const sheet = App.sheet;
+  const st = App.study;
+  const U = App.util;
+  const fmt = U.fmt;
+
+  const glass = () => App.theme.name === 'glass';
+  const AREA = () => ({ x: 64, y: 54, w: sheet.W - 128, h: sheet.tb.y - 54 - 22 });
+
+  /* dünya penceresi (metre) → paftaya ölçek: bounds + kenar boşluğu, alan oranına uyar.
+     frozen verilirse (sürükleme sırasında) pencere değişmez */
+  function freeView(fd, frozen) {
+    const area = AREA();
+    let win = frozen;
+    if (!win) {
+      const b = fd.bounds;
+      const pad = Math.max(3, 0.1 * Math.max(b.w, b.h));
+      let x0 = b.x0 - pad, x1 = b.x1 + pad, y0 = b.y0 - pad, y1 = b.y1 + pad;
+      let w = Math.max(x1 - x0, 22), h = Math.max(y1 - y0, 14);
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      const ar = area.w / area.h;
+      if (w / h < ar) w = h * ar; else h = w / ar;
+      win = { x0: cx - w / 2, y0: cy - h / 2, w: w, h: h };
+    }
+    const s = Math.min(area.w / win.w, area.h / win.h);
+    const ox = area.x + (area.w - win.w * s) / 2, oy = area.y + (area.h - win.h * s) / 2;
+    return { area: area, win: win, s: s, ox: ox, oy: oy, X: (wx) => ox + (wx - win.x0) * s, Y: (wy) => oy + (wy - win.y0) * s, wx: (px) => win.x0 + (px - ox) / s, wy: (py) => win.y0 + (py - oy) / s };
+  }
+
+  /* etiket için mekânın içine sığan en geniş dikdörtgen (dünya, metre) */
+  function labelRect(it) {
+    const c = it.cut;
+    let u;
+    if (it.shape === 'L') {
+      const col = [0, 0, 1 - c, 1], row = [0, c, 1, 1];
+      const mc = Math.min((1 - c) * it.w, it.h), mr = Math.min(it.w, (1 - c) * it.h);
+      u = mc >= mr ? col : row;
+    } else if (it.shape === 'T') {
+      const s = Math.max(0.25, 1 - 1.5 * c), t = 0.42;
+      u = t >= (s * (1 - t)) ? [0, 0, 1, t] : [(1 - s) / 2, t, (1 + s) / 2, 1];
+    } else if (it.shape === 'U') u = [0, 0.55, 1, 1];
+    else u = [0, 0, 1, 1];
+    const rot = (p, r) => (r === 1 ? [1 - p[1], p[0]] : r === 2 ? [1 - p[0], 1 - p[1]] : r === 3 ? [p[1], 1 - p[0]] : p);
+    const a = rot([u[0], u[1]], it.rot), b = rot([u[2], u[3]], it.rot);
+    const x0 = Math.min(a[0], b[0]), x1 = Math.max(a[0], b[0]), y0 = Math.min(a[1], b[1]), y1 = Math.max(a[1], b[1]);
+    return { x: it.x + x0 * it.w, y: it.y + y0 * it.h, w: (x1 - x0) * it.w, h: (y1 - y0) * it.h };
+  }
+
+  // iki merkez arasındaki doğrunun kutu kenarından çıktığı nokta
+  function exitPoint(it, tx, ty) {
+    const cx = it.x + it.w / 2, cy = it.y + it.h / 2;
+    const dx = tx - cx, dy = ty - cy;
+    if (!dx && !dy) return [cx, cy];
+    const k = Math.min(dx ? (it.w / 2) / Math.abs(dx) : Infinity, dy ? (it.h / 2) / Math.abs(dy) : Infinity);
+    return [cx + dx * k, cy + dy * k];
+  }
+
+  function colors() {
+    const PAL = App.PAL, g = glass();
+    return g
+      ? { g: true, ink: PAL.ink, panel: '#F1F2F5', panelStroke: 'rgba(23,24,27,.16)', edge: '#F6F7F9', edgeW: 2.4, rel: PAL.ink, bad: PAL.ink, weak: PAL.ink, chipBg: '#F6F7F9', over: 'rgba(23,24,27,.32)' }
+      : { g: false, ink: PAL.ink, panel: PAL.paperDark, panelStroke: PAL.ink, edge: PAL.ink, edgeW: 3, rel: PAL.blue, bad: PAL.red, weak: PAL.ink, chipBg: PAL.paper, over: 'rgba(192,58,34,.45)' };
+  }
+
+  function relationPrims(fd, C, view) {
+    const P = [];
+    const X = view.X, Y = view.Y, s = view.s;
+    fd.pairs.forEach((p) => {
+      const A = fd.byId.get(p.a), B = fd.byId.get(p.b);
+      if (!A || !B || p.state === 'overlap') return;
+      const ea = exitPoint(A, B.x + B.w / 2, B.y + B.h / 2), eb = exitPoint(B, A.x + A.w / 2, A.y + A.h / 2);
+      // yakın / bitişik: temas noktası
+      const mx = (ea[0] + eb[0]) / 2, my = (ea[1] + eb[1]) / 2;
+      const x1 = X(ea[0]), y1 = Y(ea[1]), x2 = X(eb[0]), y2 = Y(eb[1]);
+      const mxp = X(mx), myp = Y(my);
+      const ok = p.ok >= 0.99, bad = p.ok < 0.5;
+      const col = p.type === 'avoid' ? C.bad : p.type === 'strong' ? C.rel : C.weak;
+      const dist = Math.hypot(x2 - x1, y2 - y1);
+      if (p.state === 'adjacent') {
+        if (p.type === 'avoid') {
+          P.push({ t: 'circle', cx: mxp, cy: myp, r: 8, fill: C.chipBg, stroke: col, sw: 2 });
+          P.push({ t: 'line', x1: mxp - 3.4, y1: myp - 3.4, x2: mxp + 3.4, y2: myp + 3.4, stroke: col, sw: 2, cap: 'round' });
+          P.push({ t: 'line', x1: mxp - 3.4, y1: myp + 3.4, x2: mxp + 3.4, y2: myp - 3.4, stroke: col, sw: 2, cap: 'round' });
+        } else if (p.type === 'strong') {
+          P.push({ t: 'circle', cx: mxp, cy: myp, r: 6.5, fill: col, stroke: C.chipBg, sw: 2 });
+        } else {
+          P.push({ t: 'circle', cx: mxp, cy: myp, r: 5, fill: C.chipBg, stroke: col, sw: 1.8 });
+        }
+        return;
+      }
+      const dash = p.type === 'strong' ? (ok ? undefined : [9, 6]) : p.type === 'weak' ? [6, 6] : [1.5, 6];
+      const sw = p.type === 'strong' ? (bad ? 2.4 : 3.2) : p.type === 'weak' ? 1.6 : 2;
+      const op = p.type === 'avoid' && ok ? 0.45 : p.type === 'weak' ? 0.65 : 0.95;
+      P.push({ t: 'line', x1: x1, y1: y1, x2: x2, y2: y2, stroke: col, sw: sw, dash: dash, cap: 'round', opacity: op });
+      [[x1, y1], [x2, y2]].forEach((q) => P.push({ t: 'circle', cx: q[0], cy: q[1], r: p.type === 'strong' ? 4 : 3, fill: col, opacity: op }));
+      if (p.type === 'avoid' && !ok) {
+        P.push({ t: 'circle', cx: mxp, cy: myp, r: 7, fill: C.chipBg, stroke: col, sw: 1.8 });
+        P.push({ t: 'line', x1: mxp - 3, y1: myp - 3, x2: mxp + 3, y2: myp + 3, stroke: col, sw: 1.8, cap: 'round' });
+        P.push({ t: 'line', x1: mxp - 3, y1: myp + 3, x2: mxp + 3, y2: myp - 3, stroke: col, sw: 1.8, cap: 'round' });
+      } else if (view.chips && dist > 34 && p.type !== 'weak') {
+        const txt = fmt(p.gap, 1) + ' m';
+        const tw = sheet.tw(txt, 11, 700, 'm', 0) + 10;
+        P.push({ t: 'rect', x: mxp - tw / 2, y: myp - 9, w: tw, h: 18, rx: C.g ? 9 : 0, fill: C.chipBg, stroke: col, sw: 1.4 });
+        P.push({ t: 'text', x: mxp, y: myp + 4, s: txt, size: 11, weight: 700, fam: 'm', fill: C.ink, anchor: 'middle' });
+      }
+    });
+    return P;
+  }
+
+  function itemPrims(it, C, view) {
+    const P = [];
+    const z = App.ZONES[it.zone] || App.ZONES.sosyal;
+    const X = view.X, Y = view.Y, s = view.s;
+    P.push({ t: 'poly', pts: it.ring.map((q) => [X(q[0]), Y(q[1])]), fill: z.fill, stroke: C.edge, sw: C.edgeW });
+    return P;
+  }
+
+  function labelPrims(it, C, view) {
+    const P = [];
+    const z = App.ZONES[it.zone] || App.ZONES.sosyal;
+    const lr = labelRect(it);
+    const x = view.X(lr.x), y = view.Y(lr.y), w = lr.w * view.s, h = lr.h * view.s;
+    const lab = sheet.fitLabel(it.name, w, h, { withArea: true, max: 16 });
+    if (lab) {
+      const lh = lab.fs * 1.16, afs = Math.max(8, lab.fs * 0.82);
+      const dim = h > 78 && w > 70;
+      const bh = lab.lines.length * lh + afs + (dim ? afs : 0);
+      const ty = y + h / 2 - bh / 2 + lab.fs * 0.84;
+      lab.lines.forEach((ln, i) => P.push({ t: 'text', x: x + w / 2, y: ty + i * lh, s: ln, size: lab.fs, weight: 700, fam: 'l', fill: z.text, anchor: 'middle', ls: lab.ls }));
+      P.push({ t: 'text', x: x + w / 2, y: ty + lab.lines.length * lh + 1, s: fmt(it.area) + ' m²', size: afs, weight: 500, fam: 'm', fill: z.text, anchor: 'middle', opacity: 0.78 });
+      if (dim) P.push({ t: 'text', x: x + w / 2, y: ty + lab.lines.length * lh + 1 + afs, s: fmt(it.w, 1) + ' × ' + fmt(it.h, 1), size: afs - 0.5, weight: 500, fam: 'm', fill: z.text, anchor: 'middle', opacity: 0.55 });
+    } else if (w > 24 && h > 16) {
+      P.push({ t: 'text', x: x + w / 2, y: y + h / 2 + 3.5, s: fmt(it.area, 0), size: 10, weight: 700, fam: 'b', fill: z.text, anchor: 'middle', opacity: 0.85 });
+    }
+    return P;
+  }
+
+  function gridPrims(view, C) {
+    const P = [];
+    const a = view.area, s = view.s, w = view.win;
+    const minor = s >= 11 ? 1 : 0;
+    const major = s >= 4.5 ? 5 : 10;
+    const x0 = Math.ceil(w.x0), x1 = Math.floor(w.x0 + w.w), y0 = Math.ceil(w.y0), y1 = Math.floor(w.y0 + w.h);
+    for (let x = x0; x <= x1; x++) {
+      const isMaj = x % major === 0;
+      if (!isMaj && !minor) continue;
+      const px = view.X(x);
+      if (px < a.x + 2 || px > a.x + a.w - 2) continue;
+      P.push({ t: 'line', x1: px, y1: a.y + 2, x2: px, y2: a.y + a.h - 2, stroke: C.ink, sw: isMaj ? 0.9 : 0.6, opacity: isMaj ? 0.13 : 0.06 });
+      if (isMaj) P.push({ t: 'text', x: px + 3, y: a.y + a.h - 6, s: String(x), size: 10, weight: 500, fam: 'm', fill: C.ink, opacity: 0.35 });
+    }
+    for (let y = y0; y <= y1; y++) {
+      const isMaj = y % major === 0;
+      if (!isMaj && !minor) continue;
+      const py = view.Y(y);
+      if (py < a.y + 2 || py > a.y + a.h - 2) continue;
+      P.push({ t: 'line', x1: a.x + 2, y1: py, x2: a.x + a.w - 2, y2: py, stroke: C.ink, sw: isMaj ? 0.9 : 0.6, opacity: isMaj ? 0.13 : 0.06 });
+      if (isMaj && py < a.y + a.h - 18) P.push({ t: 'text', x: a.x + 5, y: py - 3, s: String(y), size: 10, weight: 500, fam: 'm', fill: C.ink, opacity: 0.35 });
+    }
+    return P;
+  }
+
+  function scaleBar(view, C) {
+    const P = [];
+    const a = view.area;
+    const m = view.s * 5 > 90 ? 5 : view.s * 10 > 90 ? 10 : 20;
+    const len = m * view.s;
+    const x1 = a.x + a.w - 22, x0 = x1 - len, y = a.y + 22;
+    const st0 = { stroke: C.ink, sw: 2, opacity: 0.7 };
+    P.push(Object.assign({ t: 'line', x1: x0, y1: y, x2: x1, y2: y }, st0));
+    P.push(Object.assign({ t: 'line', x1: x0, y1: y - 5, x2: x0, y2: y + 5 }, st0));
+    P.push(Object.assign({ t: 'line', x1: x1, y1: y - 5, x2: x1, y2: y + 5 }, st0));
+    P.push({ t: 'text', x: (x0 + x1) / 2, y: y - 9, s: m + ' m', size: 11.5, weight: 700, fam: 'm', fill: C.ink, opacity: 0.7, anchor: 'middle' });
+    return P;
+  }
+
+  function footprintDims(fd, C, view) {
+    const P = [];
+    const b = fd.bounds;
+    const X = view.X, Y = view.Y;
+    const dl = { stroke: C.ink, sw: 1, opacity: 0.4 };
+    const by = Y(b.y1) + 16, lx = X(b.x0) - 16;
+    const a = view.area;
+    if (by < a.y + a.h - 22) {
+      P.push(Object.assign({ t: 'line', x1: X(b.x0), y1: by, x2: X(b.x1), y2: by }, dl));
+      P.push(Object.assign({ t: 'line', x1: X(b.x0), y1: by - 4, x2: X(b.x0), y2: by + 4 }, dl));
+      P.push(Object.assign({ t: 'line', x1: X(b.x1), y1: by - 4, x2: X(b.x1), y2: by + 4 }, dl));
+      P.push({ t: 'text', x: (X(b.x0) + X(b.x1)) / 2, y: by + 14, s: sheet.dimText(b.w), size: 12, weight: 600, fam: C.g ? 'b' : 'm', fill: C.ink, opacity: 0.6, anchor: 'middle' });
+    }
+    if (lx > a.x + 22) {
+      P.push(Object.assign({ t: 'line', x1: lx, y1: Y(b.y0), x2: lx, y2: Y(b.y1) }, dl));
+      P.push(Object.assign({ t: 'line', x1: lx - 4, y1: Y(b.y0), x2: lx + 4, y2: Y(b.y0) }, dl));
+      P.push(Object.assign({ t: 'line', x1: lx - 4, y1: Y(b.y1), x2: lx + 4, y2: Y(b.y1) }, dl));
+      P.push({ t: 'text', x: lx - 6, y: (Y(b.y0) + Y(b.y1)) / 2, s: sheet.dimText(b.h), size: 12, weight: 600, fam: C.g ? 'b' : 'm', fill: C.ink, opacity: 0.6, anchor: 'middle', xf: [0, -1, 1, 0] });
+    }
+    return P;
+  }
+
+  /* opts: { live, frozen (pencere), chips } */
+  function scene(project, fd, opts) {
+    opts = opts || {};
+    const C = colors();
+    const view = freeView(fd, opts.frozen);
+    view.chips = opts.chips !== false;
+    const m = fd.metrics;
+    const zones = [];
+    project.spaces.forEach((sp) => { if (zones.indexOf(sp.zone) < 0) zones.push(sp.zone); });
+    const lineLg = (label, stroke, sw, dash) => ({ label: label, line: { stroke: stroke, sw: sw, dash: dash, cap: 'round' } });
+    const legend = sheet.zoneLegend(zones).slice(0, 5).concat([lineLg('Güçlü ilişki', C.rel, 3), lineLg('Ayrı tut', C.bad, 2, [1.5, 5])]);
+    const info = {
+      name: project.meta.name,
+      subtitle: 'Mekân etüdü · ' + fd.items.length + ' mekân · serbest düzen',
+      legend: legend.slice(0, 8),
+      stats: [['Mekân', String(fd.items.length)], ['Toplam alan', fmt(m.total) + ' m²'], ['Kaplama', fmt(fd.bounds.w, 1) + ' × ' + fmt(fd.bounds.h, 1) + ' m']],
+      scoreLabel: 'Düzen skoru', percent: m.score,
+    };
+    const prims = sheet.frame(info, opts.live !== false);
+    const a = view.area;
+    prims.push(C.g
+      ? { t: 'rect', x: a.x, y: a.y, w: a.w, h: a.h, rx: 8, fill: C.panel, stroke: C.panelStroke, sw: 1 }
+      : { t: 'rect', x: a.x, y: a.y, w: a.w, h: a.h, fill: C.panel, stroke: C.ink, sw: 4 });
+    gridPrims(view, C).forEach((p) => prims.push(p));
+    const sorted = fd.items.slice().sort((p, q) => q.area - p.area);
+    sorted.forEach((it) => itemPrims(it, C, view).forEach((p) => prims.push(p)));
+    // çakışmalar
+    fd.overlaps.forEach((o) => {
+      const A = fd.byId.get(o.a), B = fd.byId.get(o.b);
+      const x0 = Math.max(A.x, B.x), x1 = Math.min(A.x + A.w, B.x + B.w), y0 = Math.max(A.y, B.y), y1 = Math.min(A.y + A.h, B.y + B.h);
+      if (x1 > x0 && y1 > y0) prims.push({ t: 'rect', x: view.X(x0), y: view.Y(y0), w: (x1 - x0) * view.s, h: (y1 - y0) * view.s, fill: C.over, stroke: C.bad, sw: 1.6, dash: [5, 4] });
+    });
+    relationPrims(fd, C, view).forEach((p) => prims.push(p));
+    sorted.forEach((it) => labelPrims(it, C, view).forEach((p) => prims.push(p)));
+    footprintDims(fd, C, view).forEach((p) => prims.push(p));
+    scaleBar(view, C).forEach((p) => prims.push(p));
+    return { prims: prims, view: view };
+  }
+
+  st.freeView = freeView;
+  st.freeScene = scene;
+  st.freeExitPoint = exitPoint;
+  st.freeLabelRect = labelRect;
+})();
+
+/* ==========================================================================
+   36-lib-free.js — Mekân Etüdü: serbest düzen (saf fonksiyonlar, arayüzden bağımsız)
+   Her mekân kendi şekli (dikdörtgen / L / T / U), boyutu ve konumu ile bir "modül"dür.
+   Girdi : Modül 1 projesi (mekânlar, m², bölge, ilişkiler, balon konumları) + project.study.free
+   Çıktı : metre cinsinden çokgenler, mekânlar arası ilişki durumu (bitişik / yakın / uzak / çakışık),
+           skor, bulgular
+   Veri  : project.study.free = { snap, shapes: { [mekânId]: { x, y, w, h, shape, rot, cut } } }
+           x, y = sınırlayıcı kutunun sol-üst köşesi (m, y aşağı doğru) · w, h = kutu boyutu (m)
+           shape = 'rect' | 'L' | 'T' | 'U' · rot = 0..3 (90° adımlar) · cut = kesik oranı (0.15–0.65)
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const fmt = U.fmt;
+  const st = (App.study = App.study || {});
+
+  const SHAPES = [
+    { v: 'rect', label: 'Dikdörtgen', short: 'Dikdörtgen' },
+    { v: 'L', label: 'L', short: 'L' },
+    { v: 'T', label: 'T', short: 'T' },
+    { v: 'U', label: 'U', short: 'U' },
+  ];
+  const SHAPE_IDS = SHAPES.map((s) => s.v);
+  const MIN_DIM = 0.6, MAX_DIM = 120;
+  const r1 = (v) => Math.round(v * 10) / 10;
+  const num = (v, d) => (isFinite(Number(v)) && v !== '' && v !== null ? Number(v) : d);
+
+  /* ---------- şekil: birim kare içinde halka → döndür → ölçekle ---------- */
+  function unitRing(shape, c) {
+    if (shape === 'L') return [[0, 0], [1 - c, 0], [1 - c, c], [1, c], [1, 1], [0, 1]];
+    if (shape === 'T') {
+      const s = Math.max(0.25, 1 - 1.5 * c), t = 0.42;
+      const a = (1 - s) / 2, b = (1 + s) / 2;
+      return [[0, 0], [1, 0], [1, t], [b, t], [b, 1], [a, 1], [a, t], [0, t]];
+    }
+    if (shape === 'U') {
+      const a = (1 - c) / 2, b = (1 + c) / 2, d = 0.55;
+      return [[0, 0], [a, 0], [a, d], [b, d], [b, 0], [1, 0], [1, 1], [0, 1]];
+    }
+    return [[0, 0], [1, 0], [1, 1], [0, 1]];
+  }
+  function rotUnit(p, r) {
+    const x = p[0], y = p[1];
+    if (r === 1) return [1 - y, x];
+    if (r === 2) return [1 - x, 1 - y];
+    if (r === 3) return [y, 1 - x];
+    return [x, y];
+  }
+  function ringOf(f) {
+    const ur = unitRing(f.shape, f.cut).map((p) => rotUnit(p, f.rot));
+    return ur.map((p) => [f.x + p[0] * f.w, f.y + p[1] * f.h]);
+  }
+  function polyArea(r) {
+    let a = 0;
+    for (let i = 0; i < r.length; i++) { const p = r[i], q = r[(i + 1) % r.length]; a += p[0] * q[1] - q[0] * p[1]; }
+    return Math.abs(a) / 2;
+  }
+  function polyCentroid(r) {
+    let a = 0, cx = 0, cy = 0;
+    for (let i = 0; i < r.length; i++) {
+      const p = r[i], q = r[(i + 1) % r.length];
+      const k = p[0] * q[1] - q[0] * p[1];
+      a += k; cx += (p[0] + q[0]) * k; cy += (p[1] + q[1]) * k;
+    }
+    if (Math.abs(a) < 1e-9) return [r[0][0], r[0][1]];
+    return [cx / (3 * a), cy / (3 * a)];
+  }
+  // kol kalınlığı (bu şekil için en dar kısım)
+  function armFrac(shape, c) {
+    if (shape === 'L') return 1 - c;
+    if (shape === 'T') return Math.min(0.42, Math.max(0.25, 1 - 1.5 * c));
+    if (shape === 'U') return Math.min((1 - c) / 2, 0.45);
+    return 1;
+  }
+
+  /* ---------- çokgen geometrisi ---------- */
+  function pointSeg(px, py, ax, ay, bx, by) {
+    const dx = bx - ax, dy = by - ay;
+    const l2 = dx * dx + dy * dy;
+    let t = l2 ? ((px - ax) * dx + (py - ay) * dy) / l2 : 0;
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+  }
+  function segCross(p, q, a, b) {
+    const d = (u, v, w) => (v[0] - u[0]) * (w[1] - u[1]) - (v[1] - u[1]) * (w[0] - u[0]);
+    const d1 = d(a, b, p), d2 = d(a, b, q), d3 = d(p, q, a), d4 = d(p, q, b);
+    return ((d1 > 1e-9 && d2 < -1e-9) || (d1 < -1e-9 && d2 > 1e-9)) && ((d3 > 1e-9 && d4 < -1e-9) || (d3 < -1e-9 && d4 > 1e-9));
+  }
+  function inPoly(x, y, r) {
+    let c = false;
+    for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+      if ((r[i][1] > y) !== (r[j][1] > y) && x < ((r[j][0] - r[i][0]) * (y - r[i][1])) / (r[j][1] - r[i][1]) + r[i][0]) c = !c;
+    }
+    return c;
+  }
+  function ringDist(ra, rb) {
+    let best = Infinity;
+    for (let i = 0; i < ra.length; i++) {
+      const p = ra[i];
+      for (let j = 0; j < rb.length; j++) {
+        const a = rb[j], b = rb[(j + 1) % rb.length];
+        const d = pointSeg(p[0], p[1], a[0], a[1], b[0], b[1]);
+        if (d < best) best = d;
+      }
+    }
+    for (let j = 0; j < rb.length; j++) {
+      const p = rb[j];
+      for (let i = 0; i < ra.length; i++) {
+        const a = ra[i], b = ra[(i + 1) % ra.length];
+        const d = pointSeg(p[0], p[1], a[0], a[1], b[0], b[1]);
+        if (d < best) best = d;
+      }
+    }
+    return best;
+  }
+  function ringsCross(ra, rb) {
+    for (let i = 0; i < ra.length; i++) {
+      const p = ra[i], q = ra[(i + 1) % ra.length];
+      for (let j = 0; j < rb.length; j++) if (segCross(p, q, rb[j], rb[(j + 1) % rb.length])) return true;
+    }
+    return false;
+  }
+  const bboxGap = (a, b) => {
+    const dx = Math.max(0, Math.max(a.x, b.x) - Math.min(a.x + a.w, b.x + b.w));
+    const dy = Math.max(0, Math.max(a.y, b.y) - Math.min(a.y + a.h, b.y + b.h));
+    return Math.hypot(dx, dy);
+  };
+  const olen = (a0, a1, b0, b1) => Math.min(a1, b1) - Math.max(a0, b0);
+
+  /* iki mekân arası: boşluk (m), ortak kenar uzunluğu (m), çakışma alanı (m²) */
+  function pairInfo(A, B) {
+    const bg = bboxGap(A, B);
+    if (bg > 14) return { gap: bg, contact: 0, overlap: 0 };
+    if (A.shape === 'rect' && B.shape === 'rect') {
+      const ox = olen(A.x, A.x + A.w, B.x, B.x + B.w), oy = olen(A.y, A.y + A.h, B.y, B.y + B.h);
+      if (ox > 1e-6 && oy > 1e-6) return { gap: 0, contact: 0, overlap: ox * oy };
+      const contact = bg <= 0.2 ? Math.max(0, ox > 1e-6 ? ox : 0, oy > 1e-6 ? oy : 0) : 0;
+      return { gap: bg, contact: contact, overlap: 0 };
+    }
+    // genel durum
+    let inter = ringsCross(A.ring, B.ring);
+    if (!inter) inter = inPoly(A.ring[0][0], A.ring[0][1], B.ring) || inPoly(B.ring[0][0], B.ring[0][1], A.ring);
+    if (inter) {
+      const x0 = Math.max(A.x, B.x), x1 = Math.min(A.x + A.w, B.x + B.w), y0 = Math.max(A.y, B.y), y1 = Math.min(A.y + A.h, B.y + B.h);
+      let n = 0;
+      const step = 0.25;
+      for (let x = x0 + step / 2; x < x1; x += step) for (let y = y0 + step / 2; y < y1; y += step) if (inPoly(x, y, A.ring) && inPoly(x, y, B.ring)) n++;
+      return { gap: 0, contact: 0, overlap: n * step * step };
+    }
+    const gap = ringDist(A.ring, B.ring);
+    let contact = 0;
+    if (gap <= 0.2) {
+      const step = 0.2;
+      for (let i = 0; i < A.ring.length; i++) {
+        const p = A.ring[i], q = A.ring[(i + 1) % A.ring.length];
+        const len = Math.hypot(q[0] - p[0], q[1] - p[1]);
+        const k = Math.max(1, Math.round(len / step));
+        for (let m = 0; m < k; m++) {
+          const t = (m + 0.5) / k, x = p[0] + (q[0] - p[0]) * t, y = p[1] + (q[1] - p[1]) * t;
+          let d = Infinity;
+          for (let j = 0; j < B.ring.length; j++) { const a = B.ring[j], b = B.ring[(j + 1) % B.ring.length]; d = Math.min(d, pointSeg(x, y, a[0], a[1], b[0], b[1])); }
+          if (d <= 0.2) contact += len / k;
+        }
+      }
+    }
+    return { gap: gap, contact: contact, overlap: 0 };
+  }
+
+  /* ---------- varsayılan şekil ve yerleşim ---------- */
+  function defaultShape(s) {
+    const asp = s.zone === 'sirkulasyon' ? 2.8 : 1.35;
+    const w = Math.max(MIN_DIM, r1(Math.sqrt(s.area * asp)));
+    const h = Math.max(MIN_DIM, r1(s.area / w));
+    return { x: 0, y: 0, w: w, h: h, shape: 'rect', rot: 0, cut: 0.4 };
+  }
+
+  /* kurucu yerleşim: mekânlar tek tek, daha önce yerleşenlerin kenarlarına dayanarak eklenir.
+     Maliyet: güçlü ilişkide bitişiklik, "ayrı tut"ta mesafe, kutu çevresinin büyümesi (kompaktlık),
+     balon konumuna yakınlık. Çakışma olmaz. fixed: yerinde kalacak kimlikler · fromBubbles: tercih konumu */
+  function autoPlace(spaces, relations, shapes, o) {
+    o = o || {};
+    const fixed = o.fixed || new Set();
+    const ids = spaces.map((s) => s.id);
+    const P = {};
+    ids.forEach((id) => { P[id] = Object.assign({}, shapes[id]); });
+    // tercih konumları (balonlardan)
+    const pref = {};
+    if (o.fromBubbles && spaces.length) {
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      spaces.forEach((s) => { minX = Math.min(minX, s.x); maxX = Math.max(maxX, s.x); minY = Math.min(minY, s.y); maxY = Math.max(maxY, s.y); });
+      const total = U.sum(spaces, (s) => s.area) || 1;
+      const span = Math.max(maxX - minX, maxY - minY, 1);
+      const k = (Math.sqrt(total) * 1.5) / span;
+      spaces.forEach((s) => { pref[s.id] = [(s.x - (minX + maxX) / 2) * k, (s.y - (minY + maxY) / 2) * k]; });
+    }
+    const W = { strong: 3, weak: 1, avoid: 2 };
+    const rel = {};
+    ids.forEach((id) => { rel[id] = []; });
+    Object.keys(relations).forEach((key) => {
+      const q = key.split('|');
+      if (!P[q[0]] || !P[q[1]] || !W[relations[key]]) return;
+      rel[q[0]].push([q[1], relations[key]]); rel[q[1]].push([q[0], relations[key]]);
+    });
+    const placed = [];
+    const isPlaced = new Set();
+    ids.forEach((id) => { if (fixed.has(id)) { placed.push(id); isPlaced.add(id); } });
+    const todo = ids.filter((id) => !fixed.has(id));
+    const ovl = (r, skip) => placed.some((id) => { if (id === skip) return false; const q = P[id]; return olen(r.x, r.x + r.w, q.x, q.x + q.w) > 0.01 && olen(r.y, r.y + r.h, q.y, q.y + q.h) > 0.01; });
+    const bbox = () => {
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      placed.forEach((id) => { const q = P[id]; x0 = Math.min(x0, q.x); y0 = Math.min(y0, q.y); x1 = Math.max(x1, q.x + q.w); y1 = Math.max(y1, q.y + q.h); });
+      return [x0, y0, x1, y1];
+    };
+    while (todo.length) {
+      // sıradaki: yerleşenlerle bağı en güçlü olan (yoksa en büyük)
+      let bi = 0, bs = -1;
+      todo.forEach((id, i) => {
+        let sc = 0;
+        rel[id].forEach((r) => { if (isPlaced.has(r[0]) && r[1] !== 'avoid') sc += W[r[1]]; });
+        sc = sc * 1000 + P[id].w * P[id].h + (placed.length ? 0 : rel[id].length * 50);
+        if (sc > bs) { bs = sc; bi = i; }
+      });
+      const id = todo.splice(bi, 1)[0];
+      const f = P[id];
+      if (!placed.length) { f.x = 0; f.y = 0; placed.push(id); isPlaced.add(id); continue; }
+      const bb = bbox();
+      const per0 = (bb[2] - bb[0]) + (bb[3] - bb[1]);
+      let best = null;
+      const cands = [];
+      placed.forEach((qid) => {
+        const q = P[qid];
+        [q.y, q.y + q.h - f.h, q.y + (q.h - f.h) / 2].forEach((y) => { cands.push([q.x + q.w, y]); cands.push([q.x - f.w, y]); });
+        [q.x, q.x + q.w - f.w, q.x + (q.w - f.w) / 2].forEach((x) => { cands.push([x, q.y + q.h]); cands.push([x, q.y - f.h]); });
+        // ilişkili ortakla aynı hizada başlama
+        rel[id].forEach((r) => {
+          const t = P[r[0]];
+          if (!t || !isPlaced.has(r[0])) return;
+          cands.push([q.x + q.w, t.y]); cands.push([q.x - f.w, t.y]); cands.push([t.x, q.y + q.h]); cands.push([t.x, q.y - f.h]);
+        });
+      });
+      cands.forEach((c) => {
+        const r = { x: c[0], y: c[1], w: f.w, h: f.h };
+        if (ovl(r, id)) return;
+        let cost = 0;
+        rel[id].forEach((e) => {
+          if (!isPlaced.has(e[0])) return;
+          const t = P[e[0]];
+          const gap = bboxGap(r, t);
+          const contact = gap <= 0.2 ? Math.max(0, olen(r.x, r.x + r.w, t.x, t.x + t.w), olen(r.y, r.y + r.h, t.y, t.y + t.h)) : 0;
+          if (e[1] === 'strong') cost += 3 * (contact >= 0.8 ? 0 : 2 + gap);
+          else if (e[1] === 'weak') cost += gap <= 6 ? 0.1 * gap : 0.6 + 0.3 * gap;
+          else cost += gap < 2.5 ? 2 * (6 - gap * 2) : 0;
+        });
+        const nx0 = Math.min(bb[0], r.x), ny0 = Math.min(bb[1], r.y), nx1 = Math.max(bb[2], r.x + r.w), ny1 = Math.max(bb[3], r.y + r.h);
+        cost += 0.45 * ((nx1 - nx0) + (ny1 - ny0) - per0) + 0.08 * Math.abs((nx1 - nx0) - (ny1 - ny0));
+        if (pref[id]) cost += 0.03 * Math.hypot(r.x + r.w / 2 - pref[id][0], r.y + r.h / 2 - pref[id][1]);
+        if (!best || cost < best.cost - 1e-9) best = { cost: cost, x: r.x, y: r.y };
+      });
+      if (best) { f.x = best.x; f.y = best.y; } else { f.x = bb[2] + 1; f.y = bb[1]; }
+      placed.push(id); isPlaced.add(id);
+    }
+    const out = {};
+    ids.forEach((id) => { const q = P[id]; out[id] = Object.assign({}, q, { x: r1(q.x), y: r1(q.y) }); });
+    if (!o.keepOrigin) {
+      let mx = Infinity, my = Infinity;
+      ids.forEach((id) => { mx = Math.min(mx, out[id].x); my = Math.min(my, out[id].y); });
+      if (isFinite(mx)) ids.forEach((id) => { out[id].x = r1(out[id].x - mx); out[id].y = r1(out[id].y - my); });
+    }
+    return out;
+  }
+
+  function freeInit(project) {
+    const shapes = {};
+    project.spaces.forEach((s) => { shapes[s.id] = defaultShape(s); });
+    return { snap: 0.5, shapes: project.spaces.length ? autoPlace(project.spaces, project.relations, shapes, { fromBubbles: true }) : shapes };
+  }
+
+  /* bir mekân eklenince: mevcutlar yerinde, yeni olan ilişkilerine göre yerleşir */
+  function freeAdd(project, free) {
+    const shapes = Object.assign({}, free.shapes);
+    const fresh = project.spaces.filter((s) => !shapes[s.id]);
+    if (!fresh.length) return free;
+    let x1 = 0, y0 = 0, y1 = 0;
+    const have = project.spaces.filter((s) => shapes[s.id]);
+    if (have.length) {
+      x1 = Math.max.apply(null, have.map((s) => shapes[s.id].x + shapes[s.id].w));
+      y0 = Math.min.apply(null, have.map((s) => shapes[s.id].y));
+      y1 = Math.max.apply(null, have.map((s) => shapes[s.id].y + shapes[s.id].h));
+    }
+    fresh.forEach((s, i) => {
+      const d = defaultShape(s);
+      d.x = r1(x1 + 1.5); d.y = r1(y0 + ((y1 - y0) - d.h) / 2 + i * 0.5);
+      shapes[s.id] = d;
+    });
+    const placed = autoPlace(project.spaces, project.relations, shapes, { fixed: new Set(have.map((s) => s.id)), iter: 90, keepOrigin: true });
+    return Object.assign({}, free, { shapes: placed });
+  }
+
+  /* geçerli değerlere sıkıştır */
+  function cleanShape(q, base) {
+    const o = Object.assign({}, base || {}, q || {});
+    return {
+      x: r1(num(o.x, 0)), y: r1(num(o.y, 0)),
+      w: U.clamp(r1(num(o.w, 3)), MIN_DIM, MAX_DIM), h: U.clamp(r1(num(o.h, 3)), MIN_DIM, MAX_DIM),
+      shape: SHAPE_IDS.indexOf(o.shape) >= 0 ? o.shape : 'rect',
+      rot: ((Math.round(num(o.rot, 0)) % 4) + 4) % 4,
+      cut: U.clamp(Math.round(num(o.cut, 0.4) * 100) / 100, 0.15, 0.65),
+    };
+  }
+
+  /* hedef alana oturt: ölçeği kareköküyle düzelt (en boy oranı korunur), merkez sabit */
+  function fitToTarget(f, target) {
+    const items = makeItem({ id: 'x', name: '', zone: 'sosyal', area: target }, f);
+    const k = Math.sqrt(target / Math.max(0.01, items.area));
+    const w = U.clamp(r1(f.w * k), MIN_DIM, MAX_DIM), h = U.clamp(r1(f.h * k), MIN_DIM, MAX_DIM);
+    return Object.assign({}, f, { w: w, h: h, x: r1(f.x + (f.w - w) / 2), y: r1(f.y + (f.h - h) / 2) });
+  }
+
+  /* bir mekânı diğerine bitiştir (away: aralarını aç) — kutular çakışmaz */
+  function attach(f, other, away) {
+    const ca = [f.x + f.w / 2, f.y + f.h / 2], cb = [other.x + other.w / 2, other.y + other.h / 2];
+    const dx = ca[0] - cb[0], dy = ca[1] - cb[1];
+    const gap = away ? 3 : 0;
+    const horiz = Math.abs(dx) / (f.w + other.w) >= Math.abs(dy) / (f.h + other.h);
+    let x = f.x, y = f.y;
+    if (horiz) {
+      x = dx >= 0 ? other.x + other.w + gap : other.x - f.w - gap;
+      y = U.clamp(f.y, other.y - f.h + 1.2, other.y + other.h - 1.2);
+      if (away) y = f.y;
+    } else {
+      y = dy >= 0 ? other.y + other.h + gap : other.y - f.h - gap;
+      x = U.clamp(f.x, other.x - f.w + 1.2, other.x + other.w - 1.2);
+      if (away) x = f.x;
+    }
+    return Object.assign({}, f, { x: r1(x), y: r1(y) });
+  }
+
+  /* ---------- türetilmiş mekân ---------- */
+  function makeItem(space, f) {
+    const ring = ringOf(f);
+    const area = polyArea(ring);
+    const c = polyCentroid(ring);
+    const arm = armFrac(f.shape, f.cut);
+    const thick = Math.min(f.w, f.h) * (f.shape === 'rect' ? 1 : Math.max(arm, 0.3));
+    return {
+      id: space.id, spaceId: space.id, name: space.name, zone: space.zone, target: space.area,
+      x: f.x, y: f.y, w: f.w, h: f.h, shape: f.shape, rot: f.rot, cut: f.cut,
+      ring: ring, area: area, cx: c[0], cy: c[1], thick: thick, aspect: Math.max(f.w, f.h) / Math.max(0.01, Math.min(f.w, f.h)),
+      dev: space.area ? (area - space.area) / space.area : 0,
+    };
+  }
+
+  const STATE_LABEL = { adjacent: 'Bitişik', near: 'Yakın', far: 'Uzak', overlap: 'Çakışık' };
+  function relEval(type, info) {
+    const state = info.overlap > 0.4 ? 'overlap' : info.contact >= 0.8 ? 'adjacent' : info.gap <= 2.5 ? 'near' : 'far';
+    let ok;
+    if (type === 'strong') ok = state === 'adjacent' ? 1 : state === 'overlap' ? 0.5 : state === 'near' ? 0.55 : info.gap <= 6 ? 0.25 : 0;
+    else if (type === 'weak') ok = info.gap <= 6 ? 1 : info.gap <= 12 ? 0.5 : 0;
+    else ok = state === 'overlap' || state === 'adjacent' ? 0 : info.gap < 2 ? 0.4 : 1;
+    return { state: state, ok: ok };
+  }
+
+  const LEVEL = { hata: 0, uyari: 1, oneri: 2, ok: 3 };
+
+  const memo = { k: null, v: null };
+  function freeDerive(project) {
+    const free = project.study && project.study.free;
+    const key = [project.spaces, project.relations, free];
+    if (memo.k && memo.k.every((x, i) => x === key[i])) return memo.v;
+    const out = compute(project, free);
+    memo.k = key; memo.v = out;
+    return out;
+  }
+
+  function compute(project, free) {
+    const items = [];
+    const byId = new Map();
+    project.spaces.forEach((s) => {
+      const f = free && free.shapes[s.id] ? cleanShape(free.shapes[s.id]) : defaultShape(s);
+      const it = makeItem(s, f);
+      items.push(it); byId.set(it.id, it);
+    });
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    items.forEach((it) => { x0 = Math.min(x0, it.x); y0 = Math.min(y0, it.y); x1 = Math.max(x1, it.x + it.w); y1 = Math.max(y1, it.y + it.h); });
+    const bounds = items.length ? { x0: x0, y0: y0, x1: x1, y1: y1, w: x1 - x0, h: y1 - y0 } : { x0: 0, y0: 0, x1: 20, y1: 12, w: 20, h: 12 };
+
+    // çiftler: ilişkili olanlar + çakışanlar
+    const pairs = [];
+    const seen = new Set();
+    Object.keys(project.relations).forEach((key) => {
+      const q = key.split('|');
+      const A = byId.get(q[0]), B = byId.get(q[1]);
+      if (!A || !B) return;
+      const type = project.relations[key];
+      const info = pairInfo(A, B);
+      const ev = relEval(type, info);
+      pairs.push({ key: key, a: A.id, b: B.id, type: type, gap: info.gap, contact: info.contact, overlap: info.overlap, state: ev.state, ok: ev.ok });
+      seen.add(key);
+    });
+    const overlaps = [];
+    for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+      const A = items[i], B = items[j];
+      if (bboxGap(A, B) > 0) continue;
+      const key = U.pairKey(A.id, B.id);
+      const p = pairs.find((q) => q.key === key);
+      const info = p ? p : pairInfo(A, B);
+      if (info.overlap > 0.4) overlaps.push({ a: A.id, b: B.id, overlap: info.overlap });
+    }
+
+    // skor
+    const W = { strong: 3, weak: 1, avoid: 2 };
+    let rs = 0, rw = 0, strongOk = 0, strongTotal = 0;
+    pairs.forEach((p) => { rs += W[p.type] * p.ok; rw += W[p.type]; if (p.type === 'strong') { strongTotal++; if (p.state === 'adjacent') strongOk++; } });
+    const relScore = rw ? rs / rw : null;
+    const total = U.sum(items, (it) => it.area);
+    const ovArea = U.sum(overlaps, (o) => o.overlap);
+    const ovScore = overlaps.length ? Math.max(0, 1 - ovArea / (0.05 * (total || 1))) : 1;
+    const fit = items.length ? U.sum(items, (it) => 1 - Math.min(1, Math.abs(it.dev) / 0.3)) / items.length : 1;
+    const compact = bounds.w * bounds.h ? Math.min(1, total / (bounds.w * bounds.h) / 0.55) : 1;
+    const parts = relScore == null
+      ? [{ k: 'Çakışmasızlık', v: ovScore, w: 0.45 }, { k: 'Alan uyumu', v: fit, w: 0.35 }, { k: 'Kompaktlık', v: compact, w: 0.2 }]
+      : [{ k: 'İlişki uyumu', v: relScore, w: 0.5 }, { k: 'Çakışmasızlık', v: ovScore, w: 0.2 }, { k: 'Alan uyumu', v: fit, w: 0.2 }, { k: 'Kompaktlık', v: compact, w: 0.1 }];
+    const score = items.length ? Math.round(parts.reduce((t, p) => t + p.v * p.w, 0) * 100) : null;
+    const metrics = { score: score, parts: parts, relScore: relScore, strongOk: strongOk, strongTotal: strongTotal, overlapCount: overlaps.length, overlapArea: ovArea, areaFit: fit, total: total, target: U.sum(items, (it) => it.target), compact: compact, count: items.length };
+
+    return { items: items, byId: byId, bounds: bounds, pairs: pairs, overlaps: overlaps, metrics: metrics, findings: findings(project, items, byId, pairs, overlaps, metrics) };
+  }
+
+  function findings(project, items, byId, pairs, overlaps, m) {
+    const out = [];
+    const nm = (id) => byId.get(id).name;
+    if (!items.length) {
+      out.push({ id: 'empty', level: 'oneri', title: 'Önce işlev şemasında mekân ekleyin', detail: 'Mekân etüdü, İşlev Şeması’ndaki mekânları ölçekli birimlere dönüştürür.', src: [], actions: [{ type: 'goto', module: 'islev', label: 'İşlev Şeması’na git' }] });
+      return { items: out, counts: { hata: 0, uyari: 0, oneri: 1 } };
+    }
+    overlaps.slice(0, 5).forEach((o) => out.push({ id: 'ov-' + o.a + o.b, level: 'hata', title: nm(o.a) + ' ile ' + nm(o.b) + ' çakışıyor (≈ ' + fmt(o.overlap, 1) + ' m²)', detail: 'İki mekân aynı alanı kaplıyor. Birini kaydırın, küçültün ya da “Bitiştir” ile yan yana alın.', src: [], actions: [{ type: 'freeAttach', id: o.a, to: o.b, label: nm(o.a) + ' → yanına al' }, { type: 'select', id: o.a, label: 'Göster' }] }));
+    pairs.filter((p) => p.type === 'avoid' && (p.state === 'adjacent' || p.state === 'overlap')).slice(0, 4).forEach((p) => out.push({ id: 'avoid-' + p.key, level: 'uyari', title: nm(p.a) + ' ile ' + nm(p.b) + ' bitişik ama ayrı tutulmalı', detail: 'Bu çift “ayrı tut” olarak işaretli (gürültü, koku, mahremiyet). Aralarını açın.', src: ['White'], actions: [{ type: 'freeAttach', id: p.a, to: p.b, away: true, label: nm(p.a) + ' → uzaklaştır' }, { type: 'select', id: p.a, label: 'Göster' }] }));
+    pairs.filter((p) => p.type === 'strong' && p.state === 'far').slice(0, 5).forEach((p) => out.push({ id: 'far-' + p.key, level: 'uyari', title: nm(p.a) + ' ile ' + nm(p.b) + ' yakın olmalı ama ' + fmt(p.gap, 1) + ' m uzakta', detail: 'Güçlü ilişkili mekânlar bitişik ya da en fazla kısa bir geçişle ayrılmış olmalı.', src: ['White'], actions: [{ type: 'freeAttach', id: p.a, to: p.b, label: nm(p.a) + ' → bitiştir' }, { type: 'select', id: p.a, label: 'Göster' }] }));
+    pairs.filter((p) => p.type === 'strong' && p.state === 'near').slice(0, 4).forEach((p) => out.push({ id: 'near-' + p.key, level: 'oneri', title: nm(p.a) + ' ile ' + nm(p.b) + ' arasında ' + fmt(p.gap, 1) + ' m boşluk var', detail: 'Aralarındaki küçük boşluğu kapatın ya da bir geçiş (koridor, kapı) tanımlayın.', src: ['White'], actions: [{ type: 'freeAttach', id: p.a, to: p.b, label: nm(p.a) + ' → bitiştir' }, { type: 'select', id: p.a, label: 'Göster' }] }));
+    items.filter((it) => Math.abs(it.dev) > 0.15).slice(0, 4).forEach((it) => out.push({ id: 'dev-' + it.id, level: 'oneri', title: it.name + ' hedef alandan %' + Math.round(Math.abs(it.dev) * 100) + (it.dev > 0 ? ' büyük' : ' küçük') + ' (' + fmt(it.area, 1) + ' / ' + fmt(it.target, 1) + ' m²)', detail: 'İşlev şemasındaki alan programı ' + fmt(it.target, 1) + ' m². Hedefe oturtun ya da yeni alanı şemaya işleyin.', src: [], actions: [{ type: 'freeFit', id: it.id, label: 'Hedef alana oturt' }, { type: 'select', id: it.id, label: 'Göster' }] }));
+    items.filter((it) => it.zone !== 'sirkulasyon' && (it.thick < 1.4 || it.aspect > 4)).slice(0, 3).forEach((it) => out.push({ id: 'thin-' + it.id, level: 'oneri', title: it.name + ' çok dar kalıyor (' + fmt(Math.min(it.w, it.h), 1) + ' × ' + fmt(Math.max(it.w, it.h), 1) + ' m)', detail: 'Bu oranda mekân kullanışlı olmaz. Boyutları ya da şekli değiştirin.', src: ['S'], actions: [{ type: 'select', id: it.id, label: 'Göster' }] }));
+    out.sort((a, b) => LEVEL[a.level] - LEVEL[b.level]);
+    const counts = { hata: 0, uyari: 0, oneri: 0 };
+    out.forEach((i) => { if (counts[i.level] != null) counts[i.level]++; });
+    if (!counts.hata && !counts.uyari) out.unshift({ id: 'ok', level: 'ok', title: 'Mekânlar arası yerleşimde kritik sorun görünmüyor', detail: m.score != null ? 'Düzen skoru %' + m.score + '.' : 'İlişkileri tanımlayarak skoru başlatın.', src: [], actions: [] });
+    return { items: out, counts: counts };
+  }
+
+  /* bir mekânın diğerleriyle ilişkileri (yan panel) */
+  function relationsOf(project, fd, id) {
+    const list = [];
+    fd.items.forEach((o) => {
+      if (o.id === id) return;
+      const key = U.pairKey(id, o.id);
+      const type = project.relations[key] || 'none';
+      const p = fd.pairs.find((q) => q.key === key);
+      let info;
+      if (p) info = p; else { const a = fd.byId.get(id); info = Object.assign(pairInfo(a, o), {}); const ev = relEval('weak', info); info.state = ev.state; }
+      list.push({ id: o.id, name: o.name, zone: o.zone, type: type, gap: info.gap, state: info.state, ok: p ? p.ok : null });
+    });
+    const rank = { strong: 0, avoid: 1, weak: 2, none: 3 };
+    list.sort((a, b) => rank[a.type] - rank[b.type] || a.gap - b.gap);
+    return list;
+  }
+
+  Object.assign(st, {
+    SHAPES: SHAPES, FREE_MIN: MIN_DIM, FREE_MAX: MAX_DIM, STATE_LABEL: STATE_LABEL,
+    freeInit: freeInit, freeAdd: freeAdd, freeAutoPlace: autoPlace, freeDefault: defaultShape, freeClean: cleanShape, freeFit: fitToTarget, freeAttach: attach,
+    freeDerive: freeDerive, freeRelationsOf: relationsOf, freeRing: ringOf, freePairInfo: pairInfo, polyArea: polyArea,
+  });
+})();
+
+/* çalışma kipi: 'mekanlar' (serbest düzen) | 'katlar' (kat planları) — tarayıcıda hatırlanır */
+(function () {
+  const App = window.App;
+  App.study.modeOf = function (state) {
+    const m = state.ui && state.ui.stMode;
+    if (m === 'katlar' || m === 'mekanlar') return m;
+    try { if (window.localStorage.getItem('archtools.study.mode') === 'katlar') return 'katlar'; } catch (e) {}
+    return 'mekanlar';
+  };
 })();
 
 /* ==========================================================================
@@ -9512,6 +10474,123 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     };
     return ctl;
   };
+})();
+
+/* ==========================================================================
+   37-state-free.js — Mekân Etüdü serbest düzen: eylemler (reducer eklentisi) ve JSON uzantısı
+   Veri project.study.free içinde durur; geri al / ileri al, otomatik kayıt ve JSON akışı Modül 1 ile ortaktır.
+   Eylemler: FREE_SET {id, patch} · FREE_SET_LIVE {id, patch} · FREE_OPTS {patch}
+             FREE_AUTO · FREE_RESET · FREE_FIT {id} · FREE_FIT_ALL · FREE_ATTACH {id, to, away}
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const S = App.state;
+  const st = App.study;
+
+  const withFree = (P, free) => Object.assign({}, P, { study: Object.assign({}, P.study, { free: free }) });
+
+  /* mekân listesi değişince serbest düzeni eşitle */
+  function needsSync(P) {
+    const f = P.study.free;
+    if (!f || !f.shapes) return true;
+    let n = 0;
+    for (let i = 0; i < P.spaces.length; i++) { if (!f.shapes[P.spaces[i].id]) return true; n++; }
+    return Object.keys(f.shapes).length !== n;
+  }
+  function sync(P) {
+    let free = P.study.free && P.study.free.shapes ? P.study.free : null;
+    if (!free) return withFree(P, st.freeInit(P));
+    const ids = new Set(P.spaces.map((s) => s.id));
+    const shapes = {};
+    Object.keys(free.shapes).forEach((id) => { if (ids.has(id)) shapes[id] = free.shapes[id]; });
+    free = Object.assign({}, free, { shapes: shapes });
+    free = st.freeAdd(P, free);
+    return withFree(P, free);
+  }
+
+  S.hooks.push(function (next, a, prev) {
+    let P = next.project;
+    let state = next;
+    if (!P.study) return undefined; // kat etüdü kancası oluşturur
+    if (needsSync(P)) { P = sync(P); state = Object.assign({}, state, { project: P }); }
+    const apply = (project, history) => (history ? Object.assign(S.withHistory(state, project), { selectedId: state.selectedId }) : Object.assign({}, state, { project: project }));
+    const free = P.study.free;
+    const setOne = (id, patch, history) => {
+      const spaces = P.spaces.find((s) => s.id === id);
+      if (!spaces || !free || !free.shapes[id]) return null;
+      const cur = free.shapes[id];
+      const nxt = st.freeClean(patch, cur);
+      if (Object.keys(nxt).every((k) => nxt[k] === cur[k])) return null;
+      return apply(withFree(P, Object.assign({}, free, { shapes: Object.assign({}, free.shapes, { [id]: nxt }) })), history);
+    };
+
+    switch (a.type) {
+      case 'FREE_SET': { const r = setOne(a.id, a.patch, true); return r || (state === next ? undefined : state); }
+      case 'FREE_SET_LIVE': { const r = setOne(a.id, a.patch, false); return r || (state === next ? undefined : state); }
+      case 'FREE_OPTS': {
+        const snap = a.patch && [0.1, 0.5, 1].indexOf(a.patch.snap) >= 0 ? a.patch.snap : free.snap;
+        return apply(withFree(P, Object.assign({}, free, { snap: snap })), false);
+      }
+      case 'FREE_AUTO': return apply(withFree(P, Object.assign({}, free, { shapes: st.freeAutoPlace(P.spaces, P.relations, free.shapes) })), true);
+      case 'FREE_RESET': return apply(withFree(P, Object.assign({}, st.freeInit(P), { snap: free.snap })), true);
+      case 'FREE_FIT': {
+        const s = P.spaces.find((x) => x.id === a.id);
+        if (!s || !free.shapes[a.id]) return state === next ? undefined : state;
+        return apply(withFree(P, Object.assign({}, free, { shapes: Object.assign({}, free.shapes, { [a.id]: st.freeClean(st.freeFit(free.shapes[a.id], s.area)) }) })), true);
+      }
+      case 'FREE_FIT_ALL': {
+        const shapes = {};
+        P.spaces.forEach((s) => { shapes[s.id] = st.freeClean(st.freeFit(free.shapes[s.id], s.area)); });
+        return apply(withFree(P, Object.assign({}, free, { shapes: shapes })), true);
+      }
+      case 'FREE_ATTACH': {
+        const f = free.shapes[a.id], o = free.shapes[a.to];
+        if (!f || !o || a.id === a.to) return state === next ? undefined : state;
+        return apply(withFree(P, Object.assign({}, free, { shapes: Object.assign({}, free.shapes, { [a.id]: st.freeClean(st.freeAttach(f, o, !!a.away)) }) })), true);
+      }
+      default:
+    }
+    return state === next ? undefined : state;
+  });
+
+  /* ---------- JSON uzantısı: extensions.spaceStudy ---------- */
+  const r2 = (v) => Math.round(v * 100) / 100;
+  st.toFreeExt = function (project) {
+    if (!project.study || !project.study.free) return {};
+    const d = st.freeDerive(project);
+    const m = d.metrics;
+    return {
+      spaceStudy: {
+        version: 1,
+        unit: 'm',
+        snap: project.study.free.snap,
+        spaces: d.items.map((it) => ({
+          spaceId: it.id, name: it.name, zone: it.zone, programArea: r2(it.target), area: r2(it.area),
+          shape: it.shape, rotation: it.rot * 90, cut: it.cut, x: r2(it.x), y: r2(it.y), width: r2(it.w), depth: r2(it.h),
+          polygon: it.ring.map((p) => [r2(p[0]), r2(p[1])]),
+        })),
+        relations: d.pairs.map((p) => ({ a: p.a, b: p.b, type: p.type, state: p.state, gap: r2(p.gap), contact: r2(p.contact) })),
+        metrics: { spaceStudyScore: m.score, relationFit: m.relScore == null ? null : r2(m.relScore), overlapCount: m.overlapCount, overlapArea: r2(m.overlapArea), areaFit: r2(m.areaFit), totalArea: r2(m.total), footprint: { width: r2(d.bounds.w), depth: r2(d.bounds.h) } },
+      },
+    };
+  };
+  App.extProviders.push(st.toFreeExt);
+
+  App.extImporters = App.extImporters || [];
+  App.extImporters.push(function (ext, project) {
+    const x = ext && ext.spaceStudy;
+    if (!x || !Array.isArray(x.spaces)) return {};
+    const base = project.study || st.init(project);
+    const ids = new Set(project.spaces.map((s) => s.id));
+    const shapes = {};
+    x.spaces.forEach((q) => {
+      if (!q || !ids.has(String(q.spaceId))) return;
+      shapes[String(q.spaceId)] = st.freeClean({ x: q.x, y: q.y, w: q.width, h: q.depth, shape: q.shape, rot: Math.round((Number(q.rotation) || 0) / 90), cut: q.cut });
+    });
+    const snap = [0.1, 0.5, 1].indexOf(Number(x.snap)) >= 0 ? Number(x.snap) : 0.5;
+    return { study: Object.assign({}, base, { free: { snap: snap, shapes: shapes } }) };
+  });
 })();
 
 /* ==========================================================================
@@ -16586,6 +17665,13 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     expand: ['M4 9V4h5', 'M20 9V4h-5', 'M4 15v5h5', 'M20 15v5h-5'],
     shrink: ['M9 4v5H4', 'M15 4v5h5', 'M9 20v-5H4', 'M15 20v-5h5'],
     poly: ['M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z'],
+    shapeL: ['M5 4h8v7h6v9H5z'],
+    shapeT: ['M4 4h16v6h-5v10H9v-10H4z'],
+    shapeU: ['M4 4h5v10h6V4h5v16H4z'],
+    rotate: ['M20 12a8 8 0 11-2.7-6', 'M20 4v5h-5'],
+    link: ['M10 14l4-4', 'M8 12l-2 2a3.5 3.5 0 005 5l2-2', 'M16 12l2-2a3.5 3.5 0 00-5-5l-2 2'],
+    grid: ['M4 4h16v16H4z', 'M4 12h16M12 4v16'],
+    cube: ['M12 2.5l8 4.5v10l-8 4.5-8-4.5V7z', 'M4 7l8 4.5L20 7', 'M12 11.5v10'],
     sun: [{ c: [12, 12, 4] }, 'M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2'],
     copy: ['M8 8h11v12H8z', 'M5 16V4h11'],
     compare: ['M4 6h7v12H4z', 'M13 9h7v9h-7z'],
@@ -17187,7 +18273,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 
   const MODULES = [
     { id: 'islev', n: '01', label: 'İşlev Şeması', sub: 'İşlev şeması · bubble diagram', shape: 'circle' },
-    { id: 'kat', n: '02', label: 'Kat Etüdü', sub: 'Kat etüdü · plan blokları', shape: 'square' },
+    { id: 'kat', n: '02', label: 'Mekân Etüdü', sub: 'Mekân etüdü · şekil, boyut ve ilişki', shape: 'square' },
     { id: 'analiz', n: '03', label: 'Mekân Analizi', sub: 'Mekân analizi · patlatılmış izometrik', shape: 'triangle' },
     { id: 'arsa', n: '04', label: 'Arsa Analizi', sub: 'Arsa analizi · çevre, erişim, ulaşım', shape: 'diamond' },
     { id: 'imar', n: '05', label: 'İmar ve Kapasite', sub: 'İmar ve kapasite · parsel ve kütle', shape: 'plot' },
@@ -17242,9 +18328,28 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     };
   }
 
+  function mekanMeter(state, tabKey) {
+    const P = state.project;
+    const fd = App.study.freeDerive(P), m = fd.metrics, p = m.score;
+    return {
+      label: 'Düzen skoru', percent: p,
+      msg: !P.spaces.length ? 'Önce İşlev Şeması’nda mekân ekleyin' : level(p, ['Mekân ekleyerek etüdü başlatın', 'Mekânlar ilişkilere çok uyumlu', 'İyi yerleşim, birkaç ince ayar kaldı', 'Güçlü ilişkili mekânları yan yana alın', 'Mekânlar çakışıyor ya da ilişkilerden kopuk']),
+      chips: [
+        { label: 'Bitişik güçlü', value: m.strongTotal ? m.strongOk + '/' + m.strongTotal : '0', cls: 'dot' },
+        { label: 'Çakışma', value: String(m.overlapCount), cls: 'dot' },
+        { label: 'Alan uyumu', value: pc(m.areaFit), cls: 'dot' },
+        { label: 'Kompaktlık', value: pc(m.compact), cls: 'dot' },
+      ],
+      issues: fd.findings.counts.hata + fd.findings.counts.uyari,
+      issuesText: 'uyarı · bulgulara git',
+      onIssues: () => App.ctl.dispatch({ type: 'UI', patch: { [tabKey || 'stTab']: 'bulgular' } }),
+    };
+  }
+
   function katMeter(state) {
     const P = state.project;
-    if (!P.study) return { label: 'Kat skoru', percent: null, msg: '', chips: [], issues: 0 };
+    if (!P.study) return { label: 'Düzen skoru', percent: null, msg: '', chips: [], issues: 0 };
+    if (App.study.modeOf && App.study.modeOf(state) === 'mekanlar') return mekanMeter(state);
     const sd = App.study.derive(P), m = sd.metrics, p = m.score;
     return {
       label: 'Kat skoru', percent: p,
@@ -17264,6 +18369,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   function analizMeter(state) {
     const P = state.project;
     if (!P.study) return { label: 'Uyum skoru', percent: null, msg: '', chips: [], issues: 0 };
+    if (state.ui.an && state.ui.an.mode === 'modules') return mekanMeter(state, 'anTab');
     const sd = App.study.derive(P), A = App.analysis.analyze(P, sd), p = A.score, st = A.stats;
     return {
       label: 'Uyum skoru', percent: p,
@@ -17856,7 +18962,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
-   61-ui-floors.js — Modül 2 arayüzü: Kat Etüdü
+   61-ui-floors.js — Modül 2 arayüzü: Mekân Etüdü · kat kipi (mekânlar katlara dağıtılır)
    Sol panel: kat kurgusu + katlara göre mekân listeleri + bulgular.
    Pafta: ölçekli kat planları (App.study.scene) üzerine görünmez etkileşim katmanı;
           bir mekân bloğu başka bir kata sürüklenebilir.
@@ -17967,15 +19073,15 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const P = state.project;
     const sd = st.derive(P);
     const c = sd.findings.counts;
-    const tab = state.ui.stTab || 'katlar';
+    const tab = state.ui.stTab === 'bulgular' ? 'bulgular' : 'katlar';
     const tabs = ui.tabsBar([
       { id: 'katlar', label: 'Katlar', n: P.study.floors.length },
       { id: 'bulgular', label: 'Bulgular', n: c.hata + c.uyari + c.oneri, warn: c.hata + c.uyari > 0 },
     ], tab, (id) => ctl().dispatch({ type: 'UI', patch: { stTab: id } }));
     const body = tab === 'katlar'
-      ? [setupView(state, sd), altView(state, sd), floorsView(state, sd)].filter(Boolean)
+      ? [fl.modeSection(state), setupView(state, sd), altView(state, sd), floorsView(state, sd)].filter(Boolean)
       : [ui.findingList(sd.findings, 'Kat dağılımının ilişkilere, ıslak hacim hizasına ve plak dengesine göre kontrolü.')];
-    return ui.sideShell('sb-kat', 'Kat etüdü paneli', tabs, body);
+    return ui.sideShell('sb-kat', 'Mekân etüdü paneli · katlar', tabs, body);
   };
 
   /* ---------------- pafta ---------------- */
@@ -18077,23 +19183,25 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     }
 
     const svg = h('svg', {
-      id: 'pafta-kat', class: 'board-svg board-svg-kat', viewBox: '0 0 ' + App.sheet.W + ' ' + App.sheet.H, preserveAspectRatio: 'xMidYMid meet', role: 'group', 'aria-label': 'Kat etüdü paftası: ' + plan.floors.length + ' kat planı',
+      id: 'pafta-kat', class: 'board-svg board-svg-kat', viewBox: '0 0 ' + App.sheet.W + ' ' + App.sheet.H, preserveAspectRatio: 'xMidYMid meet', role: 'group', 'aria-label': 'Mekân etüdü paftası (katlar): ' + plan.floors.length + ' kat planı',
       ref: (el) => { fl.svgEl = el; }, onpointermove: (e) => svgMove(e, L, plan), onpointerup: (e) => svgUp(e, L, plan), onpointercancel: (e) => svgUp(e, L, plan),
       onpointerdown: () => { if (state.selectedId) ctl().dispatch({ type: 'SELECT', id: null }); },
     }, sc.prims.map((p) => App.board.primToV(p)), h('g', { class: 'fhits' }, hits), ghost);
 
     const empty = !P.spaces.length;
     const stage = h('div', { class: 'board-stage' }, svg,
-      empty ? ui.emptyCard('Kat etüdü için mekân gerekli', 'İşlev Şeması modülünde mekân ekleyin ya da hazır bir bina programı yükleyin. Mekânlar otomatik olarak katlara dağıtılır.', [
+      empty ? ui.emptyCard('Mekân etüdü için mekân gerekli', 'İşlev Şeması modülünde mekân ekleyin ya da hazır bir bina programı yükleyin. Mekânlar otomatik olarak katlara dağıtılır.', [
         ui.btn('Örnek konutu yükle', { icon: 'newdoc', cls: 'btn-primary', onclick: () => ctl().loadTemplate('konut', '2+1') }),
         ui.btn('İşlev Şeması’na git', { icon: 'chevron', onclick: () => ctl().go('islev') })]) : null);
 
     return ui.boardPage(state, d, {
-      label: 'Kat etüdü paftası',
+      label: 'Mekân etüdü paftası · katlar',
       stage: stage,
       scale: 'Bloklar m² ile orantılı · ölçekli plan',
       foot: h('p', { class: 'board-hint' }, 'Bir mekân bloğunu başka bir kata sürükleyin · seçili blokta ▲▼ ok tuşları katı değiştirir'),
       tools: [
+        { k: 'seg', label: 'Çalışma kipi', value: 'katlar', options: [{ v: 'mekanlar', label: 'Mekânlar' }, { v: 'katlar', label: 'Katlar' }], onchange: (v) => ctl().stMode(v) },
+        { k: 'sep' },
         { k: 'btn', label: 'Otomatik dağıt', icon: 'layout', strong: true, onclick: () => ctl().studyAuto(), disabled: !P.spaces.length, title: 'Mekânları işlev bölgesine ve ilişkilere göre katlara dağıt' },
         { k: 'sep' },
         { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => ctl().dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
@@ -18200,6 +19308,347 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     }
     baseRun(a);
   };
+})();
+
+/* ==========================================================================
+   63-ui-free.js — Mekân Etüdü arayüzü: serbest düzen kipi
+   Sol panel: kip, düzen araçları, seçili mekân (şekil, boyut, konum), mekân listesi, ilişkiler, bulgular.
+   Pafta: ölçekli mekân çokgenleri (App.study.freeScene) üzerine etkileşim katmanı:
+          sürükle = taşı · tutamaç = boyutlandır · kenarlara otomatik yapışır (Alt: kapat).
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const U = App.util;
+  const fmt = U.fmt;
+  const st = App.study;
+  const fl = ui.floors;
+
+  const ctl = () => App.ctl;
+  const SHAPE_ICON = { rect: 'rect', L: 'shapeL', T: 'shapeT', U: 'shapeU' };
+  const REL_LABEL = { strong: 'Güçlü', weak: 'Zayıf', avoid: 'Ayrı tut', none: 'Yok' };
+  const STATE_TXT = { adjacent: 'Bitişik', near: 'Yakın', far: 'Uzak', overlap: 'Çakışık' };
+
+  /* ---------------- ortak: kip anahtarı ---------------- */
+  fl.modeSection = function (state) {
+    const m = st.modeOf(state);
+    return ui.section('Çalışma kipi', h('div', { class: 'sec-box' },
+      ui.segmented({ label: 'Çalışma kipi', wide: true, value: m, options: [{ v: 'mekanlar', label: 'Mekânlar', title: 'Her mekân serbest şekil, boyut ve konumla' }, { v: 'katlar', label: 'Katlar', title: 'Mekânları katlara dağıt' }], onchange: (v) => ctl().stMode(v) }),
+      h('p', { class: 'note' }, m === 'mekanlar'
+        ? 'Her mekân ayrı bir birimdir: şeklini, boyutunu ve yerini değiştirin; diğer mekânlarla ilişkisini canlı izleyin.'
+        : 'Mekânlar katlara dağıtılır, her kat için ölçekli plan bloğu üretilir.')), null, 'stmode');
+  };
+
+  /* ---------------- sol panel ---------------- */
+  function numField(label, id, val, o) {
+    return h('label', { class: 'nfld', for: id },
+      h('span', { class: 'nfld-l' }, label),
+      h('span', { class: 'nfld-c' },
+        h('input', { id: id, class: 'inp mono nfld-i', type: 'number', min: o.min, max: o.max, step: o.step, value: val, keep: true, onchange: (e) => { const v = parseFloat(e.target.value); if (isFinite(v)) o.onchange(v); }, onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } }),
+        h('span', { class: 'unit' }, 'm')));
+  }
+
+  function layoutSection(state, fd) {
+    const P = state.project;
+    const free = P.study.free;
+    const m = fd.metrics;
+    const add = () => {
+      const n = document.getElementById('fr-add-n'), a = document.getElementById('fr-add-a');
+      if (!n) return;
+      ctl().freeAddSpace(n.value, parseFloat(a && a.value));
+      n.value = '';
+    };
+    return ui.section('Düzen', h('div', { class: 'sec-box' },
+      h('div', { class: 'btn-row' },
+        ui.btn('Otomatik diz', { icon: 'layout', cls: 'btn-yellow', onclick: () => ctl().freeAuto(), disabled: !P.spaces.length, title: 'İlişkilere göre tüm mekânları yeniden yerleştir (şekiller korunur)' }),
+        ui.btn('Hedef alanlara oturt', { icon: 'target', onclick: () => ctl().freeFitAll(), disabled: !P.spaces.length, title: 'Her mekânı işlev şemasındaki m²’ye getir' })),
+      ui.fld2('Izgara yakalama',
+        ui.segmented({ label: 'Izgara yakalama', wide: true, value: free.snap, options: [{ v: 0.1, label: '0,1 m' }, { v: 0.5, label: '0,5 m' }, { v: 1, label: '1 m' }], onchange: (v) => ctl().freeSnap(v) }),
+        'Taşıma ve boyutlandırma bu adımlarla yapılır; kenarlar komşu mekâna otomatik yapışır.'),
+      ui.fld2('Yeni mekân ekle', h('div', { class: 'fr-add' },
+        h('input', { id: 'fr-add-n', class: 'inp', type: 'text', maxlength: 60, placeholder: 'Mekân adı', 'aria-label': 'Yeni mekân adı', keep: true, onkeydown: (e) => { if (e.key === 'Enter') add(); } }),
+        h('label', { class: 'area-wrap' }, h('span', { class: 'sr' }, 'Alan (m²)'), h('input', { id: 'fr-add-a', class: 'inp area-inp mono', type: 'number', min: 1, step: 1, value: 12, keep: true, onkeydown: (e) => { if (e.key === 'Enter') add(); } }), h('span', { class: 'unit' }, 'm²')),
+        ui.btn('', { icon: 'plus', cls: 'btn-icon', onclick: add, title: 'Mekânı işlev şemasına ve bu düzene ekle' }))),
+      P.spaces.length ? h('p', { class: 'note' }, fd.items.length + ' mekân · ' + fmt(m.total) + ' m² (program ' + fmt(m.target) + ' m²) · kaplama ' + fmt(fd.bounds.w, 1) + ' × ' + fmt(fd.bounds.h, 1) + ' m') : null), null, 'frlay');
+  }
+
+  function selectedSection(state, fd) {
+    const it = fd.byId.get(state.selectedId);
+    if (!it) return ui.section('Seçili mekân', h('p', { class: 'note' }, 'Düzenlemek için pafta üzerinde ya da listeden bir mekân seçin.'), null, 'frsel');
+    const free = state.project.study.free;
+    const snap = free.snap;
+    const lock = !!state.ui.stLock;
+    const set = (patch) => ctl().freeSet(it.id, patch);
+    const step = snap;
+    const setW = (v) => {
+      if (lock) { const k = it.h / it.w; set({ w: v, h: Math.round(v * k * 10) / 10 }); } else set({ w: v });
+    };
+    const setH = (v) => {
+      if (lock) { const k = it.w / it.h; set({ h: v, w: Math.round(v * k * 10) / 10 }); } else set({ h: v });
+    };
+    const devTxt = Math.abs(it.dev) < 0.005 ? 'hedefte' : (it.dev > 0 ? '+' : '−') + '%' + Math.round(Math.abs(it.dev) * 100);
+    return ui.section('Seçili mekân', h('div', { class: 'sec-box' },
+      ui.fld2('Ad', h('input', { id: 'fr-name', class: 'inp', type: 'text', maxlength: 60, value: it.name, keep: true, onchange: (e) => { if (e.target.value.trim()) ctl().dispatch({ type: 'UPDATE_SPACE', id: it.id, patch: { name: e.target.value.trim() } }); }, onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } })),
+      ui.fld2('İşlev bölgesi', h('select', { id: 'fr-zone', class: 'inp', value: it.zone, onchange: (e) => ctl().dispatch({ type: 'UPDATE_SPACE', id: it.id, patch: { zone: e.target.value } }) }, App.ZONE_ORDER.map((z) => h('option', { key: z, value: z }, App.ZONES[z].label)))),
+      ui.fld2('Şekil', h('div', { class: 'fr-shape' },
+        ui.segmented({ label: 'Mekân şekli', wide: true, value: it.shape, options: st.SHAPES.map((s) => ({ v: s.v, title: s.label, label: h('span', { class: 'fr-ico' }, ui.icon(SHAPE_ICON[s.v], 18), h('span', { class: 'sr' }, s.label)) })), onchange: (v) => set({ shape: v }) }),
+        ui.btn('90°', { icon: 'rotate', onclick: () => ctl().freeRotate(it.id), title: 'Şekli 90° döndür (R)', disabled: it.shape === 'rect' && Math.abs(it.w - it.h) < 0.05 }))),
+      it.shape !== 'rect' ? ui.range({ id: 'fr-cut', label: 'Kesik oranı', min: 15, max: 65, step: 1, value: Math.round(it.cut * 100), text: '%' + Math.round(it.cut * 100), oninput: (v) => ctl().freeLive(it.id, { cut: v / 100 }), onchange: () => ctl().freeLiveEnd() }) : null,
+      h('div', { class: 'nfld-grid' },
+        numField('Genişlik', 'fr-w', it.w, { min: st.FREE_MIN, max: st.FREE_MAX, step: step, onchange: setW }),
+        numField('Derinlik', 'fr-h', it.h, { min: st.FREE_MIN, max: st.FREE_MAX, step: step, onchange: setH }),
+        numField('X', 'fr-x', it.x, { step: step, onchange: (v) => set({ x: v }) }),
+        numField('Y', 'fr-y', it.y, { step: step, onchange: (v) => set({ y: v }) })),
+      h('div', { class: 'tgl-row' }, ui.toggle({ label: 'En-boy oranını koru', on: lock, onclick: () => ctl().dispatch({ type: 'UI', patch: { stLock: !lock } }), title: 'Genişlik, derinlik ve köşe tutamaçları oranı korur' })),
+      h('p', { class: 'fr-area' }, h('b', { class: 'mono' }, fmt(it.area, 1) + ' m²'), ' · hedef ', h('span', { class: 'mono' }, fmt(it.target, 1) + ' m²'), ' · ', h('span', { class: 'fr-dev' + (Math.abs(it.dev) > 0.15 ? ' warn' : '') }, devTxt)),
+      h('div', { class: 'btn-row' },
+        ui.btn('Hedef alana oturt', { icon: 'target', onclick: () => ctl().freeFit(it.id), disabled: Math.abs(it.dev) < 0.005 }),
+        ui.btn('Alanı şemaya işle', { icon: 'check', onclick: () => ctl().freeAreaToSchema(it.id), disabled: Math.abs(it.dev) < 0.005, title: 'İşlev şemasındaki alan programını bu mekânın m²’sine eşitle' }),
+        ui.btn('Sil', { icon: 'trash', onclick: () => ctl().freeRemove(it.id), title: 'Mekânı işlev şemasından da kaldırır' }))), null, 'frsel');
+  }
+
+  function listSection(state, fd) {
+    const sel = state.selectedId;
+    const ovl = new Set();
+    fd.overlaps.forEach((o) => { ovl.add(o.a); ovl.add(o.b); });
+    const rows = fd.items.map((it) => h('li', { key: it.id, id: 'mrow-' + it.id, class: 'row frow' + (sel === it.id ? ' sel' : '') },
+      h('div', { class: 'row-main', onclick: () => ctl().dispatch({ type: 'SELECT', id: sel === it.id ? null : it.id }) },
+        ui.zoneDot(it.zone),
+        h('span', { class: 'row-name' }, it.name),
+        ovl.has(it.id) ? h('span', { class: 'fr-bad', title: 'Başka bir mekânla çakışıyor' }, '!') : null,
+        h('span', { class: 'frow-area mono' }, fmt(it.area) + ' m²'))));
+    return ui.section('Mekânlar', fd.items.length ? h('ul', { class: 'rows' }, rows) : h('p', { class: 'note' }, 'Henüz mekân yok. İşlev Şeması’nda ya da yukarıdan ekleyin.'), fd.items.length + ' mekân', 'frlist');
+  }
+
+  function relSection(state, fd) {
+    const P = state.project;
+    const it = fd.byId.get(state.selectedId);
+    if (!it) {
+      const bad = fd.pairs.filter((p) => p.ok < 1).sort((a, b) => a.ok - b.ok).slice(0, 6);
+      const nm = (id) => fd.byId.get(id).name;
+      return ui.section('İlişkiler', h('div', {},
+        h('p', { class: 'note' }, fd.pairs.length ? 'Bir mekân seçerek diğer mekânlarla ilişkisini görün. Aşağıda en zayıf eşleşmeler:' : 'İşlev Şeması’nda ilişki tanımlayın; burada bitişik / yakın / uzak durumları görünür.'),
+        bad.length ? h('ul', { class: 'rows' }, bad.map((p) => h('li', { key: p.key, class: 'row frel' }, h('div', { class: 'row-main', onclick: () => ctl().dispatch({ type: 'SELECT', id: p.a }) },
+          h('span', { class: 'row-name' }, nm(p.a) + ' ↔ ' + nm(p.b)),
+          h('span', { class: 'rel-chip rel-' + p.type }, REL_LABEL[p.type]),
+          h('span', { class: 'frow-area mono' }, STATE_TXT[p.state] + (p.state === 'near' || p.state === 'far' ? ' · ' + fmt(p.gap, 1) + ' m' : '')))))) : null), fd.pairs.length + ' ilişki', 'frrel');
+    }
+    const list = st.freeRelationsOf(P, fd, it.id);
+    const shown = list.filter((o) => o.type !== 'none').concat(list.filter((o) => o.type === 'none').slice(0, 6));
+    const rows = shown.map((o) => h('li', { key: o.id, class: 'row frel' },
+      h('div', { class: 'row-main', onclick: () => ctl().dispatch({ type: 'SELECT', id: o.id }) },
+        ui.zoneDot(o.zone),
+        h('span', { class: 'row-name' }, o.name),
+        h('span', { class: 'frow-area mono' }, STATE_TXT[o.state] + (o.state === 'near' || o.state === 'far' ? ' · ' + fmt(o.gap, 1) + ' m' : ''))),
+      h('div', { class: 'frel-act' },
+        h('button', { type: 'button', class: 'rel-chip rel-' + o.type, title: 'İlişki türünü değiştir (işlev şemasıyla ortak)', onclick: () => ctl().dispatch({ type: 'CYCLE_RELATION', a: it.id, b: o.id }) }, REL_LABEL[o.type]),
+        o.type !== 'none' && o.type !== 'avoid' && o.state !== 'adjacent' && o.state !== 'overlap'
+          ? h('button', { type: 'button', class: 'icon-btn', title: it.name + ' → ' + o.name + ' yanına bitiştir', 'aria-label': it.name + ' mekânını ' + o.name + ' yanına bitiştir', onclick: () => ctl().freeAttach(it.id, o.id, false) }, ui.icon('link', 16))
+          : null)));
+    return ui.section('İlişkiler · ' + it.name, h('div', {}, h('ul', { class: 'rows' }, rows), h('p', { class: 'note' }, 'Türe tıklayarak güçlü / zayıf / ayrı tut arasında geçiş yapın; değişiklik İşlev Şeması’na da işlenir.')), shown.length + '/' + list.length, 'frrel');
+  }
+
+  fl.freeSidebar = function (state, d) {
+    const P = state.project;
+    const fd = st.freeDerive(P);
+    const c = fd.findings.counts;
+    const tab = state.ui.stTab === 'bulgular' ? 'bulgular' : 'mekanlar';
+    const tabs = ui.tabsBar([
+      { id: 'mekanlar', label: 'Mekânlar', n: P.spaces.length },
+      { id: 'bulgular', label: 'Bulgular', n: c.hata + c.uyari + c.oneri, warn: c.hata + c.uyari > 0 },
+    ], tab, (id) => ctl().dispatch({ type: 'UI', patch: { stTab: id } }));
+    const body = tab === 'mekanlar'
+      ? [fl.modeSection(state), layoutSection(state, fd), selectedSection(state, fd), listSection(state, fd), relSection(state, fd)]
+      : [ui.findingList(fd.findings, 'Mekânların birbirine göre konumu, çakışma, alan uyumu ve oran kontrolü.')];
+    return ui.sideShell('sb-kat', 'Mekân etüdü paneli', tabs, body);
+  };
+
+  /* ---------------- pafta ---------------- */
+  let memo = { k: null, v: null };
+  function sceneOf(P, fd) {
+    const key = [fd, P.meta.name, App.theme.name, fl.frozen, App.sheet.W];
+    if (memo.k && memo.k.every((x, i) => x === key[i])) return memo.v;
+    memo = { k: key, v: st.freeScene(P, fd, { live: true, frozen: fl.frozen }) };
+    return memo.v;
+  }
+
+  let gest = null;
+  function toWorld(e, view) {
+    const svg = fl.svgEl;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    const q = pt.matrixTransform(svg.getScreenCTM().inverse());
+    return [view.wx(q.x), view.wy(q.y)];
+  }
+  const snapTo = (v, s) => Math.round(Math.round(v / s) * s * 100) / 100;
+
+  /* kenar yapışması: aday değerlerden toleransı aşmayan en yakınının farkı */
+  function pull(vals, cands, tol) {
+    let best = null;
+    vals.forEach((v) => cands.forEach((c) => { const d = c - v; if (Math.abs(d) <= tol && (best == null || Math.abs(d) < Math.abs(best))) best = d; }));
+    return best;
+  }
+  function magnetMove(r, others, tol) {
+    const xs = [], ys = [];
+    others.forEach((o) => {
+      const yOv = Math.min(r.y + r.h, o.y + o.h) - Math.max(r.y, o.y) > -0.5, xOv = Math.min(r.x + r.w, o.x + o.w) - Math.max(r.x, o.x) > -0.5;
+      if (yOv) { xs.push([[r.x], [o.x + o.w]]); xs.push([[r.x + r.w], [o.x]]); }
+      xs.push([[r.x], [o.x]]); xs.push([[r.x + r.w], [o.x + o.w]]);
+      if (xOv) { ys.push([[r.y], [o.y + o.h]]); ys.push([[r.y + r.h], [o.y]]); }
+      ys.push([[r.y], [o.y]]); ys.push([[r.y + r.h], [o.y + o.h]]);
+    });
+    const best = (pairs) => { let b = null; pairs.forEach((p) => { const d = p[1][0] - p[0][0]; if (Math.abs(d) <= tol && (b == null || Math.abs(d) < Math.abs(b))) b = d; }); return b || 0; };
+    return { dx: best(xs), dy: best(ys) };
+  }
+
+  function down(e, it, view, handle) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.stopPropagation(); e.preventDefault();
+    const w = toWorld(e, view);
+    fl.frozen = view.win;
+    gest = { id: it.id, handle: handle || null, sx: w[0], sy: w[1], cx: e.clientX, cy: e.clientY, orig: { x: it.x, y: it.y, w: it.w, h: it.h }, moved: false, view: view };
+    try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+    ctl().dispatch({ type: 'SELECT', id: it.id });
+  }
+  function move(e) {
+    if (!gest) return;
+    if (!gest.moved) {
+      if (Math.hypot(e.clientX - gest.cx, e.clientY - gest.cy) < 3) return;
+      gest.moved = true;
+      ctl().freeLiveBegin();
+    }
+    const S = App.store.get();
+    const fd = st.freeDerive(S.project);
+    const snap = S.project.study.free.snap;
+    const w = toWorld(e, gest.view);
+    const dx = w[0] - gest.sx, dy = w[1] - gest.sy;
+    const o = gest.orig;
+    const others = fd.items.filter((q) => q.id !== gest.id);
+    const tol = Math.max(0.3, 9 / gest.view.s);
+    const mag = !e.altKey;
+    if (!gest.handle) {
+      let x = snapTo(o.x + dx, snap), y = snapTo(o.y + dy, snap);
+      if (mag) { const m = magnetMove({ x: x, y: y, w: o.w, h: o.h }, others, tol); x = Math.round((x + m.dx) * 100) / 100; y = Math.round((y + m.dy) * 100) / 100; }
+      ctl().freeLive(gest.id, { x: x, y: y });
+      return;
+    }
+    const hd = gest.handle;
+    let x0 = o.x, x1 = o.x + o.w, y0 = o.y, y1 = o.y + o.h;
+    const edgeX = [], edgeY = [];
+    others.forEach((q) => { edgeX.push(q.x, q.x + q.w); edgeY.push(q.y, q.y + q.h); });
+    const adj = (v, edges) => { if (!mag) return v; const d = pull([v], edges, tol); return d == null ? v : v + d; };
+    if (hd.indexOf('w') >= 0) x0 = adj(snapTo(o.x + dx, snap), edgeX);
+    if (hd.indexOf('e') >= 0) x1 = adj(snapTo(o.x + o.w + dx, snap), edgeX);
+    if (hd.indexOf('n') >= 0) y0 = adj(snapTo(o.y + dy, snap), edgeY);
+    if (hd.indexOf('s') >= 0) y1 = adj(snapTo(o.y + o.h + dy, snap), edgeY);
+    const MIN = st.FREE_MIN;
+    if (x1 - x0 < MIN) { if (hd.indexOf('w') >= 0) x0 = x1 - MIN; else x1 = x0 + MIN; }
+    if (y1 - y0 < MIN) { if (hd.indexOf('n') >= 0) y0 = y1 - MIN; else y1 = y0 + MIN; }
+    if (S.ui.stLock && hd.length === 2) {
+      const r = o.w / o.h;
+      let nw = x1 - x0, nh = y1 - y0;
+      if (Math.abs(nw / o.w - 1) >= Math.abs(nh / o.h - 1)) nh = nw / r; else nw = nh * r;
+      if (hd.indexOf('w') >= 0) x0 = x1 - nw; else x1 = x0 + nw;
+      if (hd.indexOf('n') >= 0) y0 = y1 - nh; else y1 = y0 + nh;
+    }
+    ctl().freeLive(gest.id, { x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
+  }
+  function up(e) {
+    if (!gest) return;
+    try { fl.svgEl.releasePointerCapture(e.pointerId); } catch (err) {}
+    const moved = gest.moved;
+    gest = null;
+    fl.frozen = null;
+    ctl().freeLiveEnd();
+    ctl().dispatch({ type: 'UI', patch: { stTick: ((App.store.get().ui.stTick) || 0) + 1 } });
+    return moved;
+  }
+
+  const HANDLES = [['nw', 0, 0, 'nwse-resize'], ['n', 0.5, 0, 'ns-resize'], ['ne', 1, 0, 'nesw-resize'], ['e', 1, 0.5, 'ew-resize'], ['se', 1, 1, 'nwse-resize'], ['s', 0.5, 1, 'ns-resize'], ['sw', 0, 1, 'nesw-resize'], ['w', 0, 0.5, 'ew-resize']];
+
+  fl.freeBoard = function (state, d) {
+    const P = state.project;
+    const fd = st.freeDerive(P);
+    const sc = sceneOf(P, fd);
+    const view = sc.view;
+    const sel = state.selectedId;
+    const free = P.study.free;
+    const g = App.theme.name === 'glass';
+    const ptsOf = (it) => it.ring.map((q) => view.X(q[0]).toFixed(1) + ',' + view.Y(q[1]).toFixed(1)).join(' ');
+
+    const hits = [];
+    fd.items.slice().sort((a, b) => b.area - a.area).forEach((it) => {
+      const on = sel === it.id;
+      hits.push(h('g', { key: 'k' + it.id, class: 'fitem' + (on ? ' sel' : '') },
+        on ? h('polygon', { class: 'sel-ring', points: ptsOf(it), fill: 'none', stroke: App.PAL.ink, 'stroke-width': 3, 'stroke-dasharray': '7 6', 'stroke-linejoin': 'round', 'pointer-events': 'none' }) : null,
+        h('polygon', {
+          class: 'fitem-hit', points: ptsOf(it), fill: 'transparent', tabindex: 0, role: 'button',
+          'aria-label': it.name + ', ' + fmt(it.area) + ' metrekare. Ok tuşları taşır, Ctrl ile ok tuşları boyutlandırır, R döndürür.',
+          onpointerdown: (e) => down(e, it, view, null),
+          onkeydown: (e) => {
+            const sn = free.snap * (e.shiftKey ? 5 : 1);
+            const k = e.key;
+            const dirs = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+            if (dirs[k]) {
+              e.preventDefault();
+              const dv = dirs[k];
+              if (e.ctrlKey || e.metaKey) ctl().freeSet(it.id, { w: it.w + dv[0] * sn, h: it.h + dv[1] * sn });
+              else ctl().freeSet(it.id, { x: it.x + dv[0] * sn, y: it.y + dv[1] * sn });
+            } else if (k === 'r' || k === 'R') { e.preventDefault(); ctl().freeRotate(it.id); }
+            else if (k === 'Enter' || k === ' ') { e.preventDefault(); ctl().dispatch({ type: 'SELECT', id: it.id }); }
+          },
+        }, h('title', {}, it.name + ' — ' + fmt(it.area) + ' m²'))));
+    });
+    const cur = sel ? fd.byId.get(sel) : null;
+    if (cur) {
+      const hs = 11;
+      const bx = view.X(cur.x), by = view.Y(cur.y), bw = cur.w * view.s, bh = cur.h * view.s;
+      hits.push(h('g', { key: 'handles', class: 'fhandles' },
+        h('rect', { x: bx, y: by, width: bw, height: bh, fill: 'none', stroke: App.PAL.ink, 'stroke-width': 1, 'stroke-opacity': 0.35, 'pointer-events': 'none' }),
+        HANDLES.map((q) => h('rect', {
+          key: q[0], class: 'fhandle', x: bx + q[1] * bw - hs / 2, y: by + q[2] * bh - hs / 2, width: hs, height: hs, rx: g ? 3 : 0,
+          style: { cursor: q[3] }, onpointerdown: (e) => down(e, cur, view, q[0]),
+        }))));
+    }
+
+    const svg = h('svg', {
+      id: 'pafta-mekan', class: 'board-svg board-svg-mekan', viewBox: '0 0 ' + App.sheet.W + ' ' + App.sheet.H, preserveAspectRatio: 'xMidYMid meet', role: 'group',
+      'aria-label': 'Mekân etüdü paftası: ' + fd.items.length + ' mekân, serbest düzen',
+      ref: (el) => { fl.svgEl = el; }, onpointermove: move, onpointerup: up, onpointercancel: up,
+      onpointerdown: () => { if (state.selectedId) ctl().dispatch({ type: 'SELECT', id: null }); },
+    }, sc.prims.map((p) => App.board.primToV(p)), h('g', { class: 'fhits' }, hits));
+
+    const empty = !P.spaces.length;
+    const stage = h('div', { class: 'board-stage' }, svg,
+      cur ? h('div', { class: 'an-chip' }, h('b', {}, cur.name), h('span', { class: 'mono' }, fmt(cur.w, 1) + ' × ' + fmt(cur.h, 1) + ' m · ' + fmt(cur.area, 1) + ' m²'),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => ctl().dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null,
+      empty ? ui.emptyCard('Mekân etüdü için mekân gerekli', 'İşlev Şeması’nda mekân ekleyin, hazır bir bina programı yükleyin ya da sol panelden yeni mekân ekleyin.', [
+        ui.btn('Örnek konutu yükle', { icon: 'newdoc', cls: 'btn-primary', onclick: () => ctl().loadTemplate('konut', '2+1') }),
+        ui.btn('İşlev Şeması’na git', { icon: 'chevron', onclick: () => ctl().go('islev') })]) : null);
+
+    return ui.boardPage(state, d, {
+      label: 'Mekân etüdü paftası',
+      stage: stage,
+      scale: 'Mekânlar ölçekli · ızgara 1 m',
+      foot: h('p', { class: 'board-hint' }, 'Mekânı sürükleyin · tutamaçlarla boyutlandırın · komşu kenarlara yapışır (Alt: yapışmayı kapat) · R döndürür'),
+      tools: [
+        { k: 'seg', label: 'Çalışma kipi', value: 'mekanlar', options: [{ v: 'mekanlar', label: 'Mekânlar' }, { v: 'katlar', label: 'Katlar' }], onchange: (v) => ctl().stMode(v) },
+        { k: 'sep' },
+        { k: 'btn', label: 'Otomatik diz', icon: 'layout', strong: true, onclick: () => ctl().freeAuto(), disabled: !P.spaces.length, title: 'İlişkilere göre mekânları yeniden yerleştir' },
+        { k: 'sep' },
+        { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => ctl().dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
+        { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => ctl().dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },
+        { k: 'sep' },
+        { k: 'btn', label: 'DXF', icon: 'download', onclick: () => ctl().freeDxf(), disabled: !P.spaces.length || !!state.ui.busy, title: 'Mekânları katmanlı DXF (metre) olarak indir' },
+      ],
+    });
+  };
+
+  /* kip yönlendirmesi: eski kat arayüzü 'katlar' kipinde çalışır */
+  const baseSidebar = fl.sidebar, baseBoard = fl.board;
+  fl.sidebar = (state, d) => (st.modeOf(state) === 'katlar' ? baseSidebar(state, d) : fl.freeSidebar(state, d));
+  fl.board = (state, d) => (st.modeOf(state) === 'katlar' ? baseBoard(state, d) : fl.freeBoard(state, d));
 })();
 
 /* ==========================================================================
@@ -18621,6 +20070,117 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => c.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },
       ].filter(Boolean),
     });
+  };
+})();
+
+/* ==========================================================================
+   64-ctl-free.js — Mekân Etüdü serbest düzen yan etkileri: canlı düzenleme, ekleme, dışa aktarma, eylem köprüsü
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const ctl = App.ctl;
+  const U = App.util;
+  const st = App.study;
+  const get = () => App.store.get();
+
+  ctl.stMode = function (mode) {
+    try { window.localStorage.setItem('archtools.study.mode', mode); } catch (e) {}
+    ctl.dispatch({ type: 'UI', patch: { stMode: mode, stTab: 'mekanlar' } });
+  };
+
+  /* sürükleme / kaydırıcı: ilk harekette tek bir geri-al noktası, sonrası canlı */
+  let live = false;
+  ctl.freeLiveBegin = function () { if (!live) { live = true; ctl.dispatch({ type: 'SNAPSHOT' }); } };
+  ctl.freeLive = function (id, patch) { ctl.freeLiveBegin(); ctl.dispatch({ type: 'FREE_SET_LIVE', id: id, patch: patch }); };
+  ctl.freeLiveEnd = function () { live = false; };
+
+  ctl.freeSet = (id, patch) => ctl.dispatch({ type: 'FREE_SET', id: id, patch: patch });
+  ctl.freeSnap = (v) => ctl.dispatch({ type: 'FREE_OPTS', patch: { snap: v } });
+  ctl.freeRotate = function (id) {
+    const f = get().project.study.free.shapes[id];
+    if (!f) return;
+    ctl.freeSet(id, { rot: f.rot + 1 });
+  };
+  ctl.freeAuto = function () {
+    if (!get().project.spaces.length) { ctl.toast('Önce mekân ekleyin.', 'error'); return; }
+    ctl.dispatch({ type: 'FREE_AUTO' });
+    const m = st.freeDerive(get().project).metrics;
+    ctl.toast(m.score == null ? 'Mekânlar yeniden dizildi.' : 'Mekânlar yeniden dizildi · düzen skoru %' + m.score, 'success');
+  };
+  ctl.freeFit = (id) => ctl.dispatch({ type: 'FREE_FIT', id: id });
+  ctl.freeFitAll = function () { ctl.dispatch({ type: 'FREE_FIT_ALL' }); ctl.toast('Mekânlar hedef alanlara oturtuldu.', 'success'); };
+  ctl.freeAttach = function (id, to, away) {
+    ctl.dispatch({ type: 'FREE_ATTACH', id: id, to: to, away: !!away });
+    const fd = st.freeDerive(get().project);
+    const a = fd.byId.get(id), b = fd.byId.get(to);
+    if (a && b) ctl.toast('“' + a.name + '” ' + (away ? 'uzaklaştırıldı' : '“' + b.name + '” yanına alındı'), 'success');
+  };
+  ctl.freeAddSpace = function (name, area) {
+    name = String(name || '').trim();
+    if (!name) { ctl.toast('Mekâna bir ad verin.', 'error'); return; }
+    ctl.dispatch({ type: 'ADD_SPACES', list: [{ name: name, area: isFinite(area) && area > 0 ? area : 12 }] });
+    ctl.toast('“' + name + '” eklendi.', 'success');
+  };
+  ctl.freeAreaToSchema = function (id) {
+    const it = st.freeDerive(get().project).byId.get(id);
+    if (!it) return;
+    ctl.dispatch({ type: 'UPDATE_SPACE', id: id, patch: { area: Math.round(it.area * 10) / 10 } });
+    ctl.toast('“' + it.name + '” alanı işlev şemasına işlendi: ' + U.fmt(it.area, 1) + ' m²', 'success');
+  };
+  ctl.freeRemove = function (id) {
+    const s = get().project.spaces.find((x) => x.id === id);
+    if (!s) return;
+    ctl.dispatch({ type: 'REMOVE_SPACE', id: id });
+    ctl.toast('“' + s.name + '” silindi.', 'info');
+  };
+
+  /* dışa aktarma */
+  const baseKat = ctl.exporters.kat;
+  ctl.exporters.kat = function (kind) {
+    if (st.modeOf(get()) === 'katlar') { baseKat(kind); return; }
+    ctl.runExport(kind === 'png' ? 'PNG' : 'PDF', (P) => {
+      const sc = st.freeScene(P, st.freeDerive(P), { live: false });
+      return App.sheet.exportScene(sc.prims, App.sheet.W, App.sheet.H, P.meta.name + '-mekan-etudu', kind);
+    });
+  };
+
+  const ZONE_ACI = { sosyal: 40, ozel: 5, servis: 4, calisma: 3, sirkulasyon: 8, teknik: 9, acik: 2 };
+  function dxfDoc(P, fd) {
+    const doc = { title: P.meta.name, units: 'm', layers: { YAZI: { color: 7, label: 'Yazılar' }, OLCU: { color: 8, label: 'Ölçüler' } }, entities: [] };
+    Object.keys(ZONE_ACI).forEach((z) => { doc.layers['MEKAN_' + z.toUpperCase()] = { color: ZONE_ACI[z], label: (App.ZONES[z] || {}).label || z }; });
+    const H = fd.bounds.y1;
+    const fy = (y) => H - y; // DXF'te y yukarı
+    fd.items.forEach((it) => {
+      const layer = 'MEKAN_' + String(it.zone || 'sosyal').toUpperCase();
+      if (!doc.layers[layer]) doc.layers[layer] = { color: 7 };
+      doc.entities.push({ layer: layer, kind: 'poly', closed: true, pts: it.ring.map((q) => [q[0], fy(q[1])]) });
+      const lr = st.freeLabelRect(it);
+      const fs = Math.max(0.25, Math.min(0.5, Math.min(lr.w, lr.h) / 7));
+      const cx = lr.x + lr.w / 2, cy = lr.y + lr.h / 2;
+      doc.entities.push({ layer: 'YAZI', kind: 'text', at: [cx, fy(cy) + fs * 0.7], text: it.name, h: fs, align: 'center' });
+      doc.entities.push({ layer: 'YAZI', kind: 'text', at: [cx, fy(cy) - fs * 0.7], text: U.fmt(it.area, 1) + ' m2', h: fs * 0.8, align: 'center' });
+    });
+    return doc;
+  }
+  ctl.freeDxf = function () {
+    ctl.runExport('DXF', (P) => {
+      if (!App.dxf) return Promise.reject(new Error('DXF yazıcısı yüklenemedi.'));
+      return ctl.saveText(U.slug(P.meta.name) + '-mekan-etudu.dxf', App.dxf.build(dxfDoc(P, st.freeDerive(P))), 'application/dxf');
+    });
+  };
+
+  /* asistan kartları: bitiştir, hedef alana oturt, göster */
+  const baseRun = ctl.runAction;
+  ctl.runAction = function (a) {
+    if (a.type === 'freeAttach') { ctl.freeAttach(a.id, a.to, a.away); return; }
+    if (a.type === 'freeFit') { ctl.freeFit(a.id); return; }
+    if (a.type === 'select' && get().ui.module === 'kat' && st.modeOf(get()) === 'mekanlar') {
+      ctl.dispatch({ type: 'SELECT', id: a.id });
+      ctl.dispatch({ type: 'UI', patch: { stTab: 'mekanlar' } });
+      setTimeout(() => { const el = document.getElementById('mrow-' + a.id); if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 40);
+      return;
+    }
+    baseRun(a);
   };
 })();
 
@@ -20455,6 +22015,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const an = (ui.analysis = {});
   let orbit = null;
 
+  const MODES = [{ v: 'floors', label: 'Katlar', title: 'Her kat bir levha (üst üste)' }, { v: 'modules', label: 'Mekânlar', title: 'Mekânlar yan yana' }, { v: 'layers', label: 'Katmanlar', title: 'Seçili katın analiz katmanları' }];
   const pct = (v) => (v == null ? '—' : '%' + Math.round(v * 100));
 
   /* ---------------- sol panel ---------------- */
@@ -20463,16 +22024,18 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const c = ctl();
     return ui.section('Görünüm', h('div', { class: 'sec-box' },
       ui.fld2('Kip',
-        ui.segmented({ label: 'Görünüm kipi', wide: true, value: v.mode, options: [{ v: 'floors', label: 'Katlar', title: 'Her kat bir levha' }, { v: 'layers', label: 'Katmanlar', title: 'Seçili katın analiz katmanları' }], onchange: (m) => c.anMode(m) }),
-        v.mode === 'floors' ? 'Her kat ayrı bir levha olarak yukarı doğru açılır.' : 'Seçili katın plan, işlev, dolaşım gibi katmanları üst üste açılır.'),
+        ui.segmented({ label: 'Görünüm kipi', wide: true, value: v.mode, options: MODES, onchange: (m) => c.anMode(m) }),
+        v.mode === 'floors' ? 'Her kat ayrı bir levha olarak yukarı doğru açılır.' : v.mode === 'modules' ? 'Mekân Etüdü’ndeki mekânlar üst üste değil, yan yana ayrı hacimler olarak açılır.' : 'Seçili katın plan, işlev, dolaşım gibi katmanları üst üste açılır.'),
       ui.range({ id: 'an-explode', label: 'Patlatma', min: 0, max: 100, step: 1, value: Math.round(v.explode * 100), text: '%' + Math.round(v.explode * 100), oninput: (x) => { c.anCancel(); c.an({ explode: x / 100 }); } }),
       ui.range({ id: 'an-yaw', label: 'Dönüş', min: -85, max: 85, step: 1, value: Math.round(v.yaw), text: Math.round(v.yaw) + '°', oninput: (x) => { c.anCancel(); c.an({ yaw: x }); } }),
       ui.range({ id: 'an-pitch', label: 'Bakış yüksekliği', min: 12, max: 75, step: 1, value: Math.round(v.pitch), text: Math.round(v.pitch) + '°', oninput: (x) => { c.anCancel(); c.an({ pitch: x }); } }),
       h('div', { class: 'tgl-row' },
         ui.toggle({ label: 'Etiketler', on: v.labels, onclick: () => c.an({ labels: !v.labels }) }),
         ui.toggle({ label: 'Oklar', on: v.arrows, onclick: () => c.an({ arrows: !v.arrows }), title: 'Düşey dolaşım ve ilişki okları' }),
-        ui.toggle({ label: 'Kılavuzlar', on: v.guides, onclick: () => c.an({ guides: !v.guides }), title: 'Levhaları bağlayan köşe çizgileri' }),
-        ui.toggle({ label: 'Hacim', on: v.volume, onclick: () => c.an({ volume: !v.volume }), title: 'Mekânları yükselti olarak çiz' }))));
+        ui.toggle({ label: 'Kılavuzlar', on: v.guides, onclick: () => c.an({ guides: !v.guides }), title: v.mode === 'modules' ? 'Özgün konum izleri ve çizgileri' : 'Levhaları bağlayan köşe çizgileri' }),
+        ui.toggle({ label: 'Hacim', on: v.volume, onclick: () => c.an({ volume: !v.volume }), title: 'Mekânları yükselti olarak çiz' })),
+      v.mode === 'modules' ? ui.fld2('Dizilim', ui.segmented({ label: 'Dizilim', wide: true, value: v.arrange || 'yerlesim', options: [{ v: 'yerlesim', label: 'Yerleşim', title: 'Mekân Etüdü’ndeki konumlarını koruyarak aç' }, { v: 'sira', label: 'Sıralı', title: 'Bölgeye göre sıra sıra diz' }], onchange: (x) => c.an({ arrange: x }) }), (v.arrange === 'sira' ? 'Mekânlar işlev bölgesine göre gruplanıp yan yana sıralanır.' : 'Mekânlar birbirine göre konumunu koruyarak birbirinden uzaklaşır.')) : null,
+      v.mode === 'modules' ? ui.fld2('Renk', ui.segmented({ label: 'Renklendirme', wide: true, value: v.color || 'islev', options: [{ v: 'islev', label: 'İşlev' }, { v: 'gurultu', label: 'Gürültü' }], onchange: (x) => c.an({ color: x }) })) : null));
   }
 
   function mixBar(m) {
@@ -20513,6 +22076,29 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     ];
   }
 
+  function modulesSection(state) {
+    const P = state.project;
+    const fd = App.study.freeDerive(P);
+    const sel = state.selectedId;
+    const rows = fd.items.map((it) => h('li', { key: it.id, class: 'row aflr' + (sel === it.id ? ' sel' : '') },
+      h('button', { type: 'button', class: 'row-main aflr-btn', 'aria-pressed': String(sel === it.id), onclick: () => ctl().dispatch({ type: 'SELECT', id: sel === it.id ? null : it.id }) },
+        h('span', { class: 'aflr-top' }, ui.zoneDot(it.zone), h('span', { class: 'row-name' }, it.name), h('span', { class: 'frow-area mono' }, fmt(it.area) + ' m²')))));
+    return ui.section('Mekânlar', h('div', {}, fd.items.length ? h('ul', { class: 'rows' }, rows) : h('p', { class: 'note' }, 'Mekân yok. Mekân Etüdü’nde ya da İşlev Şeması’nda ekleyin.'), h('p', { class: 'note aflr-note' }, 'Bir mekâna tıklayın: diğerleri soluklaşır, ilişkileri öne çıkar. Şekil ve boyutlar Mekân Etüdü’nden gelir.'), h('div', { class: 'btn-row' }, ui.btn('Mekân Etüdü’nde düzenle', { icon: 'layout', onclick: () => ctl().go('kat') }))), fd.items.length + ' mekân', 'amods');
+  }
+
+  function modStatsSection(state) {
+    const fd = App.study.freeDerive(state.project);
+    const m = fd.metrics;
+    const rows = [
+      ['Düzen skoru', m.score == null ? '—' : '%' + m.score],
+      ['Toplam alan', fmt(m.total) + ' m²'],
+      ['Bitişik güçlü ilişki', m.strongTotal ? m.strongOk + '/' + m.strongTotal : '—'],
+      ['Çakışma', String(m.overlapCount)],
+      ['Alan uyumu', pct(m.areaFit)],
+    ];
+    return ui.section('Ölçüler', h('dl', { class: 'stats' }, rows.map((r) => [h('dt', { key: 'k' + r[0] }, r[0]), h('dd', { key: 'v' + r[0], class: 'mono' }, r[1])])), null, 'astats');
+  }
+
   function statsSection(A) {
     const s = A.stats;
     const rows = [
@@ -20531,23 +22117,26 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const A = App.analysis.analyze(P, sd);
     const v = state.ui.an;
     const tab = state.ui.anTab || 'gorunum';
-    const c = A.counts;
+    const c = v.mode === 'modules' ? App.study.freeDerive(P).findings.counts : A.counts;
     const tabs = ui.tabsBar([
       { id: 'gorunum', label: 'Görünüm' },
       { id: 'bulgular', label: 'Bulgular', n: c.hata + c.uyari + c.oneri, warn: c.hata + c.uyari > 0 },
     ], tab, (id) => ctl().dispatch({ type: 'UI', patch: { anTab: id } }));
+    const mods = v.mode === 'modules';
+    const mfd = mods ? App.study.freeDerive(P) : null;
     const body = tab === 'gorunum'
-      ? [viewSection(state), v.mode === 'floors' ? floorsSection(state, sd, A) : layersSection(state, sd), statsSection(A)]
-      : [ui.findingList({ items: A.items, counts: A.counts }, 'Düşey düzen, cephe teması, gürültü ve dolaşım kontrolleri. Bilgi tabanı: işlev şeması bina tipi.')];
+      ? (mods ? [viewSection(state), modulesSection(state), modStatsSection(state)] : [viewSection(state), v.mode === 'floors' ? floorsSection(state, sd, A) : layersSection(state, sd), statsSection(A)])
+      : [mods ? ui.findingList(mfd.findings, 'Mekânların birbirine göre konumu, çakışma, alan uyumu ve oran kontrolü (Mekân Etüdü serbest düzeni).') : ui.findingList({ items: A.items, counts: A.counts }, 'Düşey düzen, cephe teması, gürültü ve dolaşım kontrolleri. Bilgi tabanı: işlev şeması bina tipi.')];
     return ui.sideShell('sb-analiz', 'Mekân analizi paneli', tabs, body);
   };
 
   /* ---------------- pafta ---------------- */
   let memo = { k: null, v: null };
-  function sceneOf(P, sd, v) {
-    const key = [sd.plan, P.spaces, P.meta.name, App.theme.name, v];
+  function sceneOf(P, sd, v, sel) {
+    const mods = v.mode === 'modules';
+    const key = [sd.plan, P.spaces, P.meta.name, App.theme.name, v, mods ? sel : null, mods ? P.study.free : null, mods ? P.relations : null];
     if (memo.k && memo.k.every((x, i) => x === key[i])) return memo.v;
-    memo = { k: key, v: App.analysis.scene(P, sd, v, true) };
+    memo = { k: key, v: App.analysis.scene(P, sd, mods ? Object.assign({}, v, { msel: sel }) : v, true) };
     return memo.v;
   }
 
@@ -20583,7 +22172,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const P = state.project;
     const sd = App.study.derive(P);
     const v = state.ui.an;
-    const sc = sceneOf(P, sd, v);
+    const sc = sceneOf(P, sd, v, state.selectedId);
     const c = ctl();
     const floors = v.mode === 'floors';
     const sel = state.selectedId;
@@ -20623,17 +22212,17 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const stage = h('div', { class: 'board-stage' + (floors ? '' : ' is-layers') }, svg,
       selFloor ? h('div', { class: 'an-chip' }, h('b', {}, selFloor.name), h('span', { class: 'mono' }, fmt(selFloor.net) + ' m² · ' + selFloor.spaces.length + ' mekân'),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.an({ sel: null }, true) }, ui.icon('close', 14))) : null,
-      empty ? ui.emptyCard('Analiz için mekân gerekli', 'İşlev Şeması’nda mekân ekleyin; Kat Etüdü katlara dağıtır, burada patlatılmış izometrik olarak incelersiniz.', [
+      empty ? ui.emptyCard('Analiz için mekân gerekli', 'İşlev Şeması’nda mekân ekleyin; Mekân Etüdü mekânları düzenler, burada patlatılmış izometrik olarak (katlar üst üste, mekânlar yan yana) incelersiniz.', [
         ui.btn('Örnek konutu yükle', { icon: 'newdoc', cls: 'btn-primary', onclick: () => c.loadTemplate('konut', '2+1') }),
         ui.btn('İşlev Şeması’na git', { icon: 'chevron', onclick: () => c.go('islev') })]) : null);
 
     return ui.boardPage(state, d, {
       label: 'Mekân analizi paftası',
       stage: stage,
-      scale: 'Patlatılmış izometrik · plan ölçekli',
-      foot: h('p', { class: 'board-hint' }, 'Sürükleyerek döndürün · bir kata tıklayarak öne çıkarın · ok ve +/− tuşları da çalışır'),
+      scale: v.mode === 'modules' ? 'Mekânlar yan yana · izometrik · ölçekli' : 'Patlatılmış izometrik · plan ölçekli',
+      foot: h('p', { class: 'board-hint' }, floors ? 'Sürükleyerek döndürün · bir kata tıklayarak öne çıkarın · ok ve +/− tuşları da çalışır' : v.mode === 'modules' ? 'Sürükleyerek döndürün · bir mekâna tıklayarak ilişkilerini öne çıkarın · +/− mekânları açar ya da toplar' : 'Sürükleyerek döndürün · ok ve +/− tuşları da çalışır'),
       tools: [
-        { k: 'seg', label: 'Görünüm kipi', value: v.mode, options: [{ v: 'floors', label: 'Katlar' }, { v: 'layers', label: 'Katmanlar' }], onchange: (m) => c.anMode(m) },
+        { k: 'seg', label: 'Görünüm kipi', value: v.mode, options: [{ v: 'floors', label: 'Katlar' }, { v: 'modules', label: 'Mekânlar' }, { v: 'layers', label: 'Katmanlar' }], onchange: (m) => c.anMode(m) },
         { k: 'sep' },
         { k: 'btn', label: v.explode > 0.5 ? 'Topla' : 'Patlat', icon: 'layers', strong: true, onclick: () => c.anToggleExplode(), title: 'Levhaları aç / kapat (animasyonlu)' },
         { k: 'icon', label: 'Görünümü sıfırla', icon: 'reset', onclick: () => c.anResetView(), title: 'Dönüş ve eğimi varsayılana al' },
@@ -20655,7 +22244,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const U = App.util;
   const get = () => App.store.get();
   const VIEW_KEY = 'archtools.analysis.view';
-  const PERSIST = ['mode', 'explode', 'yaw', 'pitch', 'labels', 'arrows', 'guides', 'volume', 'layers'];
+  const PERSIST = ['mode', 'arrange', 'color', 'explode', 'yaw', 'pitch', 'labels', 'arrows', 'guides', 'volume', 'layers'];
   const reduced = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   /* ---------- görünüm durumu ---------- */
@@ -20679,7 +22268,9 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       const o = JSON.parse(window.localStorage.getItem(VIEW_KEY) || 'null');
       if (!o || typeof o !== 'object') return;
       const def = App.analysisDefaults(), p = {};
-      if (o.mode === 'floors' || o.mode === 'layers') p.mode = o.mode;
+      if (o.mode === 'floors' || o.mode === 'layers' || o.mode === 'modules') p.mode = o.mode;
+      if (o.arrange === 'yerlesim' || o.arrange === 'sira') p.arrange = o.arrange;
+      if (o.color === 'islev' || o.color === 'gurultu') p.color = o.color;
       if (typeof o.explode === 'number') p.explode = U.clamp(o.explode, 0, 1);
       if (typeof o.yaw === 'number') p.yaw = U.clamp(o.yaw, -85, 85);
       if (typeof o.pitch === 'number') p.pitch = U.clamp(o.pitch, 12, 75);

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   35-lib-floorscene.js — kat etüdü paftası: kat planları yan yana (primitifler)
+   35-lib-floorscene.js — mekân etüdü (kat kipi) paftası: kat planları yan yana (primitifler)
    Canlı SVG ve PNG/PDF çıktısı aynı listeden çizilir.
    ========================================================================== */
 (function () {
@@ -108,7 +108,7 @@
     project.spaces.forEach((s) => { if (zones.indexOf(s.zone) < 0) zones.push(s.zone); });
     const info = {
       name: project.meta.name,
-      subtitle: 'Kat etüdü · ' + plan.floors.length + ' kat · ' + TYP[plan.typology],
+      subtitle: 'Mekân etüdü · kat kipi · ' + plan.floors.length + ' kat · ' + TYP[plan.typology],
       legend: sheet.zoneLegend(zones),
       stats: [['Kat', String(plan.floors.length)], ['Net toplam', fmt(m.totalNet) + ' m²'], ['Plak', fmt(plan.Wp, 1) + ' × ' + fmt(plan.Dp, 1) + ' m']],
       scoreLabel: 'Kat skoru', percent: m.score,

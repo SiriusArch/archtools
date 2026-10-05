@@ -29,3 +29,30 @@
 .altc-best, .altc-w { font-size: 10.5px; font-weight: 700; }
 .altc-best { position: absolute; top: 6px; right: 6px; padding: 1px 7px; }
 .altc-w { color: var(--ink-2); }
+
+/* Mekân Etüdü — serbest düzen kipi */
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.fr-add { display: flex; align-items: center; gap: 8px; }
+.fr-add .inp:first-child { flex: 1 1 auto; min-width: 0; }
+.fr-add .btn-icon { flex: none; }
+.fr-shape { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.fr-ico { display: inline-grid; place-items: center; }
+.nfld-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.nfld { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.nfld-l { font-size: 12.5px; color: var(--ink-2); font-weight: 600; }
+.nfld-c { display: flex; align-items: center; gap: 6px; }
+.nfld-i { width: 100%; min-width: 0; }
+.fr-area { margin: 2px 0 0; font-size: 13.5px; }
+.fr-dev.warn { font-weight: 700; }
+.fr-bad { flex: none; display: inline-grid; place-items: center; width: 18px; height: 18px; font-weight: 800; font-size: 12px; background: var(--ink); color: var(--on-ink, #fff); }
+.frel .row-main { flex-wrap: wrap; }
+.frel-act { display: flex; align-items: center; gap: 6px; padding: 0 4px 4px 12px; }
+.rel-chip { display: inline-flex; align-items: center; padding: 2px 9px; font: 700 11.5px var(--f-body); border: 0; cursor: pointer; color: var(--ink); background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
+.rel-chip.rel-strong { background: var(--ink); color: var(--on-ink, #fff); box-shadow: none; }
+.rel-chip.rel-none { opacity: .55; }
+.rel-chip.rel-avoid { text-decoration: line-through; }
+.board-svg-mekan { touch-action: none; }
+.fitem-hit { cursor: grab; pointer-events: all; outline: none; }
+.fitem-hit:hover { fill: rgba(23, 24, 27, .07); }
+.fitem-hit:focus-visible { stroke: var(--ink); stroke-width: 3; }
+.fhandle { fill: var(--surface, #fff); stroke: var(--ink); stroke-width: 2; pointer-events: all; }

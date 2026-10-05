@@ -10,3 +10,5 @@
 .altc-b { border-radius: 18px; background: var(--glass-2); box-shadow: var(--raise-sm); }
 .altc.on .altc-b { box-shadow: var(--press-sm); background: var(--inset-bg); }
 .altc-best { border-radius: 99px; background: var(--ink); color: var(--on-ink); }
+.rel-chip { border-radius: 99px; }
+.fr-bad { border-radius: 50%; }

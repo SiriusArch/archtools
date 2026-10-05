@@ -11,7 +11,7 @@
 
   const MODULES = [
     { id: 'islev', n: '01', label: 'İşlev Şeması', sub: 'İşlev şeması · bubble diagram', shape: 'circle' },
-    { id: 'kat', n: '02', label: 'Kat Etüdü', sub: 'Kat etüdü · plan blokları', shape: 'square' },
+    { id: 'kat', n: '02', label: 'Mekân Etüdü', sub: 'Mekân etüdü · şekil, boyut ve ilişki', shape: 'square' },
     { id: 'analiz', n: '03', label: 'Mekân Analizi', sub: 'Mekân analizi · patlatılmış izometrik', shape: 'triangle' },
     { id: 'arsa', n: '04', label: 'Arsa Analizi', sub: 'Arsa analizi · çevre, erişim, ulaşım', shape: 'diamond' },
     { id: 'imar', n: '05', label: 'İmar ve Kapasite', sub: 'İmar ve kapasite · parsel ve kütle', shape: 'plot' },
@@ -66,9 +66,28 @@
     };
   }
 
+  function mekanMeter(state, tabKey) {
+    const P = state.project;
+    const fd = App.study.freeDerive(P), m = fd.metrics, p = m.score;
+    return {
+      label: 'Düzen skoru', percent: p,
+      msg: !P.spaces.length ? 'Önce İşlev Şeması’nda mekân ekleyin' : level(p, ['Mekân ekleyerek etüdü başlatın', 'Mekânlar ilişkilere çok uyumlu', 'İyi yerleşim, birkaç ince ayar kaldı', 'Güçlü ilişkili mekânları yan yana alın', 'Mekânlar çakışıyor ya da ilişkilerden kopuk']),
+      chips: [
+        { label: 'Bitişik güçlü', value: m.strongTotal ? m.strongOk + '/' + m.strongTotal : '0', cls: 'dot' },
+        { label: 'Çakışma', value: String(m.overlapCount), cls: 'dot' },
+        { label: 'Alan uyumu', value: pc(m.areaFit), cls: 'dot' },
+        { label: 'Kompaktlık', value: pc(m.compact), cls: 'dot' },
+      ],
+      issues: fd.findings.counts.hata + fd.findings.counts.uyari,
+      issuesText: 'uyarı · bulgulara git',
+      onIssues: () => App.ctl.dispatch({ type: 'UI', patch: { [tabKey || 'stTab']: 'bulgular' } }),
+    };
+  }
+
   function katMeter(state) {
     const P = state.project;
-    if (!P.study) return { label: 'Kat skoru', percent: null, msg: '', chips: [], issues: 0 };
+    if (!P.study) return { label: 'Düzen skoru', percent: null, msg: '', chips: [], issues: 0 };
+    if (App.study.modeOf && App.study.modeOf(state) === 'mekanlar') return mekanMeter(state);
     const sd = App.study.derive(P), m = sd.metrics, p = m.score;
     return {
       label: 'Kat skoru', percent: p,
@@ -88,6 +107,7 @@
   function analizMeter(state) {
     const P = state.project;
     if (!P.study) return { label: 'Uyum skoru', percent: null, msg: '', chips: [], issues: 0 };
+    if (state.ui.an && state.ui.an.mode === 'modules') return mekanMeter(state, 'anTab');
     const sd = App.study.derive(P), A = App.analysis.analyze(P, sd), p = A.score, st = A.stats;
     return {
       label: 'Uyum skoru', percent: p,

@@ -14,6 +14,7 @@
   const an = (ui.analysis = {});
   let orbit = null;
 
+  const MODES = [{ v: 'floors', label: 'Katlar', title: 'Her kat bir levha (üst üste)' }, { v: 'modules', label: 'Mekânlar', title: 'Mekânlar yan yana' }, { v: 'layers', label: 'Katmanlar', title: 'Seçili katın analiz katmanları' }];
   const pct = (v) => (v == null ? '—' : '%' + Math.round(v * 100));
 
   /* ---------------- sol panel ---------------- */
@@ -22,16 +23,18 @@
     const c = ctl();
     return ui.section('Görünüm', h('div', { class: 'sec-box' },
       ui.fld2('Kip',
-        ui.segmented({ label: 'Görünüm kipi', wide: true, value: v.mode, options: [{ v: 'floors', label: 'Katlar', title: 'Her kat bir levha' }, { v: 'layers', label: 'Katmanlar', title: 'Seçili katın analiz katmanları' }], onchange: (m) => c.anMode(m) }),
-        v.mode === 'floors' ? 'Her kat ayrı bir levha olarak yukarı doğru açılır.' : 'Seçili katın plan, işlev, dolaşım gibi katmanları üst üste açılır.'),
+        ui.segmented({ label: 'Görünüm kipi', wide: true, value: v.mode, options: MODES, onchange: (m) => c.anMode(m) }),
+        v.mode === 'floors' ? 'Her kat ayrı bir levha olarak yukarı doğru açılır.' : v.mode === 'modules' ? 'Mekân Etüdü’ndeki mekânlar üst üste değil, yan yana ayrı hacimler olarak açılır.' : 'Seçili katın plan, işlev, dolaşım gibi katmanları üst üste açılır.'),
       ui.range({ id: 'an-explode', label: 'Patlatma', min: 0, max: 100, step: 1, value: Math.round(v.explode * 100), text: '%' + Math.round(v.explode * 100), oninput: (x) => { c.anCancel(); c.an({ explode: x / 100 }); } }),
       ui.range({ id: 'an-yaw', label: 'Dönüş', min: -85, max: 85, step: 1, value: Math.round(v.yaw), text: Math.round(v.yaw) + '°', oninput: (x) => { c.anCancel(); c.an({ yaw: x }); } }),
       ui.range({ id: 'an-pitch', label: 'Bakış yüksekliği', min: 12, max: 75, step: 1, value: Math.round(v.pitch), text: Math.round(v.pitch) + '°', oninput: (x) => { c.anCancel(); c.an({ pitch: x }); } }),
       h('div', { class: 'tgl-row' },
         ui.toggle({ label: 'Etiketler', on: v.labels, onclick: () => c.an({ labels: !v.labels }) }),
         ui.toggle({ label: 'Oklar', on: v.arrows, onclick: () => c.an({ arrows: !v.arrows }), title: 'Düşey dolaşım ve ilişki okları' }),
-        ui.toggle({ label: 'Kılavuzlar', on: v.guides, onclick: () => c.an({ guides: !v.guides }), title: 'Levhaları bağlayan köşe çizgileri' }),
-        ui.toggle({ label: 'Hacim', on: v.volume, onclick: () => c.an({ volume: !v.volume }), title: 'Mekânları yükselti olarak çiz' }))));
+        ui.toggle({ label: 'Kılavuzlar', on: v.guides, onclick: () => c.an({ guides: !v.guides }), title: v.mode === 'modules' ? 'Özgün konum izleri ve çizgileri' : 'Levhaları bağlayan köşe çizgileri' }),
+        ui.toggle({ label: 'Hacim', on: v.volume, onclick: () => c.an({ volume: !v.volume }), title: 'Mekânları yükselti olarak çiz' })),
+      v.mode === 'modules' ? ui.fld2('Dizilim', ui.segmented({ label: 'Dizilim', wide: true, value: v.arrange || 'yerlesim', options: [{ v: 'yerlesim', label: 'Yerleşim', title: 'Mekân Etüdü’ndeki konumlarını koruyarak aç' }, { v: 'sira', label: 'Sıralı', title: 'Bölgeye göre sıra sıra diz' }], onchange: (x) => c.an({ arrange: x }) }), (v.arrange === 'sira' ? 'Mekânlar işlev bölgesine göre gruplanıp yan yana sıralanır.' : 'Mekânlar birbirine göre konumunu koruyarak birbirinden uzaklaşır.')) : null,
+      v.mode === 'modules' ? ui.fld2('Renk', ui.segmented({ label: 'Renklendirme', wide: true, value: v.color || 'islev', options: [{ v: 'islev', label: 'İşlev' }, { v: 'gurultu', label: 'Gürültü' }], onchange: (x) => c.an({ color: x }) })) : null));
   }
 
   function mixBar(m) {
@@ -72,6 +75,29 @@
     ];
   }
 
+  function modulesSection(state) {
+    const P = state.project;
+    const fd = App.study.freeDerive(P);
+    const sel = state.selectedId;
+    const rows = fd.items.map((it) => h('li', { key: it.id, class: 'row aflr' + (sel === it.id ? ' sel' : '') },
+      h('button', { type: 'button', class: 'row-main aflr-btn', 'aria-pressed': String(sel === it.id), onclick: () => ctl().dispatch({ type: 'SELECT', id: sel === it.id ? null : it.id }) },
+        h('span', { class: 'aflr-top' }, ui.zoneDot(it.zone), h('span', { class: 'row-name' }, it.name), h('span', { class: 'frow-area mono' }, fmt(it.area) + ' m²')))));
+    return ui.section('Mekânlar', h('div', {}, fd.items.length ? h('ul', { class: 'rows' }, rows) : h('p', { class: 'note' }, 'Mekân yok. Mekân Etüdü’nde ya da İşlev Şeması’nda ekleyin.'), h('p', { class: 'note aflr-note' }, 'Bir mekâna tıklayın: diğerleri soluklaşır, ilişkileri öne çıkar. Şekil ve boyutlar Mekân Etüdü’nden gelir.'), h('div', { class: 'btn-row' }, ui.btn('Mekân Etüdü’nde düzenle', { icon: 'layout', onclick: () => ctl().go('kat') }))), fd.items.length + ' mekân', 'amods');
+  }
+
+  function modStatsSection(state) {
+    const fd = App.study.freeDerive(state.project);
+    const m = fd.metrics;
+    const rows = [
+      ['Düzen skoru', m.score == null ? '—' : '%' + m.score],
+      ['Toplam alan', fmt(m.total) + ' m²'],
+      ['Bitişik güçlü ilişki', m.strongTotal ? m.strongOk + '/' + m.strongTotal : '—'],
+      ['Çakışma', String(m.overlapCount)],
+      ['Alan uyumu', pct(m.areaFit)],
+    ];
+    return ui.section('Ölçüler', h('dl', { class: 'stats' }, rows.map((r) => [h('dt', { key: 'k' + r[0] }, r[0]), h('dd', { key: 'v' + r[0], class: 'mono' }, r[1])])), null, 'astats');
+  }
+
   function statsSection(A) {
     const s = A.stats;
     const rows = [
@@ -90,23 +116,26 @@
     const A = App.analysis.analyze(P, sd);
     const v = state.ui.an;
     const tab = state.ui.anTab || 'gorunum';
-    const c = A.counts;
+    const c = v.mode === 'modules' ? App.study.freeDerive(P).findings.counts : A.counts;
     const tabs = ui.tabsBar([
       { id: 'gorunum', label: 'Görünüm' },
       { id: 'bulgular', label: 'Bulgular', n: c.hata + c.uyari + c.oneri, warn: c.hata + c.uyari > 0 },
     ], tab, (id) => ctl().dispatch({ type: 'UI', patch: { anTab: id } }));
+    const mods = v.mode === 'modules';
+    const mfd = mods ? App.study.freeDerive(P) : null;
     const body = tab === 'gorunum'
-      ? [viewSection(state), v.mode === 'floors' ? floorsSection(state, sd, A) : layersSection(state, sd), statsSection(A)]
-      : [ui.findingList({ items: A.items, counts: A.counts }, 'Düşey düzen, cephe teması, gürültü ve dolaşım kontrolleri. Bilgi tabanı: işlev şeması bina tipi.')];
+      ? (mods ? [viewSection(state), modulesSection(state), modStatsSection(state)] : [viewSection(state), v.mode === 'floors' ? floorsSection(state, sd, A) : layersSection(state, sd), statsSection(A)])
+      : [mods ? ui.findingList(mfd.findings, 'Mekânların birbirine göre konumu, çakışma, alan uyumu ve oran kontrolü (Mekân Etüdü serbest düzeni).') : ui.findingList({ items: A.items, counts: A.counts }, 'Düşey düzen, cephe teması, gürültü ve dolaşım kontrolleri. Bilgi tabanı: işlev şeması bina tipi.')];
     return ui.sideShell('sb-analiz', 'Mekân analizi paneli', tabs, body);
   };
 
   /* ---------------- pafta ---------------- */
   let memo = { k: null, v: null };
-  function sceneOf(P, sd, v) {
-    const key = [sd.plan, P.spaces, P.meta.name, App.theme.name, v];
+  function sceneOf(P, sd, v, sel) {
+    const mods = v.mode === 'modules';
+    const key = [sd.plan, P.spaces, P.meta.name, App.theme.name, v, mods ? sel : null, mods ? P.study.free : null, mods ? P.relations : null];
     if (memo.k && memo.k.every((x, i) => x === key[i])) return memo.v;
-    memo = { k: key, v: App.analysis.scene(P, sd, v, true) };
+    memo = { k: key, v: App.analysis.scene(P, sd, mods ? Object.assign({}, v, { msel: sel }) : v, true) };
     return memo.v;
   }
 
@@ -142,7 +171,7 @@
     const P = state.project;
     const sd = App.study.derive(P);
     const v = state.ui.an;
-    const sc = sceneOf(P, sd, v);
+    const sc = sceneOf(P, sd, v, state.selectedId);
     const c = ctl();
     const floors = v.mode === 'floors';
     const sel = state.selectedId;
@@ -182,17 +211,17 @@
     const stage = h('div', { class: 'board-stage' + (floors ? '' : ' is-layers') }, svg,
       selFloor ? h('div', { class: 'an-chip' }, h('b', {}, selFloor.name), h('span', { class: 'mono' }, fmt(selFloor.net) + ' m² · ' + selFloor.spaces.length + ' mekân'),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.an({ sel: null }, true) }, ui.icon('close', 14))) : null,
-      empty ? ui.emptyCard('Analiz için mekân gerekli', 'İşlev Şeması’nda mekân ekleyin; Kat Etüdü katlara dağıtır, burada patlatılmış izometrik olarak incelersiniz.', [
+      empty ? ui.emptyCard('Analiz için mekân gerekli', 'İşlev Şeması’nda mekân ekleyin; Mekân Etüdü mekânları düzenler, burada patlatılmış izometrik olarak (katlar üst üste, mekânlar yan yana) incelersiniz.', [
         ui.btn('Örnek konutu yükle', { icon: 'newdoc', cls: 'btn-primary', onclick: () => c.loadTemplate('konut', '2+1') }),
         ui.btn('İşlev Şeması’na git', { icon: 'chevron', onclick: () => c.go('islev') })]) : null);
 
     return ui.boardPage(state, d, {
       label: 'Mekân analizi paftası',
       stage: stage,
-      scale: 'Patlatılmış izometrik · plan ölçekli',
-      foot: h('p', { class: 'board-hint' }, 'Sürükleyerek döndürün · bir kata tıklayarak öne çıkarın · ok ve +/− tuşları da çalışır'),
+      scale: v.mode === 'modules' ? 'Mekânlar yan yana · izometrik · ölçekli' : 'Patlatılmış izometrik · plan ölçekli',
+      foot: h('p', { class: 'board-hint' }, floors ? 'Sürükleyerek döndürün · bir kata tıklayarak öne çıkarın · ok ve +/− tuşları da çalışır' : v.mode === 'modules' ? 'Sürükleyerek döndürün · bir mekâna tıklayarak ilişkilerini öne çıkarın · +/− mekânları açar ya da toplar' : 'Sürükleyerek döndürün · ok ve +/− tuşları da çalışır'),
       tools: [
-        { k: 'seg', label: 'Görünüm kipi', value: v.mode, options: [{ v: 'floors', label: 'Katlar' }, { v: 'layers', label: 'Katmanlar' }], onchange: (m) => c.anMode(m) },
+        { k: 'seg', label: 'Görünüm kipi', value: v.mode, options: [{ v: 'floors', label: 'Katlar' }, { v: 'modules', label: 'Mekânlar' }, { v: 'layers', label: 'Katmanlar' }], onchange: (m) => c.anMode(m) },
         { k: 'sep' },
         { k: 'btn', label: v.explode > 0.5 ? 'Topla' : 'Patlat', icon: 'layers', strong: true, onclick: () => c.anToggleExplode(), title: 'Levhaları aç / kapat (animasyonlu)' },
         { k: 'icon', label: 'Görünümü sıfırla', icon: 'reset', onclick: () => c.anResetView(), title: 'Dönüş ve eğimi varsayılana al' },

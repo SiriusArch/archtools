@@ -1,4 +1,8 @@
-# Modül 2 — Kat Etüdü
+# Modül 2 — Mekân Etüdü
+
+İki kip: **Mekânlar** (serbest düzen; her mekân şekil, boyut ve konumuyla ölçekli birim, mekânlar arası ilişki canlı) ve **Katlar** (mekânlar katlara dağıtılır). Serbest düzen verisi `project.study.free = { snap, shapes: { [mekânId]: { x, y, w, h, shape: rect|L|T|U, rot: 0..3, cut } } }`; `App.study.freeDerive(project)` → `{ items, pairs, overlaps, bounds, metrics, findings }`. JSON: `extensions.spaceStudy` (çokgenler, ilişki durumları, skor). Dosyalar: 35-lib-freescene · 36-lib-free · 37-state-free · 63-ui-free · 64-ctl-free.
+
+Aşağıdaki bölümler kat kipini anlatır.
 
 Modül 1'deki mekânları katlara dağıtır ve her kat için ölçekli blok plan üretir. Girdi: `project.spaces`, `project.relations`, `project.study`. Çıktı: `App.study.derive(project)` → `{ plan, metrics, findings }`.
 

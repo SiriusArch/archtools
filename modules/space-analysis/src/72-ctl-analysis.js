@@ -8,7 +8,7 @@
   const U = App.util;
   const get = () => App.store.get();
   const VIEW_KEY = 'archtools.analysis.view';
-  const PERSIST = ['mode', 'explode', 'yaw', 'pitch', 'labels', 'arrows', 'guides', 'volume', 'layers'];
+  const PERSIST = ['mode', 'arrange', 'color', 'explode', 'yaw', 'pitch', 'labels', 'arrows', 'guides', 'volume', 'layers'];
   const reduced = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   /* ---------- görünüm durumu ---------- */
@@ -32,7 +32,9 @@
       const o = JSON.parse(window.localStorage.getItem(VIEW_KEY) || 'null');
       if (!o || typeof o !== 'object') return;
       const def = App.analysisDefaults(), p = {};
-      if (o.mode === 'floors' || o.mode === 'layers') p.mode = o.mode;
+      if (o.mode === 'floors' || o.mode === 'layers' || o.mode === 'modules') p.mode = o.mode;
+      if (o.arrange === 'yerlesim' || o.arrange === 'sira') p.arrange = o.arrange;
+      if (o.color === 'islev' || o.color === 'gurultu') p.color = o.color;
       if (typeof o.explode === 'number') p.explode = U.clamp(o.explode, 0, 1);
       if (typeof o.yaw === 'number') p.yaw = U.clamp(o.yaw, -85, 85);
       if (typeof o.pitch === 'number') p.pitch = U.clamp(o.pitch, 12, 75);

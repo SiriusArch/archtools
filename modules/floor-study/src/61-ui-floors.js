@@ -1,5 +1,5 @@
 /* ==========================================================================
-   61-ui-floors.js — Modül 2 arayüzü: Kat Etüdü
+   61-ui-floors.js — Modül 2 arayüzü: Mekân Etüdü · kat kipi (mekânlar katlara dağıtılır)
    Sol panel: kat kurgusu + katlara göre mekân listeleri + bulgular.
    Pafta: ölçekli kat planları (App.study.scene) üzerine görünmez etkileşim katmanı;
           bir mekân bloğu başka bir kata sürüklenebilir.
@@ -110,15 +110,15 @@
     const P = state.project;
     const sd = st.derive(P);
     const c = sd.findings.counts;
-    const tab = state.ui.stTab || 'katlar';
+    const tab = state.ui.stTab === 'bulgular' ? 'bulgular' : 'katlar';
     const tabs = ui.tabsBar([
       { id: 'katlar', label: 'Katlar', n: P.study.floors.length },
       { id: 'bulgular', label: 'Bulgular', n: c.hata + c.uyari + c.oneri, warn: c.hata + c.uyari > 0 },
     ], tab, (id) => ctl().dispatch({ type: 'UI', patch: { stTab: id } }));
     const body = tab === 'katlar'
-      ? [setupView(state, sd), altView(state, sd), floorsView(state, sd)].filter(Boolean)
+      ? [fl.modeSection(state), setupView(state, sd), altView(state, sd), floorsView(state, sd)].filter(Boolean)
       : [ui.findingList(sd.findings, 'Kat dağılımının ilişkilere, ıslak hacim hizasına ve plak dengesine göre kontrolü.')];
-    return ui.sideShell('sb-kat', 'Kat etüdü paneli', tabs, body);
+    return ui.sideShell('sb-kat', 'Mekân etüdü paneli · katlar', tabs, body);
   };
 
   /* ---------------- pafta ---------------- */
@@ -220,23 +220,25 @@
     }
 
     const svg = h('svg', {
-      id: 'pafta-kat', class: 'board-svg board-svg-kat', viewBox: '0 0 ' + App.sheet.W + ' ' + App.sheet.H, preserveAspectRatio: 'xMidYMid meet', role: 'group', 'aria-label': 'Kat etüdü paftası: ' + plan.floors.length + ' kat planı',
+      id: 'pafta-kat', class: 'board-svg board-svg-kat', viewBox: '0 0 ' + App.sheet.W + ' ' + App.sheet.H, preserveAspectRatio: 'xMidYMid meet', role: 'group', 'aria-label': 'Mekân etüdü paftası (katlar): ' + plan.floors.length + ' kat planı',
       ref: (el) => { fl.svgEl = el; }, onpointermove: (e) => svgMove(e, L, plan), onpointerup: (e) => svgUp(e, L, plan), onpointercancel: (e) => svgUp(e, L, plan),
       onpointerdown: () => { if (state.selectedId) ctl().dispatch({ type: 'SELECT', id: null }); },
     }, sc.prims.map((p) => App.board.primToV(p)), h('g', { class: 'fhits' }, hits), ghost);
 
     const empty = !P.spaces.length;
     const stage = h('div', { class: 'board-stage' }, svg,
-      empty ? ui.emptyCard('Kat etüdü için mekân gerekli', 'İşlev Şeması modülünde mekân ekleyin ya da hazır bir bina programı yükleyin. Mekânlar otomatik olarak katlara dağıtılır.', [
+      empty ? ui.emptyCard('Mekân etüdü için mekân gerekli', 'İşlev Şeması modülünde mekân ekleyin ya da hazır bir bina programı yükleyin. Mekânlar otomatik olarak katlara dağıtılır.', [
         ui.btn('Örnek konutu yükle', { icon: 'newdoc', cls: 'btn-primary', onclick: () => ctl().loadTemplate('konut', '2+1') }),
         ui.btn('İşlev Şeması’na git', { icon: 'chevron', onclick: () => ctl().go('islev') })]) : null);
 
     return ui.boardPage(state, d, {
-      label: 'Kat etüdü paftası',
+      label: 'Mekân etüdü paftası · katlar',
       stage: stage,
       scale: 'Bloklar m² ile orantılı · ölçekli plan',
       foot: h('p', { class: 'board-hint' }, 'Bir mekân bloğunu başka bir kata sürükleyin · seçili blokta ▲▼ ok tuşları katı değiştirir'),
       tools: [
+        { k: 'seg', label: 'Çalışma kipi', value: 'katlar', options: [{ v: 'mekanlar', label: 'Mekânlar' }, { v: 'katlar', label: 'Katlar' }], onchange: (v) => ctl().stMode(v) },
+        { k: 'sep' },
         { k: 'btn', label: 'Otomatik dağıt', icon: 'layout', strong: true, onclick: () => ctl().studyAuto(), disabled: !P.spaces.length, title: 'Mekânları işlev bölgesine ve ilişkilere göre katlara dağıt' },
         { k: 'sep' },
         { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => ctl().dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },

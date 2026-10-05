@@ -1,7 +1,8 @@
 /* ==========================================================================
    34-lib-analysis.js — Modül 3: mekân analizi (patlatılmış izometrik simülasyon)
    Veri : Modül 2'nin kat planı (App.study.derive) + Modül 1'in ilişkileri / bilgi tabanı
-   Mod  : 'floors'  → her kat bir levha, işlev renkli, düşey çizgiler, kat göstergesi
+   Mod  : 'modules' → mekânlar (Modül 2 serbest düzen) yan yana: her mekân kendi şekliyle ayrı bir hacim
+          'floors'  → her kat bir levha, işlev renkli, düşey çizgiler, kat göstergesi
           'layers'  → seçili katın analiz katmanları (taban, işlev, sirkülasyon, doluluk, ilişki, gürültü)
    Çıktı: primitif listesi (SVG + PNG/PDF aynı listeden) + etkileşim bölgeleri + bulgular
    ========================================================================== */
@@ -22,7 +23,7 @@
   ];
 
   App.analysisDefaults = function () {
-    return { mode: 'floors', explode: 1, yaw: -34, pitch: 36, labels: true, arrows: true, guides: true, volume: true, floorId: null, sel: null, layers: ['taban', 'islev', 'sirk', 'doluluk', 'iliski'] };
+    return { mode: 'floors', arrange: 'yerlesim', color: 'islev', explode: 1, yaw: -34, pitch: 36, labels: true, arrows: true, guides: true, volume: true, floorId: null, sel: null, layers: ['taban', 'islev', 'sirk', 'doluluk', 'iliski'] };
   };
 
   /* ---------- tema renkleri ---------- */
@@ -364,6 +365,201 @@
     return P;
   }
 
+  /* ---------- yan yana kip: serbest düzendeki mekânlar ayrı hacimler olarak açılır ---------- */
+  function hull(pts) {
+    const p = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    if (p.length < 3) return p;
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const lo = [], up = [];
+    p.forEach((q) => { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); });
+    for (let i = p.length - 1; i >= 0; i--) { const q = p[i]; while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+    lo.pop(); up.pop();
+    return lo.concat(up);
+  }
+
+  // yerleşimi koruyarak açma katsayısı: kutular arası en az gap kalana dek
+  function spreadFactor(items, gap) {
+    for (let k = 1; k <= 8; k += 0.1) {
+      let ok = true;
+      for (let i = 0; i < items.length && ok; i++) for (let j = i + 1; j < items.length; j++) {
+        const A = items[i], B = items[j];
+        const dx = Math.abs(A.cx0 - B.cx0) * k - (A.w + B.w) / 2, dy = Math.abs(A.cy0 - B.cy0) * k - (A.h + B.h) / 2;
+        if (dx < gap && dy < gap) { ok = false; break; }
+      }
+      if (ok) return k;
+    }
+    return 8;
+  }
+
+  // sıralı dizilim: bölgeye göre gruplanmış raf düzeni
+  function rowLayout(items, gap) {
+    const zi = (z) => { const i = App.ZONE_ORDER.indexOf(z); return i < 0 ? 99 : i; };
+    const sorted = items.slice().sort((a, b) => zi(a.zone) - zi(b.zone) || b.area - a.area);
+    const total = U.sum(sorted, (i) => i.w * i.h);
+    const target = Math.max(Math.sqrt(total) * 2.3, Math.max.apply(null, sorted.map((i) => i.w)));
+    let x = 0, y = 0, rh = 0, maxX = 0;
+    const pos = {};
+    sorted.forEach((it) => {
+      if (x > 0 && x + it.w > target) { x = 0; y += rh + gap; rh = 0; }
+      pos[it.id] = [x, y];
+      x += it.w + gap; rh = Math.max(rh, it.h); maxX = Math.max(maxX, x - gap);
+    });
+    return { pos: pos, w: maxX, h: y + rh };
+  }
+
+  function sceneModules(project, d, view, live) {
+    const fd = App.study.freeDerive(project);
+    const A = analyze(project, d);
+    const C = cols();
+    const g = C.glass;
+    const tb = sheet.tb;
+    const ex = U.clamp(view.explode, 0, 1);
+    const eased = ex;
+    const raw = fd.items;
+    const items = raw.map((it) => Object.assign({}, it, { cx0: it.x + it.w / 2, cy0: it.y + it.h / 2 }));
+    const n = items.length;
+    const gapMin = 2.4;
+    // yerleşim merkezi
+    let C0x = 0, C0y = 0;
+    items.forEach((it) => { C0x += it.cx0; C0y += it.cy0; });
+    if (n) { C0x /= n; C0y /= n; }
+    const disp = new Map();
+    if (view.arrange === 'sira') {
+      const R = rowLayout(items, gapMin);
+      const ox = C0x - R.w / 2, oy = C0y - R.h / 2;
+      items.forEach((it) => { const p = R.pos[it.id]; disp.set(it.id, [it.x + (ox + p[0] - it.x) * eased, it.y + (oy + p[1] - it.y) * eased]); });
+    } else {
+      const K = n > 1 ? spreadFactor(items, gapMin) : 1;
+      const k = 1 + eased * (K - 1);
+      items.forEach((it) => disp.set(it.id, [C0x + (it.cx0 - C0x) * k - it.w / 2, C0y + (it.cy0 - C0y) * k - it.h / 2]));
+    }
+    const moved = items.map((it) => {
+      const p = disp.get(it.id);
+      const dx = p[0] - it.x, dy = p[1] - it.y;
+      return Object.assign({}, it, { x: p[0], y: p[1], ring: it.ring.map((q) => [q[0] + dx, q[1] + dy]), cx: it.cx + dx, cy: it.cy + dy, dx: dx, dy: dy, hgt: view.volume ? U.clamp(2.4 + 0.14 * Math.sqrt(it.area), 2.6, 4.4) : 0.12 });
+    });
+    // sınırlar (yer levhası)
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const grow = (it) => { x0 = Math.min(x0, it.x); y0 = Math.min(y0, it.y); x1 = Math.max(x1, it.x + it.w); y1 = Math.max(y1, it.y + it.h); };
+    moved.forEach(grow); items.forEach(grow);
+    if (!isFinite(x0)) { x0 = 0; y0 = 0; x1 = 12; y1 = 8; }
+    const m = 1.6;
+    x0 -= m; y0 -= m; x1 += m; y1 += m;
+    const area = { x: 56, y: 62, w: 960, h: tb.y - 62 - 30 };
+    const cu = (x0 + x1) / 2, cv = (y0 + y1) / 2;
+    // ölçek: tüm köşelerin ekran kutusu
+    const I0 = iso.make({ yaw: view.yaw, pitch: view.pitch, s: 1, cx: 0, cy: 0, center: [cu, cv] });
+    let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+    const acc = (q) => { bx0 = Math.min(bx0, q[0]); bx1 = Math.max(bx1, q[0]); by0 = Math.min(by0, q[1]); by1 = Math.max(by1, q[1]); };
+    [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].forEach((q) => { acc(I0.proj(q[0], q[1], -0.3)); });
+    moved.forEach((it) => it.ring.forEach((q) => { acc(I0.proj(q[0], q[1], it.hgt)); }));
+    const s = Math.min(area.w / Math.max(1, bx1 - bx0), area.h / Math.max(1, by1 - by0), 80) * 0.95;
+    const I = iso.make({ yaw: view.yaw, pitch: view.pitch, s: s, cx: area.x + area.w / 2 - ((bx0 + bx1) / 2) * s, cy: area.y + area.h / 2 - ((by0 + by1) / 2) * s, center: [cu, cv] });
+
+    const colorMode = view.color === 'gurultu' ? 'gurultu' : 'islev';
+    const fillOf = (it) => (colorMode === 'gurultu' ? C.noise[A.noise.get(it.id) || 'mid'] : (App.ZONES[it.zone] || App.ZONES.sosyal).fill);
+    const textOf = (it) => (colorMode === 'gurultu' ? C.noiseText[A.noise.get(it.id) || 'mid'] : (App.ZONES[it.zone] || App.ZONES.sosyal).text);
+
+    const zones = [];
+    project.spaces.forEach((sp) => { if (zones.indexOf(sp.zone) < 0) zones.push(sp.zone); });
+    const legend = colorMode === 'gurultu'
+      ? [{ label: 'Gürültülü', fill: C.noise.loud }, { label: 'Orta', fill: C.noise.mid }, { label: 'Sessiz', fill: C.noise.quiet }]
+      : sheet.zoneLegend(zones).slice(0, 5);
+    const lineLg = (label, stroke, sw, dash) => ({ label: label, line: { stroke: stroke, sw: sw, dash: dash, cap: 'round' } });
+    legend.push(lineLg('Güçlü ilişki', C.strongLine, 3), lineLg('Ayrı tut', C.glass ? C.ink : App.PAL.red, 2, [1.5, 5]));
+    const info = {
+      name: project.meta.name,
+      subtitle: 'Mekân analizi · ' + n + ' mekân yan yana' + (view.arrange === 'sira' ? ' · sıralı' : ''),
+      legend: legend.slice(0, 8),
+      stats: [['Mekân', String(n)], ['Toplam alan', fmt(fd.metrics.total) + ' m²'], ['Kaplama', fmt(fd.bounds.w, 1) + ' × ' + fmt(fd.bounds.h, 1) + ' m']],
+      scoreLabel: 'Düzen skoru', percent: fd.metrics.score,
+    };
+    const prims = sheet.frame(info, live);
+    const hits = [];
+    const add = (arr) => arr.forEach((p) => prims.push(p));
+
+    // zemin levhası + ızgara
+    add(iso.prism(I, x0, y0, x1 - x0, y1 - y0, -0.3, 0, C.slabTop, { stroke: C.slabStroke, sw: C.sw }));
+    // hayalet: özgün (birleşik) konum izleri
+    if (view.guides && ex > 0.04) {
+      items.forEach((it) => {
+        const pts = it.ring.map((q) => I.proj(q[0], q[1], 0.02));
+        prims.push({ t: 'poly', pts: pts, stroke: C.ink, sw: 1, dash: [4, 4], opacity: 0.4 * Math.min(1, ex * 4) });
+      });
+      moved.forEach((it) => {
+        const a = I.proj(it.cx - it.dx, it.cy - it.dy, 0.02), b = I.proj(it.cx, it.cy, 0.02);
+        if (Math.hypot(a[0] - b[0], a[1] - b[1]) > 8) prims.push({ t: 'line', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: C.guide, sw: 1, dash: [2, 5], opacity: 0.5 });
+      });
+    }
+    const dimK = (it) => (view.msel && view.msel !== it.id ? 0.3 : 1);
+    // ilişkiler (zeminde)
+    const byId = new Map(moved.map((it) => [it.id, it]));
+    const relP = [];
+    if (view.arrows) {
+      fd.pairs.forEach((p) => {
+        const a = byId.get(p.a), b = byId.get(p.b);
+        if (!a || !b || p.state === 'overlap') return;
+        const ea = App.study.freeExitPoint(a, b.x + b.w / 2, b.y + b.h / 2), eb = App.study.freeExitPoint(b, a.x + a.w / 2, a.y + a.h / 2);
+        const pa = I.proj(ea[0], ea[1], 0.05), pb = I.proj(eb[0], eb[1], 0.05);
+        const mid = [(pa[0] + pb[0]) / 2, (pa[1] + pb[1]) / 2];
+        const bad = C.glass ? C.ink : App.PAL.red;
+        const dist = Math.hypot(pa[0] - pb[0], pa[1] - pb[1]);
+        const dm = view.msel && view.msel !== p.a && view.msel !== p.b ? 0.3 : 1;
+        if (dist < 9) {
+          relP.push({ t: 'circle', cx: mid[0], cy: mid[1], r: p.type === 'strong' ? 5.5 : 4, fill: p.type === 'avoid' ? C.slabTop : p.type === 'strong' ? C.strongLine : C.slabTop, stroke: p.type === 'avoid' ? bad : p.type === 'strong' ? C.slabTop : C.ink, sw: 1.8, opacity: dm });
+          return;
+        }
+        if (p.type === 'strong') relP.push({ t: 'line', x1: pa[0], y1: pa[1], x2: pb[0], y2: pb[1], stroke: C.strongLine, sw: 3.2, cap: 'round', dash: p.ok >= 0.99 ? undefined : [9, 6], opacity: dm });
+        else if (p.type === 'weak') relP.push({ t: 'line', x1: pa[0], y1: pa[1], x2: pb[0], y2: pb[1], stroke: C.ink, sw: 1.5, dash: [6, 6], opacity: 0.6 * dm });
+        else {
+          relP.push({ t: 'line', x1: pa[0], y1: pa[1], x2: pb[0], y2: pb[1], stroke: bad, sw: 2, dash: [1.5, 6], cap: 'round', opacity: (p.ok >= 1 ? 0.5 : 0.95) * dm });
+          if (p.ok < 1) {
+            relP.push({ t: 'circle', cx: mid[0], cy: mid[1], r: 7, fill: C.slabTop, stroke: bad, sw: 1.6, opacity: dm });
+            relP.push({ t: 'line', x1: mid[0] - 3, y1: mid[1] - 3, x2: mid[0] + 3, y2: mid[1] + 3, stroke: bad, sw: 1.6, cap: 'round', opacity: dm });
+            relP.push({ t: 'line', x1: mid[0] - 3, y1: mid[1] + 3, x2: mid[0] + 3, y2: mid[1] - 3, stroke: bad, sw: 1.6, cap: 'round', opacity: dm });
+          }
+        }
+        [pa, pb].forEach((q) => relP.push({ t: 'circle', cx: q[0], cy: q[1], r: p.type === 'strong' ? 3.6 : 2.6, fill: p.type === 'avoid' ? bad : p.type === 'strong' ? C.strongLine : C.ink, opacity: dm }));
+      });
+    }
+    add(relP);
+    // hacimler: arkadan öne
+    const order = moved.slice().sort((a, b) => I.depth(a.cx, a.cy) - I.depth(b.cx, b.cy));
+    order.forEach((it) => {
+      const dim = dimK(it);
+      const P = iso.extrude(I, it.ring, 0, it.hgt, fillOf(it), { stroke: C.blockStroke, sw: C.sw });
+      dimOp(P, dim).forEach((p) => prims.push(p));
+      const sel = view.msel === it.id;
+      if (sel) prims.push({ t: 'poly', pts: it.ring.map((q) => I.proj(q[0], q[1], it.hgt + 0.03)), stroke: C.ink, sw: 2.6, dash: [7, 5] });
+      const pts = [];
+      it.ring.forEach((q) => { pts.push(I.proj(q[0], q[1], 0)); pts.push(I.proj(q[0], q[1], it.hgt)); });
+      hits.push({ kind: 'block', id: it.id, floorId: null, name: it.name, area: it.area, pts: hull(pts) });
+    });
+    if (view.labels) order.forEach((it) => {
+      const lr = App.study.freeLabelRect(it);
+      const lb = { x: lr.x, y: lr.y, w: lr.w, h: lr.h, name: it.name, area: it.area };
+      dimOp(blockLabel(I, lb, it.hgt + 0.03, textOf(it), { max: 16 }), dimK(it)).forEach((p) => prims.push(p));
+    });
+
+    // sağ liste: mekânlar
+    const lx = 1074, lw = 290, top = 62, hAll = tb.y - top - 30;
+    const rowH = 25, head = 34;
+    prims.push({ t: 'rect', x: lx, y: top, w: lw, h: head, rx: g ? 17 : 0, fill: C.numBg[0], stroke: g ? undefined : C.ink, sw: g ? 0 : 2.5 });
+    prims.push({ t: 'text', x: lx + 16, y: top + 22, s: g ? 'Mekânlar' : 'MEKÂNLAR', size: 12.5, weight: 700, fam: 'b', fill: C.numFg[0], ls: g ? 0 : 1 });
+    prims.push({ t: 'text', x: lx + lw - 14, y: top + 22, s: fmt(fd.metrics.total) + ' m²', size: 12, weight: 600, fam: 'm', fill: C.numFg[0], anchor: 'end', opacity: 0.85 });
+    const rows = Math.max(0, Math.floor((hAll - head - 10) / rowH));
+    const list = items.slice().sort((a, b) => b.area - a.area);
+    list.slice(0, rows).forEach((it, j) => {
+      const yy = top + head + 22 + j * rowH;
+      const dm = view.msel && view.msel !== it.id ? 0.4 : 1;
+      prims.push({ t: 'circle', cx: lx + 9, cy: yy - 4, r: 5, fill: fillOf(it), stroke: g ? 'rgba(23,24,27,.3)' : C.ink, sw: g ? 1 : 1.6, opacity: dm });
+      prims.push({ t: 'text', x: lx + 24, y: yy, s: it.name.length > 22 ? it.name.slice(0, 21) + '…' : it.name, size: 12.5, weight: 600, fam: 'b', fill: C.ink, opacity: 0.88 * dm });
+      prims.push({ t: 'text', x: lx + lw - 2, y: yy, s: fmt(it.area) + ' m²' + (it.shape !== 'rect' ? ' · ' + it.shape : ''), size: 11.5, weight: 500, fam: 'm', fill: C.ink, opacity: 0.6 * dm, anchor: 'end' });
+    });
+    if (list.length > rows && rows > 0) prims.push({ t: 'text', x: lx + 24, y: top + head + 22 + rows * rowH, s: '+ ' + (list.length - rows) + ' mekân daha', size: 11.5, weight: 600, fam: 'b', fill: C.ink, opacity: 0.45 });
+    return { prims: prims, hits: hits, A: A, scale: s, floor: null, mode: 'modules', W: sheet.W, H: sheet.H, fd: fd };
+  }
+
   /* ---------- sahne ---------- */
   function layerLegend(id, C, A, plan, f) {
     const sq = (label, fill, stroke) => ({ label: label, fill: fill, stroke: stroke });
@@ -389,6 +585,7 @@
 
   function scene(project, d, view, live) {
     const plan = d.plan;
+    if (view.mode === 'modules') return sceneModules(project, d, view, live);
     const A = analyze(project, d);
     const C = cols();
     const g = C.glass;
