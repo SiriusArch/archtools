@@ -28,6 +28,7 @@ SRC_DIRS = [
     os.path.join(root, 'modules', 'space-analysis', 'src'),
     os.path.join(root, 'modules', 'site-analysis', 'src'),
     os.path.join(root, 'modules', 'building-design', 'src'),
+    os.path.join(root, 'modules', 'mass-builder', 'src'),
     os.path.join(root, 'platform', 'src'),
 ]
 

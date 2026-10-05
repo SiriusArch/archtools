@@ -29,6 +29,7 @@
   App.ctl.loadImarView();
   App.ctl.loadDsnView();
   App.ctl.loadFizView();
+  App.ctl.loadUnitView();
   const fromLink = App.ctl.hashSite(); // #/arsa?lat=…&lon=… paylaşım bağlantısı
 
   function view() {

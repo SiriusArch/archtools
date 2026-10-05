@@ -24,6 +24,7 @@
     { id: 'imar', label: 'Parselin imar kapasitesini hesaplayın', sub: 'TAKS, KAKS, çekmeler ve yençok ile kütleyi ve birim sayısını görün.', icon: 'parcel' },
     { id: 'tasarim', label: 'Parsele bina tasarımı üretin', sub: 'Kütle alternatifleri, tipik kat planı, daire karması ve otopark; CAD, IFC ve Excel çıktısı.', icon: 'layers' },
     { id: 'fizibilite', label: 'Maliyet ve fizibilite hesaplayın', sub: 'Metraj, maliyet, satış geliri, kâr, başabaş fiyat ve nakit akışı.', icon: 'compare' },
+    { id: 'birim', label: 'Bir kütleyi adım adım şekillendirin', sub: 'Parselde bir birim kurun; böl, boşluk aç, yeşil ekle ve süreci tek afişte görün.', icon: 'cube' },
     { id: 'bina', label: 'Bina programı kurgulayın', sub: 'İşlev şeması, kat etüdü ve mekân analizi ile bina içini tasarlayın.', icon: 'layout' },
     { id: 'kesif', label: 'Sadece keşfediyorum', sub: 'Örnek verilerle gezin; istediğiniz modülü üst çubuktan açın.', icon: 'spark' },
   ];
@@ -82,8 +83,9 @@
       else if (id === 'imar') { c.go('imar'); }
       else if (id === 'tasarim') { c.go('tasarim'); }
       else if (id === 'fizibilite') { c.go('fizibilite'); }
+      else if (id === 'birim') { c.go('birim'); }
       else if (id === 'bina') { c.go('islev'); }
-      else c.toast('İyi keşifler: üst çubuktan sekiz modül arasında gezinebilirsiniz.');
+      else c.toast('İyi keşifler: üst çubuktan dokuz modül arasında gezinebilirsiniz.');
     },
   });
   ui.helpBtn = function () { W.open(1); };

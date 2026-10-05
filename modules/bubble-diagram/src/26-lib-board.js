@@ -185,6 +185,7 @@
       case 'poly':
         Object.assign(a, { points: p.pts.map((q) => q.join(',')).join(' '), fill: p.fill || 'none' });
         if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; a['stroke-linejoin'] = 'round'; }
+        if (p.dash) a['stroke-dasharray'] = p.dash.join(' ');
         return h('polygon', a);
       case 'path':
         Object.assign(a, { d: p.d, fill: p.fill || 'none' });

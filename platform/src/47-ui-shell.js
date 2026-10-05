@@ -1,7 +1,7 @@
 /* ==========================================================================
    47-ui-shell.js — archtools kabuğu: modül gezgini, ortak skor kadranı verisi,
    araç çubuğu ve sayfa iskeleti. Modüller yalnızca kendi içeriğini üretir.
-   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite
+   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · birim
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -18,6 +18,7 @@
     { id: 'yer', n: '06', label: 'Yer Seçimi', sub: 'Yer seçimi · aday karşılaştırma ve tarama', shape: 'target' },
     { id: 'tasarim', n: '07', label: 'Tasarım Üretici', sub: 'Tasarım üretici · kütle, tipik kat ve otopark', shape: 'tower' },
     { id: 'fizibilite', n: '08', label: 'Maliyet ve Fizibilite', sub: 'Maliyet ve fizibilite · metraj, kâr, nakit akışı', shape: 'coin' },
+    { id: 'birim', n: '09', label: 'Birim Oluşturucu', sub: 'Birim oluşturucu · adım adım kütle şekillendirme', shape: 'stack' },
   ];
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
@@ -34,6 +35,7 @@
     else if (shape === 'plot') g = h('path', Object.assign({ d: 'M2.6 6.6L9 2.4l6.4 4.6-2.2 8.2H5z' }, p));
     else if (shape === 'target') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.4 }, q)), h('circle', Object.assign({ cx: 9, cy: 9, r: 2.6 }, p)));
     else if (shape === 'tower') g = h('g', {}, h('rect', Object.assign({ x: 4.2, y: 2, width: 9.6, height: 14, rx: 1.2 }, p)), h('path', { d: 'M7 6h4M7 9h4M7 12h4', stroke: 'var(--on-ink, #fff)', 'stroke-width': 1.2, fill: 'none', 'stroke-linecap': 'round' }));
+    else if (shape === 'stack') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 9.6, width: 8.4, height: 6, rx: 1 }, p)), h('rect', Object.assign({ x: 7.2, y: 2.4, width: 8.4, height: 6, rx: 1 }, q)));
     else if (shape === 'coin') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.6 }, q)), h('path', { d: 'M9 5.2v7.6M6.8 7.4c0-1 .9-1.7 2.2-1.7s2.2.7 2.2 1.6c0 2.3-4.4 1.1-4.4 3.4 0 .9 1 1.7 2.2 1.7s2.2-.7 2.2-1.7', stroke: 'currentColor', 'stroke-width': 1.3, fill: 'none', 'stroke-linecap': 'round' }));
     else g = h('path', Object.assign({ d: 'M2.5 15.2L9 3l6.5 12.2z' }, p));
     return h('svg', { viewBox: '0 0 18 18', width: 16, height: 16, class: 'msh msh-' + shape, 'aria-hidden': 'true' }, g);
@@ -124,7 +126,30 @@
     };
   }
 
-  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter };
+  function birimMeter(state) {
+    const P = state.project;
+    const u = P.unit;
+    if (!u || !App.unit) return { label: 'Açık alan', percent: null, msg: '', chips: [], issues: 0 };
+    const step = u.steps[Math.min(u.cur, u.steps.length - 1)];
+    const M = App.unit.metrics(u, step);
+    const f = App.unit.findings(u);
+    const p = M.masses ? Math.round((1 - M.taks) * 100) : null;
+    return {
+      label: 'Açık alan', percent: p,
+      msg: !M.masses ? 'Bir kütle ekleyerek başlayın' : 'Adım ' + (u.cur + 1) + '/' + u.steps.length + ' · ' + step.title + ' · TAKS ' + U.fmt(M.taks, 2) + ' · KAKS ' + U.fmt(M.kaks, 2),
+      chips: [
+        { label: 'TAKS', value: U.fmt(M.taks, 2), cls: 'dot' },
+        { label: 'KAKS', value: U.fmt(M.kaks, 2), cls: 'dot' },
+        { label: 'Yeşil', value: '%' + Math.round(M.greenShare * 100), cls: 'dot' },
+        { label: 'Kat', value: String(M.maxFloors), cls: 'dot' },
+      ],
+      issues: f.counts.hata + f.counts.uyari,
+      issuesText: 'uyarı · bulgulara git',
+      onIssues: () => App.ctl.dispatch({ type: 'UI', patch: { unit: Object.assign({}, state.ui.unit, { tab: 'bulgular' }) } }),
+    };
+  }
+
+  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, birim: birimMeter };
   ui.meterFor = (state, d) => (ui.meterOpts[state.ui.module] || islevMeter)(state, d);
 
   /* ---------------- araç çubuğu ----------------
@@ -181,6 +206,7 @@
     if (m === 'imar' && ui.imar) return h('main', { class: 'main main-imar', key: 'main-imar' }, ui.imar.sidebar(state, d), ui.imar.board(state, d));
     if (m === 'tasarim' && ui.design) return h('main', { class: 'main main-tasarim', key: 'main-tasarim' }, ui.design.sidebar(state, d), ui.design.board(state, d));
     if (m === 'fizibilite' && ui.fizb) return h('main', { class: 'main main-fizibilite', key: 'main-fizibilite' }, ui.fizb.sidebar(state, d), ui.fizb.board(state, d));
+    if (m === 'birim' && ui.unit) return h('main', { class: 'main main-birim', key: 'main-birim' }, ui.unit.sidebar(state, d), ui.unit.board(state, d));
     if (m === 'yer' && ui.yer) return h('main', { class: 'main main-yer', key: 'main-yer' }, ui.yer.sidebar(state, d), ui.yer.board(state, d));
     return h('main', { class: 'main main-islev', key: 'main-islev' }, ui.sidebar(state, d), ui.board(state, d), ui.assistant(state, d));
   };
