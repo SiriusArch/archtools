@@ -199,11 +199,12 @@
       const n = [dy, -dx]; // CCW parselde dışa
       const m = T.P(ed.mid[0] - cl.offset[0], ed.mid[1] - cl.offset[1]);
       const sx = n[0], sy = -n[1]; // ekran (y ters)
-      const off = 22;
-      const x = m[0] + sx * off, y = m[1] + sy * off;
       const dist = ed.kind === 'on' ? im.setback.on : ed.kind === 'arka' ? im.setback.arka : im.setback.yan;
       const txt = (C.glass ? EDGE_LABEL_G[ed.kind] : EDGE_LABEL[ed.kind]) + ' ' + fmt(dist, 1) + ' m';
-      const w = txt.length * 6.6 + 14, h = 19;
+      const w = sheet.tw(txt, 11, 700, C.glass ? 'b' : 'm', 0) + 14, h = 19;
+      // çip, kenarın dışında: merkez uzaklığı çipin kenar normali yönündeki yarı boyutuna göre (yan kenarda geniş çip parsele girmesin)
+      const off = 8 + Math.abs(sx) * w / 2 + Math.abs(sy) * h / 2;
+      const x = m[0] + sx * off, y = m[1] + sy * off;
       const rx = Math.max(CX - RP + 6 + w / 2, Math.min(CX + RP - 6 - w / 2, x)), ry = Math.max(CY - RP + 16, Math.min(CY + RP - 16, y));
       add([
         { t: 'rect', x: rx - w / 2, y: ry - h / 2, w: w, h: h, rx: C.glass ? h / 2 : 0, fill: C.glass ? '#fff' : C.paper, stroke: C.ink, sw: C.glass ? 1 : 1.6 },
@@ -212,8 +213,9 @@
       hits.push({ kind: 'edge', i: ed.i, x0: rx - w / 2, x1: rx + w / 2, y0: ry - h / 2, y1: ry + h / 2 });
       // kenar uzunluğu
       if (ed.len * sc > 46) {
-        const lx = m[0] - sx * 12, ly = m[1] - sy * 12;
-        add([{ t: 'text', x: lx, y: ly + 3.5, s: fmt(ed.len, 1) + ' m', size: 10.5, weight: 700, fam: 'b', fill: C.ink, opacity: 0.8, anchor: 'middle', pe: false }]);
+        const ltxt = fmt(ed.len, 1) + ' m', lw = sheet.tw(ltxt, 10.5, 700, 'b', 0);
+        const li = 7 + Math.abs(sx) * lw / 2 + Math.abs(sy) * 6;
+        add([{ t: 'text', x: m[0] - sx * li, y: m[1] - sy * li + 3.5, s: ltxt, size: 10.5, weight: 700, fam: 'b', fill: C.ink, opacity: 0.8, anchor: 'middle', pe: false }]);
       }
     });
     // tutamaçlar

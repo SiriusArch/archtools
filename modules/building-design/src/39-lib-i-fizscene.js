@@ -94,7 +94,13 @@
     const r = f.res;
     const sample = !r.changed || !r.changed.length;
     const s = sample ? 'ÖRNEK birim fiyatlar ve varsayımlar kullanılıyor: kendi değerlerinizle değiştirmeden karar vermeyin. ' + (r.disclaimer || '') : (r.disclaimer || '');
-    return [txt(40, y, wrap(s, 150)[0] + (wrap(s, 150).length > 1 ? '…' : ''), { size: 11.5, weight: 700, fill: sample ? (C.glass ? C.ink : App.PAL.red) : C.ink, opacity: sample ? 1 : 0.6 })];
+    // ölçülü iki satır: ikincisi sığmazsa kısaltılır
+    const MAXW = 1316, words = s.split(/\s+/).filter(Boolean), lines = [''];
+    words.forEach((wd) => { const t = lines[lines.length - 1] ? lines[lines.length - 1] + ' ' + wd : wd; if (App.sheet.tw(t, 11.5, 700, 'b', 0) <= MAXW || !lines[lines.length - 1]) lines[lines.length - 1] = t; else lines.push(wd); });
+    const out = lines.slice(0, 2);
+    if (lines.length > 2) out[1] = App.sheet.clip(lines.slice(1).join(' '), MAXW, 11.5, 700, 'b', 0);
+    const st = { size: 11.5, weight: 700, fill: sample ? (C.glass ? C.ink : App.PAL.red) : C.ink, opacity: sample ? 1 : 0.6 };
+    return out.map((ln, i) => txt(40, y - (out.length - 1 - i) * 15, ln, st));
   }
 
   /* ---------------- ÖZET ---------------- */
@@ -174,6 +180,8 @@
   /* aylık nakit grafiği: çubuk = aylık net, çizgi = kümülatif (kaldıraçlı) */
   function cashChart(x, y, w, h, r, C, o) {
     const P = [];
+    const Y0 = y, H0 = h;
+    y = Y0 + 26; h = Math.max(60, H0 - 26 - 40); // üstte: başlık/son değer payı, altta: en düşük nokta + eksen etiketi payı
     const c = r.cash, n = c.months.length;
     const cum = c.cumLev, net = c.net;
     const vmax = Math.max.apply(null, cum.concat(net.map((v) => Math.abs(v))).concat([1])), vmin = Math.min.apply(null, cum.concat([0]).concat(net));
@@ -196,9 +204,9 @@
     P.push({ t: 'circle', cx: sx(n - 1), cy: sy(cum[n - 1]), r: 5, fill: C.ink });
     P.push(txt(sx(n - 1) - 8, sy(cum[n - 1]) - 10, money(cum[n - 1], ''), { size: 11.5, weight: 800, fill: C.ink, anchor: 'end' }));
     // eksen etiketleri
-    [0, 6, 12, 18, 24, 30, 36, 48].forEach((m) => { if (m < n) P.push(txt(sx(m), y + h + 18, String(m), { size: 10.5, weight: 600, fill: C.ink, opacity: 0.6, anchor: 'middle' })); });
-    P.push(txt(x + w, y + h + 32, 'ay', { size: 10.5, weight: 600, fill: C.ink, opacity: 0.5, anchor: 'end' }));
-    P.push(txt(x, y - 6, o.cur ? 'nakit (' + o.cur + ')' : '', { size: 10.5, weight: 600, fill: C.ink, opacity: 0.5 }));
+    const ticks = [0, 6, 12, 18, 24, 30, 36, 48].filter((m) => m < n);
+    ticks.forEach((m, i) => P.push(txt(sx(m), y + h + 34, String(m) + (i === ticks.length - 1 ? ' ay' : ''), { size: 10.5, weight: 600, fill: C.ink, opacity: 0.6, anchor: i === ticks.length - 1 ? 'end' : 'middle' })));
+    P.push(txt(x, Y0 + 10, o.cur ? 'nakit (' + o.cur + ')' : '', { size: 10.5, weight: 600, fill: C.ink, opacity: 0.5 }));
     // inşaat bitişi
     if (r.horizon && c.months.length > 0) {
       const mEnd = Math.min(n - 1, c.months.length - 1 - 0);

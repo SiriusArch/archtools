@@ -56,7 +56,7 @@ html.vt-fade::view-transition-new(root) { animation: vt-in .38s .06s ease both; 
 .msh { flex: none; }
 .tb-seg { display: inline-flex; }
 @media (max-width: 1180px) { .mnav-n { display: none; } }
-@media (max-width: 1760px) and (min-width: 641px) { .mnav-i:not(.on) .mnav-l, .mnav-i:not(.on) .mnav-n { display: none; } }
+@media (max-width: 2299px) and (min-width: 641px) { .mnav-i:not(.on) .mnav-l, .mnav-i:not(.on) .mnav-n { display: none; } }
 @media (max-width: 640px) { .mnav { order: 1; width: 100%; } .mnav-i { flex: 1; justify-content: center; } .mnav-i:not(.on) .mnav-l { display: none; } }
 @media (max-width: 520px) { .mnav-i { min-width: 0; } .mnav-i .mnav-l { display: none; } }
 
@@ -81,3 +81,13 @@ html.vt-fade::view-transition-new(root) { animation: vt-in .38s .06s ease both; 
 .wc-flip { display: inline-grid; transform: scaleX(-1); }
 .wc-note { margin: 8px 0 0; font-size: 12px; color: var(--ink-2); }
 @media (max-width: 640px) { .wc-list-2 { grid-template-columns: 1fr; } .wc-card { padding: 18px 16px 14px; } }
+
+/* ---------- pafta boyutu: "Geniş" mod (tam genişlik, dikey kaydırma) ---------- */
+@media (min-width: 1024px) {
+  .app.bw-wide .board-wrap { overflow-y: auto; overflow-x: hidden; padding: 2px 10px 12px 2px; scrollbar-width: thin; }
+  .app.bw-wide .board-stage { flex: none; width: 100%; aspect-ratio: 1400 / 990; min-height: 0; }
+  .app.bw-wide .gstrip, .app.bw-wide .board-bar { flex: none; }
+  .app.bw-wide .board-foot, .app.bw-wide .board-hint { flex: none; }
+}
+/* bildirim: pafta altındaki ipucu satırını kapatmasın */
+.toast-zone { bottom: calc(48px + env(safe-area-inset-bottom, 0px)) !important; }

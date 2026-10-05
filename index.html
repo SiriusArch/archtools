@@ -312,7 +312,7 @@ html.vt-fade::view-transition-new(root) { animation: vt-in .38s .06s ease both; 
 .msh { flex: none; }
 .tb-seg { display: inline-flex; }
 @media (max-width: 1180px) { .mnav-n { display: none; } }
-@media (max-width: 1760px) and (min-width: 641px) { .mnav-i:not(.on) .mnav-l, .mnav-i:not(.on) .mnav-n { display: none; } }
+@media (max-width: 2299px) and (min-width: 641px) { .mnav-i:not(.on) .mnav-l, .mnav-i:not(.on) .mnav-n { display: none; } }
 @media (max-width: 640px) { .mnav { order: 1; width: 100%; } .mnav-i { flex: 1; justify-content: center; } .mnav-i:not(.on) .mnav-l { display: none; } }
 @media (max-width: 520px) { .mnav-i { min-width: 0; } .mnav-i .mnav-l { display: none; } }
 
@@ -337,6 +337,16 @@ html.vt-fade::view-transition-new(root) { animation: vt-in .38s .06s ease both; 
 .wc-flip { display: inline-grid; transform: scaleX(-1); }
 .wc-note { margin: 8px 0 0; font-size: 12px; color: var(--ink-2); }
 @media (max-width: 640px) { .wc-list-2 { grid-template-columns: 1fr; } .wc-card { padding: 18px 16px 14px; } }
+
+/* ---------- pafta boyutu: "Geniş" mod (tam genişlik, dikey kaydırma) ---------- */
+@media (min-width: 1024px) {
+  .app.bw-wide .board-wrap { overflow-y: auto; overflow-x: hidden; padding: 2px 10px 12px 2px; scrollbar-width: thin; }
+  .app.bw-wide .board-stage { flex: none; width: 100%; aspect-ratio: 1400 / 990; min-height: 0; }
+  .app.bw-wide .gstrip, .app.bw-wide .board-bar { flex: none; }
+  .app.bw-wide .board-foot, .app.bw-wide .board-hint { flex: none; }
+}
+/* bildirim: pafta altındaki ipucu satırını kapatmasın */
+.toast-zone { bottom: calc(48px + env(safe-area-inset-bottom, 0px)) !important; }
 
 /* ---- glass ---- */
 html[data-style="glass"] {
@@ -827,6 +837,73 @@ html[data-style="glass"] .wc-opt:hover { transform: translateY(-1px); background
 html[data-style="glass"] .wc-opt:active, html[data-style="glass"] .wc-opt.on { box-shadow: var(--press-sm); transform: none; }
 html[data-style="glass"] .wc-ico { border-radius: 50%; background: var(--inset-bg); box-shadow: var(--press-sm); }
 html[data-style="glass"] .wc-opt.on .wc-ico { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+html[data-style="glass"] .gh { gap: 8px 14px; padding: 7px 10px 7px 20px; border-radius: 34px; }
+html[data-style="glass"] .gh .gb { width: 38px; height: 38px; }
+html[data-style="glass"] .gh .gseg button { height: 30px; padding: 0 13px; }
+html[data-style="glass"] .gh .gpill, html[data-style="glass"] .gh .gcolor { height: 40px; }
+html[data-style="glass"] .gh .gpill { padding: 0 16px; }
+html[data-style="glass"] .gh .ginput { height: 38px; }
+html[data-style="glass"] .gh .mnav { padding: 3px; }
+html[data-style="glass"] .gh .mnav-i { height: 34px; padding: 0 14px 0 12px; }
+html[data-style="glass"] .gh-actions { gap: 8px; }
+html[data-style="glass"] .gh-brand { flex: none; }
+@media (min-width: 1280px) {
+html[data-style="glass"] .gh, html[data-style="glass"] .gh-actions { flex-wrap: nowrap; }
+html[data-style="glass"] .gh-name { flex: 1 1 130px; min-width: 100px; max-width: 250px; }
+}
+@media (max-width: 1699px) and (min-width: 1024px) {
+html[data-style="glass"] .gh .mnav-i:not(.on) { padding: 0 11px; }
+html[data-style="glass"] .gh-title { display: none; }
+}
+@media (max-width: 1479px) and (min-width: 1024px) {
+html[data-style="glass"] .gcolor { padding: 0 14px 0 12px; }
+html[data-style="glass"] .gcolor > span:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+@media (min-width: 1024px) {
+html[data-style="glass"] .gdial { flex: 1 1 340px; flex-wrap: nowrap; gap: 4px 16px; padding: 8px 14px 8px 8px; border-radius: 36px; }
+html[data-style="glass"] .gdial-face { width: 62px; height: 62px; }
+html[data-style="glass"] .gdial-face svg { width: 56px; height: 56px; }
+html[data-style="glass"] .gdial-info { flex: 1 1 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px 14px; }
+html[data-style="glass"] .gdial-num { font-size: 28px; }
+html[data-style="glass"] .gdial-msg { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+html[data-style="glass"] .gchips { grid-column: 1 / -1; flex-wrap: nowrap; gap: 0 14px; overflow: hidden; white-space: nowrap; font-size: 12px; }
+html[data-style="glass"] .gissues { flex: none; height: 36px; }
+html[data-style="glass"] .gdial-info { min-width: 0; }
+html[data-style="glass"] .gstrip > * { min-width: 0; }
+}
+html[data-style="glass"] .gstrip { gap: 10px; }
+html[data-style="glass"] .gdock { padding: 5px; gap: 6px; }
+html[data-style="glass"] .gdock .gpill { height: 38px; padding: 0 16px; }
+html[data-style="glass"] .gdock .gb { width: 38px; height: 38px; }
+html[data-style="glass"] .empty-card { width: min(380px, 78%); padding: 20px 22px; border-radius: 28px; }
+@media (min-width: 1024px) {
+html[data-style="glass"] .app { padding: 12px 16px 12px; gap: 12px; }
+html[data-style="glass"] .main { grid-template-columns: clamp(300px, 22vw, 366px) minmax(0, 1fr) auto; gap: 14px; padding-bottom: 0; }
+html[data-style="glass"] .board-wrap { gap: 10px; }
+html[data-style="glass"] .side-body { padding: 14px 14px 16px; gap: 16px; }
+}
+@media (max-width: 1699px) and (min-width: 1024px) {
+html[data-style="glass"] .gissues { padding: 0 8px; }
+html[data-style="glass"] .gissues:not(.has) { padding: 0 10px; }
+html[data-style="glass"] .gissues > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+html[data-style="glass"] .tabs .tab { padding: 0 8px; gap: 5px; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 1024px) {
+html[data-style="glass"] .main { grid-template-columns: clamp(320px, 22vw, 366px) minmax(0, 1fr) auto; }
+html[data-style="glass"] .tabs { margin: 12px 12px 0; }
+html[data-style="glass"] .tabs .tab { padding: 0 6px; font-size: 12.5px; }
+}
+html[data-style="glass"] .gdock { max-width: 100%; flex-wrap: wrap; }
+@media (min-width: 1024px) {
+html[data-style="glass"] .gdock { border-radius: 30px; }
+}
+@media (max-width: 1279px) and (min-width: 1024px) {
+html[data-style="glass"] .tabs .tab { padding: 0 4px; font-size: 12px; gap: 4px; }
+}
+@media (max-width: 640px) {
+html[data-style="glass"] .tb-seg { max-width: 100%; overflow-x: auto; }
+html[data-style="glass"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+}
 /* ---- bauhaus ---- */
 html[data-style="bauhaus"] {
   --bg: #E7D9B8;
@@ -1333,6 +1410,66 @@ html[data-style="bauhaus"] .wc-opt.on .wc-t small { color: var(--on-yellow); }
 html[data-style="bauhaus"] .wc-ico { border: 2px solid var(--line); background: var(--surface-2); }
 html[data-style="bauhaus"] .wc-opt:hover .wc-ico { background: var(--blue); color: var(--on-blue); }
 html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spacing: .06em; text-transform: uppercase; }
+html[data-style="bauhaus"] .hdr { align-items: center; gap: 8px 16px; padding: 8px 14px; margin-bottom: 10px; }
+html[data-style="bauhaus"] .hdr::after { bottom: -10px; height: 6px; }
+html[data-style="bauhaus"] .hdr-title { font-size: 20px; }
+html[data-style="bauhaus"] .hdr-sub { margin-top: 2px; font-size: 11px; }
+html[data-style="bauhaus"] .hdr-actions { padding-top: 0; gap: 8px; }
+html[data-style="bauhaus"] .hdr .btn { padding: 6px 10px; }
+html[data-style="bauhaus"] .hdr .mnav-i { padding: 6px 11px; }
+html[data-style="bauhaus"] .hdr-name { display: flex; flex-direction: column; justify-content: center; }
+@media (min-width: 1280px) {
+html[data-style="bauhaus"] .hdr, html[data-style="bauhaus"] .hdr-actions { flex-wrap: nowrap; }
+html[data-style="bauhaus"] .hdr-name { flex: 1 1 150px; min-width: 120px; max-width: 300px; }
+html[data-style="bauhaus"] .hdr-brand, html[data-style="bauhaus"] .mnav { flex: none; }
+}
+@media (max-width: 2099px) and (min-width: 1024px) {
+html[data-style="bauhaus"] .hdr-sub, html[data-style="bauhaus"] .hdr-name .lbl { display: none; }
+html[data-style="bauhaus"] .hdr-name .inp { padding: 6px 10px; }
+}
+@media (max-width: 1599px) and (min-width: 1024px) {
+html[data-style="bauhaus"] .hdr-title { display: none; }
+html[data-style="bauhaus"] .hdr .mnav-i:not(.on) { padding: 6px 9px; }
+}
+@media (max-width: 1479px) and (min-width: 1024px) {
+html[data-style="bauhaus"] .btn-theme > span:last-child { display: none; }
+}
+html[data-style="bauhaus"] .scorebar { grid-template-columns: auto minmax(160px, 1fr) auto auto; gap: 8px 16px; margin: 6px 16px 10px; padding: 6px 10px; box-shadow: 4px 4px 0 var(--shadow); }
+html[data-style="bauhaus"] .score-main { flex-direction: row; align-items: center; gap: 12px; min-width: 0; padding: 3px 12px; }
+html[data-style="bauhaus"] .score-main .lbl { font-size: 10.5px; max-width: 110px; line-height: 1.15; }
+html[data-style="bauhaus"] .score-num { font-size: 28px; }
+html[data-style="bauhaus"] .meter { height: 16px; }
+html[data-style="bauhaus"] .meter-msg { margin: 3px 0 0; font-size: 12.5px; line-height: 1.25; }
+html[data-style="bauhaus"] .chips { gap: 4px 6px; }
+html[data-style="bauhaus"] .chip { padding: 2px 8px; font-size: 12px; }
+html[data-style="bauhaus"] .issues-btn { padding: 6px 10px; font-size: 12px; }
+html[data-style="bauhaus"] .tab { padding: 10px 4px; font-size: 12px; letter-spacing: .04em; min-width: 0; white-space: nowrap; }
+html[data-style="bauhaus"] .tabs-sm .tab { padding: 8px 4px; }
+@media (min-width: 1024px) {
+html[data-style="bauhaus"] .app { padding-bottom: 12px; }
+html[data-style="bauhaus"] .main { grid-template-columns: clamp(300px, 22vw, 366px) minmax(0, 1fr) auto; gap: 14px; }
+html[data-style="bauhaus"] .board-wrap { gap: 8px; }
+html[data-style="bauhaus"] .board-bar { gap: 8px; }
+}
+@media (max-width: 2099px) and (min-width: 1024px) {
+html[data-style="bauhaus"] .hdr-actions .lbl-hide, html[data-style="bauhaus"] .board-bar .lbl-hide { display: none; }
+html[data-style="bauhaus"] .board-bar .btn { padding: 6px 10px; font-size: 12px; }
+html[data-style="bauhaus"] .issues-btn > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+html[data-style="bauhaus"] .tabs .tab { flex: 1 1 auto; gap: 5px; padding: 10px 6px; letter-spacing: .02em; }
+html[data-style="bauhaus"] .tab-n { min-width: 18px; padding: 0 5px; font-size: 11px; }
+@media (max-width: 1399px) and (min-width: 1024px) {
+html[data-style="bauhaus"] .hdr .sep { display: none; }
+html[data-style="bauhaus"] .hdr-actions { gap: 6px; }
+}
+html[data-style="bauhaus"] .tabs .tab { overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 1024px) {
+html[data-style="bauhaus"] .main { grid-template-columns: clamp(320px, 22vw, 366px) minmax(0, 1fr) auto; }
+}
+@media (max-width: 640px) {
+html[data-style="bauhaus"] .tb-seg { max-width: 100%; overflow-x: auto; }
+html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+}
 </style>
 </head>
 <body>
@@ -2853,62 +2990,25 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
   const fmt = App.util.fmt;
 
   /* ---------------- primitif üreticiler ---------------- */
-  function staticBauhaus(info) {
-    const P = [];
-    const W = geo.W, H = geo.H, F = geo.FRAME, tb = geo.titleBlock;
-    P.push({ t: 'rect', x: 0, y: 0, w: W, h: H, fill: PAL.paper });
-    // modüler ızgara (Bauhaus afişlerindeki gibi ince)
-    for (let x = F + 50; x < W - F; x += 50) P.push({ t: 'line', x1: x, y1: F, x2: x, y2: tb.y, stroke: PAL.ink, sw: 1, opacity: 0.07 });
-    for (let y = F + 50; y < tb.y; y += 50) P.push({ t: 'line', x1: F, y1: y, x2: W - F, y2: y, stroke: PAL.ink, sw: 1, opacity: 0.07 });
-    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, stroke: PAL.ink, sw: 6 });
-    P.push({ t: 'line', x1: F, y1: tb.y, x2: W - F, y2: tb.y, stroke: PAL.ink, sw: 5 });
-
-    // logo bloğu
-    P.push({ t: 'rect', x: tb.x, y: tb.y, w: tb.h, h: tb.h, fill: PAL.blue });
-    P.push({ t: 'circle', cx: tb.x + 36, cy: tb.y + 36, r: 20, fill: PAL.yellow, stroke: PAL.ink, sw: 3 });
-    P.push({ t: 'rect', x: tb.x + 54, y: tb.y + 50, w: 36, h: 36, fill: PAL.red, stroke: PAL.ink, sw: 3 });
-    P.push({ t: 'poly', pts: [[tb.x + 14, tb.y + 90], [tb.x + 46, tb.y + 90], [tb.x + 30, tb.y + 58]], fill: PAL.paper, stroke: PAL.ink, sw: 3 });
-    const xs = [tb.x + tb.h, 720, 1010, 1190];
-    xs.forEach((x, i) => { if (i > 0) P.push({ t: 'line', x1: x, y1: tb.y, x2: x, y2: tb.y + tb.h, stroke: PAL.ink, sw: 4 }); });
-    P.push({ t: 'line', x1: xs[0], y1: tb.y, x2: xs[0], y2: tb.y + tb.h, stroke: PAL.ink, sw: 4 });
-
-    // proje adı
-    let name = String(info.name || 'Adsız proje').toLocaleUpperCase('tr');
-    const fs = name.length > 26 ? 24 : name.length > 20 ? 30 : 36;
-    const maxCh = Math.floor(560 / (fs * 0.66));
-    if (name.length > maxCh) name = name.slice(0, maxCh - 1) + '…';
-    P.push({ t: 'text', x: xs[0] + 22, y: tb.y + 54, s: name, size: fs, weight: 700, fam: 'd', fill: PAL.ink, ls: 1 });
-    P.push({ t: 'text', x: xs[0] + 22, y: tb.y + 84, s: (info.typeLabel + ' · ' + info.variantLabel).toLocaleUpperCase('tr'), size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 2.5, opacity: 0.8 });
-
-    // gösterge
-    const lx = xs[1] + 20;
-    P.push({ t: 'line', x1: lx, y1: tb.y + 28, x2: lx + 54, y2: tb.y + 28, stroke: PAL.ink, sw: 10 });
-    P.push({ t: 'line', x1: lx, y1: tb.y + 28, x2: lx + 54, y2: tb.y + 28, stroke: PAL.paper, sw: 3 });
-    P.push({ t: 'text', x: lx + 70, y: tb.y + 34, s: 'GÜÇLÜ İLİŞKİ', size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 1.5 });
-    P.push({ t: 'line', x1: lx, y1: tb.y + 56, x2: lx + 54, y2: tb.y + 56, stroke: PAL.ink, sw: 3, dash: [11, 8] });
-    P.push({ t: 'text', x: lx + 70, y: tb.y + 62, s: 'ZAYIF İLİŞKİ', size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 1.5 });
-    P.push({ t: 'line', x1: lx, y1: tb.y + 84, x2: lx + 54, y2: tb.y + 84, stroke: PAL.red, sw: 3, dash: [3, 8], cap: 'round' });
-    P.push({ t: 'text', x: lx + 70, y: tb.y + 90, s: 'AYRI TUT', size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 1.5 });
-
-    // istatistik
-    const sx = xs[2] + 20, ex = xs[3] - 20;
-    [['MEKAN', String(info.count)], ['TOPLAM', fmt(info.total) + ' m²'], ['TARİH', info.date]].forEach((r, i) => {
-      const y = tb.y + 34 + i * 28;
-      P.push({ t: 'text', x: sx, y: y, s: r[0], size: 12, weight: 500, fam: 'm', fill: PAL.ink, ls: 1.5, opacity: 0.7 });
-      P.push({ t: 'text', x: ex, y: y, s: r[1], size: i === 2 ? 16 : 20, weight: 700, fam: i === 2 ? 'm' : 'd', fill: PAL.ink, anchor: 'end' });
-    });
-
-    // skor bloğu
-    const pc = info.percent;
-    const bg = pc == null ? PAL.paperDark : pc >= 70 ? PAL.green : pc >= 40 ? PAL.yellow : PAL.red;
-    const fg = pc == null ? PAL.ink : pc >= 70 ? PAL.paper : pc >= 40 ? PAL.ink : PAL.paper;
-    P.push({ t: 'rect', x: xs[3], y: tb.y, w: tb.x + tb.w - xs[3], h: tb.h, fill: bg });
-    P.push({ t: 'text', x: xs[3] + 20, y: tb.y + 30, s: 'VERİMLİLİK', size: 13, weight: 500, fam: 'm', fill: fg, ls: 2 });
-    P.push({ t: 'text', x: xs[3] + 20, y: tb.y + 88, s: pc == null ? '—' : '%' + pc, size: 58, weight: 700, fam: 'd', fill: fg });
-    // üst/alt çerçeve çizgisi kapanışı
-    P.push({ t: 'rect', x: tb.x, y: tb.y, w: tb.w, h: tb.h, stroke: PAL.ink, sw: 4 });
-    return P;
+  /* İşlev şeması künyesi: ortak, ölçümlü pafta çerçevesi (App.sheet.frame) kullanılır */
+  function frameInfo(info, glass) {
+    const ink = PAL.ink;
+    const legend = glass ? [
+      { label: 'Güçlü ilişki', line: { stroke: ink, sw: 6, cap: 'round' } },
+      { label: 'Zayıf ilişki', line: { stroke: ink, sw: 2.5, dash: [9, 8], cap: 'round', opacity: 0.7 } },
+      { label: 'Ayrı tut', line: { stroke: ink, sw: 3.5, dash: [0.5, 9], cap: 'round' } }
+    ] : [
+      { label: 'Güçlü ilişki', line: { stroke: ink, sw: 10, inner: { stroke: PAL.paper, sw: 3 } } },
+      { label: 'Zayıf ilişki', line: { stroke: ink, sw: 3, dash: [11, 8] } },
+      { label: 'Ayrı tut', line: { stroke: PAL.red, sw: 3, dash: [3, 8], cap: 'round' } }
+    ];
+    return {
+      name: info.name, subtitle: info.typeLabel + ' · ' + info.variantLabel, legend: legend,
+      stats: [['Mekân', String(info.count)], ['Toplam', fmt(info.total) + ' m²'], ['Tarih', info.date]],
+      scoreLabel: 'Verimlilik', percent: info.percent
+    };
   }
+  function staticBauhaus(info) { return App.sheet.frame(frameInfo(info, false), false); }
 
   function relBauhaus(a, b, type, ra, rb) {
     const P = [];
@@ -2956,53 +3056,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
 
 
   /* ---------------- GLASS (minimal, tek renksiz) ---------------- */
-  function staticGlass(info, opts) {
-    const P = [];
-    const W = geo.W, H = geo.H, F = geo.FRAME, tb = geo.titleBlock;
-    const ink = PAL.ink;
-    const live = !!(opts && opts.live);
-    if (!live) P.push({ t: 'rect', x: 0, y: 0, w: W, h: H, fill: '#E9EAEE' });
-    // kabartmalı levha: koyu gölge + açık vurgu
-    const sheet = live ? 'rgba(249,250,252,.9)' : '#F6F7F9';
-    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, rx: 40, fill: sheet, shadow: { dx: 10, dy: 14, blur: 30, color: 'rgba(46,52,68,.22)', css: 'var(--sheet-lo, rgba(46,52,68,.22))' } });
-    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, rx: 40, fill: sheet, shadow: { dx: -8, dy: -8, blur: 20, color: 'rgba(255,255,255,.9)', css: 'var(--sheet-hi, rgba(255,255,255,.9))' } });
-    // nokta ızgara
-    for (let x = F + 50; x < W - F; x += 50) for (let y = F + 50; y < tb.y; y += 50) P.push({ t: 'circle', cx: x, cy: y, r: 1.7, fill: ink, opacity: 0.13 });
-    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, rx: 40, stroke: ink, sw: 1.5, opacity: 0.10 });
-    P.push({ t: 'line', x1: tb.x + 30, y1: tb.y, x2: tb.x + tb.w - 30, y2: tb.y, stroke: ink, sw: 1.5, opacity: 0.14 });
-
-    let name = String(info.name || 'Adsız proje');
-    const fs = name.length > 26 ? 18 : name.length > 20 ? 22 : 27;
-    const maxCh = Math.floor(540 / (fs * 0.82));
-    if (name.length > maxCh) name = name.slice(0, maxCh - 1) + '…';
-    const x0 = tb.x + 36;
-    P.push({ t: 'text', x: x0, y: tb.y + 56, s: name, size: fs, weight: 400, fam: 'd', fill: ink });
-    P.push({ t: 'text', x: x0, y: tb.y + 84, s: info.typeLabel + ' · ' + info.variantLabel, size: 15, weight: 600, fam: 'b', fill: ink, opacity: 0.5 });
-
-    // gösterge
-    const lx = 650;
-    P.push({ t: 'line', x1: lx, y1: tb.y + 34, x2: lx + 48, y2: tb.y + 34, stroke: ink, sw: 6, cap: 'round' });
-    P.push({ t: 'text', x: lx + 64, y: tb.y + 39, s: 'Güçlü ilişki', size: 14, weight: 600, fam: 'b', fill: ink, opacity: 0.8 });
-    P.push({ t: 'line', x1: lx, y1: tb.y + 58, x2: lx + 48, y2: tb.y + 58, stroke: ink, sw: 2.5, dash: [9, 8], cap: 'round', opacity: 0.7 });
-    P.push({ t: 'text', x: lx + 64, y: tb.y + 63, s: 'Zayıf ilişki', size: 14, weight: 600, fam: 'b', fill: ink, opacity: 0.8 });
-    P.push({ t: 'line', x1: lx, y1: tb.y + 82, x2: lx + 48, y2: tb.y + 82, stroke: ink, sw: 3.5, dash: [0.5, 9], cap: 'round' });
-    P.push({ t: 'text', x: lx + 64, y: tb.y + 87, s: 'Ayrı tut', size: 14, weight: 600, fam: 'b', fill: ink, opacity: 0.8 });
-
-    // istatistik
-    const sx = 905, ex = 1105;
-    [['Mekân', String(info.count)], ['Toplam', fmt(info.total) + ' m²'], ['Tarih', info.date]].forEach((r, i) => {
-      const y = tb.y + 40 + i * 25;
-      P.push({ t: 'text', x: sx, y: y, s: r[0], size: 13, weight: 500, fam: 'b', fill: ink, opacity: 0.5 });
-      P.push({ t: 'text', x: ex, y: y, s: r[1], size: 15, weight: 700, fam: 'b', fill: ink, anchor: 'end' });
-    });
-
-    // skor
-    const pc = info.percent;
-    const rx = tb.x + tb.w - 36;
-    P.push({ t: 'text', x: rx, y: tb.y + 36, s: 'Verimlilik', size: 13, weight: 600, fam: 'b', fill: ink, opacity: 0.5, anchor: 'end' });
-    P.push({ t: 'text', x: rx, y: tb.y + 84, s: pc == null ? '—' : '%' + pc, size: 50, weight: 300, fam: 'd', fill: ink, anchor: 'end' });
-    return P;
-  }
+  function staticGlass(info, opts) { return App.sheet.frame(frameInfo(info, true), !!(opts && opts.live)); }
 
   function relGlass(a, b, type, ra, rb) {
     const P = [];
@@ -3409,6 +3463,131 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
 
   sheet.dimText = (m) => fmt(m, m < 10 ? 2 : 1) + ' m';
 
+  /* ---------- metin ölçümü: sabit sütun yerine gerçek genişliğe göre yerleşim ---------- */
+  let _cx = null;
+  sheet.tw = function (s, size, weight, fam, ls) {
+    s = String(s == null ? '' : s);
+    let w;
+    try {
+      if (!_cx) _cx = document.createElement('canvas').getContext('2d');
+      _cx.font = (weight || 400) + ' ' + size + 'px ' + App.FONTS[fam || 'b'];
+      w = _cx.measureText(s).width;
+    } catch (e) { w = s.length * size * 0.6; }
+    return w + (ls || 0) * s.length;
+  };
+  // Sığmayan metni "…" ile kısalt
+  sheet.clip = function (s, maxW, size, weight, fam, ls) {
+    s = String(s == null ? '' : s);
+    if (sheet.tw(s, size, weight, fam, ls) <= maxW) return s;
+    let lo = 0, hi = s.length;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      if (sheet.tw(s.slice(0, mid).trimEnd() + '…', size, weight, fam, ls) <= maxW) lo = mid; else hi = mid - 1;
+    }
+    return s.slice(0, lo).trimEnd() + '…';
+  };
+  // Tek satır: boyutu küçülterek sığdır, olmazsa kısalt → { s, size }
+  sheet.fitLine = function (s, maxW, size, min, weight, fam, ls) {
+    s = String(s == null ? '' : s);
+    for (let fs = size; fs >= min; fs -= 0.5) if (sheet.tw(s, fs, weight, fam, ls) <= maxW) return { s: s, size: fs };
+    return { s: sheet.clip(s, maxW, min, weight, fam, ls), size: min };
+  };
+  // İki satıra dengeli böl (kelime sınırında); büyükten küçüğe boyut dene → { lines, size } | null
+  sheet.wrap2 = function (s, maxW, size, min, weight, fam, ls) {
+    const words = String(s || '').split(/\s+/).filter(Boolean);
+    for (let fs = size; fs >= min; fs -= 0.5) {
+      let best = null, bw = Infinity;
+      for (let i = 1; i < words.length; i++) {
+        const a = words.slice(0, i).join(' '), b = words.slice(i).join(' ');
+        const m = Math.max(sheet.tw(a, fs, weight, fam, ls), sheet.tw(b, fs, weight, fam, ls));
+        if (m <= maxW && m < bw) { bw = m; best = [a, b]; }
+      }
+      if (best) return { lines: best, size: fs };
+    }
+    return null;
+  };
+
+  /* Künye yerleşimi (iki tema ortak): sağdan sola ölçerek bloklar arasına boşluk bırakır.
+     th: temaya göre yazı özellikleri; sonuç: sütun konumları ve gösterge/istatistik ölçüleri. */
+  function measureBlocks(info, th) {
+    const stats = (info.stats || []).slice(0, 3);
+    const lg = (info.legend || []).slice(0, 8);
+    const rows = Math.min(4, lg.length);
+    const cols = lg.length > 4 ? 2 : (lg.length ? 1 : 0);
+    const colW = [0, 0];
+    lg.forEach((it, i) => {
+      const c = i < 4 ? 0 : 1;
+      const lab = th.up ? String(it.label).toLocaleUpperCase('tr') : String(it.label);
+      const sw = it.line ? th.lineW : th.swW;
+      it._lab = lab; it._sw = sw;
+      colW[c] = Math.max(colW[c], sw + th.swGap + sheet.tw(lab, th.lg.size, th.lg.weight, th.lg.fam, th.lg.ls));
+    });
+    const legW = cols ? colW[0] + (cols === 2 ? th.colGap + colW[1] : 0) : 0;
+    let lw = 0, vw = 0;
+    stats.forEach((r) => {
+      const l = th.up ? String(r[0]).toLocaleUpperCase('tr') : String(r[0]);
+      r._l = l;
+      lw = Math.max(lw, sheet.tw(l, th.sl.size, th.sl.weight, th.sl.fam, th.sl.ls));
+      vw = Math.max(vw, sheet.tw(r[1], th.sv.size, th.sv.weight, th.sv.fam, 0));
+    });
+    const stW = stats.length ? lw + th.stGap + vw : 0;
+    const pcTxt = info.percent == null ? '—' : '%' + info.percent;
+    const scL = th.up ? String(info.scoreLabel || 'Skor').toLocaleUpperCase('tr') : String(info.scoreLabel || 'Skor');
+    const scW = Math.max(sheet.tw(pcTxt, th.sc.size, th.sc.weight, th.sc.fam, 0), sheet.tw(scL, th.scl.size, th.scl.weight, th.scl.fam, th.scl.ls));
+    return { stats: stats, lg: lg, rows: rows, cols: cols, colW: colW, legW: legW, lw: lw, vw: vw, stW: stW, pcTxt: pcTxt, scL: scL, scW: scW };
+  }
+
+  // Ad + alt başlık: verilen genişliğe sığdır (gerekirse alt başlığı iki satıra böl)
+  function titleBlock(P, info, x0, w, o) {
+    const nm = sheet.fitLine(o.up ? String(info.name || 'Adsız proje').toLocaleUpperCase('tr') : String(info.name || 'Adsız proje'), w, o.nameMax, o.nameMin, o.nameW, 'd', o.nameLs);
+    const sub = o.up ? String(info.subtitle || '').toLocaleUpperCase('tr') : String(info.subtitle || '');
+    const tb = sheet.tb;
+    let one = sheet.fitLine(sub, w, o.subSize, o.subMin, 600, 'b', o.subLs);
+    const fits1 = sheet.tw(sub, one.size, 600, 'b', o.subLs) <= w;
+    if (!fits1) {
+      const two = sheet.wrap2(sub, w, Math.min(o.subSize, 13), o.subMin, 600, 'b', o.subLs);
+      if (two) {
+        const nf = Math.min(nm.size, 26);
+        P.push({ t: 'text', x: x0, y: tb.y + 44, s: sheet.clip(nm.s, w, nf, o.nameW, 'd', o.nameLs), size: nf, weight: o.nameW, fam: 'd', fill: o.ink, ls: o.nameLs });
+        two.lines.forEach((ln, i) => P.push({ t: 'text', x: x0, y: tb.y + 68 + i * (two.size + 6), s: ln, size: two.size, weight: 600, fam: 'b', fill: o.ink, ls: o.subLs, opacity: o.subOp }));
+        return;
+      }
+    }
+    P.push({ t: 'text', x: x0, y: tb.y + 56, s: nm.s, size: nm.size, weight: o.nameW, fam: 'd', fill: o.ink, ls: o.nameLs });
+    P.push({ t: 'text', x: x0, y: tb.y + 84, s: one.s, size: one.size, weight: 600, fam: 'b', fill: o.ink, ls: o.subLs, opacity: o.subOp });
+  }
+
+  // Gösterge öğesi çizimi: it.fill (renkli işaret) ya da it.line (çizgi örneği)
+  function legendItems(P, m, th, x0, tb) {
+    const r = m.rows;
+    const first = tb.y + 52 - (r - 1) * th.rowH / 2;
+    m.lg.forEach((it, i) => {
+      const c = i < 4 ? 0 : 1, row = i % 4;
+      const x = x0 + (c ? m.colW[0] + th.colGap : 0);
+      const cy = first + row * th.rowH, by = cy + th.lg.size * 0.36;
+      if (it.line) {
+        const L = it.line;
+        P.push({ t: 'line', x1: x, y1: cy, x2: x + th.lineW, y2: cy, stroke: L.stroke, sw: L.sw, dash: L.dash, cap: L.cap, opacity: L.opacity });
+        if (L.inner) P.push({ t: 'line', x1: x, y1: cy, x2: x + th.lineW, y2: cy, stroke: L.inner.stroke, sw: L.inner.sw });
+      } else if (th.round) {
+        P.push({ t: 'circle', cx: x + th.swW / 2, cy: cy, r: th.swW / 2, fill: it.fill, stroke: 'rgba(23,24,27,.28)', sw: 1.2 });
+      } else {
+        P.push({ t: 'rect', x: x, y: cy - th.swW / 2, w: th.swW, h: th.swW, fill: it.fill, stroke: PAL.ink, sw: 2 });
+      }
+      P.push({ t: 'text', x: x + it._sw + th.swGap, y: by, s: it._lab, size: th.lg.size, weight: th.lg.weight, fam: th.lg.fam, fill: th.ink, ls: th.lg.ls, opacity: th.lgOp });
+    });
+  }
+
+  function statItems(P, m, th, sx, ex, tb) {
+    const n = m.stats.length;
+    const first = tb.y + 52 - (n - 1) * th.stH / 2;
+    m.stats.forEach((r, i) => {
+      const y = first + i * th.stH + th.sv.size * 0.36;
+      P.push({ t: 'text', x: sx, y: y, s: r._l, size: th.sl.size, weight: th.sl.weight, fam: th.sl.fam, fill: th.ink, ls: th.sl.ls, opacity: th.slOp });
+      P.push({ t: 'text', x: ex, y: y, s: r[1], size: th.sv.size, weight: th.sv.weight, fam: th.sv.fam, fill: th.ink, anchor: 'end' });
+    });
+  }
+
   /* ---------- çerçeve ---------- */
   function baseGlass(live) {
     const P = [];
@@ -3426,31 +3605,24 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
   function frameGlass(info, live) {
     const P = baseGlass(live);
     const tb = sheet.tb, ink = PAL.ink;
-    let name = String(info.name || 'Adsız proje');
-    const fs = name.length > 26 ? 18 : name.length > 20 ? 22 : 27;
-    const maxCh = Math.floor(500 / (fs * 0.82));
-    if (name.length > maxCh) name = name.slice(0, maxCh - 1) + '…';
-    const x0 = tb.x + 36;
-    P.push({ t: 'text', x: x0, y: tb.y + 56, s: name, size: fs, weight: 400, fam: 'd', fill: ink });
-    P.push({ t: 'text', x: x0, y: tb.y + 84, s: info.subtitle || '', size: 15, weight: 600, fam: 'b', fill: ink, opacity: 0.5 });
-    // gösterge (bölge renkleri): iki sütun
-    const lg = (info.legend || []).slice(0, 8);
-    lg.forEach((it, i) => {
-      const col = i < 4 ? 0 : 1, row = i % 4;
-      const x = 560 + col * 215, y = tb.y + 29 + row * 21;
-      P.push({ t: 'circle', cx: x, cy: y - 4.5, r: 6.5, fill: it.fill, stroke: 'rgba(23,24,27,.28)', sw: 1.2 });
-      P.push({ t: 'text', x: x + 16, y: y, s: it.label, size: 13, weight: 600, fam: 'b', fill: ink, opacity: 0.82 });
-    });
-    // istatistik
-    const sx = 1000, ex = 1170;
-    (info.stats || []).slice(0, 3).forEach((r, i) => {
-      const y = tb.y + 40 + i * 25;
-      P.push({ t: 'text', x: sx, y: y, s: r[0], size: 13, weight: 500, fam: 'b', fill: ink, opacity: 0.5 });
-      P.push({ t: 'text', x: ex, y: y, s: r[1], size: 15, weight: 700, fam: 'b', fill: ink, anchor: 'end' });
-    });
+    const th = { ink: ink, up: false, round: true, swW: 13, lineW: 44, swGap: 9, colGap: 26, stGap: 22, rowH: 21, stH: 26, lgOp: 0.82, slOp: 0.5,
+      lg: { size: 13, weight: 600, fam: 'b', ls: 0 }, sl: { size: 13, weight: 500, fam: 'b', ls: 0 }, sv: { size: 15, weight: 700, fam: 'b' },
+      sc: { size: 50, weight: 300, fam: 'd' }, scl: { size: 13, weight: 600, fam: 'b', ls: 0 } };
+    const m = measureBlocks(info, th);
+    const GAP = 36;
     const rx = tb.x + tb.w - 36;
-    P.push({ t: 'text', x: rx, y: tb.y + 36, s: info.scoreLabel || 'Skor', size: 13, weight: 600, fam: 'b', fill: ink, opacity: 0.5, anchor: 'end' });
-    P.push({ t: 'text', x: rx, y: tb.y + 84, s: info.percent == null ? '—' : '%' + info.percent, size: 50, weight: 300, fam: 'd', fill: ink, anchor: 'end' });
+    const scX0 = rx - m.scW;
+    let edge = scX0 - GAP;
+    const stX1 = edge, stX0 = stX1 - m.stW;
+    if (m.stW) edge = stX0 - GAP;
+    const lgX0 = edge - m.legW;
+    if (m.legW) edge = lgX0 - GAP;
+    const x0 = tb.x + 36;
+    titleBlock(P, info, x0, Math.max(160, edge - x0), { ink: ink, up: false, nameMax: 27, nameMin: 16, nameW: 400, nameLs: 0, subSize: 15, subMin: 12, subLs: 0, subOp: 0.5 });
+    legendItems(P, m, th, lgX0, tb);
+    statItems(P, m, th, stX0, stX1, tb);
+    P.push({ t: 'text', x: rx, y: tb.y + 36, s: m.scL, size: 13, weight: 600, fam: 'b', fill: ink, opacity: 0.5, anchor: 'end' });
+    P.push({ t: 'text', x: rx, y: tb.y + 84, s: m.pcTxt, size: 50, weight: 300, fam: 'd', fill: ink, anchor: 'end' });
     return P;
   }
 
@@ -3466,32 +3638,25 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     P.push({ t: 'circle', cx: tb.x + 36, cy: tb.y + 36, r: 20, fill: PAL.yellow, stroke: PAL.ink, sw: 3 });
     P.push({ t: 'rect', x: tb.x + 54, y: tb.y + 50, w: 36, h: 36, fill: PAL.red, stroke: PAL.ink, sw: 3 });
     P.push({ t: 'poly', pts: [[tb.x + 14, tb.y + 90], [tb.x + 46, tb.y + 90], [tb.x + 30, tb.y + 58]], fill: PAL.paper, stroke: PAL.ink, sw: 3 });
-    const xs = [tb.x + tb.h, 700, 1000, 1190];
-    xs.forEach((x) => P.push({ t: 'line', x1: x, y1: tb.y, x2: x, y2: tb.y + tb.h, stroke: PAL.ink, sw: 4 }));
-    let name = String(info.name || 'Adsız proje').toLocaleUpperCase('tr');
-    const fs = name.length > 26 ? 24 : name.length > 20 ? 30 : 36;
-    const maxCh = Math.floor(540 / (fs * 0.66));
-    if (name.length > maxCh) name = name.slice(0, maxCh - 1) + '…';
-    P.push({ t: 'text', x: xs[0] + 22, y: tb.y + 54, s: name, size: fs, weight: 700, fam: 'd', fill: PAL.ink, ls: 1 });
-    P.push({ t: 'text', x: xs[0] + 22, y: tb.y + 84, s: String(info.subtitle || '').toLocaleUpperCase('tr'), size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 2.5, opacity: 0.8 });
-    (info.legend || []).slice(0, 8).forEach((it, i) => {
-      const col = i < 4 ? 0 : 1, row = i % 4;
-      const x = xs[1] + 20 + col * 140, y = tb.y + 26 + row * 22;
-      P.push({ t: 'rect', x: x, y: y - 12, w: 14, h: 14, fill: it.fill, stroke: PAL.ink, sw: 2 });
-      P.push({ t: 'text', x: x + 22, y: y, s: String(it.label).toLocaleUpperCase('tr'), size: 11.5, weight: 600, fam: 'b', fill: PAL.ink, ls: 1 });
-    });
-    const sx = xs[2] + 20, ex = xs[3] - 20;
-    (info.stats || []).slice(0, 3).forEach((r, i) => {
-      const y = tb.y + 34 + i * 28;
-      P.push({ t: 'text', x: sx, y: y, s: String(r[0]).toLocaleUpperCase('tr'), size: 12, weight: 500, fam: 'm', fill: PAL.ink, ls: 1.5, opacity: 0.7 });
-      P.push({ t: 'text', x: ex, y: y, s: r[1], size: 17, weight: 700, fam: 'd', fill: PAL.ink, anchor: 'end' });
-    });
+    const th = { ink: PAL.ink, up: true, round: false, swW: 14, lineW: 54, swGap: 9, colGap: 22, stGap: 26, rowH: 22, stH: 28, lgOp: 1, slOp: 0.7,
+      lg: { size: 11.5, weight: 600, fam: 'b', ls: 1 }, sl: { size: 12, weight: 500, fam: 'm', ls: 1.5 }, sv: { size: 17, weight: 700, fam: 'd' },
+      sc: { size: 58, weight: 700, fam: 'd' }, scl: { size: 13, weight: 500, fam: 'm', ls: 2 } };
+    const m = measureBlocks(info, th);
+    const PAD = 20;
+    const xs0 = tb.x + tb.h;
+    const xs3 = tb.x + tb.w - Math.max(150, m.scW + PAD * 2);
+    const xs2 = m.stW ? xs3 - (m.stW + PAD * 2) : xs3;
+    const xs1 = m.legW ? xs2 - (m.legW + PAD * 2) : xs2;
+    [xs0, xs1, xs2, xs3].forEach((x, i) => { if (i === 0 || i === 3 || (i === 1 && m.legW) || (i === 2 && m.stW)) P.push({ t: 'line', x1: x, y1: tb.y, x2: x, y2: tb.y + tb.h, stroke: PAL.ink, sw: 4 }); });
+    titleBlock(P, info, xs0 + 22, Math.max(160, xs1 - xs0 - 44), { ink: PAL.ink, up: true, nameMax: 36, nameMin: 18, nameW: 700, nameLs: 1, subSize: 15, subMin: 11, subLs: 2, subOp: 0.8 });
+    legendItems(P, m, th, xs1 + PAD, tb);
+    statItems(P, m, th, xs2 + PAD, xs3 - PAD, tb);
     const pc = info.percent;
     const bg = pc == null ? PAL.paperDark : pc >= 70 ? PAL.green : pc >= 40 ? PAL.yellow : PAL.red;
     const fg = pc == null ? PAL.ink : pc >= 70 ? PAL.paper : pc >= 40 ? PAL.ink : PAL.paper;
-    P.push({ t: 'rect', x: xs[3], y: tb.y, w: tb.x + tb.w - xs[3], h: tb.h, fill: bg });
-    P.push({ t: 'text', x: xs[3] + 20, y: tb.y + 30, s: String(info.scoreLabel || 'Skor').toLocaleUpperCase('tr'), size: 13, weight: 500, fam: 'm', fill: fg, ls: 2 });
-    P.push({ t: 'text', x: xs[3] + 20, y: tb.y + 88, s: pc == null ? '—' : '%' + pc, size: 58, weight: 700, fam: 'd', fill: fg });
+    P.push({ t: 'rect', x: xs3, y: tb.y, w: tb.x + tb.w - xs3, h: tb.h, fill: bg });
+    P.push({ t: 'text', x: xs3 + PAD, y: tb.y + 30, s: m.scL, size: 13, weight: 500, fam: 'm', fill: fg, ls: 2 });
+    P.push({ t: 'text', x: xs3 + PAD, y: tb.y + 88, s: m.pcTxt, size: 58, weight: 700, fam: 'd', fill: fg });
     P.push({ t: 'rect', x: tb.x, y: tb.y, w: tb.w, h: tb.h, stroke: PAL.ink, sw: 4 });
     return P;
   }
@@ -5023,10 +5188,12 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
         site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
-        busy: null, hintDismissed: false, style: App.theme.name,
+        busy: null, hintDismissed: false, style: App.theme.name, boardWide: readWide(),
       },
     };
   }
+
+  function readWide() { try { return window.localStorage.getItem('archtools.boardwide') === '1'; } catch (e) { return false; } }
 
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
@@ -13419,18 +13586,29 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
       add([{ t: 'line', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: C.accent, sw: ed.kind === 'on' ? 4.5 : 2.6, dash: ed.kind === 'arka' ? [7, 4] : undefined, cap: 'round' }]);
       const nx = ed.dir[1], ny = -ed.dir[0];
       const m = F.P(ed.mid[0], ed.mid[1]);
-      const off = 20;
       const txt = (ed.kind === 'on' ? 'Ön' : ed.kind === 'arka' ? 'Arka' : 'Yan') + ' ' + fmt(ed.len, 1) + ' m';
+      const tw = App.sheet.tw(txt, 11.5, 700, 'b', 0);
+      const off = 8 + Math.abs(nx) * tw / 2 + Math.abs(ny) * 7;
       add([{ t: 'text', x: m[0] + nx * off, y: m[1] - ny * off + 4, s: txt, size: 11.5, weight: 700, fam: 'b', fill: C.ink, anchor: 'middle', pe: false }]);
     });
     // otopark rampı
     if (alt.basement && alt.basement.ramp && alt.basement.ramp.poly) add([{ t: 'path', d: ringD(F, alt.basement.ramp.poly), stroke: C.accent2, sw: 1.4, dash: [4, 3] }]);
-    // etiket
+    // etiket: rampa (kesikli dikdörtgen) üstüne gelmeyecek biçimde yerleştir
     const big = R.pieces.reduce((m, p) => (Math.abs(gis().area(p)) > Math.abs(gis().area(m)) ? p : m), R.pieces[0]);
     const bc = F.P.apply(null, gis().centroid(big));
+    const t2 = fmt(alt.height, 1) + ' m · ' + alt.unitTotals.total + ' daire';
+    const lw = Math.max(App.sheet.tw(alt.floors + ' kat', 16, 800, 'b', 0), App.sheet.tw(t2, 11.5, 600, 'b', 0));
+    let rb = null;
+    if (alt.basement && alt.basement.ramp && alt.basement.ramp.poly) {
+      const pts = alt.basement.ramp.poly.map((q) => F.P(q[0], q[1]));
+      rb = { x0: Math.min.apply(null, pts.map((q) => q[0])) - 4, x1: Math.max.apply(null, pts.map((q) => q[0])) + 4, y0: Math.min.apply(null, pts.map((q) => q[1])) - 4, y1: Math.max.apply(null, pts.map((q) => q[1])) + 4 };
+    }
+    const hitsRamp = (cy) => rb && bc[0] + lw / 2 > rb.x0 && bc[0] - lw / 2 < rb.x1 && cy + 20 > rb.y0 && cy - 20 < rb.y1;
+    let ly = bc[1];
+    [0, -44, 44, -88, 88].some((d) => { if (!hitsRamp(bc[1] + d)) { ly = bc[1] + d; return true; } return false; });
     add([
-      { t: 'text', x: bc[0], y: bc[1] - 2, s: alt.floors + ' kat', size: 16, weight: 800, fam: 'b', fill: C.glass ? '#fff' : C.ink, anchor: 'middle', pe: false },
-      { t: 'text', x: bc[0], y: bc[1] + 15, s: fmt(alt.height, 1) + ' m · ' + alt.unitTotals.total + ' daire', size: 11.5, weight: 600, fam: 'b', fill: C.glass ? '#fff' : C.ink, anchor: 'middle', pe: false, opacity: 0.85 },
+      { t: 'text', x: bc[0], y: ly - 2, s: alt.floors + ' kat', size: 16, weight: 800, fam: 'b', fill: C.glass ? '#fff' : C.ink, anchor: 'middle', pe: false },
+      { t: 'text', x: bc[0], y: ly + 15, s: t2, size: 11.5, weight: 600, fam: 'b', fill: C.glass ? '#fff' : C.ink, anchor: 'middle', pe: false, opacity: 0.85 },
     ]);
     add(D.north(86, 92, C, 20));
     add(D.scaleBar(70, tb.y - 28, F.s, C, 110 / F.s));
@@ -14352,6 +14530,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     const L = gis.niceLen(target);
     const px = L * s;
     const P = [];
+    P.push({ t: 'rect', x: x - 16, y: y - 22, w: px + 48, h: 34, rx: C.glass ? 10 : 0, fill: C.paper || '#fff', opacity: 0.82 });
     P.push({ t: 'rect', x: x, y: y, w: px / 2, h: 6, fill: C.ink, stroke: C.ink, sw: 1 });
     P.push({ t: 'rect', x: x + px / 2, y: y, w: px / 2, h: 6, fill: C.disc, stroke: C.ink, sw: 1 });
     P.push({ t: 'text', x: x, y: y - 5, s: '0', size: 11, weight: 700, fam: 'b', fill: C.ink, anchor: 'middle', pe: false });
@@ -15018,11 +15197,12 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
       const n = [dy, -dx]; // CCW parselde dışa
       const m = T.P(ed.mid[0] - cl.offset[0], ed.mid[1] - cl.offset[1]);
       const sx = n[0], sy = -n[1]; // ekran (y ters)
-      const off = 22;
-      const x = m[0] + sx * off, y = m[1] + sy * off;
       const dist = ed.kind === 'on' ? im.setback.on : ed.kind === 'arka' ? im.setback.arka : im.setback.yan;
       const txt = (C.glass ? EDGE_LABEL_G[ed.kind] : EDGE_LABEL[ed.kind]) + ' ' + fmt(dist, 1) + ' m';
-      const w = txt.length * 6.6 + 14, h = 19;
+      const w = sheet.tw(txt, 11, 700, C.glass ? 'b' : 'm', 0) + 14, h = 19;
+      // çip, kenarın dışında: merkez uzaklığı çipin kenar normali yönündeki yarı boyutuna göre (yan kenarda geniş çip parsele girmesin)
+      const off = 8 + Math.abs(sx) * w / 2 + Math.abs(sy) * h / 2;
+      const x = m[0] + sx * off, y = m[1] + sy * off;
       const rx = Math.max(CX - RP + 6 + w / 2, Math.min(CX + RP - 6 - w / 2, x)), ry = Math.max(CY - RP + 16, Math.min(CY + RP - 16, y));
       add([
         { t: 'rect', x: rx - w / 2, y: ry - h / 2, w: w, h: h, rx: C.glass ? h / 2 : 0, fill: C.glass ? '#fff' : C.paper, stroke: C.ink, sw: C.glass ? 1 : 1.6 },
@@ -15031,8 +15211,9 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
       hits.push({ kind: 'edge', i: ed.i, x0: rx - w / 2, x1: rx + w / 2, y0: ry - h / 2, y1: ry + h / 2 });
       // kenar uzunluğu
       if (ed.len * sc > 46) {
-        const lx = m[0] - sx * 12, ly = m[1] - sy * 12;
-        add([{ t: 'text', x: lx, y: ly + 3.5, s: fmt(ed.len, 1) + ' m', size: 10.5, weight: 700, fam: 'b', fill: C.ink, opacity: 0.8, anchor: 'middle', pe: false }]);
+        const ltxt = fmt(ed.len, 1) + ' m', lw = sheet.tw(ltxt, 10.5, 700, 'b', 0);
+        const li = 7 + Math.abs(sx) * lw / 2 + Math.abs(sy) * 6;
+        add([{ t: 'text', x: m[0] - sx * li, y: m[1] - sy * li + 3.5, s: ltxt, size: 10.5, weight: 700, fam: 'b', fill: C.ink, opacity: 0.8, anchor: 'middle', pe: false }]);
       }
     });
     // tutamaçlar
@@ -15827,7 +16008,13 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     const r = f.res;
     const sample = !r.changed || !r.changed.length;
     const s = sample ? 'ÖRNEK birim fiyatlar ve varsayımlar kullanılıyor: kendi değerlerinizle değiştirmeden karar vermeyin. ' + (r.disclaimer || '') : (r.disclaimer || '');
-    return [txt(40, y, wrap(s, 150)[0] + (wrap(s, 150).length > 1 ? '…' : ''), { size: 11.5, weight: 700, fill: sample ? (C.glass ? C.ink : App.PAL.red) : C.ink, opacity: sample ? 1 : 0.6 })];
+    // ölçülü iki satır: ikincisi sığmazsa kısaltılır
+    const MAXW = 1316, words = s.split(/\s+/).filter(Boolean), lines = [''];
+    words.forEach((wd) => { const t = lines[lines.length - 1] ? lines[lines.length - 1] + ' ' + wd : wd; if (App.sheet.tw(t, 11.5, 700, 'b', 0) <= MAXW || !lines[lines.length - 1]) lines[lines.length - 1] = t; else lines.push(wd); });
+    const out = lines.slice(0, 2);
+    if (lines.length > 2) out[1] = App.sheet.clip(lines.slice(1).join(' '), MAXW, 11.5, 700, 'b', 0);
+    const st = { size: 11.5, weight: 700, fill: sample ? (C.glass ? C.ink : App.PAL.red) : C.ink, opacity: sample ? 1 : 0.6 };
+    return out.map((ln, i) => txt(40, y - (out.length - 1 - i) * 15, ln, st));
   }
 
   /* ---------------- ÖZET ---------------- */
@@ -15907,6 +16094,8 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
   /* aylık nakit grafiği: çubuk = aylık net, çizgi = kümülatif (kaldıraçlı) */
   function cashChart(x, y, w, h, r, C, o) {
     const P = [];
+    const Y0 = y, H0 = h;
+    y = Y0 + 26; h = Math.max(60, H0 - 26 - 40); // üstte: başlık/son değer payı, altta: en düşük nokta + eksen etiketi payı
     const c = r.cash, n = c.months.length;
     const cum = c.cumLev, net = c.net;
     const vmax = Math.max.apply(null, cum.concat(net.map((v) => Math.abs(v))).concat([1])), vmin = Math.min.apply(null, cum.concat([0]).concat(net));
@@ -15929,9 +16118,9 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     P.push({ t: 'circle', cx: sx(n - 1), cy: sy(cum[n - 1]), r: 5, fill: C.ink });
     P.push(txt(sx(n - 1) - 8, sy(cum[n - 1]) - 10, money(cum[n - 1], ''), { size: 11.5, weight: 800, fill: C.ink, anchor: 'end' }));
     // eksen etiketleri
-    [0, 6, 12, 18, 24, 30, 36, 48].forEach((m) => { if (m < n) P.push(txt(sx(m), y + h + 18, String(m), { size: 10.5, weight: 600, fill: C.ink, opacity: 0.6, anchor: 'middle' })); });
-    P.push(txt(x + w, y + h + 32, 'ay', { size: 10.5, weight: 600, fill: C.ink, opacity: 0.5, anchor: 'end' }));
-    P.push(txt(x, y - 6, o.cur ? 'nakit (' + o.cur + ')' : '', { size: 10.5, weight: 600, fill: C.ink, opacity: 0.5 }));
+    const ticks = [0, 6, 12, 18, 24, 30, 36, 48].filter((m) => m < n);
+    ticks.forEach((m, i) => P.push(txt(sx(m), y + h + 34, String(m) + (i === ticks.length - 1 ? ' ay' : ''), { size: 10.5, weight: 600, fill: C.ink, opacity: 0.6, anchor: i === ticks.length - 1 ? 'end' : 'middle' })));
+    P.push(txt(x, Y0 + 10, o.cur ? 'nakit (' + o.cur + ')' : '', { size: 10.5, weight: 600, fill: C.ink, opacity: 0.5 }));
     // inşaat bitişi
     if (r.horizon && c.months.length > 0) {
       const mEnd = Math.min(n - 1, c.months.length - 1 - 0);
@@ -16393,6 +16582,10 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     target: [{ c: [12, 12, 8] }, { c: [12, 12, 2.5] }, 'M12 2v4M12 18v4M2 12h4M18 12h4'],
     parcel: ['M4 9l8-5 8 6-3 10H6z'],
     draw: ['M4 20l4-1 11-11-3-3L5 16z'],
+    rect: ['M4 6.5h16v11H4z'],
+    expand: ['M4 9V4h5', 'M20 9V4h-5', 'M4 15v5h5', 'M20 15v5h-5'],
+    shrink: ['M9 4v5H4', 'M15 4v5h5', 'M9 20v-5H4', 'M15 20v-5h5'],
+    poly: ['M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z'],
     sun: [{ c: [12, 12, 4] }, 'M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2'],
     copy: ['M8 8h11v12H8z', 'M5 16V4h11'],
     compare: ['M4 6h7v12H4z', 'M13 9h7v9h-7z'],
@@ -16463,12 +16656,13 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
         ui.btn('Kaydet', { icon: 'save', onclick: ctl.saveJSON, title: 'Projeyi bilgisayara JSON olarak indir', labelCls: 'lbl-hide' }),
         ui.btn('Yükle', { icon: 'open', onclick: ctl.pickFile, title: 'Kaydedilmiş JSON projesini yükle', labelCls: 'lbl-hide' }),
         h('span', { class: 'sep', 'aria-hidden': 'true' }),
-        ui.btn('PNG', { icon: 'image', onclick: ctl.exportPNG, title: 'Saf şemayı PNG resmi olarak indir', cls: 'btn-blue', disabled: !!state.ui.busy }),
-        ui.btn('PDF', { icon: 'pdf', onclick: ctl.exportPDF, title: 'Saf şemayı A3 PDF olarak indir', cls: 'btn-blue', disabled: !!state.ui.busy }),
+        ui.btn('PNG', { icon: 'image', onclick: ctl.exportPNG, title: 'Saf şemayı PNG resmi olarak indir', cls: 'btn-blue', labelCls: 'lbl-hide', disabled: !!state.ui.busy }),
+        ui.btn('PDF', { icon: 'pdf', onclick: ctl.exportPDF, title: 'Saf şemayı A3 PDF olarak indir', cls: 'btn-blue', labelCls: 'lbl-hide', disabled: !!state.ui.busy }),
         ui.btn('Rapor', { icon: 'layers', onclick: () => ctl.exportReport(), title: 'Tüm modüllerden çok sayfalı proje raporu (PDF)', cls: 'btn-yellow', disabled: !!state.ui.busy }),
         h('span', { class: 'sep', 'aria-hidden': 'true' }),
-        state.ui.module === 'islev' ? ui.btn('Akıllı öneri', { icon: 'spark', onclick: ctl.toggleAssistant, cls: 'btn-yellow', pressed: state.ui.assistantOpen, badge: issues ? String(issues) : null, badgePulse: !state.ui.assistantOpen, title: 'Akıllı öneri panelini aç / kapat' }) : null,
+        state.ui.module === 'islev' ? ui.btn('Akıllı öneri', { icon: 'spark', onclick: ctl.toggleAssistant, cls: 'btn-yellow', labelCls: 'lbl-hide', pressed: state.ui.assistantOpen, badge: issues ? String(issues) : null, badgePulse: !state.ui.assistantOpen, title: 'Akıllı öneri panelini aç / kapat' }) : null,
         state.ui.module === 'islev' ? h('span', { class: 'sep', 'aria-hidden': 'true' }) : null,
+        ui.btn(state.ui.boardWide ? 'Sığdır' : 'Geniş pafta', { icon: state.ui.boardWide ? 'shrink' : 'expand', onclick: ctl.toggleBoardWide, pressed: !!state.ui.boardWide, title: state.ui.boardWide ? 'Paftayı pencereye sığdır' : 'Paftayı tam genişlikte göster (kaydırılır)', labelCls: 'lbl-hide' }),
         ui.helpBtn ? ui.btn('Rehber', { icon: 'help', onclick: ui.helpBtn, title: 'Başlangıç sorularını yeniden aç', labelCls: 'lbl-hide' }) : null,
         ui.themeToggle(state)),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
@@ -16492,7 +16686,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
       h('ul', { class: 'chips', 'aria-label': 'Skor ayrıntısı' },
         (o.chips || []).map((c) => h('li', { class: 'chip', key: c.label }, h('i', { class: 'swatch sw-' + (c.cls || 'plain') }), c.label + ' ', h('b', {}, c.value), c.tail ? ' ' + c.tail : '')),
         o.warn ? h('li', { class: 'chip chip-warn' }, o.warn) : null),
-      h('button', { type: 'button', class: 'issues-btn' + (issues ? ' has-issues' : ''), onclick: o.onIssues },
+      h('button', { type: 'button', class: 'issues-btn' + (issues ? ' has-issues' : ''), onclick: o.onIssues, title: issues ? (o.issuesText || 'uyarı · önerileri gör') : (o.okText || 'kritik sorun yok') },
         issues ? h('b', { class: 'issues-n' }, String(issues)) : ui.icon('check', 16),
         h('span', {}, ' ' + (issues ? (o.issuesText || 'uyarı · önerileri gör') : (o.okText || 'kritik sorun yok')))));
   };
@@ -16926,6 +17120,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
         state.ui.module === 'islev' ? h('button', { type: 'button', class: 'gpill' + (state.ui.assistantOpen ? ' on' : ''), onclick: ctl.toggleAssistant, 'aria-pressed': String(!!state.ui.assistantOpen), title: 'Akıllı öneri panelini aç / kapat' },
           ui.icon('spark', 16), h('span', {}, 'Akıllı öneri'),
           issues ? h('span', { class: 'badge' + (state.ui.assistantOpen ? '' : ' pulse-badge') }, String(issues)) : null) : null),
+      gbtn(state.ui.boardWide ? 'shrink' : 'expand', state.ui.boardWide ? 'Paftayı sığdır' : 'Paftayı genişlet', { onclick: App.ctl.toggleBoardWide, pressed: !!state.ui.boardWide, title: state.ui.boardWide ? 'Paftayı pencereye sığdır' : 'Paftayı tam genişlikte göster (kaydırılır)' }),
       ui.helpBtn ? gbtn('help', 'Başlangıç rehberi', { onclick: ui.helpBtn, title: 'Başlangıç sorularını yeniden aç' }) : null,
       ui.themeToggle(state),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
@@ -16960,7 +17155,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
         h('div', { class: 'gdial-num' }, pc == null ? '—' : '%' + pc),
         h('p', { class: 'gdial-msg' }, o.msg),
         h('ul', { class: 'gchips', 'aria-label': 'Skor ayrıntısı' }, (o.chips || []).map(chip), o.warn ? h('li', { class: 'gchip gchip-warn' }, o.warn) : null)),
-      h('button', { type: 'button', class: 'gissues' + (issues ? ' has' : ''), onclick: o.onIssues },
+      h('button', { type: 'button', class: 'gissues' + (issues ? ' has' : ''), onclick: o.onIssues, title: issues ? (o.issuesText || 'uyarı ve öneriler') : (o.okText || 'kritik sorun yok') },
         issues ? h('b', {}, String(issues)) : ui.icon('check', 15),
         h('span', {}, issues ? (o.issuesText || 'uyarı ve öneriler') : (o.okText || 'kritik sorun yok'))));
   };
@@ -17313,6 +17508,8 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     toastTimer = setTimeout(() => ctl.dispatch({ type: 'CLEAR_TOAST' }), 3600);
   };
 
+  // Pafta boyutu: Sığdır (görünür alana) ↔ Geniş (tam genişlik, kaydırılır); tercih tarayıcıda saklanır
+  ctl.toggleBoardWide = () => { const v = !get().ui.boardWide; try { window.localStorage.setItem('archtools.boardwide', v ? '1' : '0'); } catch (e) {} ctl.dispatch({ type: 'UI', patch: { boardWide: v } }); };
   ctl.toggleAssistant = () => ctl.dispatch({ type: 'UI', patch: { assistantOpen: !get().ui.assistantOpen } });
   ctl.openAnalysis = () => ctl.dispatch({ type: 'UI', patch: { assistantOpen: true, asTab: 'analysis' } });
 
@@ -18802,8 +18999,8 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     const area = s.parcel ? Math.abs(gis.area(s.parcel)) : 0;
     out.push(ui.section('Parsel', h('div', { class: 'sec-box' },
       h('div', { class: 'tool-row', role: 'group', 'aria-label': 'Parsel çizim araçları' },
-        ui.btn('Çokgen çiz', { icon: 'draw', cls: v.tool === 'draw' ? 'btn-primary' : '', pressed: v.tool === 'draw', onclick: () => c.imarTool(v.tool === 'draw' ? null : 'draw'), title: 'Köşelere tıklayın; ilk noktaya tıklayın ya da çift tıklayın' }),
-        ui.btn('Dikdörtgen', { icon: 'parcel', cls: v.tool === 'rect' ? 'btn-primary' : '', pressed: v.tool === 'rect', onclick: () => c.imarTool(v.tool === 'rect' ? null : 'rect'), title: 'Paftada köşeden köşeye sürükleyin' }),
+        ui.btn('Çokgen çiz', { icon: 'poly', cls: v.tool === 'draw' ? 'btn-primary' : '', pressed: v.tool === 'draw', onclick: () => c.imarTool(v.tool === 'draw' ? null : 'draw'), title: 'Köşelere tıklayın; ilk noktaya tıklayın ya da çift tıklayın' }),
+        ui.btn('Dikdörtgen', { icon: 'rect', cls: v.tool === 'rect' ? 'btn-primary' : '', pressed: v.tool === 'rect', onclick: () => c.imarTool(v.tool === 'rect' ? null : 'rect'), title: 'Paftada köşeden köşeye sürükleyin' }),
         s.parcel ? ui.btn('Sil', { icon: 'trash', onclick: () => c.imarClear(), title: 'Parseli kaldır' }) : null),
       v.tool === 'draw' ? h('p', { class: 'note' }, 'Paftada köşelere tıklayın. Bitirmek için ilk noktaya tıklayın, çift tıklayın ya da Enter’a basın. Geri almak için Backspace, vazgeçmek için Esc.') : null,
       v.tool === 'rect' ? h('p', { class: 'note' }, 'Paftada bir köşeden karşı köşeye sürükleyin. Döndürmek için aşağıdaki açı alanını kullanın.') : null,
@@ -19048,8 +19245,8 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     let overlay = null;
     if (!s.parcel && !tool) {
       overlay = ui.emptyCard('Parseli çizin', 'İmar ve kapasite hesabı için parsel gerekir. Paftada çizebilir ya da ölçülerini yazabilirsiniz; TAKS, KAKS, çekmeler ve yençok kütleyi otomatik oluşturur.', [
-        ui.btn('Çokgen çiz', { icon: 'draw', cls: 'btn-primary', onclick: () => c.imarTool('draw') }),
-        ui.btn('Dikdörtgen çiz', { icon: 'parcel', onclick: () => c.imarTool('rect') }),
+        ui.btn('Çokgen çiz', { icon: 'poly', cls: 'btn-primary', onclick: () => c.imarTool('draw') }),
+        ui.btn('Dikdörtgen çiz', { icon: 'rect', onclick: () => c.imarTool('rect') }),
         ui.btn('20 × 30 m parsel koy', { icon: 'plus', onclick: () => c.imarParcelRect(20, 30, 0) })], 'at-map');
     }
     const stage = h('div', { class: 'board-stage' + (tool ? ' tooling' : '') }, svg, overlay,
@@ -19066,8 +19263,8 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
       scale: s.parcel ? 'Parsel ' + fmt(Math.abs(gis.area(s.parcel)), 0) + ' m² · ' + (cx.A && cx.A.demo ? 'demo veri' : cx.e ? S.sourceName(cx.e) : 'çevre verisi yok') : 'Parsel bekleniyor',
       foot: h('p', { class: 'board-hint' }, hint),
       tools: [
-        { k: 'btn', label: 'Çokgen', icon: 'draw', onclick: () => c.imarTool(tool === 'draw' ? null : 'draw'), pressed: tool === 'draw', strong: tool === 'draw', title: 'Parsel çiz (çokgen)' },
-        { k: 'btn', label: 'Dikdörtgen', icon: 'parcel', onclick: () => c.imarTool(tool === 'rect' ? null : 'rect'), pressed: tool === 'rect', strong: tool === 'rect', title: 'Parsel çiz (dikdörtgen)' },
+        { k: 'btn', label: 'Çokgen', icon: 'poly', onclick: () => c.imarTool(tool === 'draw' ? null : 'draw'), pressed: tool === 'draw', strong: tool === 'draw', title: 'Parsel çiz (çokgen)' },
+        { k: 'btn', label: 'Dikdörtgen', icon: 'rect', onclick: () => c.imarTool(tool === 'rect' ? null : 'rect'), pressed: tool === 'rect', strong: tool === 'rect', title: 'Parsel çiz (dikdörtgen)' },
         { k: 'sep' },
         s.parcel ? { k: 'seg', label: 'Görünüm kipi', value: mode, options: [{ v: 'plan', label: 'Plan' }, { v: 'iso', label: 'Kütle' }], onchange: (m) => c.imarView({ mode: m }) } : null,
         { k: 'btn', label: 'Gölge', icon: 'sun', onclick: () => c.imarView({ shadow: !v.shadow }), pressed: !!v.shadow, title: 'Gölgeyi göster / gizle' },
@@ -21098,7 +21295,7 @@ html[data-style="bauhaus"] .wc-t b { font: 700 13px var(--f-display); letter-spa
     const d = App.state.derive(state);
     const t = state.ui.toast;
     const mod = state.ui.module;
-    return h('div', { class: 'app s-' + App.theme.name + ' m-' + mod + (mod === 'islev' && state.ui.assistantOpen ? ' as-open' : '') },
+    return h('div', { class: 'app s-' + App.theme.name + ' m-' + mod + (mod === 'islev' && state.ui.assistantOpen ? ' as-open' : '') + (state.ui.boardWide ? ' bw-wide' : '') },
       App.ui.header(state, d),
       App.ui.scorebar(state, d),
       App.ui.pageMain(state, d),

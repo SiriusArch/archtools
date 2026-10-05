@@ -12,62 +12,25 @@
   const fmt = App.util.fmt;
 
   /* ---------------- primitif üreticiler ---------------- */
-  function staticBauhaus(info) {
-    const P = [];
-    const W = geo.W, H = geo.H, F = geo.FRAME, tb = geo.titleBlock;
-    P.push({ t: 'rect', x: 0, y: 0, w: W, h: H, fill: PAL.paper });
-    // modüler ızgara (Bauhaus afişlerindeki gibi ince)
-    for (let x = F + 50; x < W - F; x += 50) P.push({ t: 'line', x1: x, y1: F, x2: x, y2: tb.y, stroke: PAL.ink, sw: 1, opacity: 0.07 });
-    for (let y = F + 50; y < tb.y; y += 50) P.push({ t: 'line', x1: F, y1: y, x2: W - F, y2: y, stroke: PAL.ink, sw: 1, opacity: 0.07 });
-    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, stroke: PAL.ink, sw: 6 });
-    P.push({ t: 'line', x1: F, y1: tb.y, x2: W - F, y2: tb.y, stroke: PAL.ink, sw: 5 });
-
-    // logo bloğu
-    P.push({ t: 'rect', x: tb.x, y: tb.y, w: tb.h, h: tb.h, fill: PAL.blue });
-    P.push({ t: 'circle', cx: tb.x + 36, cy: tb.y + 36, r: 20, fill: PAL.yellow, stroke: PAL.ink, sw: 3 });
-    P.push({ t: 'rect', x: tb.x + 54, y: tb.y + 50, w: 36, h: 36, fill: PAL.red, stroke: PAL.ink, sw: 3 });
-    P.push({ t: 'poly', pts: [[tb.x + 14, tb.y + 90], [tb.x + 46, tb.y + 90], [tb.x + 30, tb.y + 58]], fill: PAL.paper, stroke: PAL.ink, sw: 3 });
-    const xs = [tb.x + tb.h, 720, 1010, 1190];
-    xs.forEach((x, i) => { if (i > 0) P.push({ t: 'line', x1: x, y1: tb.y, x2: x, y2: tb.y + tb.h, stroke: PAL.ink, sw: 4 }); });
-    P.push({ t: 'line', x1: xs[0], y1: tb.y, x2: xs[0], y2: tb.y + tb.h, stroke: PAL.ink, sw: 4 });
-
-    // proje adı
-    let name = String(info.name || 'Adsız proje').toLocaleUpperCase('tr');
-    const fs = name.length > 26 ? 24 : name.length > 20 ? 30 : 36;
-    const maxCh = Math.floor(560 / (fs * 0.66));
-    if (name.length > maxCh) name = name.slice(0, maxCh - 1) + '…';
-    P.push({ t: 'text', x: xs[0] + 22, y: tb.y + 54, s: name, size: fs, weight: 700, fam: 'd', fill: PAL.ink, ls: 1 });
-    P.push({ t: 'text', x: xs[0] + 22, y: tb.y + 84, s: (info.typeLabel + ' · ' + info.variantLabel).toLocaleUpperCase('tr'), size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 2.5, opacity: 0.8 });
-
-    // gösterge
-    const lx = xs[1] + 20;
-    P.push({ t: 'line', x1: lx, y1: tb.y + 28, x2: lx + 54, y2: tb.y + 28, stroke: PAL.ink, sw: 10 });
-    P.push({ t: 'line', x1: lx, y1: tb.y + 28, x2: lx + 54, y2: tb.y + 28, stroke: PAL.paper, sw: 3 });
-    P.push({ t: 'text', x: lx + 70, y: tb.y + 34, s: 'GÜÇLÜ İLİŞKİ', size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 1.5 });
-    P.push({ t: 'line', x1: lx, y1: tb.y + 56, x2: lx + 54, y2: tb.y + 56, stroke: PAL.ink, sw: 3, dash: [11, 8] });
-    P.push({ t: 'text', x: lx + 70, y: tb.y + 62, s: 'ZAYIF İLİŞKİ', size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 1.5 });
-    P.push({ t: 'line', x1: lx, y1: tb.y + 84, x2: lx + 54, y2: tb.y + 84, stroke: PAL.red, sw: 3, dash: [3, 8], cap: 'round' });
-    P.push({ t: 'text', x: lx + 70, y: tb.y + 90, s: 'AYRI TUT', size: 15, weight: 600, fam: 'b', fill: PAL.ink, ls: 1.5 });
-
-    // istatistik
-    const sx = xs[2] + 20, ex = xs[3] - 20;
-    [['MEKAN', String(info.count)], ['TOPLAM', fmt(info.total) + ' m²'], ['TARİH', info.date]].forEach((r, i) => {
-      const y = tb.y + 34 + i * 28;
-      P.push({ t: 'text', x: sx, y: y, s: r[0], size: 12, weight: 500, fam: 'm', fill: PAL.ink, ls: 1.5, opacity: 0.7 });
-      P.push({ t: 'text', x: ex, y: y, s: r[1], size: i === 2 ? 16 : 20, weight: 700, fam: i === 2 ? 'm' : 'd', fill: PAL.ink, anchor: 'end' });
-    });
-
-    // skor bloğu
-    const pc = info.percent;
-    const bg = pc == null ? PAL.paperDark : pc >= 70 ? PAL.green : pc >= 40 ? PAL.yellow : PAL.red;
-    const fg = pc == null ? PAL.ink : pc >= 70 ? PAL.paper : pc >= 40 ? PAL.ink : PAL.paper;
-    P.push({ t: 'rect', x: xs[3], y: tb.y, w: tb.x + tb.w - xs[3], h: tb.h, fill: bg });
-    P.push({ t: 'text', x: xs[3] + 20, y: tb.y + 30, s: 'VERİMLİLİK', size: 13, weight: 500, fam: 'm', fill: fg, ls: 2 });
-    P.push({ t: 'text', x: xs[3] + 20, y: tb.y + 88, s: pc == null ? '—' : '%' + pc, size: 58, weight: 700, fam: 'd', fill: fg });
-    // üst/alt çerçeve çizgisi kapanışı
-    P.push({ t: 'rect', x: tb.x, y: tb.y, w: tb.w, h: tb.h, stroke: PAL.ink, sw: 4 });
-    return P;
+  /* İşlev şeması künyesi: ortak, ölçümlü pafta çerçevesi (App.sheet.frame) kullanılır */
+  function frameInfo(info, glass) {
+    const ink = PAL.ink;
+    const legend = glass ? [
+      { label: 'Güçlü ilişki', line: { stroke: ink, sw: 6, cap: 'round' } },
+      { label: 'Zayıf ilişki', line: { stroke: ink, sw: 2.5, dash: [9, 8], cap: 'round', opacity: 0.7 } },
+      { label: 'Ayrı tut', line: { stroke: ink, sw: 3.5, dash: [0.5, 9], cap: 'round' } }
+    ] : [
+      { label: 'Güçlü ilişki', line: { stroke: ink, sw: 10, inner: { stroke: PAL.paper, sw: 3 } } },
+      { label: 'Zayıf ilişki', line: { stroke: ink, sw: 3, dash: [11, 8] } },
+      { label: 'Ayrı tut', line: { stroke: PAL.red, sw: 3, dash: [3, 8], cap: 'round' } }
+    ];
+    return {
+      name: info.name, subtitle: info.typeLabel + ' · ' + info.variantLabel, legend: legend,
+      stats: [['Mekân', String(info.count)], ['Toplam', fmt(info.total) + ' m²'], ['Tarih', info.date]],
+      scoreLabel: 'Verimlilik', percent: info.percent
+    };
   }
+  function staticBauhaus(info) { return App.sheet.frame(frameInfo(info, false), false); }
 
   function relBauhaus(a, b, type, ra, rb) {
     const P = [];
@@ -115,53 +78,7 @@
 
 
   /* ---------------- GLASS (minimal, tek renksiz) ---------------- */
-  function staticGlass(info, opts) {
-    const P = [];
-    const W = geo.W, H = geo.H, F = geo.FRAME, tb = geo.titleBlock;
-    const ink = PAL.ink;
-    const live = !!(opts && opts.live);
-    if (!live) P.push({ t: 'rect', x: 0, y: 0, w: W, h: H, fill: '#E9EAEE' });
-    // kabartmalı levha: koyu gölge + açık vurgu
-    const sheet = live ? 'rgba(249,250,252,.9)' : '#F6F7F9';
-    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, rx: 40, fill: sheet, shadow: { dx: 10, dy: 14, blur: 30, color: 'rgba(46,52,68,.22)', css: 'var(--sheet-lo, rgba(46,52,68,.22))' } });
-    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, rx: 40, fill: sheet, shadow: { dx: -8, dy: -8, blur: 20, color: 'rgba(255,255,255,.9)', css: 'var(--sheet-hi, rgba(255,255,255,.9))' } });
-    // nokta ızgara
-    for (let x = F + 50; x < W - F; x += 50) for (let y = F + 50; y < tb.y; y += 50) P.push({ t: 'circle', cx: x, cy: y, r: 1.7, fill: ink, opacity: 0.13 });
-    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, rx: 40, stroke: ink, sw: 1.5, opacity: 0.10 });
-    P.push({ t: 'line', x1: tb.x + 30, y1: tb.y, x2: tb.x + tb.w - 30, y2: tb.y, stroke: ink, sw: 1.5, opacity: 0.14 });
-
-    let name = String(info.name || 'Adsız proje');
-    const fs = name.length > 26 ? 18 : name.length > 20 ? 22 : 27;
-    const maxCh = Math.floor(540 / (fs * 0.82));
-    if (name.length > maxCh) name = name.slice(0, maxCh - 1) + '…';
-    const x0 = tb.x + 36;
-    P.push({ t: 'text', x: x0, y: tb.y + 56, s: name, size: fs, weight: 400, fam: 'd', fill: ink });
-    P.push({ t: 'text', x: x0, y: tb.y + 84, s: info.typeLabel + ' · ' + info.variantLabel, size: 15, weight: 600, fam: 'b', fill: ink, opacity: 0.5 });
-
-    // gösterge
-    const lx = 650;
-    P.push({ t: 'line', x1: lx, y1: tb.y + 34, x2: lx + 48, y2: tb.y + 34, stroke: ink, sw: 6, cap: 'round' });
-    P.push({ t: 'text', x: lx + 64, y: tb.y + 39, s: 'Güçlü ilişki', size: 14, weight: 600, fam: 'b', fill: ink, opacity: 0.8 });
-    P.push({ t: 'line', x1: lx, y1: tb.y + 58, x2: lx + 48, y2: tb.y + 58, stroke: ink, sw: 2.5, dash: [9, 8], cap: 'round', opacity: 0.7 });
-    P.push({ t: 'text', x: lx + 64, y: tb.y + 63, s: 'Zayıf ilişki', size: 14, weight: 600, fam: 'b', fill: ink, opacity: 0.8 });
-    P.push({ t: 'line', x1: lx, y1: tb.y + 82, x2: lx + 48, y2: tb.y + 82, stroke: ink, sw: 3.5, dash: [0.5, 9], cap: 'round' });
-    P.push({ t: 'text', x: lx + 64, y: tb.y + 87, s: 'Ayrı tut', size: 14, weight: 600, fam: 'b', fill: ink, opacity: 0.8 });
-
-    // istatistik
-    const sx = 905, ex = 1105;
-    [['Mekân', String(info.count)], ['Toplam', fmt(info.total) + ' m²'], ['Tarih', info.date]].forEach((r, i) => {
-      const y = tb.y + 40 + i * 25;
-      P.push({ t: 'text', x: sx, y: y, s: r[0], size: 13, weight: 500, fam: 'b', fill: ink, opacity: 0.5 });
-      P.push({ t: 'text', x: ex, y: y, s: r[1], size: 15, weight: 700, fam: 'b', fill: ink, anchor: 'end' });
-    });
-
-    // skor
-    const pc = info.percent;
-    const rx = tb.x + tb.w - 36;
-    P.push({ t: 'text', x: rx, y: tb.y + 36, s: 'Verimlilik', size: 13, weight: 600, fam: 'b', fill: ink, opacity: 0.5, anchor: 'end' });
-    P.push({ t: 'text', x: rx, y: tb.y + 84, s: pc == null ? '—' : '%' + pc, size: 50, weight: 300, fam: 'd', fill: ink, anchor: 'end' });
-    return P;
-  }
+  function staticGlass(info, opts) { return App.sheet.frame(frameInfo(info, true), !!(opts && opts.live)); }
 
   function relGlass(a, b, type, ra, rb) {
     const P = [];

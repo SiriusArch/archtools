@@ -92,3 +92,70 @@
 .wc-ico { border-radius: 50%; background: var(--inset-bg); box-shadow: var(--press-sm); }
 .wc-opt.on .wc-ico { background: var(--ink); color: var(--on-ink); box-shadow: none; }
 
+
+/* ==========================================================================
+   Yerleşim dengesi: üst bar tek satır, kadran şeridi ince, çalışma alanı (pafta) geniş
+   ========================================================================== */
+.gh { gap: 8px 14px; padding: 7px 10px 7px 20px; border-radius: 34px; }
+.gh .gb { width: 38px; height: 38px; }
+.gh .gseg button { height: 30px; padding: 0 13px; }
+.gh .gpill, .gh .gcolor { height: 40px; }
+.gh .gpill { padding: 0 16px; }
+.gh .ginput { height: 38px; }
+.gh .mnav { padding: 3px; }
+.gh .mnav-i { height: 34px; padding: 0 14px 0 12px; }
+.gh-actions { gap: 8px; }
+.gh-brand { flex: none; }
+@media (min-width: 1280px) {
+  .gh, .gh-actions { flex-wrap: nowrap; }
+  .gh-name { flex: 1 1 130px; min-width: 100px; max-width: 250px; }
+}
+@media (max-width: 1699px) and (min-width: 1024px) {
+  .gh .mnav-i:not(.on) { padding: 0 11px; }
+  .gh-title { display: none; }
+}
+@media (max-width: 1479px) and (min-width: 1024px) {
+  .gcolor { padding: 0 14px 0 12px; }
+  .gcolor > span:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+@media (min-width: 1024px) {
+  .gdial { flex: 1 1 340px; flex-wrap: nowrap; gap: 4px 16px; padding: 8px 14px 8px 8px; border-radius: 36px; }
+  .gdial-face { width: 62px; height: 62px; }
+  .gdial-face svg { width: 56px; height: 56px; }
+  .gdial-info { flex: 1 1 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px 14px; }
+  .gdial-num { font-size: 28px; }
+  .gdial-msg { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  .gchips { grid-column: 1 / -1; flex-wrap: nowrap; gap: 0 14px; overflow: hidden; white-space: nowrap; font-size: 12px; }
+  .gissues { flex: none; height: 36px; }
+  .gdial-info { min-width: 0; }
+  .gstrip > * { min-width: 0; }
+}
+.gstrip { gap: 10px; }
+.gdock { padding: 5px; gap: 6px; }
+.gdock .gpill { height: 38px; padding: 0 16px; }
+.gdock .gb { width: 38px; height: 38px; }
+.empty-card { width: min(380px, 78%); padding: 20px 22px; border-radius: 28px; }
+
+@media (min-width: 1024px) {
+  .app { padding: 12px 16px 12px; gap: 12px; }
+  .main { grid-template-columns: clamp(300px, 22vw, 366px) minmax(0, 1fr) auto; gap: 14px; padding-bottom: 0; }
+  .board-wrap { gap: 10px; }
+  .side-body { padding: 14px 14px 16px; gap: 16px; }
+}
+@media (max-width: 1699px) and (min-width: 1024px) {
+  .gissues { padding: 0 8px; }
+  .gissues:not(.has) { padding: 0 10px; }
+  .gissues > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+
+.tabs .tab { padding: 0 8px; gap: 5px; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 1024px) {
+  .main { grid-template-columns: clamp(320px, 22vw, 366px) minmax(0, 1fr) auto; }
+  .tabs { margin: 12px 12px 0; }
+  .tabs .tab { padding: 0 6px; font-size: 12.5px; }
+}
+.gdock { max-width: 100%; flex-wrap: wrap; }
+@media (min-width: 1024px) { .gdock { border-radius: 30px; } }
+@media (max-width: 1279px) and (min-width: 1024px) { .tabs .tab { padding: 0 4px; font-size: 12px; gap: 4px; } }
+@media (max-width: 640px) { .tb-seg { max-width: 100%; overflow-x: auto; } .sgm { max-width: 100%; overflow-x: auto; scrollbar-width: none; } }

@@ -29,12 +29,13 @@
         ui.btn('Kaydet', { icon: 'save', onclick: ctl.saveJSON, title: 'Projeyi bilgisayara JSON olarak indir', labelCls: 'lbl-hide' }),
         ui.btn('Yükle', { icon: 'open', onclick: ctl.pickFile, title: 'Kaydedilmiş JSON projesini yükle', labelCls: 'lbl-hide' }),
         h('span', { class: 'sep', 'aria-hidden': 'true' }),
-        ui.btn('PNG', { icon: 'image', onclick: ctl.exportPNG, title: 'Saf şemayı PNG resmi olarak indir', cls: 'btn-blue', disabled: !!state.ui.busy }),
-        ui.btn('PDF', { icon: 'pdf', onclick: ctl.exportPDF, title: 'Saf şemayı A3 PDF olarak indir', cls: 'btn-blue', disabled: !!state.ui.busy }),
+        ui.btn('PNG', { icon: 'image', onclick: ctl.exportPNG, title: 'Saf şemayı PNG resmi olarak indir', cls: 'btn-blue', labelCls: 'lbl-hide', disabled: !!state.ui.busy }),
+        ui.btn('PDF', { icon: 'pdf', onclick: ctl.exportPDF, title: 'Saf şemayı A3 PDF olarak indir', cls: 'btn-blue', labelCls: 'lbl-hide', disabled: !!state.ui.busy }),
         ui.btn('Rapor', { icon: 'layers', onclick: () => ctl.exportReport(), title: 'Tüm modüllerden çok sayfalı proje raporu (PDF)', cls: 'btn-yellow', disabled: !!state.ui.busy }),
         h('span', { class: 'sep', 'aria-hidden': 'true' }),
-        state.ui.module === 'islev' ? ui.btn('Akıllı öneri', { icon: 'spark', onclick: ctl.toggleAssistant, cls: 'btn-yellow', pressed: state.ui.assistantOpen, badge: issues ? String(issues) : null, badgePulse: !state.ui.assistantOpen, title: 'Akıllı öneri panelini aç / kapat' }) : null,
+        state.ui.module === 'islev' ? ui.btn('Akıllı öneri', { icon: 'spark', onclick: ctl.toggleAssistant, cls: 'btn-yellow', labelCls: 'lbl-hide', pressed: state.ui.assistantOpen, badge: issues ? String(issues) : null, badgePulse: !state.ui.assistantOpen, title: 'Akıllı öneri panelini aç / kapat' }) : null,
         state.ui.module === 'islev' ? h('span', { class: 'sep', 'aria-hidden': 'true' }) : null,
+        ui.btn(state.ui.boardWide ? 'Sığdır' : 'Geniş pafta', { icon: state.ui.boardWide ? 'shrink' : 'expand', onclick: ctl.toggleBoardWide, pressed: !!state.ui.boardWide, title: state.ui.boardWide ? 'Paftayı pencereye sığdır' : 'Paftayı tam genişlikte göster (kaydırılır)', labelCls: 'lbl-hide' }),
         ui.helpBtn ? ui.btn('Rehber', { icon: 'help', onclick: ui.helpBtn, title: 'Başlangıç sorularını yeniden aç', labelCls: 'lbl-hide' }) : null,
         ui.themeToggle(state)),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
@@ -58,7 +59,7 @@
       h('ul', { class: 'chips', 'aria-label': 'Skor ayrıntısı' },
         (o.chips || []).map((c) => h('li', { class: 'chip', key: c.label }, h('i', { class: 'swatch sw-' + (c.cls || 'plain') }), c.label + ' ', h('b', {}, c.value), c.tail ? ' ' + c.tail : '')),
         o.warn ? h('li', { class: 'chip chip-warn' }, o.warn) : null),
-      h('button', { type: 'button', class: 'issues-btn' + (issues ? ' has-issues' : ''), onclick: o.onIssues },
+      h('button', { type: 'button', class: 'issues-btn' + (issues ? ' has-issues' : ''), onclick: o.onIssues, title: issues ? (o.issuesText || 'uyarı · önerileri gör') : (o.okText || 'kritik sorun yok') },
         issues ? h('b', { class: 'issues-n' }, String(issues)) : ui.icon('check', 16),
         h('span', {}, ' ' + (issues ? (o.issuesText || 'uyarı · önerileri gör') : (o.okText || 'kritik sorun yok')))));
   };

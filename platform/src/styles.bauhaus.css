@@ -95,3 +95,63 @@
 .wc-opt:hover .wc-ico { background: var(--blue); color: var(--on-blue); }
 .wc-t b { font: 700 13px var(--f-display); letter-spacing: .06em; text-transform: uppercase; }
 
+
+/* ==========================================================================
+   Yerleşim dengesi: üst bar tek satır, skor şeridi ince, çalışma alanı (pafta) geniş
+   ========================================================================== */
+.hdr { align-items: center; gap: 8px 16px; padding: 8px 14px; margin-bottom: 10px; }
+.hdr::after { bottom: -10px; height: 6px; }
+.hdr-title { font-size: 20px; }
+.hdr-sub { margin-top: 2px; font-size: 11px; }
+.hdr-actions { padding-top: 0; gap: 8px; }
+.hdr .btn { padding: 6px 10px; }
+.hdr .mnav-i { padding: 6px 11px; }
+.hdr-name { display: flex; flex-direction: column; justify-content: center; }
+@media (min-width: 1280px) {
+  .hdr, .hdr-actions { flex-wrap: nowrap; }
+  .hdr-name { flex: 1 1 150px; min-width: 120px; max-width: 300px; }
+  .hdr-brand, .mnav { flex: none; }
+}
+@media (max-width: 2099px) and (min-width: 1024px) {
+  .hdr-sub, .hdr-name .lbl { display: none; }
+  .hdr-name .inp { padding: 6px 10px; }
+}
+@media (max-width: 1599px) and (min-width: 1024px) {
+  .hdr-title { display: none; }
+  .hdr .mnav-i:not(.on) { padding: 6px 9px; }
+}
+@media (max-width: 1479px) and (min-width: 1024px) {
+  .btn-theme > span:last-child { display: none; }
+}
+
+.scorebar { grid-template-columns: auto minmax(160px, 1fr) auto auto; gap: 8px 16px; margin: 6px 16px 10px; padding: 6px 10px; box-shadow: 4px 4px 0 var(--shadow); }
+.score-main { flex-direction: row; align-items: center; gap: 12px; min-width: 0; padding: 3px 12px; }
+.score-main .lbl { font-size: 10.5px; max-width: 110px; line-height: 1.15; }
+.score-num { font-size: 28px; }
+.meter { height: 16px; }
+.meter-msg { margin: 3px 0 0; font-size: 12.5px; line-height: 1.25; }
+.chips { gap: 4px 6px; }
+.chip { padding: 2px 8px; font-size: 12px; }
+.issues-btn { padding: 6px 10px; font-size: 12px; }
+.tab { padding: 10px 4px; font-size: 12px; letter-spacing: .04em; min-width: 0; white-space: nowrap; }
+.tabs-sm .tab { padding: 8px 4px; }
+@media (min-width: 1024px) {
+  .app { padding-bottom: 12px; }
+  .main { grid-template-columns: clamp(300px, 22vw, 366px) minmax(0, 1fr) auto; gap: 14px; }
+  .board-wrap { gap: 8px; }
+  .board-bar { gap: 8px; }
+}
+@media (max-width: 2099px) and (min-width: 1024px) {
+  .hdr-actions .lbl-hide, .board-bar .lbl-hide { display: none; }
+  .board-bar .btn { padding: 6px 10px; font-size: 12px; }
+  .issues-btn > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+.tabs .tab { flex: 1 1 auto; gap: 5px; padding: 10px 6px; letter-spacing: .02em; }
+.tab-n { min-width: 18px; padding: 0 5px; font-size: 11px; }
+@media (max-width: 1399px) and (min-width: 1024px) {
+  .hdr .sep { display: none; }
+  .hdr-actions { gap: 6px; }
+}
+.tabs .tab { overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 1024px) { .main { grid-template-columns: clamp(320px, 22vw, 366px) minmax(0, 1fr) auto; } }
+@media (max-width: 640px) { .tb-seg { max-width: 100%; overflow-x: auto; } .sgm { max-width: 100%; overflow-x: auto; scrollbar-width: none; } }

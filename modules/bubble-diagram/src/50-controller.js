@@ -18,6 +18,8 @@
     toastTimer = setTimeout(() => ctl.dispatch({ type: 'CLEAR_TOAST' }), 3600);
   };
 
+  // Pafta boyutu: Sığdır (görünür alana) ↔ Geniş (tam genişlik, kaydırılır); tercih tarayıcıda saklanır
+  ctl.toggleBoardWide = () => { const v = !get().ui.boardWide; try { window.localStorage.setItem('archtools.boardwide', v ? '1' : '0'); } catch (e) {} ctl.dispatch({ type: 'UI', patch: { boardWide: v } }); };
   ctl.toggleAssistant = () => ctl.dispatch({ type: 'UI', patch: { assistantOpen: !get().ui.assistantOpen } });
   ctl.openAnalysis = () => ctl.dispatch({ type: 'UI', patch: { assistantOpen: true, asTab: 'analysis' } });
 

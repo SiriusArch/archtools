@@ -66,6 +66,7 @@
         state.ui.module === 'islev' ? h('button', { type: 'button', class: 'gpill' + (state.ui.assistantOpen ? ' on' : ''), onclick: ctl.toggleAssistant, 'aria-pressed': String(!!state.ui.assistantOpen), title: 'Akıllı öneri panelini aç / kapat' },
           ui.icon('spark', 16), h('span', {}, 'Akıllı öneri'),
           issues ? h('span', { class: 'badge' + (state.ui.assistantOpen ? '' : ' pulse-badge') }, String(issues)) : null) : null),
+      gbtn(state.ui.boardWide ? 'shrink' : 'expand', state.ui.boardWide ? 'Paftayı sığdır' : 'Paftayı genişlet', { onclick: App.ctl.toggleBoardWide, pressed: !!state.ui.boardWide, title: state.ui.boardWide ? 'Paftayı pencereye sığdır' : 'Paftayı tam genişlikte göster (kaydırılır)' }),
       ui.helpBtn ? gbtn('help', 'Başlangıç rehberi', { onclick: ui.helpBtn, title: 'Başlangıç sorularını yeniden aç' }) : null,
       ui.themeToggle(state),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
@@ -100,7 +101,7 @@
         h('div', { class: 'gdial-num' }, pc == null ? '—' : '%' + pc),
         h('p', { class: 'gdial-msg' }, o.msg),
         h('ul', { class: 'gchips', 'aria-label': 'Skor ayrıntısı' }, (o.chips || []).map(chip), o.warn ? h('li', { class: 'gchip gchip-warn' }, o.warn) : null)),
-      h('button', { type: 'button', class: 'gissues' + (issues ? ' has' : ''), onclick: o.onIssues },
+      h('button', { type: 'button', class: 'gissues' + (issues ? ' has' : ''), onclick: o.onIssues, title: issues ? (o.issuesText || 'uyarı ve öneriler') : (o.okText || 'kritik sorun yok') },
         issues ? h('b', {}, String(issues)) : ui.icon('check', 15),
         h('span', {}, issues ? (o.issuesText || 'uyarı ve öneriler') : (o.okText || 'kritik sorun yok'))));
   };

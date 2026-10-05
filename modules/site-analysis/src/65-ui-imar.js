@@ -57,8 +57,8 @@
     const area = s.parcel ? Math.abs(gis.area(s.parcel)) : 0;
     out.push(ui.section('Parsel', h('div', { class: 'sec-box' },
       h('div', { class: 'tool-row', role: 'group', 'aria-label': 'Parsel çizim araçları' },
-        ui.btn('Çokgen çiz', { icon: 'draw', cls: v.tool === 'draw' ? 'btn-primary' : '', pressed: v.tool === 'draw', onclick: () => c.imarTool(v.tool === 'draw' ? null : 'draw'), title: 'Köşelere tıklayın; ilk noktaya tıklayın ya da çift tıklayın' }),
-        ui.btn('Dikdörtgen', { icon: 'parcel', cls: v.tool === 'rect' ? 'btn-primary' : '', pressed: v.tool === 'rect', onclick: () => c.imarTool(v.tool === 'rect' ? null : 'rect'), title: 'Paftada köşeden köşeye sürükleyin' }),
+        ui.btn('Çokgen çiz', { icon: 'poly', cls: v.tool === 'draw' ? 'btn-primary' : '', pressed: v.tool === 'draw', onclick: () => c.imarTool(v.tool === 'draw' ? null : 'draw'), title: 'Köşelere tıklayın; ilk noktaya tıklayın ya da çift tıklayın' }),
+        ui.btn('Dikdörtgen', { icon: 'rect', cls: v.tool === 'rect' ? 'btn-primary' : '', pressed: v.tool === 'rect', onclick: () => c.imarTool(v.tool === 'rect' ? null : 'rect'), title: 'Paftada köşeden köşeye sürükleyin' }),
         s.parcel ? ui.btn('Sil', { icon: 'trash', onclick: () => c.imarClear(), title: 'Parseli kaldır' }) : null),
       v.tool === 'draw' ? h('p', { class: 'note' }, 'Paftada köşelere tıklayın. Bitirmek için ilk noktaya tıklayın, çift tıklayın ya da Enter’a basın. Geri almak için Backspace, vazgeçmek için Esc.') : null,
       v.tool === 'rect' ? h('p', { class: 'note' }, 'Paftada bir köşeden karşı köşeye sürükleyin. Döndürmek için aşağıdaki açı alanını kullanın.') : null,
@@ -303,8 +303,8 @@
     let overlay = null;
     if (!s.parcel && !tool) {
       overlay = ui.emptyCard('Parseli çizin', 'İmar ve kapasite hesabı için parsel gerekir. Paftada çizebilir ya da ölçülerini yazabilirsiniz; TAKS, KAKS, çekmeler ve yençok kütleyi otomatik oluşturur.', [
-        ui.btn('Çokgen çiz', { icon: 'draw', cls: 'btn-primary', onclick: () => c.imarTool('draw') }),
-        ui.btn('Dikdörtgen çiz', { icon: 'parcel', onclick: () => c.imarTool('rect') }),
+        ui.btn('Çokgen çiz', { icon: 'poly', cls: 'btn-primary', onclick: () => c.imarTool('draw') }),
+        ui.btn('Dikdörtgen çiz', { icon: 'rect', onclick: () => c.imarTool('rect') }),
         ui.btn('20 × 30 m parsel koy', { icon: 'plus', onclick: () => c.imarParcelRect(20, 30, 0) })], 'at-map');
     }
     const stage = h('div', { class: 'board-stage' + (tool ? ' tooling' : '') }, svg, overlay,
@@ -321,8 +321,8 @@
       scale: s.parcel ? 'Parsel ' + fmt(Math.abs(gis.area(s.parcel)), 0) + ' m² · ' + (cx.A && cx.A.demo ? 'demo veri' : cx.e ? S.sourceName(cx.e) : 'çevre verisi yok') : 'Parsel bekleniyor',
       foot: h('p', { class: 'board-hint' }, hint),
       tools: [
-        { k: 'btn', label: 'Çokgen', icon: 'draw', onclick: () => c.imarTool(tool === 'draw' ? null : 'draw'), pressed: tool === 'draw', strong: tool === 'draw', title: 'Parsel çiz (çokgen)' },
-        { k: 'btn', label: 'Dikdörtgen', icon: 'parcel', onclick: () => c.imarTool(tool === 'rect' ? null : 'rect'), pressed: tool === 'rect', strong: tool === 'rect', title: 'Parsel çiz (dikdörtgen)' },
+        { k: 'btn', label: 'Çokgen', icon: 'poly', onclick: () => c.imarTool(tool === 'draw' ? null : 'draw'), pressed: tool === 'draw', strong: tool === 'draw', title: 'Parsel çiz (çokgen)' },
+        { k: 'btn', label: 'Dikdörtgen', icon: 'rect', onclick: () => c.imarTool(tool === 'rect' ? null : 'rect'), pressed: tool === 'rect', strong: tool === 'rect', title: 'Parsel çiz (dikdörtgen)' },
         { k: 'sep' },
         s.parcel ? { k: 'seg', label: 'Görünüm kipi', value: mode, options: [{ v: 'plan', label: 'Plan' }, { v: 'iso', label: 'Kütle' }], onchange: (m) => c.imarView({ mode: m }) } : null,
         { k: 'btn', label: 'Gölge', icon: 'sun', onclick: () => c.imarView({ shadow: !v.shadow }), pressed: !!v.shadow, title: 'Gölgeyi göster / gizle' },

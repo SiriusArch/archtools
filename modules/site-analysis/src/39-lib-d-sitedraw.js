@@ -407,6 +407,7 @@
     const L = gis.niceLen(target);
     const px = L * s;
     const P = [];
+    P.push({ t: 'rect', x: x - 16, y: y - 22, w: px + 48, h: 34, rx: C.glass ? 10 : 0, fill: C.paper || '#fff', opacity: 0.82 });
     P.push({ t: 'rect', x: x, y: y, w: px / 2, h: 6, fill: C.ink, stroke: C.ink, sw: 1 });
     P.push({ t: 'rect', x: x + px / 2, y: y, w: px / 2, h: 6, fill: C.disc, stroke: C.ink, sw: 1 });
     P.push({ t: 'text', x: x, y: y - 5, s: '0', size: 11, weight: 700, fam: 'b', fill: C.ink, anchor: 'middle', pe: false });

@@ -164,18 +164,29 @@
       add([{ t: 'line', x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: C.accent, sw: ed.kind === 'on' ? 4.5 : 2.6, dash: ed.kind === 'arka' ? [7, 4] : undefined, cap: 'round' }]);
       const nx = ed.dir[1], ny = -ed.dir[0];
       const m = F.P(ed.mid[0], ed.mid[1]);
-      const off = 20;
       const txt = (ed.kind === 'on' ? 'Ön' : ed.kind === 'arka' ? 'Arka' : 'Yan') + ' ' + fmt(ed.len, 1) + ' m';
+      const tw = App.sheet.tw(txt, 11.5, 700, 'b', 0);
+      const off = 8 + Math.abs(nx) * tw / 2 + Math.abs(ny) * 7;
       add([{ t: 'text', x: m[0] + nx * off, y: m[1] - ny * off + 4, s: txt, size: 11.5, weight: 700, fam: 'b', fill: C.ink, anchor: 'middle', pe: false }]);
     });
     // otopark rampı
     if (alt.basement && alt.basement.ramp && alt.basement.ramp.poly) add([{ t: 'path', d: ringD(F, alt.basement.ramp.poly), stroke: C.accent2, sw: 1.4, dash: [4, 3] }]);
-    // etiket
+    // etiket: rampa (kesikli dikdörtgen) üstüne gelmeyecek biçimde yerleştir
     const big = R.pieces.reduce((m, p) => (Math.abs(gis().area(p)) > Math.abs(gis().area(m)) ? p : m), R.pieces[0]);
     const bc = F.P.apply(null, gis().centroid(big));
+    const t2 = fmt(alt.height, 1) + ' m · ' + alt.unitTotals.total + ' daire';
+    const lw = Math.max(App.sheet.tw(alt.floors + ' kat', 16, 800, 'b', 0), App.sheet.tw(t2, 11.5, 600, 'b', 0));
+    let rb = null;
+    if (alt.basement && alt.basement.ramp && alt.basement.ramp.poly) {
+      const pts = alt.basement.ramp.poly.map((q) => F.P(q[0], q[1]));
+      rb = { x0: Math.min.apply(null, pts.map((q) => q[0])) - 4, x1: Math.max.apply(null, pts.map((q) => q[0])) + 4, y0: Math.min.apply(null, pts.map((q) => q[1])) - 4, y1: Math.max.apply(null, pts.map((q) => q[1])) + 4 };
+    }
+    const hitsRamp = (cy) => rb && bc[0] + lw / 2 > rb.x0 && bc[0] - lw / 2 < rb.x1 && cy + 20 > rb.y0 && cy - 20 < rb.y1;
+    let ly = bc[1];
+    [0, -44, 44, -88, 88].some((d) => { if (!hitsRamp(bc[1] + d)) { ly = bc[1] + d; return true; } return false; });
     add([
-      { t: 'text', x: bc[0], y: bc[1] - 2, s: alt.floors + ' kat', size: 16, weight: 800, fam: 'b', fill: C.glass ? '#fff' : C.ink, anchor: 'middle', pe: false },
-      { t: 'text', x: bc[0], y: bc[1] + 15, s: fmt(alt.height, 1) + ' m · ' + alt.unitTotals.total + ' daire', size: 11.5, weight: 600, fam: 'b', fill: C.glass ? '#fff' : C.ink, anchor: 'middle', pe: false, opacity: 0.85 },
+      { t: 'text', x: bc[0], y: ly - 2, s: alt.floors + ' kat', size: 16, weight: 800, fam: 'b', fill: C.glass ? '#fff' : C.ink, anchor: 'middle', pe: false },
+      { t: 'text', x: bc[0], y: ly + 15, s: t2, size: 11.5, weight: 600, fam: 'b', fill: C.glass ? '#fff' : C.ink, anchor: 'middle', pe: false, opacity: 0.85 },
     ]);
     add(D.north(86, 92, C, 20));
     add(D.scaleBar(70, tb.y - 28, F.s, C, 110 / F.s));

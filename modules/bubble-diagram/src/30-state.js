@@ -85,10 +85,12 @@
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
         site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
-        busy: null, hintDismissed: false, style: App.theme.name,
+        busy: null, hintDismissed: false, style: App.theme.name, boardWide: readWide(),
       },
     };
   }
+
+  function readWide() { try { return window.localStorage.getItem('archtools.boardwide') === '1'; } catch (e) { return false; } }
 
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
