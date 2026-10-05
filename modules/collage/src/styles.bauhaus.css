@@ -1,0 +1,4 @@
+/* Modül 11 — Bauhaus teması */
+.btn-tool.on, .btn-tool[aria-pressed="true"] { background: var(--blue); color: #fff; box-shadow: 4px 4px 0 var(--shadow); }
+.fig-tile { background: var(--ink); }
+.img-btn { box-shadow: inset 0 0 0 3px var(--ink); }

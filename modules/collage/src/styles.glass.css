@@ -1,0 +1,5 @@
+/* Modül 11 — cam teması */
+.kswatch { border-radius: 50%; }
+.img-btn, .fig-tile { border-radius: 12px; }
+.img-del { border-radius: 50%; }
+.btn-tool.on, .btn-tool[aria-pressed="true"] { box-shadow: var(--press-sm); }

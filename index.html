@@ -335,6 +335,43 @@ body.kbd .board-svg-arsa:focus-visible, body.kbd .board-svg-imar:focus-visible, 
 .pkind-bld.pk-mevcut { background: var(--ink-3, #8C9199); }
 .pkind-text { background: transparent; box-shadow: inset 0 -2px 0 var(--ink); }
 
+/* Modül 11 — Kolaj Oluşturucu: iki temada ortak yerleşim */
+.board-svg-kolaj { touch-action: none; cursor: default; }
+.board-svg-kolaj.tool-free, .board-svg-kolaj.tool-line, .board-svg-kolaj.tool-arrow, .board-svg-kolaj.tool-poly, .board-svg-kolaj.tool-text { cursor: crosshair; }
+.khit { cursor: move; pointer-events: all; outline: none; }
+.khit.locked { cursor: default; }
+.khit:hover { fill: rgba(23, 24, 27, .05); }
+.khandle { fill: #fff; stroke: #17181B; stroke-width: 2; pointer-events: all; }
+.kvtx { fill: #fff; stroke: #17181B; stroke-width: 2.2; cursor: grab; pointer-events: all; }
+.kvtx:hover { fill: #17181B; }
+.kswatches { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+.kswatch { width: 26px; height: 26px; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 1.5px rgba(23, 24, 27, .35); }
+.kswatch.on { box-shadow: inset 0 0 0 2px #fff, 0 0 0 2.5px var(--ink); }
+.kswatch-in { width: 30px; height: 26px; padding: 0; border: 0; background: none; cursor: pointer; }
+.imgs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.img-tile { position: relative; aspect-ratio: 4 / 3; }
+.img-btn { display: block; width: 100%; height: 100%; padding: 0; border: 0; cursor: pointer; overflow: hidden; background: #ccc; box-shadow: inset 0 0 0 1.5px var(--ink-3, #888); }
+.img-btn img { width: 100%; height: 100%; object-fit: cover; display: block; filter: grayscale(1); }
+.img-del { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; display: grid; place-items: center; border: 0; padding: 0; cursor: pointer; background: rgba(255, 255, 255, .9); color: #17181B; }
+.figs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+.fig-tile { display: grid; place-items: center; aspect-ratio: 1; padding: 0; border: 0; cursor: pointer; background: #2A2B30; }
+.fig-tile:hover { background: #17181B; }
+.krow { display: flex; align-items: center; }
+.krow .row-main { flex: 1 1 auto; min-width: 0; }
+.krow.off { opacity: .45; }
+.krow-act { display: inline-flex; flex: none; padding-right: 2px; }
+.krow-act .icon-btn { width: 26px; height: 26px; }
+.krow-act .icon-btn:nth-child(2) svg { transform: rotate(-90deg); }
+.krow-act .icon-btn:nth-child(3) svg { transform: rotate(90deg); }
+.kkind { flex: none; width: 14px; height: 14px; display: inline-block; background: var(--ink); }
+.kkind-photo { background: var(--ink-3, #8C9199); }
+.kkind-shape { background: #D93A1F; }
+.kkind-fig { border-radius: 50%; width: 10px; height: 10px; margin: 2px; }
+.kkind-line { height: 3px; margin: 5px 0; }
+.kkind-text { background: transparent; box-shadow: inset 0 -2px 0 var(--ink); }
+.lock-tag { font-weight: 500; color: var(--ink-2); }
+.kstage .pl-chip .mono { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+
 /* archtools kabuğu — iki temada ortak: açılış (intro) yapısı, modül geçişi, gezgin düzeni */
 
 /* ---------- açılış ---------- */
@@ -847,6 +884,10 @@ html[data-style="glass"] .ustep-n { border-radius: 50%; }
 html[data-style="glass"] .ustep-desc { border-radius: 14px; }
 html[data-style="glass"] .ptool[aria-pressed="true"] { box-shadow: var(--press-sm); }
 html[data-style="glass"] .pl-chip { border-radius: 99px; background: var(--glass-2, #fff); border: 1px solid var(--stroke); box-shadow: var(--raise-sm); }
+html[data-style="glass"] .kswatch { border-radius: 50%; }
+html[data-style="glass"] .img-btn, html[data-style="glass"] .fig-tile { border-radius: 12px; }
+html[data-style="glass"] .img-del { border-radius: 50%; }
+html[data-style="glass"] .btn-tool.on, html[data-style="glass"] .btn-tool[aria-pressed="true"] { box-shadow: var(--press-sm); }
 html[data-style="glass"] .intro { background-color: var(--bg); background-image: radial-gradient(70% 55% at 10% 6%, var(--bg-2), transparent 62%), radial-gradient(55% 50% at 94% 92%, var(--bg-3), transparent 70%); color: var(--ink); }
 html[data-style="glass"] .intro-glow { background: radial-gradient(closest-side, var(--hi), transparent 72%); }
 html[data-style="glass"] .intro-disc { border-radius: 50%; background: var(--glass-2); border: 1px solid var(--stroke); box-shadow: var(--raise); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
@@ -1429,6 +1470,9 @@ html[data-style="bauhaus"] .ukind-void { box-shadow: inset 0 0 0 2px var(--ink);
 html[data-style="bauhaus"] .ptool[aria-pressed="true"] { background: var(--blue); color: #fff; box-shadow: 4px 4px 0 var(--shadow); }
 html[data-style="bauhaus"] .phit:hover { fill: rgba(38, 29, 17, .09); }
 html[data-style="bauhaus"] .pl-chip { border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--shadow); text-transform: uppercase; letter-spacing: .05em; }
+html[data-style="bauhaus"] .btn-tool.on, html[data-style="bauhaus"] .btn-tool[aria-pressed="true"] { background: var(--blue); color: #fff; box-shadow: 4px 4px 0 var(--shadow); }
+html[data-style="bauhaus"] .fig-tile { background: var(--ink); }
+html[data-style="bauhaus"] .img-btn { box-shadow: inset 0 0 0 3px var(--ink); }
 html[data-style="bauhaus"] .intro { background-color: var(--bg); background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px); background-size: 20px 20px; color: var(--ink); }
 html[data-style="bauhaus"] .intro::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 16px; border-top: 4px solid var(--line); background: linear-gradient(90deg, var(--blue) 0 33.33%, var(--yellow) 33.33% 66.66%, var(--red) 66.66%); transform: scaleY(0); transform-origin: bottom; }
 html[data-style="bauhaus"] .run.intro::before { animation: ib-rise .6s 2.6s cubic-bezier(.2, .9, .3, 1) forwards; }
@@ -1529,11 +1573,15 @@ html[data-style="bauhaus"] .hdr-brand, html[data-style="bauhaus"] .mnav { flex: 
 html[data-style="bauhaus"] .hdr-sub, html[data-style="bauhaus"] .hdr-name .lbl { display: none; }
 html[data-style="bauhaus"] .hdr-name .inp { padding: 6px 10px; }
 }
-@media (max-width: 1599px) and (min-width: 1024px) {
+@media (max-width: 1799px) and (min-width: 1024px) {
 html[data-style="bauhaus"] .hdr-title { display: none; }
 html[data-style="bauhaus"] .hdr .mnav-i:not(.on) { padding: 6px 9px; }
 }
-@media (max-width: 1479px) and (min-width: 1024px) {
+@media (max-width: 1399px) and (min-width: 1024px) {
+html[data-style="bauhaus"] .hdr .mnav-i.on .mnav-l { display: none; }
+html[data-style="bauhaus"] .hdr-name { flex: 0 1 120px; min-width: 90px; }
+}
+@media (max-width: 1699px) and (min-width: 1024px) {
 html[data-style="bauhaus"] .btn-theme > span:last-child { display: none; }
 }
 html[data-style="bauhaus"] .scorebar { grid-template-columns: auto minmax(160px, 1fr) auto auto; gap: 8px 16px; margin: 6px 16px 10px; padding: 6px 10px; box-shadow: 4px 4px 0 var(--shadow); }
@@ -3245,7 +3293,15 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   function primToV(p, extra) {
     const a = Object.assign({}, extra || {});
     if (p.opacity != null) a.opacity = p.opacity;
+    if (p.blend) a.style = { mixBlendMode: p.blend };
     switch (p.t) {
+      case 'img': {
+        // görüntü: p.href (data URL), x, y, w, h; p.clip (isteğe bağlı, dikdörtgen) ile kırpılır
+        const im = h('image', Object.assign(a, { x: p.x, y: p.y, width: p.w, height: p.h, href: p.href, preserveAspectRatio: 'none', 'pointer-events': 'none' }));
+        if (!p.clip) return im;
+        const cid = 'clip-' + p.clip.id;
+        return h('g', {}, h('clipPath', { id: cid }, h('rect', { x: p.clip.x, y: p.clip.y, width: p.clip.w, height: p.clip.h })), h('g', { 'clip-path': 'url(#' + cid + ')' }, im));
+      }
       case 'g': {
         // kırpmalı grup: p.clip = { id, x, y, w, h } (dikdörtgen) ya da { id, pts } (çokgen); p.items = primitifler
         const cid = 'clip-' + (p.clip.id || 'g');
@@ -3257,12 +3313,12 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         if (p.rx) a.rx = p.rx;
         if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; a['stroke-linejoin'] = p.rx ? 'round' : 'miter'; }
         if (p.dash) a['stroke-dasharray'] = p.dash.join(' ');
-        if (p.shadow) a.style = { filter: shadowCss(p.shadow) };
+        if (p.shadow) a.style = Object.assign(a.style || {}, { filter: shadowCss(p.shadow) });
         return h('rect', a);
       case 'circle':
         Object.assign(a, { cx: p.cx, cy: p.cy, r: p.r, fill: p.fill || 'none' });
         if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; }
-        if (p.shadow) a.style = { filter: shadowCss(p.shadow) };
+        if (p.shadow) a.style = Object.assign(a.style || {}, { filter: shadowCss(p.shadow) });
         return h('circle', a);
       case 'line':
         Object.assign(a, { x1: p.x1, y1: p.y1, x2: p.x2, y2: p.y2, stroke: p.stroke, 'stroke-width': p.sw, 'stroke-linecap': p.cap || 'butt' });
@@ -3308,9 +3364,18 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     }
     ctx.save();
     if (p.opacity != null) ctx.globalAlpha = p.opacity;
+    if (p.blend) ctx.globalCompositeOperation = p.blend;
     ctx.setLineDash(p.dash || []);
     ctx.lineCap = p.cap || 'butt';
     switch (p.t) {
+      case 'img': {
+        const im = App.board.imgCache && App.board.imgCache[p.ik || p.href];
+        if (im && im.complete && im.naturalWidth) {
+          if (p.clip) { ctx.beginPath(); ctx.rect(p.clip.x, p.clip.y, p.clip.w, p.clip.h); ctx.clip(); }
+          ctx.drawImage(im, p.x, p.y, p.w, p.h);
+        }
+        break;
+      }
       case 'rect':
         applyShadow(ctx, p.shadow);
         if (p.rx) {
@@ -3394,7 +3459,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 
   App.board = {
     staticPrims: staticPrims, relLinePrims: relLinePrims, bubblePrims: bubblePrims, infoOf: infoOf,
-    allPrims: allPrims, primToV: primToV, paintPrim: paintPrim, toCanvas: toCanvas, primsToCanvas: primsToCanvas, shadowCss: shadowCss,
+    imgCache: {}, allPrims: allPrims, primToV: primToV, paintPrim: paintPrim, toCanvas: toCanvas, primsToCanvas: primsToCanvas, shadowCss: shadowCss,
   };
 })();
 
@@ -5284,7 +5349,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   function persist(project) {
     try {
       const k = geo.scale(project.spaces);
-      window.localStorage.setItem(STORE_KEY, JSON.stringify(App.files.toJSON(project, k, null, null)));
+      App.autosaving = true; // görseller (büyük) otomatik kayda yazılmaz; IndexedDB'de saklanır
+      try { window.localStorage.setItem(STORE_KEY, JSON.stringify(App.files.toJSON(project, k, null, null))); } finally { App.autosaving = false; }
     } catch (e) { /* depolama yoksa sessizce atla */ }
   }
   function clearSaved() { try { window.localStorage.removeItem(STORE_KEY); } catch (e) {} }
@@ -5299,6 +5365,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (App.cost && !project.fiz) project = Object.assign({}, project, { fiz: App.cost.defaults() });
     if (App.unit && !project.unit) project = Object.assign({}, project, { unit: App.unit.init(project) });
     if (App.plan && !project.plan) project = Object.assign({}, project, { plan: App.plan.defaults() });
+    if (App.collage && !project.collage) project = Object.assign({}, project, { collage: App.collage.defaults() });
     return {
       project: project,
       past: [], future: [],
@@ -5307,7 +5374,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       ui: {
         module: 'islev', tab: 'spaces', assistantOpen: false, asTab: 'analysis', messages: [], toast: null, highlight: null,
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
-        site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, unit: App.unitDefaults ? App.unitDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, geo: { busy: null, msg: '', err: null },
+        site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, unit: App.unitDefaults ? App.unitDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
         busy: null, hintDismissed: false, style: App.theme.name, boardWide: readWide(),
       },
@@ -5319,7 +5386,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
   // geri al/ileri al: kat etüdü (study), arsa / imar (site) ve aday konumlar (cand) da projeyle birlikte geri alınır
-  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, unit: project.unit, plan: project.plan }; }
+  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, unit: project.unit, plan: project.plan, collage: project.collage }; }
   function withHistory(state, project) {
     const meta = project.meta.example ? Object.assign({}, project.meta, { example: false }) : project.meta;
     return Object.assign({}, state, {
@@ -13610,6 +13677,425 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
+   38-lib-collage.js — Modül 11 · Kolaj Oluşturucu: veri modeli, figür kitaplığı, görsel deposu
+   Kolaj; siyah-beyaz fotoğraf, tek vurgu renkli kütleler, beyaz siluetler, elle çizilmiş çizgiler ve etiketlerden oluşur.
+   Veri project.collage içinde durur (görseller değil, yalnızca görsel kimlikleri); görseller App.collage.imgs ve IndexedDB'dedir.
+   Model:
+     project.collage = { v, title, size: 'a3l|a3p|sq|wide', bg: 'white|paper|grey|ink|accent', accent: '#hex', layers: [layer] }
+     layer = { id, t, name, hidden, locked, ... }
+       photo { src, x, y, w, h, zoom, ox, oy, bw, con, bri, op, mask: 'rect|ellipse|arch', flip }
+       shape { kind: 'rect|ellipse|tri|arch|poly', x, y, w, h, rot, col, op, blend: 'normal|multiply', np?: [[0..1, 0..1]] }
+       fig   { kind, x, y, w, rot, flip, col, op }                     (yükseklik w × kitaplık oranı)
+       line  { kind: 'free|line|arrow', pts: [[x, y]], col, w, dash: 0|1|2, op, hand }
+       text  { s, x, y, size, col, bg: 'none|white|ink|col', fam, caps, rot, weight }
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const C = (App.collage = {});
+
+  const num = (v, d) => (isFinite(Number(v)) && v !== '' && v !== null ? Number(v) : d);
+  const uid = () => 'k' + Math.random().toString(36).slice(2, 8);
+  const r1 = (v) => Math.round(v * 10) / 10;
+  const r2 = (v) => Math.round(v * 100) / 100;
+
+  C.SIZES = {
+    a3l: { w: 1400, h: 990, label: 'A3 yatay' },
+    a3p: { w: 990, h: 1400, label: 'A3 dikey' },
+    sq: { w: 1200, h: 1200, label: 'Kare' },
+    wide: { w: 1600, h: 900, label: '16:9' },
+  };
+  C.BGS = { white: '#FFFFFF', paper: '#EFECE4', grey: '#D5D6D8', ink: '#17181B' };
+  C.SWATCHES = [
+    { v: '#D93A1F', label: 'Kırmızı' }, { v: '#F26B1D', label: 'Turuncu' }, { v: '#F2B705', label: 'Sarı' }, { v: '#2F8F4E', label: 'Yeşil' },
+    { v: '#1F4FD8', label: 'Mavi' }, { v: '#4B3FA0', label: 'Çivit' }, { v: '#E58FB0', label: 'Pembe' }, { v: '#17181B', label: 'Siyah' }, { v: '#FFFFFF', label: 'Beyaz' },
+  ];
+  C.FONT_OPTS = [{ v: 'm', label: 'Mono' }, { v: 'b', label: 'Gövde' }, { v: 'd', label: 'Başlık' }];
+  C.hex = (v, d) => (/^#[0-9a-fA-F]{6}$/.test(String(v || '')) ? String(v).toUpperCase() : d);
+  C.sizeOf = (c) => C.SIZES[c.size] || C.SIZES.a3l;
+  C.bgColor = (c) => (c.bg === 'accent' ? c.accent : C.BGS[c.bg] || '#FFFFFF');
+
+  /* ---------- geometri ---------- */
+  C.rot = function (px, py, cx, cy, deg) {
+    if (!deg) return [px, py];
+    const a = (deg * Math.PI) / 180, co = Math.cos(a), si = Math.sin(a);
+    const dx = px - cx, dy = py - cy;
+    return [cx + dx * co - dy * si, cy + dx * si + dy * co];
+  };
+  C.boxPts = (x, y, w, h, deg) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]].map((q) => C.rot(q[0], q[1], x + w / 2, y + h / 2, deg));
+  function ellipsePts(x, y, w, h, n) {
+    const o = [];
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; o.push([x + w / 2 + Math.cos(a) * w / 2, y + h / 2 + Math.sin(a) * h / 2]); }
+    return o;
+  }
+  function archPts(x, y, w, h) {
+    const o = [];
+    const r = w / 2, cy = y + Math.min(r, h);
+    for (let i = 0; i <= 40; i++) { const a = Math.PI + (i / 40) * Math.PI; o.push([x + w / 2 + Math.cos(a) * r, cy + Math.sin(a) * Math.min(r, h)]); }
+    o.push([x + w, y + h], [x, y + h]);
+    return o;
+  }
+  /* kutuya göre çokgen (döndürmesiz); np: serbest çokgen (0..1 normalleştirilmiş) */
+  C.shapePts = function (kind, x, y, w, h, np) {
+    if (kind === 'ellipse') return ellipsePts(x, y, w, h, Math.max(32, Math.min(120, Math.round((w + h) / 8))));
+    if (kind === 'tri') return [[x + w / 2, y], [x + w, y + h], [x, y + h]];
+    if (kind === 'arch') return archPts(x, y, w, h);
+    if (kind === 'poly' && np && np.length >= 3) return np.map((q) => [x + q[0] * w, y + q[1] * h]);
+    return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+  };
+  C.maskPts = function (mask, x, y, w, h) { return mask === 'ellipse' || mask === 'arch' ? C.shapePts(mask, x, y, w, h) : null; };
+
+  /* serbest çizgi: nokta seyrelt + Catmull-Rom → kübik Bezier */
+  C.simplify = function (pts, tol) {
+    if (pts.length < 3) return pts.slice();
+    const out = [pts[0]];
+    let last = pts[0];
+    for (let i = 1; i < pts.length - 1; i++) { if (Math.hypot(pts[i][0] - last[0], pts[i][1] - last[1]) >= tol) { out.push(pts[i]); last = pts[i]; } }
+    out.push(pts[pts.length - 1]);
+    return out;
+  };
+  C.smoothPath = function (pts) {
+    if (pts.length < 2) return '';
+    if (pts.length === 2) return 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1) + ' L' + pts[1][0].toFixed(1) + ' ' + pts[1][1].toFixed(1);
+    let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+      const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+      const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+      d += ' C' + c1[0].toFixed(1) + ' ' + c1[1].toFixed(1) + ' ' + c2[0].toFixed(1) + ' ' + c2[1].toFixed(1) + ' ' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1);
+    }
+    return d;
+  };
+  function rng(seed) {
+    let a = (seed >>> 0) + 0x6d2b79f5;
+    return function () { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  C.rng = rng;
+  const hashId = (id) => { let h = 7; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0; return h; };
+  /* elle çizilmiş düz çizgi: hafif eğri + uçlarda taşma; okta kol çizgileri */
+  C.handLine = function (a, b, hand, id) {
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
+    if (!hand) return 'M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' L' + b[0].toFixed(1) + ' ' + b[1].toFixed(1);
+    const R = rng(hashId(id || 'x'));
+    const ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
+    const ov = Math.min(5, L * 0.03);
+    const s = [a[0] - ux * ov * R(), a[1] - uy * ov * R()], e = [b[0] + ux * ov * R(), b[1] + uy * ov * R()];
+    const k = Math.min(7, L * 0.025);
+    const m1 = [s[0] + dx * 0.33 + nx * (R() - 0.5) * 2 * k, s[1] + dy * 0.33 + ny * (R() - 0.5) * 2 * k];
+    const m2 = [s[0] + dx * 0.66 + nx * (R() - 0.5) * 2 * k, s[1] + dy * 0.66 + ny * (R() - 0.5) * 2 * k];
+    return 'M' + s[0].toFixed(1) + ' ' + s[1].toFixed(1) + ' C' + m1[0].toFixed(1) + ' ' + m1[1].toFixed(1) + ' ' + m2[0].toFixed(1) + ' ' + m2[1].toFixed(1) + ' ' + e[0].toFixed(1) + ' ' + e[1].toFixed(1);
+  };
+
+  /* ---------- figür kitaplığı (beyaz siluetler) ---------- */
+  function blob(cx, cy, rx, ry, seed, n, jit) {
+    const R = rng(seed);
+    const pts = [];
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; const k = 1 - (jit || 0.12) * R(); pts.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]); }
+    let d = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+    for (let i = 0; i < n; i++) {
+      const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+      d += ' C' + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + ' ' + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1) + ' ' + (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + ' ' + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1) + ' ' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1);
+    }
+    return d + ' Z';
+  }
+  const head = (cx, cy, r) => 'M' + cx + ' ' + (cy - r) + ' C' + (cx + r * 0.55) + ' ' + (cy - r) + ' ' + (cx + r) + ' ' + (cy - r * 0.55) + ' ' + (cx + r) + ' ' + cy + ' C' + (cx + r) + ' ' + (cy + r * 0.55) + ' ' + (cx + r * 0.55) + ' ' + (cy + r) + ' ' + cx + ' ' + (cy + r) + ' C' + (cx - r * 0.55) + ' ' + (cy + r) + ' ' + (cx - r) + ' ' + (cy + r * 0.55) + ' ' + (cx - r) + ' ' + cy + ' C' + (cx - r) + ' ' + (cy - r * 0.55) + ' ' + (cx - r * 0.55) + ' ' + (cy - r) + ' ' + cx + ' ' + (cy - r) + ' Z';
+  /* yol metnini ötele (yalnızca mutlak M L C Z) */
+  function shift(d, dx, dy) {
+    let k = 0;
+    return d.replace(/-?\d*\.?\d+/g, (m) => { const v = parseFloat(m) + (k % 2 === 0 ? dx : dy); k++; return String(Math.round(v * 100) / 100); });
+  }
+  const P_STAND = head(20, 9, 7.5) + ' M12 20 C14 18 17 18 20 18 C23 18 26 18 28 20 C31 22 32 26 32 31 L33 52 C33 54 31 54 31 52 L30 37 L29 37 L29 56 L28.5 98 C28.5 99.5 24.5 99.5 24.5 98 L21 62 L19 62 L15.5 98 C15.5 99.5 11.5 99.5 11.5 98 L11 56 L11 37 L10 37 L9 52 C9 54 7 54 7 52 L8 31 C8 26 9 22 12 20 Z';
+  const P_WALK = head(23, 9, 7.5) + ' M15 20 C17 18 20 18 23 18 C26 18 29 18.5 31 20.5 C34 23 35 27 35 32 L38 50 C38.3 52 36 52.6 35.5 50.8 L32 38 L31 38 L31.5 54 L40 97 C40.4 99 36.4 99.8 35.8 98 L26 66 L22 64 L15 97 C14.6 99 10.6 99.5 10.2 97.6 L16 62 L14.5 54 L14.5 38 L13.5 38 L10 52 C9.5 54 7.2 53.5 7.5 51.5 L10.5 32 C10.5 27 11.5 23 15 20 Z';
+  const P_DRESS = head(20, 9, 7.2) + ' M13 20 C15 18 17.5 18 20 18 C22.5 18 25 18 27 20 C29.5 22 30 25 29.5 30 L31.5 46 C32 48 29.8 48.4 29.4 46.6 L27.5 34 L27 40 L34 70 L6 70 L13 40 L12.5 34 L10.6 46.6 C10.2 48.4 8 48 8.5 46 L10.5 30 C10 25 10.5 22 13 20 Z M15 70 L18.6 70 L18 97.5 C18 99 14.6 99 14.7 97.5 Z M21.4 70 L25 70 L25.3 97.5 C25.4 99 22 99 22 97.5 Z';
+  const P_CHILD = head(15, 8, 6.4) + ' M9.5 16.5 C11 15 13 14.8 15 14.8 C17 14.8 19 15 20.5 16.5 C22.5 18 23 21 22.6 25 L23.4 38 C23.5 39.4 21.8 39.4 21.7 38 L21 28 L20 28 L20 44 L19.6 60 C19.6 61.4 16.4 61.4 16.4 60 L15 46 L15 46 L13.6 60 C13.6 61.4 10.4 61.4 10.4 60 L10 44 L10 28 L9 28 L8.3 38 C8.2 39.4 6.5 39.4 6.6 38 L7.4 25 C7 21 7.5 18 9.5 16.5 Z';
+  const P_ARMSUP = head(24, 9, 7.5) + ' M14 22 L8 4 C7.5 2.6 9.6 2 10.1 3.3 L17 17 C19 16.5 21.5 16.5 24 16.5 C26.5 16.5 29 16.5 31 17 L37.9 3.3 C38.4 2 40.5 2.6 40 4 L34 22 C35.5 24 36 27 36 31 L36 52 C36 54 32 54 32 52 L31.5 40 L31 40 L31 56 L30 98 C30 99.6 25.6 99.6 25.6 98 L24.4 64 L23.6 64 L22.4 98 C22.4 99.6 18 99.6 18 98 L17 56 L17 40 L16.5 40 L16 52 C16 54 12 54 12 52 L12 31 C12 27 12.5 24 14 22 Z';
+  const crown = (cx, cy, rx, ry, seed) => blob(cx, cy, rx, ry, seed, 9, 0.16);
+  C.FIGS = {
+    p1: { label: 'Ayakta', vw: 40, vh: 100, d: P_STAND },
+    p2: { label: 'Yürüyen', vw: 46, vh: 100, d: P_WALK },
+    p3: { label: 'Elbiseli', vw: 40, vh: 100, d: P_DRESS },
+    p4: { label: 'Çocuk', vw: 30, vh: 62, d: P_CHILD },
+    p5: { label: 'Kollar yukarı', vw: 48, vh: 100, d: P_ARMSUP },
+    grp: { label: 'Grup', vw: 128, vh: 100, d: P_STAND + ' ' + shift(P_WALK, 36, 0) + ' ' + shift(P_DRESS, 84, 0) },
+    t1: { label: 'Ağaç', vw: 100, vh: 132, d: crown(50, 46, 46, 44, 11) + ' M46 86 L54 86 L55.5 132 L44.5 132 Z' },
+    t2: { label: 'Çam', vw: 70, vh: 134, d: 'M35 2 L57 38 L47 38 L63 68 L52 68 L68 98 L2 98 L18 68 L7 68 L23 38 L13 38 Z M31 98 L39 98 L39 134 L31 134 Z' },
+    t3: { label: 'İnce ağaç', vw: 64, vh: 130, d: crown(32, 32, 28, 30, 5) + ' M30.4 60 L33.6 60 L34 130 L30 130 Z' },
+    bush: { label: 'Çalı', vw: 110, vh: 52, d: crown(36, 30, 34, 22, 21) + ' ' + crown(72, 28, 36, 24, 22) },
+    bird: { label: 'Kuş', vw: 100, vh: 36, d: 'M0 22 C14 4 34 4 50 26 C66 4 86 4 100 22 C86 14 66 18 50 36 C34 18 14 14 0 22 Z' },
+    flock: { label: 'Kuş sürüsü', vw: 150, vh: 80, d: 'M0 22 C14 4 34 4 50 26 C66 4 86 4 100 22 C86 14 66 18 50 36 C34 18 14 14 0 22 Z ' + shift('M0 22 C14 4 34 4 50 26 C66 4 86 4 100 22 C86 14 66 18 50 36 C34 18 14 14 0 22 Z'.replace(/-?\d*\.?\d+/g, (m) => String(Math.round(parseFloat(m) * 0.5 * 100) / 100)), 92, 8) + ' ' + shift('M0 22 C14 4 34 4 50 26 C66 4 86 4 100 22 C86 14 66 18 50 36 C34 18 14 14 0 22 Z'.replace(/-?\d*\.?\d+/g, (m) => String(Math.round(parseFloat(m) * 0.38 * 100) / 100)), 40, 50) },
+    sun: { label: 'Güneş', vw: 100, vh: 100, d: head(50, 50, 50) },
+    sky: { label: 'Silüet', vw: 300, vh: 90, d: 'M0 90 L0 52 L18 52 L18 30 L40 30 L40 60 L58 60 L58 14 L84 14 L84 46 L104 46 L104 70 L124 70 L124 24 L132 24 L132 4 L146 4 L146 24 L154 24 L154 66 L178 66 L178 38 L204 38 L204 56 L222 56 L222 20 L248 20 L248 48 L268 48 L268 64 L300 64 L300 90 Z' },
+  };
+  C.FIG_ORDER = ['p1', 'p2', 'p3', 'p4', 'p5', 'grp', 't1', 't2', 't3', 'bush', 'bird', 'flock', 'sun', 'sky'];
+  C.figAr = (k) => { const f = C.FIGS[k] || C.FIGS.p1; return f.vh / f.vw; };
+  /* silüet yolu: kutuya ölçekle, çevir, döndür */
+  C.figPath = function (l) {
+    const f = C.FIGS[l.kind] || C.FIGS.p1;
+    const s = l.w / f.vw, h = l.w * (f.vh / f.vw);
+    const cx = l.x + l.w / 2, cy = l.y + h / 2;
+    let k = 0, px = 0;
+    return f.d.replace(/-?\d*\.?\d+/g, (m) => {
+      const v = parseFloat(m);
+      if (k++ % 2 === 0) { px = v; return '\u0000'; }
+      let X = l.x + (l.flip ? f.vw - px : px) * s, Y = l.y + v * s;
+      if (l.rot) { const q = C.rot(X, Y, cx, cy, l.rot); X = q[0]; Y = q[1]; }
+      return X.toFixed(1) + ' ' + Y.toFixed(1);
+    }).replace(/\u0000 ?/g, '');
+  };
+
+  /* ---------- katman fabrikaları ---------- */
+  const base = (t) => ({ id: uid(), t: t, name: '', hidden: false, locked: false });
+  C.make = {
+    photo: (src, x, y, w, h, o) => Object.assign(base('photo'), { src: src, x: x, y: y, w: w, h: h, zoom: 1, ox: 0.5, oy: 0.5, bw: true, con: 1.15, bri: 0, op: 1, mask: 'rect', flip: false }, o || {}),
+    shape: (kind, x, y, w, h, col, o) => Object.assign(base('shape'), { kind: kind, x: x, y: y, w: w, h: h, rot: 0, col: col || '#D93A1F', op: 0.92, blend: 'normal' }, o || {}),
+    fig: (kind, x, y, w, o) => Object.assign(base('fig'), { kind: kind, x: x, y: y, w: w, rot: 0, flip: false, col: '#FFFFFF', op: 1 }, o || {}),
+    line: (kind, pts, o) => Object.assign(base('line'), { kind: kind, pts: pts, col: '#17181B', w: 3, dash: 0, op: 1, hand: true }, o || {}),
+    text: (s, x, y, o) => Object.assign(base('text'), { s: s, x: x, y: y, size: 26, col: '#17181B', bg: 'none', fam: 'm', caps: true, rot: 0, weight: 700 }, o || {}),
+  };
+  C.LAYER_LABEL = { photo: 'Fotoğraf', shape: 'Şekil', fig: 'Figür', line: 'Çizgi', text: 'Yazı' };
+  C.layerName = function (l) {
+    if (l.name) return l.name;
+    if (l.t === 'fig') return (C.FIGS[l.kind] || {}).label || 'Figür';
+    if (l.t === 'text') return l.s.length > 22 ? l.s.slice(0, 21) + '…' : l.s;
+    if (l.t === 'shape') return { rect: 'Dikdörtgen', ellipse: 'Elips', tri: 'Üçgen', arch: 'Kemer', poly: 'Çokgen' }[l.kind] || 'Şekil';
+    if (l.t === 'line') return { free: 'Elle çizim', line: 'Çizgi', arrow: 'Ok' }[l.kind] || 'Çizgi';
+    const im = C.imgs[l.src];
+    return im && im.name ? im.name.slice(0, 22) : 'Fotoğraf';
+  };
+
+  /* ---------- temizleme ---------- */
+  const clampBox = (o) => ({ x: r1(U.clamp(num(o.x, 0), -4000, 6000)), y: r1(U.clamp(num(o.y, 0), -4000, 6000)), w: r1(U.clamp(num(o.w, 100), 8, 6000)), h: r1(U.clamp(num(o.h, 100), 8, 6000)) });
+  C.clean = function (l, patch) {
+    const o = Object.assign({}, l, patch || {});
+    const b = { id: o.id, t: o.t, name: String(o.name || '').slice(0, 40), hidden: !!o.hidden, locked: !!o.locked };
+    const op = (v, d) => r2(U.clamp(num(v, d), 0.05, 1));
+    if (o.t === 'photo') {
+      return Object.assign(b, clampBox(o), { src: String(o.src || ''), zoom: r2(U.clamp(num(o.zoom, 1), 1, 5)), ox: r2(U.clamp(num(o.ox, 0.5), 0, 1)), oy: r2(U.clamp(num(o.oy, 0.5), 0, 1)), bw: o.bw !== false, con: r2(U.clamp(num(o.con, 1.15), 0.5, 2.2)), bri: r2(U.clamp(num(o.bri, 0), -0.4, 0.4)), op: op(o.op, 1), mask: ['rect', 'ellipse', 'arch'].indexOf(o.mask) >= 0 ? o.mask : 'rect', flip: !!o.flip });
+    }
+    if (o.t === 'shape') {
+      const kind = ['rect', 'ellipse', 'tri', 'arch', 'poly'].indexOf(o.kind) >= 0 ? o.kind : 'rect';
+      const r = Object.assign(b, clampBox(o), { kind: kind, rot: r1(num(o.rot, 0) % 360), col: C.hex(o.col, '#D93A1F'), op: op(o.op, 0.92), blend: o.blend === 'multiply' ? 'multiply' : 'normal' });
+      if (kind === 'poly') { r.np = (Array.isArray(o.np) ? o.np : []).slice(0, 200).map((q) => [r2(num(q && q[0], 0)), r2(num(q && q[1], 0))]); if (r.np.length < 3) r.kind = 'rect'; }
+      return r;
+    }
+    if (o.t === 'fig') {
+      if (!C.FIGS[o.kind]) return null;
+      return Object.assign(b, { kind: o.kind, x: r1(U.clamp(num(o.x, 0), -4000, 6000)), y: r1(U.clamp(num(o.y, 0), -4000, 6000)), w: r1(U.clamp(num(o.w, 100), 6, 4000)), rot: r1(num(o.rot, 0) % 360), flip: !!o.flip, col: C.hex(o.col, '#FFFFFF'), op: op(o.op, 1) });
+    }
+    if (o.t === 'line') {
+      const pts = (Array.isArray(o.pts) ? o.pts : []).slice(0, 1200).map((q) => [r1(U.clamp(num(q && q[0], 0), -4000, 6000)), r1(U.clamp(num(q && q[1], 0), -4000, 6000))]);
+      if (pts.length < 2) return null;
+      const kind = ['free', 'line', 'arrow'].indexOf(o.kind) >= 0 ? o.kind : 'free';
+      return Object.assign(b, { kind: kind, pts: kind === 'free' ? pts : [pts[0], pts[pts.length - 1]], col: C.hex(o.col, '#17181B'), w: r1(U.clamp(num(o.w, 3), 1, 24)), dash: [0, 1, 2].indexOf(o.dash) >= 0 ? o.dash : 0, op: op(o.op, 1), hand: o.hand !== false });
+    }
+    if (o.t === 'text') {
+      return Object.assign(b, { s: String(o.s == null ? '' : o.s).slice(0, 120) || 'Etiket', x: r1(U.clamp(num(o.x, 0), -4000, 6000)), y: r1(U.clamp(num(o.y, 0), -4000, 6000)), size: Math.round(U.clamp(num(o.size, 26), 8, 220)), col: C.hex(o.col, '#17181B'), bg: ['none', 'white', 'ink', 'col'].indexOf(o.bg) >= 0 ? o.bg : 'none', fam: ['d', 'b', 'm'].indexOf(o.fam) >= 0 ? o.fam : 'm', caps: !!o.caps, rot: r1(num(o.rot, 0) % 360), weight: num(o.weight, 700) >= 600 ? 700 : 500 });
+    }
+    return null;
+  };
+  C.defaults = function () { return { v: 1, title: '', size: 'a3l', bg: 'white', accent: '#D93A1F', layers: [] }; };
+  C.cleanDoc = function (p) {
+    const d = C.defaults();
+    const o = Object.assign({}, d, p || {});
+    o.title = String(o.title || '').slice(0, 60);
+    o.size = C.SIZES[o.size] ? o.size : 'a3l';
+    o.bg = ['white', 'paper', 'grey', 'ink', 'accent'].indexOf(o.bg) >= 0 ? o.bg : 'white';
+    o.accent = C.hex(o.accent, '#D93A1F');
+    o.layers = (Array.isArray(o.layers) ? o.layers : []).slice(0, 300).map((l) => C.clean(l)).filter(Boolean);
+    return o;
+  };
+  /* kutu merkezi (döndürme ekseni) ve sınır kutusu */
+  C.boxOf = function (l, doc) {
+    if (l.t === 'fig') return { x: l.x, y: l.y, w: l.w, h: l.w * C.figAr(l.kind) };
+    if (l.t === 'text') { const m = C.textMetrics(l); return { x: l.x, y: l.y, w: m.w, h: m.h }; }
+    if (l.t === 'line') { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; l.pts.forEach((q) => { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }); return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }; }
+    void doc;
+    return { x: l.x, y: l.y, w: l.w, h: l.h };
+  };
+  C.textMetrics = function (l) {
+    const s = l.caps ? l.s.toUpperCase() : l.s;
+    const ls = l.caps ? Math.round(l.size * 0.06 * 10) / 10 : 0;
+    const tw = App.sheet.tw(s, l.size, l.weight, l.fam, ls);
+    const padX = l.bg === 'none' ? 0 : Math.round(l.size * 0.45), padY = l.bg === 'none' ? 0 : Math.round(l.size * 0.28);
+    return { s: s, ls: ls, tw: tw, padX: padX, padY: padY, w: tw + padX * 2, h: l.size * 1.2 + padY * 2 };
+  };
+
+  /* ---------- görsel deposu (bellek + IndexedDB) ---------- */
+  C.imgs = {};
+  C.version = 0;
+  C.onChange = null;
+  const bump = () => { C.version++; if (C.onChange) C.onChange(); };
+  const idb = {
+    db: null,
+    open: function () {
+      return new Promise((res) => {
+        try {
+          const rq = window.indexedDB.open('archtools-collage', 1);
+          rq.onupgradeneeded = () => { rq.result.createObjectStore('imgs', { keyPath: 'id' }); };
+          rq.onsuccess = () => { idb.db = rq.result; res(idb.db); };
+          rq.onerror = () => res(null);
+        } catch (e) { res(null); }
+      });
+    },
+    put: function (rec) { idb.open().then((db) => { if (!db) return; try { db.transaction('imgs', 'readwrite').objectStore('imgs').put(rec); } catch (e) { /* yok say */ } }); },
+    del: function (id) { idb.open().then((db) => { if (!db) return; try { db.transaction('imgs', 'readwrite').objectStore('imgs').delete(id); } catch (e) { /* yok say */ } }); },
+    all: function () {
+      return idb.open().then((db) => (db ? new Promise((res) => { try { const rq = db.transaction('imgs').objectStore('imgs').getAll(); rq.onsuccess = () => res(rq.result || []); rq.onerror = () => res([]); } catch (e) { res([]); } }) : []));
+    },
+  };
+  function attach(im) {
+    const el = new Image();
+    el.onload = () => { im.el = el; bump(); };
+    el.src = im.src;
+    im.el = el;
+  }
+  C.addImg = function (rec, noSave) {
+    const id = rec.id || 'g' + Math.random().toString(36).slice(2, 8);
+    const im = { id: id, name: String(rec.name || 'Fotoğraf').slice(0, 60), w: rec.w, h: rec.h, src: rec.src };
+    C.imgs[id] = im;
+    attach(im);
+    if (!noSave) idb.put({ id: id, name: im.name, w: im.w, h: im.h, src: im.src });
+    bump();
+    return im;
+  };
+  C.delImg = function (id) { delete C.imgs[id]; idb.del(id); bump(); };
+  C.loadStore = function () { return idb.all().then((rows) => { rows.forEach((r) => { if (!C.imgs[r.id]) C.addImg(r, true); }); }); };
+
+  /* dosyadan oku: en uzun kenar ≤ 1800 px, JPEG */
+  C.readFile = function (file) {
+    return new Promise((res, rej) => {
+      if (!file || !/^image\//.test(file.type)) { rej(new Error('Yalnızca görüntü dosyaları eklenebilir.')); return; }
+      const fr = new FileReader();
+      fr.onerror = () => rej(new Error('Dosya okunamadı.'));
+      fr.onload = () => {
+        const im = new Image();
+        im.onerror = () => rej(new Error('Görüntü çözülemedi: ' + file.name));
+        im.onload = () => {
+          const k = Math.min(1, 1800 / Math.max(im.naturalWidth, im.naturalHeight));
+          const w = Math.max(1, Math.round(im.naturalWidth * k)), h = Math.max(1, Math.round(im.naturalHeight * k));
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          const cx = cv.getContext('2d');
+          cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h);
+          cx.drawImage(im, 0, 0, w, h);
+          res({ name: file.name.replace(/\.[^.]+$/, ''), w: w, h: h, src: cv.toDataURL('image/jpeg', 0.88) });
+        };
+        im.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  };
+
+  /* siyah-beyaz + kontrast + parlaklık (piksel işleme); sonuç önbelleğe alınır */
+  const procCache = new Map();
+  C.processed = function (l) {
+    const im = C.imgs[l.src];
+    if (!im) return null;
+    const key = [l.src, l.bw ? 1 : 0, Math.round(l.con * 100), Math.round(l.bri * 100), l.flip ? 1 : 0].join('|');
+    if (procCache.has(key)) return procCache.get(key);
+    if (!im.el || !im.el.complete || !im.el.naturalWidth) return { href: im.src, ik: 'raw|' + l.src, w: im.w, h: im.h };
+    const cv = document.createElement('canvas');
+    cv.width = im.w; cv.height = im.h;
+    const cx = cv.getContext('2d');
+    if (l.flip) { cx.translate(im.w, 0); cx.scale(-1, 1); }
+    cx.drawImage(im.el, 0, 0, im.w, im.h);
+    const id = cx.getImageData(0, 0, im.w, im.h), d = id.data;
+    const con = l.con, off = l.bri * 255;
+    for (let i = 0; i < d.length; i += 4) {
+      let r = d[i], g = d[i + 1], b = d[i + 2];
+      if (l.bw) { r = g = b = 0.299 * r + 0.587 * g + 0.114 * b; }
+      d[i] = (r - 128) * con + 128 + off; d[i + 1] = (g - 128) * con + 128 + off; d[i + 2] = (b - 128) * con + 128 + off;
+    }
+    cx.putImageData(id, 0, 0);
+    const out = { href: cv.toDataURL('image/jpeg', 0.9), ik: key, w: im.w, h: im.h };
+    procCache.set(key, out);
+    if (procCache.size > 14) procCache.delete(procCache.keys().next().value);
+    return out;
+  };
+  /* dışa aktarma öncesi: görüntü öğelerini canvas'ın okuyacağı önbelleğe yükle */
+  C.preload = function (prims) {
+    const jobs = [];
+    const walk = (list) => list.forEach((p) => {
+      if (p.t === 'g') walk(p.items);
+      else if (p.t === 'img') {
+        const k = p.ik || p.href;
+        if (!App.board.imgCache[k]) jobs.push(new Promise((res) => { const el = new Image(); el.onload = () => res(); el.onerror = () => res(); el.src = p.href; App.board.imgCache[k] = el; }));
+      }
+    });
+    walk(prims);
+    return Promise.all(jobs);
+  };
+
+  /* ---------- örnek fotoğraflar (üretilmiş, siyah-beyaz) ---------- */
+  C.demoPhoto = function (kind, seed) {
+    const W = 1500, H = 1000;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const g = cv.getContext('2d');
+    const R = rng(seed || 7);
+    const sky = g.createLinearGradient(0, 0, 0, H * 0.7);
+    sky.addColorStop(0, '#9a9da2'); sky.addColorStop(1, '#e4e5e7');
+    g.fillStyle = sky; g.fillRect(0, 0, W, H);
+    if (kind === 'cephe') {
+      // uzak siluet
+      g.fillStyle = '#b9bbbf';
+      for (let x = 0; x < W; x += 60 + R() * 60) { const hh = 120 + R() * 260; g.fillRect(x, H * 0.66 - hh, 40 + R() * 70, hh); }
+      // ana hacim: betonarme cephe, kolon-kiriş ızgarası
+      g.fillStyle = '#6f7277'; g.fillRect(180, 60, 1140, H * 0.6);
+      g.fillStyle = '#8c8f94'; g.fillRect(180, 60, 1140, 22);
+      const cols = 9, rows = 5, cw = 1140 / cols, rh = (H * 0.6 - 40) / rows;
+      for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+        const x = 180 + i * cw + 14, y = 100 + j * rh + 8;
+        const v = 30 + R() * 55;
+        g.fillStyle = 'rgb(' + v + ',' + (v + 4) + ',' + (v + 8) + ')'; g.fillRect(x, y, cw - 28, rh - 22);
+        g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x, y, (cw - 28) * 0.3, rh - 22);
+      }
+      g.fillStyle = 'rgba(20,22,26,.28)'; g.beginPath(); g.moveTo(180, 60); g.lineTo(520, 60); g.lineTo(180, H * 0.62); g.closePath(); g.fill();
+    } else if (kind === 'meydan') {
+      g.fillStyle = '#c9cacd'; g.fillRect(0, 0, W, H * 0.55);
+      for (let i = 0; i < 7; i++) { const x = 90 + i * 210; g.fillStyle = i % 2 ? '#5d6065' : '#74777c'; g.fillRect(x, 80, 74, H * 0.62); g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(x + 74, 80, 24, H * 0.62); }
+      g.fillStyle = '#4a4d52'; g.fillRect(40, 60, W - 80, 34);
+    } else {
+      for (let k = 0; k < 9; k++) { const cx = R() * W, cy = 80 + R() * 380; g.fillStyle = 'rgba(255,255,255,' + (0.35 + R() * 0.3) + ')'; g.beginPath(); g.ellipse(cx, cy, 160 + R() * 220, 36 + R() * 50, 0, 0, Math.PI * 2); g.fill(); }
+    }
+    // zemin
+    const gr = g.createLinearGradient(0, H * 0.62, 0, H);
+    gr.addColorStop(0, '#6a6d72'); gr.addColorStop(1, '#2c2e32');
+    g.fillStyle = gr; g.fillRect(0, H * 0.62, W, H * 0.38);
+    g.strokeStyle = 'rgba(255,255,255,.14)'; g.lineWidth = 2;
+    for (let i = -8; i < 20; i++) { g.beginPath(); g.moveTo(W / 2 + i * 40, H * 0.62); g.lineTo(W / 2 + i * 260, H); g.stroke(); }
+    // gren
+    const id = g.getImageData(0, 0, W, H), d = id.data;
+    for (let i = 0; i < d.length; i += 4) { const n = (R() - 0.5) * 26; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+    g.putImageData(id, 0, 0);
+    return { name: { cephe: 'Örnek cephe', meydan: 'Örnek meydan', gok: 'Örnek gökyüzü' }[kind] || 'Örnek', w: W, h: H, src: cv.toDataURL('image/jpeg', 0.85) };
+  };
+
+  /* ---------- örnek kolaj ---------- */
+  C.sample = function () {
+    const ph = C.addImg(C.demoPhoto('cephe', 11));
+    const doc = C.defaults();
+    doc.size = 'a3l'; doc.bg = 'white'; doc.accent = '#D93A1F'; doc.title = 'Kent ve yoğunluk';
+    const W = 1400, H = 990;
+    const L = doc.layers;
+    L.push(C.make.photo(ph.id, 0, 0, W, H, { zoom: 1, con: 1.05, bri: 0.14 }));
+    L.push(C.make.shape('rect', 420, 70, 560, 700, '#D93A1F', { op: 0.94, blend: 'multiply' }));
+    L.push(C.make.shape('ellipse', 1010, 560, 250, 250, '#17181B', { op: 0.9 }));
+    const fx = [[160, 720, 90], [250, 740, 80], [330, 725, 95], [1060, 700, 85], [1150, 715, 92]];
+    const kinds = ['p1', 'p2', 'p3', 'p5', 'p1'];
+    fx.forEach((f, i) => L.push(C.make.fig(kinds[i], f[0], f[1], f[2] * 0.42, { flip: i % 2 === 1 })));
+    L.push(C.make.fig('t1', 60, 560, 160));
+    L.push(C.make.fig('flock', 760, 120, 170));
+    L.push(C.make.line('free', [[120, 330], [190, 300], [270, 330], [350, 290], [440, 320]], { col: '#17181B', w: 4 }));
+    L.push(C.make.line('arrow', [[1040, 180], [1210, 120]], { col: '#17181B', w: 3 }));
+    L.push(C.make.text('Yoğunluk', 1050, 190, { size: 30, bg: 'white', col: '#17181B' }));
+    L.push(C.make.text('Kamusal boşluk', 90, 880, { size: 24, bg: 'ink', col: '#FFFFFF' }));
+    L.push(C.make.text('01 · Kent ölçeği', 1020, 910, { size: 20, bg: 'none', col: '#FFFFFF' }));
+    return C.cleanDoc(doc);
+  };
+})();
+
+/* ==========================================================================
    38-lib-plan.js — Modül 10 · Vaziyet Planı: veri modeli, geometri, ölçüler, örnek vaziyet, içe aktarma
    Veri : project.plan = { v, title, scale, cx, cy, style, snap, grid, shadow, labels, els[] }
    Birim: metre. x doğu (sağ), y güney (aşağı). (cx, cy) pafta penceresinin merkezi.
@@ -15829,6 +16315,97 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       if (peaks.every((p) => Math.hypot(p.x - c.x, p.y - c.y) >= step * 1.6)) peaks.push(c);
     });
     return { cells: cells, peaks: peaks, min: mn, max: mx, R: Rs, step: step, passN: valid.filter((c) => c.pass).length, validN: valid.length, g: g, lat0: d.lat0, lon0: d.lon0, proj: gis.makeProj(d.lat0, d.lon0), t: Date.now() };
+  };
+})();
+
+/* ==========================================================================
+   39-lib-collagescene.js — Modül 11 · kolaj sahnesi
+   Katmanlar alttan üste primitiflere çevrilir; canlı SVG ve PNG / PDF çıktısı aynı listeden çizilir.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const C = App.collage;
+
+  const lum = (hex) => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
+  C.contrast = (hex) => (lum(hex) > 0.6 ? '#17181B' : '#FFFFFF');
+  const dashOf = (l) => (l.dash === 1 ? [l.w * 3.2 + 4, l.w * 2.2 + 3] : l.dash === 2 ? [0.1, l.w * 2.2 + 3] : null);
+
+  function photoPrims(l, out) {
+    const im = C.imgs[l.src];
+    if (!im) { out.push({ t: 'rect', x: l.x, y: l.y, w: l.w, h: l.h, fill: '#C9CACD', opacity: l.op }); return; }
+    const pr = C.processed(l);
+    const s = Math.max(l.w / im.w, l.h / im.h) * l.zoom;
+    const dw = im.w * s, dh = im.h * s;
+    const dx = l.x + (l.w - dw) * l.ox, dy = l.y + (l.h - dh) * l.oy;
+    const mp = C.maskPts(l.mask, l.x, l.y, l.w, l.h);
+    const clip = mp ? { id: 'ph' + l.id, pts: mp } : { id: 'ph' + l.id, x: l.x, y: l.y, w: l.w, h: l.h };
+    out.push({ t: 'g', clip: clip, opacity: l.op, items: [{ t: 'img', href: pr.href, ik: pr.ik, x: dx, y: dy, w: dw, h: dh }] });
+  }
+
+  function shapePrims(l, out) {
+    const common = { fill: l.col, opacity: l.op };
+    if (l.blend === 'multiply') common.blend = 'multiply';
+    if (l.kind === 'rect' && !l.rot) { out.push(Object.assign({ t: 'rect', x: l.x, y: l.y, w: l.w, h: l.h }, common)); return; }
+    const pts = C.shapePts(l.kind, l.x, l.y, l.w, l.h, l.np).map((q) => C.rot(q[0], q[1], l.x + l.w / 2, l.y + l.h / 2, l.rot));
+    out.push(Object.assign({ t: 'poly', pts: pts.map((q) => [Math.round(q[0] * 10) / 10, Math.round(q[1] * 10) / 10]) }, common));
+  }
+
+  function lineArrow(a, b, w, id, hand) {
+    const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    const L = 14 + w * 2.4;
+    const R = C.rng(7 + Math.round(a[0] + a[1]));
+    const wob = (v) => v + (hand ? (R() - 0.5) * 3 : 0);
+    const p1 = [b[0] - Math.cos(ang - 0.42) * L, b[1] - Math.sin(ang - 0.42) * L];
+    const p2 = [b[0] - Math.cos(ang + 0.42) * L, b[1] - Math.sin(ang + 0.42) * L];
+    void id;
+    return 'M' + wob(p1[0]).toFixed(1) + ' ' + wob(p1[1]).toFixed(1) + ' L' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + ' L' + wob(p2[0]).toFixed(1) + ' ' + wob(p2[1]).toFixed(1);
+  }
+  function linePrims(l, out) {
+    const st = { stroke: l.col, sw: l.w, cap: 'round', opacity: l.op };
+    const dash = dashOf(l);
+    if (dash) st.dash = dash;
+    if (l.kind === 'free') { out.push(Object.assign({ t: 'path', d: C.smoothPath(C.simplify(l.pts, 2.5)) }, st)); return; }
+    const a = l.pts[0], b = l.pts[1];
+    out.push(Object.assign({ t: 'path', d: C.handLine(a, b, l.hand, l.id) }, st));
+    if (l.kind === 'arrow') out.push({ t: 'path', d: lineArrow(a, b, l.w, l.id, l.hand), stroke: l.col, sw: l.w, cap: 'round', opacity: l.op });
+  }
+
+  function textPrims(l, out) {
+    const m = C.textMetrics(l);
+    const cx = l.x + m.w / 2, cy = l.y + m.h / 2;
+    const bgCol = l.bg === 'white' ? '#FFFFFF' : l.bg === 'ink' ? '#17181B' : l.bg === 'col' ? l.col : null;
+    const fg = l.bg === 'col' ? C.contrast(l.col) : l.col;
+    if (bgCol) {
+      if (!l.rot) out.push({ t: 'rect', x: l.x, y: l.y, w: m.w, h: m.h, fill: bgCol });
+      else out.push({ t: 'poly', pts: C.boxPts(l.x, l.y, m.w, m.h, l.rot), fill: bgCol });
+    }
+    const o = C.rot(l.x + m.padX, l.y + m.padY + l.size * 0.92, cx, cy, l.rot);
+    const t = { t: 'text', x: o[0], y: o[1], s: m.s, size: l.size, weight: l.weight, fam: l.fam, fill: fg, ls: m.ls, pe: false };
+    if (l.rot) { const a = (l.rot * Math.PI) / 180; t.xf = [Math.cos(a), Math.sin(a), -Math.sin(a), Math.cos(a)]; }
+    out.push(t);
+  }
+
+  C.layerPrims = function (l, out) {
+    if (l.t === 'photo') photoPrims(l, out);
+    else if (l.t === 'shape') shapePrims(l, out);
+    else if (l.t === 'fig') out.push({ t: 'path', d: C.figPath(l), fill: l.col, opacity: l.op });
+    else if (l.t === 'line') linePrims(l, out);
+    else if (l.t === 'text') textPrims(l, out);
+  };
+
+  /* C.scene(doc) → { prims, W, H } */
+  C.scene = function (doc, opts) {
+    void opts;
+    const sz = C.sizeOf(doc);
+    const prims = [{ t: 'rect', x: 0, y: 0, w: sz.w, h: sz.h, fill: C.bgColor(doc) }];
+    doc.layers.forEach((l) => { if (!l.hidden) C.layerPrims(l, prims); });
+    return { prims: prims, W: sz.w, H: sz.h };
+  };
+  /* tek katman (önizleme) */
+  C.figThumbPath = function (kind, w) {
+    const f = C.FIGS[kind];
+    const h = w * (f.vh / f.vw);
+    return { d: C.figPath({ kind: kind, x: 0, y: 0, w: w, rot: 0, flip: false }), h: h };
   };
 })();
 
@@ -18644,6 +19221,134 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
+   39-state-collage.js — Kolaj eylemleri (reducer eklentisi) ve JSON uzantısı
+   Veri project.collage içinde durur; geri al / ileri al, otomatik kayıt ve JSON akışı Modül 1 ile ortaktır.
+   Eylemler:
+     COL_SET {patch}                      başlık, boyut, zemin, vurgu rengi
+     COL_ADD {layer}  COL_ADD_MANY {layers}
+     COL_SET_L {id, patch}  COL_LIVE {id, patch}   (canlı: geri alma noktası açmaz)
+     COL_DEL {id}  COL_DUP {id}  COL_ORDER {id, dir | to}
+     COL_ACCENT_ALL {col}                 tüm şekillerin rengini değiştir
+     COL_LOAD {doc}  COL_CLEAR
+   JSON uzantısı: extensions.collage (görseller dahil; otomatik kayıtta görseller atlanır)
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const S = App.state;
+  const C = App.collage;
+
+  const withCol = (P, c) => Object.assign({}, P, { collage: c });
+
+  S.hooks.push(function (next, a) {
+    let P = next.project;
+    let state = next;
+    if (!C) return undefined;
+    if (!P.collage || !Array.isArray(P.collage.layers)) { P = withCol(P, C.defaults()); state = Object.assign({}, state, { project: P }); }
+    const same = () => (state === next ? undefined : state);
+    if (!a.type || a.type.indexOf('COL_') !== 0) return same();
+    const c = P.collage;
+    const apply = (nc, history) => (history ? Object.assign(S.withHistory(state, withCol(P, nc)), { selectedId: state.selectedId }) : Object.assign({}, state, { project: withCol(P, nc) }));
+    const setLayers = (layers, history) => apply(Object.assign({}, c, { layers: layers.slice(0, 300) }), history);
+
+    switch (a.type) {
+      case 'COL_SET': {
+        const o = C.cleanDoc(Object.assign({}, c, a.patch || {}, { layers: c.layers }));
+        return apply(o, true);
+      }
+      case 'COL_ADD': {
+        const l = C.clean(a.layer);
+        if (!l) return same();
+        const r = setLayers(c.layers.concat([l]), true);
+        r.selectedId = l.id;
+        return r;
+      }
+      case 'COL_ADD_MANY': {
+        const ls = (a.layers || []).map((l) => C.clean(l)).filter(Boolean);
+        if (!ls.length) return same();
+        return setLayers(c.layers.concat(ls), true);
+      }
+      case 'COL_SET_L':
+      case 'COL_LIVE': {
+        const l = c.layers.find((q) => q.id === a.id);
+        if (!l) return same();
+        const nx = C.clean(l, a.patch);
+        if (!nx) return same();
+        if (Object.keys(nx).every((k) => nx[k] === l[k] || (Array.isArray(nx[k]) && JSON.stringify(nx[k]) === JSON.stringify(l[k])))) return same();
+        return setLayers(c.layers.map((q) => (q.id === a.id ? nx : q)), a.type === 'COL_SET_L');
+      }
+      case 'COL_DEL': {
+        if (!c.layers.some((q) => q.id === a.id)) return same();
+        const r = setLayers(c.layers.filter((q) => q.id !== a.id), true);
+        if (state.selectedId === a.id) r.selectedId = null;
+        return r;
+      }
+      case 'COL_DUP': {
+        const l = c.layers.find((q) => q.id === a.id);
+        if (!l) return same();
+        const off = 24;
+        const patch = l.t === 'line' ? { pts: l.pts.map((q) => [q[0] + off, q[1] + off]) } : { x: l.x + off, y: l.y + off };
+        const cp = C.clean(Object.assign({}, l, { id: 'k' + Math.random().toString(36).slice(2, 8), locked: false }), patch);
+        const i = c.layers.findIndex((q) => q.id === a.id);
+        const layers = c.layers.slice(0, i + 1).concat([cp], c.layers.slice(i + 1));
+        const r = setLayers(layers, true);
+        r.selectedId = cp.id;
+        return r;
+      }
+      case 'COL_ORDER': {
+        const i = c.layers.findIndex((q) => q.id === a.id);
+        if (i < 0) return same();
+        let j = i + (a.dir < 0 ? -1 : 1);
+        if (a.to === 'top') j = c.layers.length - 1; else if (a.to === 'bottom') j = 0;
+        if (j < 0 || j >= c.layers.length || j === i) return same();
+        const ls = c.layers.slice();
+        const it = ls.splice(i, 1)[0];
+        ls.splice(j, 0, it);
+        return setLayers(ls, true);
+      }
+      case 'COL_ACCENT_ALL': {
+        const col = C.hex(a.col, c.accent);
+        return apply(Object.assign({}, c, { accent: col, layers: c.layers.map((l) => (l.t === 'shape' ? Object.assign({}, l, { col: col }) : l)) }), true);
+      }
+      case 'COL_LOAD': {
+        const doc = C.cleanDoc(a.doc);
+        return Object.assign(apply(doc, true), { selectedId: null });
+      }
+      case 'COL_CLEAR':
+        return Object.assign(apply(Object.assign({}, C.defaults(), { title: c.title, size: c.size, bg: c.bg, accent: c.accent }), true), { selectedId: null });
+      default:
+    }
+    return same();
+  });
+
+  /* ---------- JSON uzantısı: extensions.collage ---------- */
+  C.toExt = function (project) {
+    const c = project.collage;
+    if (!c || !c.layers.length) return {};
+    const out = { version: 1, title: c.title, size: c.size, canvas: { width: C.sizeOf(c).w, height: C.sizeOf(c).h, unit: 'px' }, background: c.bg, accent: c.accent, layers: c.layers.map((l) => Object.assign({}, l)) };
+    if (!App.autosaving) {
+      out.images = {};
+      c.layers.forEach((l) => { if (l.t === 'photo' && C.imgs[l.src] && !out.images[l.src]) { const im = C.imgs[l.src]; out.images[l.src] = { name: im.name, width: im.w, height: im.h, data: im.src }; } });
+    }
+    return { collage: out };
+  };
+  App.extProviders.push(C.toExt);
+
+  App.extImporters = App.extImporters || [];
+  App.extImporters.push(function (ext) {
+    const x = ext && ext.collage;
+    if (!x || !Array.isArray(x.layers)) return {};
+    if (x.images && typeof x.images === 'object') {
+      Object.keys(x.images).forEach((id) => {
+        const r = x.images[id];
+        if (r && typeof r.data === 'string' && /^data:image\//.test(r.data) && !C.imgs[id]) C.addImg({ id: id, name: r.name, w: Number(r.width) || 1000, h: Number(r.height) || 700, src: r.data });
+      });
+    }
+    return { collage: C.cleanDoc({ title: x.title, size: x.size, bg: x.background, accent: x.accent, layers: x.layers }) };
+  });
+})();
+
+/* ==========================================================================
    39-state-design.js — Tasarım Üretici (Modül 7) ve Maliyet / Fizibilite (Modül 8) durumu
    Proje içinde: project.design (App.design.defaults biçimi) ve project.fiz (App.cost.defaults biçimi).
    Geri al / ileri al, otomatik kayıt ve JSON içe/dışa aktarma diğer modüllerle aynı akışı kullanır.
@@ -19926,7 +20631,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 /* ==========================================================================
    47-ui-shell.js — archtools kabuğu: modül gezgini, ortak skor kadranı verisi,
    araç çubuğu ve sayfa iskeleti. Modüller yalnızca kendi içeriğini üretir.
-   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · birim · vaziyet
+   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · birim · vaziyet · kolaj
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -19945,6 +20650,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     { id: 'fizibilite', n: '08', label: 'Maliyet ve Fizibilite', sub: 'Maliyet ve fizibilite · metraj, kâr, nakit akışı', shape: 'coin' },
     { id: 'birim', n: '09', label: 'Birim Oluşturucu', sub: 'Birim oluşturucu · adım adım kütle şekillendirme', shape: 'stack' },
     { id: 'vaziyet', n: '10', label: 'Vaziyet Planı', sub: 'Vaziyet planı · ölçekli yerleşim paftası', shape: 'sitemap' },
+    { id: 'kolaj', n: '11', label: 'Kolaj Oluşturucu', sub: 'Kolaj oluşturucu · fotoğraf, kütle, siluet ve etiket', shape: 'collage' },
   ];
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
@@ -19963,6 +20669,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     else if (shape === 'tower') g = h('g', {}, h('rect', Object.assign({ x: 4.2, y: 2, width: 9.6, height: 14, rx: 1.2 }, p)), h('path', { d: 'M7 6h4M7 9h4M7 12h4', stroke: 'var(--on-ink, #fff)', 'stroke-width': 1.2, fill: 'none', 'stroke-linecap': 'round' }));
     else if (shape === 'stack') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 9.6, width: 8.4, height: 6, rx: 1 }, p)), h('rect', Object.assign({ x: 7.2, y: 2.4, width: 8.4, height: 6, rx: 1 }, q)));
     else if (shape === 'sitemap') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 2.4, width: 13.2, height: 13.2, rx: 1 }, q)), h('rect', Object.assign({ x: 5, y: 5.4, width: 4.6, height: 4.2, rx: 0.6 }, p)), h('path', { d: 'M2.6 12.6h12.8', stroke: 'currentColor', 'stroke-width': 1.6, fill: 'none' }), h('circle', Object.assign({ cx: 12.6, cy: 6.4, r: 1.7 }, p)));
+    else if (shape === 'collage') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 3.4, width: 9.6, height: 11.2, rx: 1 }, q)), h('circle', Object.assign({ cx: 11.4, cy: 6.8, r: 3.6 }, p)), h('path', { d: 'M8 14.6l3.2-3.6 4.4 3.6z', fill: 'currentColor', stroke: 'currentColor', 'stroke-width': 1.2, 'stroke-linejoin': 'round' }));
     else if (shape === 'coin') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.6 }, q)), h('path', { d: 'M9 5.2v7.6M6.8 7.4c0-1 .9-1.7 2.2-1.7s2.2.7 2.2 1.6c0 2.3-4.4 1.1-4.4 3.4 0 .9 1 1.7 2.2 1.7s2.2-.7 2.2-1.7', stroke: 'currentColor', 'stroke-width': 1.3, fill: 'none', 'stroke-linecap': 'round' }));
     else g = h('path', Object.assign({ d: 'M2.5 15.2L9 3l6.5 12.2z' }, p));
     return h('svg', { viewBox: '0 0 18 18', width: 16, height: 16, class: 'msh msh-' + shape, 'aria-hidden': 'true' }, g);
@@ -20093,7 +20800,24 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     };
   }
 
-  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, birim: birimMeter, vaziyet: vaziyetMeter };
+  function kolajMeter(state) {
+    const c = state.project.collage;
+    if (!c || !App.collage) return { label: 'Katman', percent: null, msg: '', chips: [], issues: 0 };
+    const cnt = (t) => c.layers.filter((l) => l.t === t).length;
+    return {
+      label: 'Katman', percent: null,
+      msg: !c.layers.length ? 'Bir fotoğraf yükleyip kolaja başlayın' : c.layers.length + ' katman · ' + App.collage.sizeOf(c).label + ' · vurgu ' + c.accent,
+      chips: [
+        { label: 'Fotoğraf', value: String(cnt('photo')), cls: 'dot' },
+        { label: 'Şekil', value: String(cnt('shape')), cls: 'dot' },
+        { label: 'Figür', value: String(cnt('fig')), cls: 'dot' },
+        { label: 'Yazı', value: String(cnt('text')), cls: 'dot' },
+      ],
+      issues: 0, issuesText: '', onIssues: null,
+    };
+  }
+
+  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, birim: birimMeter, vaziyet: vaziyetMeter, kolaj: kolajMeter };
   ui.meterFor = (state, d) => (ui.meterOpts[state.ui.module] || islevMeter)(state, d);
 
   /* ---------------- araç çubuğu ----------------
@@ -20152,6 +20876,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (m === 'fizibilite' && ui.fizb) return h('main', { class: 'main main-fizibilite', key: 'main-fizibilite' }, ui.fizb.sidebar(state, d), ui.fizb.board(state, d));
     if (m === 'birim' && ui.unit) return h('main', { class: 'main main-birim', key: 'main-birim' }, ui.unit.sidebar(state, d), ui.unit.board(state, d));
     if (m === 'vaziyet' && ui.plan) return h('main', { class: 'main main-vaziyet', key: 'main-vaziyet' }, ui.plan.sidebar(state, d), ui.plan.board(state, d));
+    if (m === 'kolaj' && ui.col) return h('main', { class: 'main main-kolaj', key: 'main-kolaj' }, ui.col.sidebar(state, d), ui.col.board(state, d));
     if (m === 'yer' && ui.yer) return h('main', { class: 'main main-yer', key: 'main-yer' }, ui.yer.sidebar(state, d), ui.yer.board(state, d));
     return h('main', { class: 'main main-islev', key: 'main-islev' }, ui.sidebar(state, d), ui.board(state, d), ui.assistant(state, d));
   };
@@ -20462,7 +21187,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const exporter = (kind) => (ctl.exporters[get().ui.module] || ctl.exporters.islev)(kind);
   ctl.exportPNG = () => exporter('png');
   ctl.exportPDF = () => exporter('pdf');
-  const JSON_SUFFIX = { islev: undefined, kat: 'kat-etudu', analiz: 'mekan-analizi', arsa: 'arsa-analizi', imar: 'imar-kapasite', yer: 'yer-secimi', tasarim: 'tasarim-uretici', fizibilite: 'maliyet-fizibilite', birim: 'birim-olusturucu', vaziyet: 'vaziyet-plani' };
+  const JSON_SUFFIX = { islev: undefined, kat: 'kat-etudu', analiz: 'mekan-analizi', arsa: 'arsa-analizi', imar: 'imar-kapasite', yer: 'yer-secimi', tasarim: 'tasarim-uretici', fizibilite: 'maliyet-fizibilite', birim: 'birim-olusturucu', vaziyet: 'vaziyet-plani', kolaj: 'kolaj' };
   ctl.saveJSON = function () {
     const st = get();
     const d = derived();
@@ -20565,6 +21290,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     { id: 'fizibilite', label: 'Maliyet ve fizibilite hesaplayın', sub: 'Metraj, maliyet, satış geliri, kâr, başabaş fiyat ve nakit akışı.', icon: 'compare' },
     { id: 'birim', label: 'Bir kütleyi adım adım şekillendirin', sub: 'Parselde bir birim kurun; böl, boşluk aç, yeşil ekle ve süreci tek afişte görün.', icon: 'cube' },
     { id: 'vaziyet', label: 'Ölçekli vaziyet planı çizin', sub: 'Yapılar, yollar, yeşil alan ve ağaçlarla 1/200–1/5000 ölçekli vaziyet paftası; PNG, PDF ve DXF.', icon: 'parcel' },
+    { id: 'kolaj', label: 'Sunum kolajı hazırlayın', sub: 'Siyah-beyaz fotoğraf üzerine tek renkli kütleler, beyaz siluetler, elle çizgiler ve etiketler; PNG ve PDF.', icon: 'image' },
     { id: 'bina', label: 'Bina programı kurgulayın', sub: 'İşlev şeması, kat etüdü ve mekân analizi ile bina içini tasarlayın.', icon: 'layout' },
     { id: 'kesif', label: 'Sadece keşfediyorum', sub: 'Örnek verilerle gezin; istediğiniz modülü üst çubuktan açın.', icon: 'spark' },
   ];
@@ -20625,8 +21351,9 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       else if (id === 'fizibilite') { c.go('fizibilite'); }
       else if (id === 'birim') { c.go('birim'); }
       else if (id === 'vaziyet') { c.go('vaziyet'); }
+      else if (id === 'kolaj') { c.go('kolaj'); }
       else if (id === 'bina') { c.go('islev'); }
-      else c.toast('İyi keşifler: üst çubuktan on modül arasında gezinebilirsiniz.');
+      else c.toast('İyi keşifler: üst çubuktan on bir modül arasında gezinebilirsiniz.');
     },
   });
   ui.helpBtn = function () { W.open(1); };
@@ -25858,13 +26585,646 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
-   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/birim · #/vaziyet
+   80-ui-collage.js — Modül 11 arayüzü: Kolaj Oluşturucu
+   Sol panel: Ekle (fotoğraf, şekil, figür, çizgi, yazı) · Katman (seçili özellikler, sıralama) · Sayfa (boyut, zemin, vurgu rengi).
+   Pafta: seç / taşı / boyutlandır / döndür; elle çiz, çizgi, ok, çokgen kütle ve yazı araçları; sürükle-bırak ile fotoğraf.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const U = App.util;
+  const fmt = U.fmt;
+  const C = App.collage;
+  const ctl = () => App.ctl;
+  const co = (ui.col = {});
+  const get = () => App.store.get();
+
+  App.collageDefaults = () => ({ tab: 'ekle', tool: 'select', draft: null, stick: 0 });
+
+  const TOOLS = [
+    { v: 'select', label: 'Seç', hint: 'Katmanı tıklayıp sürükleyin · köşe tutamaçlarıyla boyutlandırın · üstteki yuvarlak tutamaçla döndürün · Delete siler · ok tuşları taşır' },
+    { v: 'free', label: 'Elle çiz', hint: 'Basılı tutup sürükleyerek elle çizin; çizgi serbest bırakınca yumuşatılır' },
+    { v: 'line', label: 'Çizgi', hint: 'Sürükleyerek çizgi çekin (elle çizilmiş gibi hafif eğrilir; panelden kapatılabilir)' },
+    { v: 'arrow', label: 'Ok', hint: 'Sürükleyerek ok çizin; ok ucu bıraktığınız noktadadır' },
+    { v: 'poly', label: 'Çokgen', hint: 'Köşeleri tıklayarak vurgu renkli serbest kütle çizin · çift tık veya Enter bitirir · Esc iptal' },
+    { v: 'text', label: 'Yazı', hint: 'Etiketin yerini tıklayın; metni panelden değiştirin' },
+  ];
+  const toolOf = (v) => TOOLS.find((t) => t.v === v) || TOOLS[0];
+
+  /* ---------------- küçük bileşenler ---------------- */
+  function swatches(cur, onpick, o) {
+    o = o || {};
+    const all = C.SWATCHES;
+    return h('div', { class: 'kswatches' },
+      all.map((s) => h('button', { key: s.v, type: 'button', class: 'kswatch' + (cur && cur.toUpperCase() === s.v ? ' on' : ''), style: { background: s.v }, title: s.label, 'aria-label': s.label, 'aria-pressed': String(!!cur && cur.toUpperCase() === s.v), onclick: () => onpick(s.v) })),
+      h('input', { class: 'kswatch-in', type: 'color', value: cur || '#D93A1F', 'aria-label': 'Özel renk', title: 'Özel renk', keep: true, onchange: (e) => onpick(e.target.value.toUpperCase()) }));
+  }
+  function numRange(id, label, min, max, step, val, text, live, end) {
+    return ui.range({ id: id, label: label, min: min, max: max, step: step, value: val, text: text, oninput: live, onchange: end });
+  }
+
+  /* ---------------- seçili katman paneli ---------------- */
+  function selectedPanel(state, doc) {
+    const c = ctl();
+    const l = doc.layers.find((q) => q.id === state.selectedId);
+    if (!l) return null;
+    const set = (patch) => c.colSetL(l.id, patch);
+    const live = (patch) => c.colLive(l.id, patch);
+    const end = () => c.colLiveEnd();
+    const head = h('p', { class: 'fr-area' }, h('b', {}, C.LAYER_LABEL[l.t] + ' · ' + C.layerName(l)), l.locked ? h('span', { class: 'lock-tag' }, ' kilitli') : null);
+    let body = [];
+    if (l.t === 'photo') {
+      body = [
+        ui.fld2('Kesim', ui.segmented({ label: 'Fotoğraf maskesi', wide: true, value: l.mask, options: [{ v: 'rect', label: 'Dikdörtgen' }, { v: 'ellipse', label: 'Elips' }, { v: 'arch', label: 'Kemer' }], onchange: (v) => set({ mask: v }) })),
+        h('div', { class: 'tgl-row' },
+          ui.toggle({ label: 'Siyah-beyaz', on: l.bw, onclick: () => set({ bw: !l.bw }) }),
+          ui.toggle({ label: 'Yatay çevir', on: l.flip, onclick: () => set({ flip: !l.flip }) })),
+        numRange('col-con', 'Kontrast', 50, 220, 5, Math.round(l.con * 100), '%' + Math.round(l.con * 100), (v) => live({ con: v / 100 }), end),
+        numRange('col-bri', 'Parlaklık', -40, 40, 2, Math.round(l.bri * 100), (l.bri > 0 ? '+' : '') + Math.round(l.bri * 100), (v) => live({ bri: v / 100 }), end),
+        numRange('col-zoom', 'Yakınlaştır', 100, 500, 5, Math.round(l.zoom * 100), '%' + Math.round(l.zoom * 100), (v) => live({ zoom: v / 100 }), end),
+        l.zoom > 1.001 ? [
+          numRange('col-ox', 'Yatay konum', 0, 100, 1, Math.round(l.ox * 100), '%' + Math.round(l.ox * 100), (v) => live({ ox: v / 100 }), end),
+          numRange('col-oy', 'Dikey konum', 0, 100, 1, Math.round(l.oy * 100), '%' + Math.round(l.oy * 100), (v) => live({ oy: v / 100 }), end),
+        ] : null,
+        numRange('col-op', 'Opaklık', 10, 100, 5, Math.round(l.op * 100), '%' + Math.round(l.op * 100), (v) => live({ op: v / 100 }), end),
+        ui.btn('Tuvale sığdır', { icon: 'expand', onclick: () => { const s = C.sizeOf(doc); set({ x: 0, y: 0, w: s.w, h: s.h }); } }),
+      ];
+    } else if (l.t === 'shape') {
+      body = [
+        ui.fld2('Renk', swatches(l.col, (v) => set({ col: v }))),
+        h('div', { class: 'tgl-row' }, ui.toggle({ label: 'Çarp (fotoğraf görünsün)', on: l.blend === 'multiply', onclick: () => set({ blend: l.blend === 'multiply' ? 'normal' : 'multiply' }), title: 'Renk, altındaki fotoğrafla çarpılır; dokular renkli kütlenin içinden okunur' })),
+        numRange('col-op', 'Opaklık', 10, 100, 2, Math.round(l.op * 100), '%' + Math.round(l.op * 100), (v) => live({ op: v / 100 }), end),
+        numRange('col-rot', 'Döndür', -180, 180, 1, Math.round(l.rot > 180 ? l.rot - 360 : l.rot), Math.round(l.rot > 180 ? l.rot - 360 : l.rot) + '°', (v) => live({ rot: v }), end),
+        h('p', { class: 'fr-area' }, h('span', { class: 'mono' }, fmt(l.w) + ' × ' + fmt(l.h) + ' px')),
+      ];
+    } else if (l.t === 'fig') {
+      body = [
+        ui.fld2('Renk', swatches(l.col, (v) => set({ col: v }))),
+        numRange('col-fw', 'Boyut', 20, 1200, 2, Math.round(l.w), Math.round(l.w) + ' px', (v) => live({ w: v }), end),
+        numRange('col-rot', 'Döndür', -180, 180, 1, Math.round(l.rot > 180 ? l.rot - 360 : l.rot), Math.round(l.rot > 180 ? l.rot - 360 : l.rot) + '°', (v) => live({ rot: v }), end),
+        numRange('col-op', 'Opaklık', 10, 100, 5, Math.round(l.op * 100), '%' + Math.round(l.op * 100), (v) => live({ op: v / 100 }), end),
+        h('div', { class: 'tgl-row' }, ui.toggle({ label: 'Yatay çevir', on: l.flip, onclick: () => set({ flip: !l.flip }) })),
+      ];
+    } else if (l.t === 'line') {
+      body = [
+        ui.fld2('Renk', swatches(l.col, (v) => set({ col: v }))),
+        numRange('col-lw', 'Kalınlık', 1, 16, 0.5, l.w, fmt(l.w, 1) + ' px', (v) => live({ w: v }), end),
+        ui.fld2('Çizgi tipi', ui.segmented({ label: 'Çizgi tipi', wide: true, value: l.dash, options: [{ v: 0, label: 'Düz' }, { v: 1, label: 'Kesik' }, { v: 2, label: 'Nokta' }], onchange: (v) => set({ dash: v }) })),
+        l.kind !== 'free' ? h('div', { class: 'tgl-row' }, ui.toggle({ label: 'Elle çizilmiş', on: l.hand, onclick: () => set({ hand: !l.hand }) })) : null,
+        numRange('col-op', 'Opaklık', 10, 100, 5, Math.round(l.op * 100), '%' + Math.round(l.op * 100), (v) => live({ op: v / 100 }), end),
+      ];
+    } else if (l.t === 'text') {
+      body = [
+        ui.fld2('Metin', h('input', { id: 'col-text', class: 'inp', type: 'text', maxlength: 120, value: l.s, keep: true, onchange: (e) => set({ s: e.target.value.trim() || 'Etiket' }), onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } })),
+        numRange('col-ts', 'Boyut', 10, 160, 1, l.size, l.size + ' px', (v) => live({ size: v }), end),
+        ui.fld2('Zemin', ui.segmented({ label: 'Etiket zemini', wide: true, value: l.bg, options: [{ v: 'none', label: 'Yok' }, { v: 'white', label: 'Beyaz' }, { v: 'ink', label: 'Siyah' }, { v: 'col', label: 'Renk' }], onchange: (v) => set({ bg: v }) })),
+        ui.fld2(l.bg === 'col' ? 'Zemin rengi' : 'Yazı rengi', swatches(l.col, (v) => set({ col: v }))),
+        ui.fld2('Yazı tipi', ui.segmented({ label: 'Yazı tipi', wide: true, value: l.fam, options: C.FONT_OPTS.map((f) => ({ v: f.v, label: f.label })), onchange: (v) => set({ fam: v }) })),
+        h('div', { class: 'tgl-row' }, ui.toggle({ label: 'BÜYÜK HARF', on: l.caps, onclick: () => set({ caps: !l.caps }) }), ui.toggle({ label: 'Kalın', on: l.weight >= 700, onclick: () => set({ weight: l.weight >= 700 ? 500 : 700 }) })),
+        numRange('col-rot', 'Döndür', -180, 180, 1, Math.round(l.rot > 180 ? l.rot - 360 : l.rot), Math.round(l.rot > 180 ? l.rot - 360 : l.rot) + '°', (v) => live({ rot: v }), end),
+      ];
+    }
+    const order = h('div', { class: 'btn-row' },
+      ui.btn('Öne al', { onclick: () => c.colOrder(l.id, { to: 'top' }), title: 'En üste getir' }),
+      ui.btn('Arkaya al', { onclick: () => c.colOrder(l.id, { to: 'bottom' }), title: 'En alta gönder' }));
+    const tail = h('div', { class: 'btn-row' },
+      ui.btn('Çoğalt', { icon: 'copy', onclick: () => c.colDup(l.id) }),
+      ui.btn(l.locked ? 'Kilidi aç' : 'Kilitle', { onclick: () => set({ locked: !l.locked }) }),
+      ui.btn('Sil', { icon: 'trash', onclick: () => c.colDel(l.id) }));
+    return ui.section('Seçili katman', h('div', { class: 'sec-box' }, head, body, order, tail), null, 'col-sel');
+  }
+
+  /* ---------------- Ekle sekmesi ---------------- */
+  function photoSection(state, doc) {
+    const c = ctl();
+    const imgs = Object.keys(C.imgs).map((k) => C.imgs[k]);
+    return ui.section('Fotoğraf', h('div', { class: 'sec-box' },
+      ui.btn('Fotoğraf yükle', { icon: 'image', cls: 'btn-yellow', onclick: () => c.colPick(), title: 'Bir ya da birden çok fotoğraf seçin; sürükleyip paftaya bırakabilir ya da panodan yapıştırabilirsiniz' }),
+      h('div', { class: 'btn-row' },
+        ui.btn('Cephe', { onclick: () => c.colDemo('cephe'), title: 'Üretilmiş örnek fotoğraf: cephe' }),
+        ui.btn('Meydan', { onclick: () => c.colDemo('meydan'), title: 'Üretilmiş örnek fotoğraf: kolonlu meydan' }),
+        ui.btn('Gökyüzü', { onclick: () => c.colDemo('gok'), title: 'Üretilmiş örnek fotoğraf: bulutlu gökyüzü' })),
+      imgs.length ? h('div', { class: 'imgs' }, imgs.map((im) => h('div', { key: im.id, class: 'img-tile' },
+        h('button', { type: 'button', class: 'img-btn', title: im.name + ' — kolaja ekle', 'aria-label': im.name + ' görselini kolaja ekle', onclick: () => c.colAddPhoto(im.id) },
+          h('img', { src: im.src, alt: '', draggable: false })),
+        h('button', { type: 'button', class: 'img-del', title: 'Kitaplıktan sil', 'aria-label': 'Görseli kitaplıktan sil', onclick: () => c.colDelImg(im.id) }, ui.icon('close', 12)))))
+        : h('p', { class: 'note' }, 'Fotoğraflar siyah-beyaza çevrilir; kontrast ve parlaklık panelden ayarlanır. Görseller bu tarayıcıda saklanır; JSON dosyasına da gömülür.'),
+      h('input', { id: 'col-file', class: 'sr', type: 'file', accept: 'image/*', multiple: true, tabindex: -1, 'aria-label': 'Fotoğraf seç', onchange: (e) => { c.colFiles(Array.prototype.slice.call(e.target.files || [])); e.target.value = ''; } })), imgs.length ? String(imgs.length) : null, 'col-photo');
+  }
+
+  function shapeSection(state, doc) {
+    const c = ctl();
+    const add = (kind, label, icon) => ui.btn(label, { icon: icon, cls: 'btn-tool', onclick: () => c.colAddShape(kind) });
+    return ui.section('Şekil ve renk', h('div', { class: 'sec-box' },
+      h('div', { class: 'tool-grid' }, add('rect', 'Dörtgen', 'rect'), add('ellipse', 'Elips', 'target'), add('tri', 'Üçgen', 'shapeT'), add('arch', 'Kemer', 'shapeU'),
+        ui.btn('Çokgen', { icon: 'poly', cls: 'btn-tool', onclick: () => c.colTool('poly') })),
+      ui.fld2('Vurgu rengi', swatches(doc.accent, (v) => c.colSet({ accent: v })), 'Yeni şekiller bu renkte eklenir.'),
+      ui.btn('Tüm şekillere uygula', { icon: 'spark', onclick: () => c.colAccentAll(), disabled: !doc.layers.some((l) => l.t === 'shape') })), null, 'col-shape');
+  }
+
+  function figSection(state, doc) {
+    const c = ctl();
+    return ui.section('Figürler', h('div', { class: 'sec-box' },
+      h('div', { class: 'figs' }, C.FIG_ORDER.map((k) => {
+        const f = C.FIGS[k];
+        const t = C.figThumbPath(k, 60);
+        const vh = Math.max(60, t.h);
+        return h('button', { key: k, type: 'button', class: 'fig-tile', title: f.label + ' ekle', 'aria-label': f.label + ' ekle', onclick: () => c.colAddFig(k) },
+          h('svg', { viewBox: '0 0 60 ' + vh, width: 46, height: 46, 'aria-hidden': 'true', preserveAspectRatio: 'xMidYMid meet' }, h('path', { d: t.d, fill: '#fff', transform: 'translate(0 ' + ((vh - t.h) / 2).toFixed(1) + ')' })));
+      })),
+      h('p', { class: 'note' }, 'Beyaz siluetler fotoğraf üzerinde okunur; rengi, boyutu ve dönüşü panelden değişir.')), null, 'col-fig');
+  }
+
+  function drawSection(state, doc) {
+    const c = ctl();
+    const cur = state.ui.col.tool;
+    const t = (v, label, icon) => ui.btn(label, { icon: icon, cls: 'btn-tool' + (cur === v ? ' on' : ''), pressed: cur === v, onclick: () => c.colTool(v) });
+    return ui.section('Çizgi ve yazı', h('div', { class: 'sec-box' },
+      h('div', { class: 'tool-grid' }, t('free', 'Elle çiz', 'draw'), t('line', 'Çizgi', 'link'), t('arrow', 'Ok', 'send'), t('text', 'Etiket', 'newdoc')),
+      h('div', { class: 'btn-row' }, ui.btn('Başlık ekle', { onclick: () => c.colAddTitle() })),
+      h('p', { class: 'note' }, toolOf(cur).hint)), null, 'col-draw');
+  }
+
+  /* ---------------- Katman sekmesi ---------------- */
+  function layerList(state, doc) {
+    const c = ctl();
+    const sel = state.selectedId;
+    const rows = doc.layers.slice().reverse().map((l) => h('li', { key: l.id, id: 'krow-' + l.id, class: 'row krow' + (sel === l.id ? ' sel' : '') + (l.hidden ? ' off' : '') },
+      h('div', { class: 'row-main', onclick: () => c.dispatch({ type: 'SELECT', id: sel === l.id ? null : l.id }) },
+        h('span', { class: 'kkind kkind-' + l.t, 'aria-hidden': 'true' }),
+        h('span', { class: 'row-name' }, C.layerName(l)),
+        h('span', { class: 'frow-area' }, C.LAYER_LABEL[l.t])),
+      h('div', { class: 'krow-act' },
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': l.hidden ? 'Katmanı göster' : 'Katmanı gizle', title: l.hidden ? 'Göster' : 'Gizle', onclick: () => c.colSetL(l.id, { hidden: !l.hidden }) }, ui.icon(l.hidden ? 'close' : 'check', 14)),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Yukarı taşı', title: 'Öne', onclick: () => c.colOrder(l.id, { dir: 1 }) }, ui.icon('chevron', 14)),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Aşağı taşı', title: 'Arkaya', onclick: () => c.colOrder(l.id, { dir: -1 }) }, ui.icon('chevron', 14)))));
+    return ui.section('Katmanlar', rows.length ? h('ul', { class: 'rows' }, rows) : h('p', { class: 'note' }, 'Henüz katman yok. Ekle sekmesinden fotoğraf, şekil, figür ya da yazı ekleyin.'), doc.layers.length + ' katman · üstteki en önde', 'col-list');
+  }
+
+  /* ---------------- Sayfa sekmesi ---------------- */
+  function pageTab(state, doc) {
+    const c = ctl();
+    return [
+      ui.section('Sayfa', h('div', { class: 'sec-box' },
+        ui.fld2('Başlık', h('input', { id: 'col-title', class: 'inp', type: 'text', maxlength: 60, placeholder: 'Örn. Kent ve yoğunluk', value: doc.title, keep: true, onchange: (e) => c.colSet({ title: e.target.value.trim() }), onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } }), 'Dosya adında kullanılır.'),
+        ui.fld2('Boyut', ui.segmented({ label: 'Kolaj boyutu', wide: true, value: doc.size, options: Object.keys(C.SIZES).map((k) => ({ v: k, label: C.SIZES[k].label })), onchange: (v) => c.colSet({ size: v }) }), C.sizeOf(doc).w + ' × ' + C.sizeOf(doc).h + ' px'),
+        ui.fld2('Zemin', ui.segmented({ label: 'Zemin rengi', wide: true, value: doc.bg, options: [{ v: 'white', label: 'Beyaz' }, { v: 'paper', label: 'Kâğıt' }, { v: 'grey', label: 'Gri' }, { v: 'ink', label: 'Siyah' }, { v: 'accent', label: 'Vurgu' }], onchange: (v) => c.colSet({ bg: v }) }))), null, 'col-page'),
+      ui.section('Vurgu rengi', h('div', { class: 'sec-box' },
+        swatches(doc.accent, (v) => c.colSet({ accent: v })),
+        ui.btn('Tüm şekillere uygula', { icon: 'spark', onclick: () => c.colAccentAll(), disabled: !doc.layers.some((l) => l.t === 'shape') }),
+        h('p', { class: 'note' }, 'Tek vurgu rengi kolajı birleştirir: kütleler, etiketler ve zemin aynı renkten türesin.')), null, 'col-acc'),
+      ui.section('Başlangıç', h('div', { class: 'sec-box' },
+        ui.btn('Örnek kolaj', { icon: 'play', onclick: () => c.colSample(), title: 'Fotoğraf, kütle, siluet, çizgi ve etiketlerle dolu örnek' }),
+        doc.layers.length ? ui.btn('Temizle', { icon: 'trash', onclick: () => c.colClear(), title: 'Tüm katmanları sil (Geri al ile döndürülebilir)' }) : null,
+        h('p', { class: 'note' }, 'PNG ve PDF için üstteki Dışa aktar düğmelerini kullanın; JSON, görselleri de içerir.')), null, 'col-start'),
+    ];
+  }
+
+  co.sidebar = function (state, d) {
+    const doc = state.project.collage;
+    const c = ctl();
+    const tab = ['ekle', 'katman', 'sayfa'].indexOf(state.ui.col.tab) >= 0 ? state.ui.col.tab : 'ekle';
+    const tabs = ui.tabsBar([{ id: 'ekle', label: 'Ekle' }, { id: 'katman', label: 'Katman', n: doc.layers.length }, { id: 'sayfa', label: 'Sayfa' }], tab, (id) => c.colView({ tab: id }, true));
+    const sel = selectedPanel(state, doc);
+    let body;
+    if (tab === 'ekle') body = [sel, photoSection(state, doc), shapeSection(state, doc), figSection(state, doc), drawSection(state, doc)];
+    else if (tab === 'katman') body = [sel, layerList(state, doc)];
+    else body = pageTab(state, doc);
+    return ui.sideShell('sb-kolaj', 'Kolaj oluşturucu paneli', tabs, body);
+  };
+
+  /* ---------------- pafta etkileşimi ---------------- */
+  let gest = null;
+  co.svgEl = null;
+  function toSvg(e) {
+    const svg = co.svgEl;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  const docNow = () => get().project.collage;
+  const layerNow = (id) => docNow().layers.find((q) => q.id === id);
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+
+  function elDown(e, l) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (get().ui.col.tool !== 'select') return;
+    e.stopPropagation(); e.preventDefault();
+    const s = toSvg(e);
+    ctl().dispatch({ type: 'SELECT', id: l.id });
+    if (l.locked) return;
+    gest = { t: 'move', id: l.id, sx: s.x, sy: s.y, orig: l, moved: false, cX: e.clientX, cY: e.clientY };
+    try { co.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+  }
+  function handleDown(e, l, hd) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.stopPropagation(); e.preventDefault();
+    gest = { t: 'handle', id: l.id, hd: hd, orig: l, moved: false, cX: e.clientX, cY: e.clientY };
+    try { co.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+  }
+  function bgDown(e) {
+    const st = get().ui.col;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const s = toSvg(e);
+    if (st.tool === 'select') { if (get().selectedId) ctl().dispatch({ type: 'SELECT', id: null }); return; }
+    if (st.tool === 'text') {
+      e.preventDefault();
+      ctl().colAddText(Math.round(s.x), Math.round(s.y));
+      return;
+    }
+    e.preventDefault();
+    gest = { t: 'draw', tool: st.tool, pts: [[s.x, s.y]], sx: s.x, sy: s.y, moved: false };
+    try { co.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+  }
+
+  const q = (id) => document.getElementById(id);
+  function showPath(d) { const el = q('cd-path'); if (el) { el.setAttribute('d', d); el.setAttribute('visibility', d ? 'visible' : 'hidden'); } }
+
+  function svgMove(e) {
+    const st = get().ui.col;
+    if (!gest) {
+      if (st.tool === 'poly' && st.draft && st.draft.length) {
+        const s = toSvg(e);
+        showPath('M' + st.draft.map((p) => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L') + ' L' + s.x.toFixed(1) + ' ' + s.y.toFixed(1));
+      }
+      return;
+    }
+    const s = toSvg(e);
+    const g = gest;
+    if (g.t === 'draw') {
+      if (!g.moved && Math.hypot(s.x - g.sx, s.y - g.sy) < 3) return;
+      g.moved = true;
+      if (g.tool === 'free') {
+        const last = g.pts[g.pts.length - 1];
+        if (Math.hypot(s.x - last[0], s.y - last[1]) >= 2.5) g.pts.push([s.x, s.y]);
+        showPath(C.smoothPath(g.pts));
+      } else if (g.tool === 'line' || g.tool === 'arrow') {
+        let ex = s.x, ey = s.y;
+        if (e.shiftKey) { if (Math.abs(ex - g.sx) > Math.abs(ey - g.sy)) ey = g.sy; else ex = g.sx; }
+        g.end = [ex, ey];
+        showPath('M' + g.sx.toFixed(1) + ' ' + g.sy.toFixed(1) + ' L' + ex.toFixed(1) + ' ' + ey.toFixed(1));
+      }
+      return;
+    }
+    if (!g.moved) { if (Math.hypot(e.clientX - g.cX, e.clientY - g.cY) < 3) return; g.moved = true; ctl().colLiveBegin(); }
+    const o = g.orig;
+    if (g.t === 'move') {
+      let dx = s.x - g.sx, dy = s.y - g.sy;
+      if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
+      if (o.t === 'line') ctl().colLive(o.id, { pts: o.pts.map((p) => [p[0] + dx, p[1] + dy]) });
+      else ctl().colLive(o.id, { x: o.x + dx, y: o.y + dy });
+      return;
+    }
+    if (g.t === 'handle') { handleMove(g, s, e); }
+  }
+
+  /* tutamaçlar: döndürülmüş çerçevede boyutlandırma */
+  function handleMove(g, s, e) {
+    const o = g.orig;
+    if (o.t === 'line') {
+      const pts = o.pts.slice();
+      pts[g.hd === 'p1' ? 0 : 1] = [s.x, s.y];
+      ctl().colLive(o.id, { pts: pts });
+      return;
+    }
+    const b = C.boxOf(o);
+    const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    const rot = o.rot || 0;
+    if (g.hd === 'rot') {
+      let ang = (Math.atan2(s.y - cy, s.x - cx) * 180) / Math.PI + 90;
+      if (e.shiftKey) ang = Math.round(ang / 15) * 15;
+      ang = ((ang % 360) + 540) % 360 - 180;
+      ctl().colLive(o.id, { rot: Math.round(ang * 10) / 10 });
+      return;
+    }
+    const local = C.rot(s.x, s.y, cx, cy, -rot);
+    const px = local[0] - cx, py = local[1] - cy;
+    const hx = g.hd.indexOf('e') >= 0 ? 1 : g.hd.indexOf('w') >= 0 ? -1 : 0;
+    const hy = g.hd.indexOf('s') >= 0 ? 1 : g.hd.indexOf('n') >= 0 ? -1 : 0;
+    const uniform = o.t === 'fig' || o.t === 'text';
+    let l = -b.w / 2, r = b.w / 2, t = -b.h / 2, bt = b.h / 2;
+    const MIN = 12;
+    if (uniform) {
+      const ar = b.h / b.w;
+      const ax = hx > 0 ? -b.w / 2 : b.w / 2, ay = hy > 0 ? -b.h / 2 : b.h / 2;
+      let nw = Math.max(MIN, Math.abs(px - ax));
+      nw = Math.max(nw, Math.abs(py - ay) / ar);
+      const nh = nw * ar;
+      const ncx = ax + (hx > 0 ? nw / 2 : -nw / 2), ncy = ay + (hy > 0 ? nh / 2 : -nh / 2);
+      const wc = C.rot(cx + ncx, cy + ncy, cx, cy, rot);
+      if (o.t === 'fig') ctl().colLive(o.id, { w: nw, x: wc[0] - nw / 2, y: wc[1] - nh / 2 });
+      else {
+        const size = Math.max(8, Math.min(220, Math.round(o.size * (nw / b.w))));
+        const m = C.textMetrics(Object.assign({}, o, { size: size }));
+        ctl().colLive(o.id, { size: size, x: wc[0] - m.w / 2, y: wc[1] - m.h / 2 });
+      }
+      return;
+    }
+    if (hx > 0) r = Math.max(l + MIN, px); else if (hx < 0) l = Math.min(r - MIN, px);
+    if (hy > 0) bt = Math.max(t + MIN, py); else if (hy < 0) t = Math.min(bt - MIN, py);
+    const nw = r - l, nh = bt - t;
+    const wc = C.rot(cx + (l + r) / 2, cy + (t + bt) / 2, cx, cy, rot);
+    ctl().colLive(o.id, { x: wc[0] - nw / 2, y: wc[1] - nh / 2, w: nw, h: nh });
+  }
+
+  function svgUp(e) {
+    const g = gest;
+    if (!g) return;
+    gest = null;
+    try { co.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+    if (g.t === 'move' || g.t === 'handle') { ctl().colLiveEnd(); return; }
+    if (g.t === 'draw') {
+      showPath('');
+      const st = get().ui.col;
+      const s = toSvg(e);
+      if (g.tool === 'free' && g.moved && g.pts.length >= 3) { ctl().colAddLine('free', C.simplify(g.pts, 2.5)); return; }
+      if ((g.tool === 'line' || g.tool === 'arrow') && g.moved && g.end && dist([g.sx, g.sy], g.end) > 8) { ctl().colAddLine(g.tool, [[g.sx, g.sy], g.end]); return; }
+      if (g.tool === 'poly') {
+        const pts = st.draft || [];
+        if (pts.length >= 3 && dist(pts[0], [s.x, s.y]) < 12) { finishPoly(); return; }
+        ctl().colView({ draft: pts.concat([[Math.round(s.x * 10) / 10, Math.round(s.y * 10) / 10]]) }, true);
+      }
+    }
+  }
+  function finishPoly() {
+    const st = get().ui.col;
+    const pts = st.draft;
+    if (!pts || pts.length < 3) { ctl().toast('Çokgen için en az 3 nokta gerekir.', 'error'); return; }
+    ctl().colView({ draft: null }, true);
+    showPath('');
+    ctl().colAddPoly(pts);
+  }
+
+  document.addEventListener('keydown', function (e) {
+    const S = get();
+    if (S.ui.module !== 'kolaj') return;
+    const tg = e.target;
+    if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT' || tg.isContentEditable)) return;
+    const st = S.ui.col;
+    const c = ctl();
+    if (e.key === 'Enter' && st.draft) { e.preventDefault(); finishPoly(); }
+    else if (e.key === 'Escape') {
+      if (st.draft) { c.colView({ draft: null }, true); showPath(''); }
+      else if (S.selectedId) c.dispatch({ type: 'SELECT', id: null });
+      else if (st.tool !== 'select') c.colTool('select');
+    } else if (e.key === 'Backspace' && st.draft) { e.preventDefault(); const p = st.draft.slice(0, -1); c.colView({ draft: p.length ? p : null }, true); showPath(''); }
+    else if ((e.key === 'Delete' || e.key === 'Backspace') && S.selectedId && st.tool === 'select') { e.preventDefault(); c.colDel(S.selectedId); }
+    else if (S.selectedId && st.tool === 'select' && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) >= 0) {
+      const l = layerNow(S.selectedId);
+      if (!l || l.locked) return;
+      e.preventDefault();
+      const n = e.shiftKey ? 10 : 1;
+      const dv = { ArrowLeft: [-n, 0], ArrowRight: [n, 0], ArrowUp: [0, -n], ArrowDown: [0, n] }[e.key];
+      c.colSetL(l.id, l.t === 'line' ? { pts: l.pts.map((p) => [p[0] + dv[0], p[1] + dv[1]]) } : { x: l.x + dv[0], y: l.y + dv[1] });
+    }
+  });
+  document.addEventListener('paste', function (e) {
+    if (get().ui.module !== 'kolaj') return;
+    const items = (e.clipboardData && e.clipboardData.files) || [];
+    const files = Array.prototype.slice.call(items).filter((f) => /^image\//.test(f.type));
+    if (files.length) { e.preventDefault(); ctl().colFiles(files); }
+  });
+
+  /* ---------------- hedefler ve tutamaçlar ---------------- */
+  function hitPoly(l) {
+    if (l.t === 'photo') { const mp = C.maskPts(l.mask, l.x, l.y, l.w, l.h); return mp || C.boxPts(l.x, l.y, l.w, l.h, 0); }
+    if (l.t === 'shape') return C.shapePts(l.kind, l.x, l.y, l.w, l.h, l.np).map((p) => C.rot(p[0], p[1], l.x + l.w / 2, l.y + l.h / 2, l.rot));
+    const b = C.boxOf(l);
+    return C.boxPts(b.x, b.y, b.w, b.h, l.rot || 0);
+  }
+  const ptsStr = (pts) => pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  function hitsLayer(state, doc) {
+    const out = [];
+    const ink = '#17181B';
+    doc.layers.forEach((l) => {
+      if (l.hidden) return;
+      const base = { key: 'h' + l.id, class: 'khit' + (l.locked ? ' locked' : ''), fill: 'transparent', onpointerdown: (e) => elDown(e, l) };
+      if (l.t === 'line') {
+        const d = l.kind === 'free' ? C.smoothPath(C.simplify(l.pts, 2.5)) : 'M' + l.pts[0][0] + ' ' + l.pts[0][1] + ' L' + l.pts[1][0] + ' ' + l.pts[1][1];
+        out.push(h('path', Object.assign(base, { d: d, fill: 'none', stroke: 'transparent', 'stroke-width': Math.max(16, l.w + 10), 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })));
+      } else out.push(h('polygon', Object.assign(base, { points: ptsStr(hitPoly(l)) })));
+    });
+    const l = doc.layers.find((x) => x.id === state.selectedId);
+    if (l && !l.hidden) {
+      const b = C.boxOf(l);
+      const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+      const rot = l.rot || 0;
+      const hs = 11;
+      if (l.t === 'line') {
+        out.push(h('path', { key: 'selring', d: l.kind === 'free' ? C.smoothPath(C.simplify(l.pts, 2.5)) : 'M' + l.pts[0][0] + ' ' + l.pts[0][1] + ' L' + l.pts[1][0] + ' ' + l.pts[1][1], fill: 'none', stroke: ink, 'stroke-width': Math.max(8, l.w + 6), 'stroke-opacity': 0.14, 'stroke-linecap': 'round', 'pointer-events': 'none' }));
+        if (l.kind !== 'free' && !l.locked) [['p1', l.pts[0]], ['p2', l.pts[1]]].forEach((p) => out.push(h('circle', { key: p[0], class: 'kvtx', cx: p[1][0], cy: p[1][1], r: 7, onpointerdown: (e) => handleDown(e, l, p[0]) })));
+      } else {
+        const quad = C.boxPts(b.x, b.y, b.w, b.h, rot);
+        out.push(h('polygon', { key: 'selring', points: ptsStr(quad), fill: 'none', stroke: ink, 'stroke-width': 2, 'stroke-dasharray': '7 5', 'pointer-events': 'none' }));
+        if (!l.locked) {
+          const H = l.t === 'fig' || l.t === 'text' ? [['nw', 0, 0], ['ne', 1, 0], ['se', 1, 1], ['sw', 0, 1]] : l.t === 'photo' || l.t === 'shape' ? [['nw', 0, 0], ['n', 0.5, 0], ['ne', 1, 0], ['e', 1, 0.5], ['se', 1, 1], ['s', 0.5, 1], ['sw', 0, 1], ['w', 0, 0.5]] : [];
+          H.forEach((hh) => {
+            const p = C.rot(b.x + hh[1] * b.w, b.y + hh[2] * b.h, cx, cy, rot);
+            out.push(h('rect', { key: 'hd' + hh[0], class: 'khandle', x: p[0] - hs / 2, y: p[1] - hs / 2, width: hs, height: hs, onpointerdown: (e) => handleDown(e, l, hh[0]) }));
+          });
+          if (l.t === 'shape' || l.t === 'fig' || l.t === 'text') {
+            const top = C.rot(cx, b.y - 30, cx, cy, rot), tp = C.rot(cx, b.y, cx, cy, rot);
+            out.push(h('line', { key: 'rl', x1: tp[0], y1: tp[1], x2: top[0], y2: top[1], stroke: ink, 'stroke-width': 1.4, 'pointer-events': 'none' }));
+            out.push(h('circle', { key: 'rh', class: 'kvtx', cx: top[0], cy: top[1], r: 7, onpointerdown: (e) => handleDown(e, l, 'rot') }));
+          }
+        }
+      }
+    }
+    return out;
+  }
+
+  function draftLayer(state) {
+    const dr = state.ui.col.draft;
+    const out = [];
+    const ink = '#17181B';
+    if (dr && dr.length) {
+      out.push(h('polyline', { key: 'dl', points: ptsStr(dr), fill: 'none', stroke: ink, 'stroke-width': 2, 'pointer-events': 'none' }));
+      dr.forEach((p, i) => out.push(h('circle', { key: 'dp' + i, cx: p[0], cy: p[1], r: i === 0 ? 7 : 4, fill: i === 0 ? '#F2B705' : '#fff', stroke: ink, 'stroke-width': 2, 'pointer-events': 'none' })));
+    }
+    out.push(h('path', { key: 'cd', id: 'cd-path', d: '', fill: 'none', stroke: ink, 'stroke-width': 2, 'stroke-dasharray': '6 5', visibility: 'hidden', 'pointer-events': 'none' }));
+    return out;
+  }
+
+  /* ---------------- pafta ---------------- */
+  let memo = { k: null, v: null };
+  function sceneOf(doc) {
+    const key = [doc, C.version];
+    if (memo.k && memo.k[0] === key[0] && memo.k[1] === key[1]) return memo.v;
+    memo = { k: key, v: C.scene(doc, { live: true }) };
+    return memo.v;
+  }
+
+  co.board = function (state, d) {
+    const doc = state.project.collage;
+    const st = state.ui.col;
+    const c = ctl();
+    const sc = sceneOf(doc);
+    const t = toolOf(st.tool);
+    const sel = doc.layers.find((l) => l.id === state.selectedId);
+    const svg = h('svg', {
+      id: 'pafta-kolaj', class: 'board-svg board-svg-kolaj tool-' + st.tool, viewBox: '0 0 ' + sc.W + ' ' + sc.H, preserveAspectRatio: 'xMidYMid meet', role: 'group',
+      'aria-label': 'Kolaj paftası, ' + doc.layers.length + ' katman',
+      ref: (el) => { co.svgEl = el; }, onpointerdown: bgDown, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp, ondblclick: () => { if (get().ui.col.draft) finishPoly(); },
+    }, sc.prims.map((p) => App.board.primToV(p)),
+    h('g', { class: 'khits' }, st.tool === 'select' ? hitsLayer(state, doc) : null),
+    h('g', { class: 'kdraft' }, draftLayer(state)));
+    const chipTxt = st.tool === 'select' ? null : t.label;
+    const stage = h('div', { class: 'board-stage kstage', ondragover: (e) => { e.preventDefault(); }, ondrop: (e) => { e.preventDefault(); const f = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []); if (f.length) c.colFiles(f); } }, svg,
+      chipTxt ? h('div', { class: 'pl-chip' }, h('b', {}, chipTxt + (st.draft ? ' · ' + st.draft.length + ' nokta' : '')),
+        st.draft && st.draft.length >= 3 ? h('button', { type: 'button', class: 'btn btn-yellow pl-fin', onclick: finishPoly }, 'Bitir') : null,
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seç aracına dön', title: 'Seç aracına dön (Esc)', onclick: () => { c.colView({ draft: null }, true); c.colTool('select'); } }, ui.icon('close', 14)))
+        : (sel ? h('div', { class: 'pl-chip' }, h('b', {}, C.LAYER_LABEL[sel.t]), h('span', { class: 'mono' }, C.layerName(sel)),
+          h('button', { type: 'button', class: 'btn pl-fin', onclick: () => c.colView({ tab: sel ? 'katman' : 'ekle' }, true) }, 'Düzenle'),
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null),
+      !doc.layers.length ? ui.emptyCard('Boş bir kolajla başlıyorsunuz', 'Bir fotoğraf yükleyin (siyah-beyaz olur), üzerine tek renkli kütleler, beyaz siluetler, elle çizgiler ve etiketler ekleyin. Hazır bir örnekle de başlayabilirsiniz.', [
+        ui.btn('Örnek kolaj', { icon: 'play', cls: 'btn-primary', onclick: () => c.colSample() }),
+        ui.btn('Fotoğraf yükle', { icon: 'image', onclick: () => c.colPick() })]) : null);
+
+    return ui.boardPage(state, d, {
+      label: 'Kolaj paftası',
+      stage: stage,
+      scale: C.sizeOf(doc).label + ' · ' + sc.W + ' × ' + sc.H + ' px',
+      foot: h('p', { class: 'board-hint' }, t.hint),
+      tools: [
+        { k: 'seg', label: 'Araç', value: st.tool, options: TOOLS.map((x) => ({ v: x.v, label: x.label })), onchange: (v) => c.colTool(v) },
+        { k: 'sep' },
+        { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => c.dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
+        { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => c.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },
+      ],
+    });
+  };
+})();
+
+/* ==========================================================================
+   81-ctl-collage.js — Kolaj yan etkileri: görünüm, canlı düzenleme, dosya ekleme, dışa aktarma (PNG · PDF)
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const ctl = App.ctl;
+  const U = App.util;
+  const C = App.collage;
+  const get = () => App.store.get();
+  const doc = () => get().project.collage;
+
+  /* ---------------- arayüz durumu ---------------- */
+  const BV = ctl.makeView('col', 'archtools.view.kolaj', ['tab']);
+  ctl.colView = BV.set;
+  ctl.loadColView = function () { BV.load(function (o) { return ['ekle', 'katman', 'sayfa'].indexOf(o.tab) >= 0 ? { tab: o.tab } : null; }); };
+  ctl.colTool = function (v) { ctl.colView({ tool: v, draft: null }, true); };
+
+  /* görseller IndexedDB'den gelince ya da çözülünce yeniden çiz */
+  C.onChange = function () { if (get().ui.module === 'kolaj') ctl.dispatch({ type: 'UI', patch: { col: Object.assign({}, get().ui.col, { stick: (get().ui.col.stick || 0) + 1 }) } }); };
+  ctl.loadColImages = function () { C.loadStore(); };
+
+  /* ---------------- belge ve katmanlar ---------------- */
+  let liveOn = false;
+  ctl.colLiveBegin = function () { if (!liveOn) { liveOn = true; ctl.dispatch({ type: 'SNAPSHOT' }); } };
+  ctl.colLiveEnd = function () { liveOn = false; };
+  ctl.colSet = (patch) => ctl.dispatch({ type: 'COL_SET', patch: patch });
+  ctl.colSetL = (id, patch) => ctl.dispatch({ type: 'COL_SET_L', id: id, patch: patch });
+  ctl.colLive = function (id, patch) { ctl.colLiveBegin(); ctl.dispatch({ type: 'COL_LIVE', id: id, patch: patch }); };
+  ctl.colDel = (id) => ctl.dispatch({ type: 'COL_DEL', id: id });
+  ctl.colDup = (id) => ctl.dispatch({ type: 'COL_DUP', id: id });
+  ctl.colOrder = (id, o) => ctl.dispatch({ type: 'COL_ORDER', id: id, dir: o && o.dir, to: o && o.to });
+  ctl.colAccentAll = function () { ctl.dispatch({ type: 'COL_ACCENT_ALL', col: doc().accent }); ctl.toast('Tüm şekiller vurgu rengine çevrildi.', 'success'); };
+  ctl.colClear = function () { ctl.dispatch({ type: 'COL_CLEAR' }); ctl.toast('Kolaj temizlendi. Geri al ile döndürebilirsiniz.', 'info'); };
+  ctl.colSample = function () { ctl.dispatch({ type: 'COL_LOAD', doc: C.sample() }); ctl.colView({ tool: 'select', draft: null }, true); ctl.toast('Örnek kolaj yüklendi. Her şeyi sürükleyip değiştirebilirsiniz.', 'success'); };
+
+  const add = (layer) => ctl.dispatch({ type: 'COL_ADD', layer: layer });
+  const cv = () => C.sizeOf(doc());
+  const jit = (n) => ((n * 53) % 140) - 70;
+
+  ctl.colAddPhoto = function (imgId) {
+    const im = C.imgs[imgId];
+    if (!im) return;
+    const s = cv();
+    const hasPhoto = doc().layers.some((l) => l.t === 'photo');
+    let x = 0, y = 0, w = s.w, h = s.h;
+    if (hasPhoto) {
+      w = Math.round(s.w * 0.5); h = Math.round(w * (im.h / im.w));
+      if (h > s.h * 0.8) { h = Math.round(s.h * 0.8); w = Math.round(h * (im.w / im.h)); }
+      x = Math.round((s.w - w) / 2 + jit(doc().layers.length)); y = Math.round((s.h - h) / 2 + jit(doc().layers.length + 3));
+    }
+    add(C.make.photo(imgId, x, y, w, h));
+  };
+  ctl.colPick = function () { const el = document.getElementById('col-file'); if (el) el.click(); };
+  ctl.colFiles = function (files) {
+    ctl.colView({ tab: 'ekle' }, true);
+    let n = 0;
+    files.reduce((p, f) => p.then(() => C.readFile(f).then((r) => { const im = C.addImg(r); ctl.colAddPhoto(im.id); n++; }).catch((e) => ctl.toast(e && e.message ? e.message : 'Görüntü eklenemedi.', 'error'))), Promise.resolve())
+      .then(() => { if (n) ctl.toast(n + ' fotoğraf eklendi (siyah-beyaz). Kontrastı panelden ayarlayın.', 'success'); });
+  };
+  ctl.colDemo = function (kind) { const im = C.addImg(C.demoPhoto(kind, Math.floor(Math.random() * 1e5) + 1)); ctl.colAddPhoto(im.id); };
+  ctl.colDelImg = function (id) {
+    if (doc().layers.some((l) => l.t === 'photo' && l.src === id)) { ctl.toast('Bu görsel kolajda kullanılıyor; önce katmanını silin.', 'error'); return; }
+    C.delImg(id);
+  };
+
+  ctl.colAddShape = function (kind) {
+    const s = cv();
+    const n = doc().layers.length;
+    const w = Math.round(kind === 'rect' ? s.w * 0.3 : s.w * 0.24), h = Math.round(kind === 'rect' ? s.h * 0.55 : kind === 'arch' ? s.h * 0.5 : s.w * 0.24);
+    add(C.make.shape(kind, Math.round((s.w - w) / 2 + jit(n)), Math.round((s.h - h) / 2 + jit(n + 5)), w, h, doc().accent, { op: 0.92, blend: 'normal' }));
+  };
+  ctl.colAddPoly = function (pts) {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    pts.forEach((p) => { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); });
+    const w = Math.max(10, x1 - x0), h = Math.max(10, y1 - y0);
+    add(C.make.shape('poly', x0, y0, w, h, doc().accent, { np: pts.map((p) => [(p[0] - x0) / w, (p[1] - y0) / h]), op: 0.92, blend: 'normal' }));
+  };
+  ctl.colAddFig = function (kind) {
+    const s = cv();
+    const n = doc().layers.length;
+    const f = C.FIGS[kind];
+    const w = { p1: 64, p2: 70, p3: 64, p4: 52, p5: 76, grp: 200, t1: 170, t2: 120, t3: 100, bush: 170, bird: 90, flock: 190, sun: 150, sky: Math.round(s.w * 0.6) }[kind] || 90;
+    const h = w * (f.vh / f.vw);
+    const ground = kind.charAt(0) === 'p' || kind === 'grp' || kind.charAt(0) === 't' || kind === 'bush';
+    const x = Math.round(s.w * 0.2 + ((n * 197) % Math.round(s.w * 0.6)));
+    const y = ground ? Math.round(s.h * 0.88 - h) : kind === 'sky' ? Math.round(s.h * 0.9 - h) : Math.round(s.h * 0.15 + ((n * 83) % Math.round(s.h * 0.3)));
+    add(C.make.fig(kind, x, y, w));
+  };
+  ctl.colAddLine = function (kind, pts) {
+    const l = C.make.line(kind, pts, { col: doc().bg === 'ink' ? '#FFFFFF' : '#17181B', w: kind === 'free' ? 4 : 3 });
+    add(l);
+  };
+  ctl.colAddText = function (x, y) {
+    const l = C.make.text('Etiket', x, y, { size: 24, bg: 'white', col: '#17181B' });
+    add(l);
+    ctl.colTool('select');
+    ctl.colView({ tab: 'ekle' }, true);
+    setTimeout(() => { const i = document.getElementById('col-text'); if (i) { i.focus(); i.select(); } }, 100);
+  };
+  ctl.colAddTitle = function () {
+    const s = cv();
+    add(C.make.text('Başlık', Math.round(s.w * 0.06), Math.round(s.h * 0.08), { size: 72, fam: 'd', bg: 'none', col: doc().bg === 'ink' ? '#FFFFFF' : '#17181B', caps: true }));
+  };
+
+  /* ---------------- dışa aktarma ---------------- */
+  ctl.exporters.kolaj = function (kind) {
+    const label = kind === 'png' ? 'PNG' : 'PDF';
+    ctl.dispatch({ type: 'UI', patch: { busy: label } });
+    const P = get().project;
+    const sc = C.scene(P.collage, { live: false });
+    const nm = (P.collage.title || P.meta.name) + '-kolaj';
+    C.preload(sc.prims).then(() => App.sheet.exportScene(sc.prims, sc.W, sc.H, nm, kind)).then((r) => ctl.report(r, label + ' hazır')).catch((e) => ctl.report({ ok: false, message: e && e.message }));
+  };
+
+  const baseRun = ctl.runAction;
+  ctl.runAction = function (a) {
+    if (a.type === 'select' && get().ui.module === 'kolaj') { ctl.dispatch({ type: 'SELECT', id: a.id }); ctl.colView({ tab: 'katman' }, true); return; }
+    baseRun(a);
+  };
+})();
+
+/* ==========================================================================
+   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/birim · #/vaziyet · #/kolaj
    Geçiş: View Transitions varsa yumuşak çapraz solma, yoksa anında.
    ========================================================================== */
 (function () {
   const App = window.App;
   const ctl = App.ctl;
-  const IDS = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'birim', 'vaziyet'];
+  const IDS = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'birim', 'vaziyet', 'kolaj'];
   const get = () => App.store.get();
 
   const fromHash = function () {
@@ -25943,6 +27303,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   App.ctl.loadFizView();
   App.ctl.loadUnitView();
   App.ctl.loadPlanView();
+  App.ctl.loadColView();
+  App.ctl.loadColImages();
   const fromLink = App.ctl.hashSite(); // #/arsa?lat=…&lon=… paylaşım bağlantısı
 
   function view() {

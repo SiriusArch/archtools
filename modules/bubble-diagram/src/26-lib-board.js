@@ -165,7 +165,15 @@
   function primToV(p, extra) {
     const a = Object.assign({}, extra || {});
     if (p.opacity != null) a.opacity = p.opacity;
+    if (p.blend) a.style = { mixBlendMode: p.blend };
     switch (p.t) {
+      case 'img': {
+        // görüntü: p.href (data URL), x, y, w, h; p.clip (isteğe bağlı, dikdörtgen) ile kırpılır
+        const im = h('image', Object.assign(a, { x: p.x, y: p.y, width: p.w, height: p.h, href: p.href, preserveAspectRatio: 'none', 'pointer-events': 'none' }));
+        if (!p.clip) return im;
+        const cid = 'clip-' + p.clip.id;
+        return h('g', {}, h('clipPath', { id: cid }, h('rect', { x: p.clip.x, y: p.clip.y, width: p.clip.w, height: p.clip.h })), h('g', { 'clip-path': 'url(#' + cid + ')' }, im));
+      }
       case 'g': {
         // kırpmalı grup: p.clip = { id, x, y, w, h } (dikdörtgen) ya da { id, pts } (çokgen); p.items = primitifler
         const cid = 'clip-' + (p.clip.id || 'g');
@@ -177,12 +185,12 @@
         if (p.rx) a.rx = p.rx;
         if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; a['stroke-linejoin'] = p.rx ? 'round' : 'miter'; }
         if (p.dash) a['stroke-dasharray'] = p.dash.join(' ');
-        if (p.shadow) a.style = { filter: shadowCss(p.shadow) };
+        if (p.shadow) a.style = Object.assign(a.style || {}, { filter: shadowCss(p.shadow) });
         return h('rect', a);
       case 'circle':
         Object.assign(a, { cx: p.cx, cy: p.cy, r: p.r, fill: p.fill || 'none' });
         if (p.stroke) { a.stroke = p.stroke; a['stroke-width'] = p.sw; }
-        if (p.shadow) a.style = { filter: shadowCss(p.shadow) };
+        if (p.shadow) a.style = Object.assign(a.style || {}, { filter: shadowCss(p.shadow) });
         return h('circle', a);
       case 'line':
         Object.assign(a, { x1: p.x1, y1: p.y1, x2: p.x2, y2: p.y2, stroke: p.stroke, 'stroke-width': p.sw, 'stroke-linecap': p.cap || 'butt' });
@@ -228,9 +236,18 @@
     }
     ctx.save();
     if (p.opacity != null) ctx.globalAlpha = p.opacity;
+    if (p.blend) ctx.globalCompositeOperation = p.blend;
     ctx.setLineDash(p.dash || []);
     ctx.lineCap = p.cap || 'butt';
     switch (p.t) {
+      case 'img': {
+        const im = App.board.imgCache && App.board.imgCache[p.ik || p.href];
+        if (im && im.complete && im.naturalWidth) {
+          if (p.clip) { ctx.beginPath(); ctx.rect(p.clip.x, p.clip.y, p.clip.w, p.clip.h); ctx.clip(); }
+          ctx.drawImage(im, p.x, p.y, p.w, p.h);
+        }
+        break;
+      }
       case 'rect':
         applyShadow(ctx, p.shadow);
         if (p.rx) {
@@ -314,6 +331,6 @@
 
   App.board = {
     staticPrims: staticPrims, relLinePrims: relLinePrims, bubblePrims: bubblePrims, infoOf: infoOf,
-    allPrims: allPrims, primToV: primToV, paintPrim: paintPrim, toCanvas: toCanvas, primsToCanvas: primsToCanvas, shadowCss: shadowCss,
+    imgCache: {}, allPrims: allPrims, primToV: primToV, paintPrim: paintPrim, toCanvas: toCanvas, primsToCanvas: primsToCanvas, shadowCss: shadowCss,
   };
 })();

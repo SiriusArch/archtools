@@ -26,6 +26,7 @@
     { id: 'fizibilite', label: 'Maliyet ve fizibilite hesaplayın', sub: 'Metraj, maliyet, satış geliri, kâr, başabaş fiyat ve nakit akışı.', icon: 'compare' },
     { id: 'birim', label: 'Bir kütleyi adım adım şekillendirin', sub: 'Parselde bir birim kurun; böl, boşluk aç, yeşil ekle ve süreci tek afişte görün.', icon: 'cube' },
     { id: 'vaziyet', label: 'Ölçekli vaziyet planı çizin', sub: 'Yapılar, yollar, yeşil alan ve ağaçlarla 1/200–1/5000 ölçekli vaziyet paftası; PNG, PDF ve DXF.', icon: 'parcel' },
+    { id: 'kolaj', label: 'Sunum kolajı hazırlayın', sub: 'Siyah-beyaz fotoğraf üzerine tek renkli kütleler, beyaz siluetler, elle çizgiler ve etiketler; PNG ve PDF.', icon: 'image' },
     { id: 'bina', label: 'Bina programı kurgulayın', sub: 'İşlev şeması, kat etüdü ve mekân analizi ile bina içini tasarlayın.', icon: 'layout' },
     { id: 'kesif', label: 'Sadece keşfediyorum', sub: 'Örnek verilerle gezin; istediğiniz modülü üst çubuktan açın.', icon: 'spark' },
   ];
@@ -86,8 +87,9 @@
       else if (id === 'fizibilite') { c.go('fizibilite'); }
       else if (id === 'birim') { c.go('birim'); }
       else if (id === 'vaziyet') { c.go('vaziyet'); }
+      else if (id === 'kolaj') { c.go('kolaj'); }
       else if (id === 'bina') { c.go('islev'); }
-      else c.toast('İyi keşifler: üst çubuktan on modül arasında gezinebilirsiniz.');
+      else c.toast('İyi keşifler: üst çubuktan on bir modül arasında gezinebilirsiniz.');
     },
   });
   ui.helpBtn = function () { W.open(1); };

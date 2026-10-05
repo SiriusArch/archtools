@@ -1,11 +1,11 @@
 /* ==========================================================================
-   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/birim · #/vaziyet
+   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/birim · #/vaziyet · #/kolaj
    Geçiş: View Transitions varsa yumuşak çapraz solma, yoksa anında.
    ========================================================================== */
 (function () {
   const App = window.App;
   const ctl = App.ctl;
-  const IDS = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'birim', 'vaziyet'];
+  const IDS = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'birim', 'vaziyet', 'kolaj'];
   const get = () => App.store.get();
 
   const fromHash = function () {
