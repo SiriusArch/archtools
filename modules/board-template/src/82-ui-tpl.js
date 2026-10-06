@@ -59,7 +59,12 @@
 
   function pageSection(state, doc) {
     const c = ctl();
+    const mo = doc.mono || { on: false, col: T.MONO_DEFAULT };
     return ui.section('Sayfa', h('div', { class: 'sec-box' },
+      h('div', { class: 'mono-box' },
+        ui.toggle({ label: 'Tek renk (monokrom)', on: mo.on, onclick: () => c.tplMono({ on: !mo.on }), title: 'Paftadaki her araç çıktısını, fotoğrafı ve yazıyı seçilen rengin tonlarına çevirir' }),
+        swatches(mo.col, (v) => c.tplMono({ on: true, col: v })),
+        h('p', { class: 'note' }, mo.on ? 'Tüm paftada yalnızca bu rengin tonları kullanılıyor. Kapatınca her çalışma kendi renklerine döner.' : 'Her çalışmanın rengi farklıysa tek tuşla paftayı tek renge çevirin; rengi aşağıdan seçin.')),
       ui.fld2('Pafta başlığı', textInp('tpl-title', doc.title, 'Örn. Vaziyet ve kütle', 60, (v) => c.tplSet({ title: v.trim() }))),
       ui.fld2('Boyut', h('select', { id: 'tpl-size', class: 'inp', value: doc.size, onchange: (e) => c.tplSet({ size: e.target.value }, true) },
         T.SIZE_ORDER.map((k) => h('option', { key: k, value: k }, T.SIZES[k].label + ' · ' + T.SIZES[k].w + ' × ' + T.SIZES[k].h))), 'Boyut değişince paneller oranla ölçeklenir.'),
@@ -115,6 +120,25 @@
         b('Kuzey oku', 'target', () => c.tplAddNorth(), 'Kuzey işareti'))), null, 'tpl-items');
   }
 
+  /* kırpma: kaynak görselin küçük resmi üzerinde sürüklenen çerçeve */
+  function cropField(state, p, set) {
+    let src = null, w = 0, h2 = 0, region = null, gray = false;
+    if (p.src.k === 'mod') {
+      const e = T.entryFor(state, p.src.id, false);
+      const info = T.srcInfo(p.src.id);
+      if (e) { src = e.href; w = e.W; h2 = e.H; region = info && info.framed && p.trim ? T.frameRegion(e.W, e.H) : null; }
+    } else if (p.src.k === 'img') {
+      const im = App.collage && App.collage.imgs[p.src.id];
+      if (im) { src = im.src; w = im.w; h2 = im.h; gray = !!p.bw; }
+    }
+    if (!src) return null;
+    const c = p.crop || { l: 0, t: 0, r: 0, b: 0 };
+    return ui.fld2('Kırp', h('div', { class: 'crop-wrap' },
+      ui.cropEditor({ id: 'tpl-crop', src: src, w: w, h: h2, region: region, gray: gray, crop: c, onlive: (n) => ctl().tplLive(p.id, { crop: n }), oncommit: (n) => { ctl().tplLive(p.id, { crop: n }); ctl().tplLiveEnd(); } }),
+      ui.btn('Kırpmayı sıfırla', { icon: 'reset', onclick: () => set({ crop: { l: 0, t: 0, r: 0, b: 0 } }), disabled: ui.cropIsEmpty(c) })),
+    'Çerçeveyi ya da köşeleri sürükleyin; görselin dışarıda kalan kısmı panelde görünmez. Özgün görsel korunur.');
+  }
+
   /* ---------------- seçili panel ---------------- */
   function selectedPanel(state, doc) {
     const c = ctl();
@@ -137,6 +161,7 @@
       body = [
         ui.fld2('Kaynak', h('select', { id: 'tpl-src-sel', class: 'inp', value: cur, onchange: (e) => { const v = e.target.value; if (v === 'none') set({ src: { k: 'none', id: '' } }); else { const i = v.indexOf(':'); const k = v.slice(0, i), id = v.slice(i + 1); const lab = k === 'mod' ? T.srcInfo(id).label : ''; set({ src: { k: k, id: id }, label: p.label && p.label !== (p.src.k === 'mod' ? (T.srcInfo(p.src.id) || {}).label : '') ? p.label : lab }); } } }, opts),
           p.src.k === 'mod' ? (!av[p.src.id] ? 'Bu araçta henüz veri yok.' : stt === 'busy' ? 'Hazırlanıyor…' : err ? 'Çıktı alınamadı: ' + err : 'Canlı bağlı: araçtaki değişiklikler buraya yansır.') : null),
+        cropField(state, p, set),
         ui.fld2('Yerleşim', ui.segmented({ label: 'Görsel yerleşimi', wide: true, value: p.fit, options: [{ v: 'cover', label: 'Doldur' }, { v: 'contain', label: 'Sığdır' }], onchange: (v) => set({ fit: v }) })),
         numRange('tpl-zoom', 'Yakınlaştır', 20, 600, 5, Math.round(p.zoom * 100), '%' + Math.round(p.zoom * 100), (v) => live({ zoom: v / 100 }), end),
         numRange('tpl-ox', 'Yatay konum', 0, 100, 1, Math.round(p.ox * 100), '%' + Math.round(p.ox * 100), (v) => live({ ox: v / 100 }), end),
@@ -440,6 +465,8 @@
       scale: T.sizeOf(doc).label + ' · ' + sc.W + ' × ' + sc.H + ' px',
       foot: h('p', { class: 'board-hint' }, 'Paneli tıklayıp sürükleyin · kenar tutamaçlarıyla boyutlandırın · Shift: eksen / oran korur · Alt: yaslamayı kapatır · ok tuşları taşır · Delete siler'),
       tools: [
+        { k: 'btn', label: 'Monokrom', icon: 'sun', pressed: !!(doc.mono && doc.mono.on), onclick: () => c.tplMono({ on: !(doc.mono && doc.mono.on) }), title: 'Tüm paftayı tek rengin tonlarına çevir / özgün renklere dön' },
+        { k: 'sep' },
         { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => c.dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
         { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => c.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },
       ],

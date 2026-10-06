@@ -14,9 +14,10 @@
     const im = C.imgs[l.src];
     if (!im) { out.push({ t: 'rect', x: l.x, y: l.y, w: l.w, h: l.h, fill: '#C9CACD', opacity: l.op }); return; }
     const pr = C.processed(l);
-    const s = Math.max(l.w / im.w, l.h / im.h) * l.zoom;
+    const rg = C.cropRegion(im, l.crop);
+    const s = Math.max(l.w / rg.w, l.h / rg.h) * l.zoom;
     const dw = im.w * s, dh = im.h * s;
-    const dx = l.x + (l.w - dw) * l.ox, dy = l.y + (l.h - dh) * l.oy;
+    const dx = l.x + (l.w - rg.w * s) * l.ox - rg.x * s, dy = l.y + (l.h - rg.h * s) * l.oy - rg.y * s;
     const mp = C.maskPts(l.mask, l.x, l.y, l.w, l.h);
     const clip = mp ? { id: 'ph' + l.id, pts: mp } : { id: 'ph' + l.id, x: l.x, y: l.y, w: l.w, h: l.h };
     out.push({ t: 'g', clip: clip, opacity: l.op, items: [{ t: 'img', href: pr.href, ik: pr.ik, x: dx, y: dy, w: dw, h: dh }] });

@@ -62,6 +62,10 @@
         region = { x: 0, y: 0, w: im.w, h: im.h };
       } else msg = 'Görsel bulunamadı';
     } else msg = 'Araç çıktısı seçin ya da görsel yükleyin';
+    if (img && region && p.crop && (p.crop.l || p.crop.t || p.crop.r || p.crop.b)) {
+      const c = p.crop;
+      region = { x: region.x + region.w * c.l, y: region.y + region.h * c.t, w: Math.max(4, region.w * (1 - c.l - c.r)), h: Math.max(4, region.h * (1 - c.t - c.b)) };
+    }
     if (img) {
       const k = p.fit === 'contain' ? Math.min(bw / region.w, bh / region.h) : Math.max(bw / region.w, bh / region.h);
       const s = k * p.zoom;
@@ -247,7 +251,9 @@
     const refs = [];
     const e2 = Object.assign({}, env, { refs: refs });
     doc.panels.forEach((p) => { if (!p.hidden) T.panelPrims(p, d, e2, prims); });
-    return { prims: prims, W: sz.w, H: sz.h, refs: refs };
+    // tek renk: her şey seçilen rengin tonlarına çevrilir (görüntüler de)
+    const out = doc.mono && doc.mono.on ? App.board.monoPrims(prims, doc.mono.col) : prims;
+    return { prims: out, W: sz.w, H: sz.h, refs: refs };
   };
   /* belgedeki tüm araç kaynakları (görünür paneller) */
   T.refsOf = function (doc) {

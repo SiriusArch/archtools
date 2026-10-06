@@ -26,6 +26,26 @@
   ctl.colSet = (patch) => ctl.dispatch({ type: 'COL_SET', patch: patch });
   ctl.colSetL = (id, patch) => ctl.dispatch({ type: 'COL_SET_L', id: id, patch: patch });
   ctl.colLive = function (id, patch) { ctl.colLiveBegin(); ctl.dispatch({ type: 'COL_LIVE', id: id, patch: patch }); };
+  /* kırpma: kutu, kaynak görselin ölçeğini koruyarak kırpılan bölgeye uyar (zoom 1 iken); yoksa görsel kutuyu doldurur */
+  let cropStart = null;
+  ctl.colCrop = function (id, crop, commit) {
+    const l = doc().layers.find((q) => q.id === id);
+    if (!l) return;
+    const im = C.imgs[l.src];
+    if (!cropStart || cropStart.id !== id) cropStart = { id: id, crop: l.crop, x: l.x, y: l.y, w: l.w, h: l.h, zoom: l.zoom };
+    const c0 = cropStart;
+    const nc = C.cleanCrop(crop);
+    let patch = { crop: nc };
+    if (im && c0.zoom <= 1.001) {
+      const r0 = C.cropRegion(im, c0.crop), r1 = C.cropRegion(im, nc);
+      const s0 = Math.max(c0.w / r0.w, c0.h / r0.h);
+      const w = Math.max(24, Math.round(r1.w * s0)), h = Math.max(24, Math.round(r1.h * s0));
+      patch = Object.assign(patch, { x: Math.round(c0.x + c0.w / 2 - w / 2), y: Math.round(c0.y + c0.h / 2 - h / 2), w: w, h: h, zoom: 1, ox: 0.5, oy: 0.5 });
+    }
+    ctl.colLive(id, patch);
+    if (commit) { cropStart = null; ctl.colLiveEnd(); }
+  };
+  ctl.colCropReset = function (id) { cropStart = null; ctl.colCrop(id, { l: 0, t: 0, r: 0, b: 0 }, true); };
   ctl.colDel = (id) => ctl.dispatch({ type: 'COL_DEL', id: id });
   ctl.colDup = (id) => ctl.dispatch({ type: 'COL_DUP', id: id });
   ctl.colOrder = (id, o) => ctl.dispatch({ type: 'COL_ORDER', id: id, dir: o && o.dir, to: o && o.to });

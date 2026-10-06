@@ -56,3 +56,52 @@
 .fitem-hit:hover { fill: rgba(23, 24, 27, .07); }
 .fitem-hit:focus-visible { stroke: var(--ink); stroke-width: 3; }
 .fhandle { fill: var(--surface, #fff); stroke: var(--ink); stroke-width: 2; pointer-events: all; }
+
+/* Mekân Etüdü (serbest düzen): araç ızgarası, şekil seçici, donatı, ek öğeler, adım şeridi */
+.tool-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tool-grid .btn { justify-content: flex-start; width: 100%; min-width: 0; }
+.board-stage.is-orbit .board-svg-mekan { cursor: grab; }
+.board-svg-mekan { cursor: default; }
+.ehit { cursor: grab; pointer-events: all; outline: none; }
+.ehit:hover { fill: rgba(23, 24, 27, .07); }
+.ehit:focus-visible { stroke: var(--ink); stroke-width: 3; }
+.shp-wrap { display: flex; flex-direction: column; gap: 8px; }
+.shp-grp { display: flex; flex-direction: column; gap: 4px; }
+.shp-cap { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; color: var(--ink-2); }
+.shp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 6px; }
+.shp { display: grid; place-items: center; aspect-ratio: 1; min-width: 0; padding: 4px; border: 0; cursor: pointer; color: var(--ink); background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-3, currentColor); }
+.shp-svg { width: 100%; height: 100%; display: block; }
+.shp:hover { background: rgba(23, 24, 27, .06); }
+.shp.on { background: var(--ink); color: var(--on-ink, #fff); box-shadow: none; }
+.shp:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.fr-lv { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fr-lv .inp { flex: 1 1 110px; min-width: 0; }
+.frow-lv { flex: none; font-size: 11.5px; font-weight: 700; padding: 1px 6px; box-shadow: inset 0 0 0 1.5px currentColor; }
+.mini-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.mini-metrics div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mini-metrics span { font-size: 11.5px; color: var(--ink-2); }
+.mini-metrics b { font-size: 14px; }
+.ekind { flex: none; width: 14px; height: 14px; display: inline-block; background: var(--ink); }
+.ekind-void { background: transparent; box-shadow: inset 0 0 0 2px var(--ink); }
+.ekind-green { background: var(--ink-3, #8C9199); border-radius: 50%; }
+.ekind-tree { background: var(--ink-3, #8C9199); border-radius: 50%; width: 10px; height: 10px; margin: 2px; }
+.ekind-arrow { height: 3px; margin: 5px 0; }
+.efoot { display: flex; flex-direction: column; gap: 8px; min-width: 0; width: 100%; }
+.estrip { display: flex; flex-wrap: wrap; gap: 8px; }
+.echip { display: inline-flex; align-items: center; gap: 8px; max-width: 220px; min-height: 34px; padding: 0 12px; border: 0; cursor: pointer; color: var(--ink); background: transparent; font: 700 13px var(--f-body); box-shadow: inset 0 0 0 1.5px var(--ink-3, currentColor); }
+.echip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.echip:disabled { opacity: .35; cursor: default; }
+@media (max-width: 640px) { .echip { max-width: 150px; } }
+.estep { display: flex; flex-direction: column; gap: 8px; padding: 8px 0; }
+.estep-head { display: flex; align-items: center; gap: 8px; }
+.estep-head .inp { flex: 1 1 auto; min-width: 0; }
+.estep-n { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; font-size: 12.5px; font-weight: 700; box-shadow: inset 0 0 0 1.5px currentColor; }
+.estep-desc { width: 100%; resize: vertical; min-height: 72px; font: inherit; line-height: 1.45; }
+.estep-act { display: inline-flex; margin-left: auto; }
+.estep-act .icon-btn { width: 28px; height: 28px; }
+.estep-act .icon-btn:nth-child(1) svg { transform: rotate(-90deg); }
+.estep-act .icon-btn:nth-child(2) svg { transform: rotate(90deg); }
+.estep-list { list-style: none; margin: 0; padding: 0; }
+.tgl-row { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.frel-act { display: inline-flex; align-items: center; gap: 4px; flex: none; }
+.main-kat .tabs .tab { padding-left: 9px; padding-right: 9px; }

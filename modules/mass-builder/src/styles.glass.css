@@ -1,5 +1,0 @@
-/* Modül 9 — Birim Oluşturucu: glass */
-.uchip { border-radius: 99px; box-shadow: var(--raise-sm); background: var(--glass-2); }
-.uchip.on { box-shadow: var(--press-sm); background: var(--ink); }
-.ustep-n { border-radius: 50%; }
-.ustep-desc { border-radius: 14px; }

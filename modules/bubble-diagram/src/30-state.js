@@ -76,7 +76,6 @@
     if (App.site && !project.site) project = Object.assign({}, project, App.site.init());
     if (App.design && !project.design) project = Object.assign({}, project, { design: App.design.defaults() });
     if (App.cost && !project.fiz) project = Object.assign({}, project, { fiz: App.cost.defaults() });
-    if (App.unit && !project.unit) project = Object.assign({}, project, { unit: App.unit.init(project) });
     if (App.plan && !project.plan) project = Object.assign({}, project, { plan: App.plan.defaults() });
     if (App.collage && !project.collage) project = Object.assign({}, project, { collage: App.collage.defaults() });
     if (App.tpl && !project.tpl) project = Object.assign({}, project, { tpl: App.tpl.defaults() });
@@ -88,7 +87,7 @@
       ui: {
         module: 'islev', tab: 'spaces', assistantOpen: false, asTab: 'analysis', messages: [], toast: null, highlight: null,
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
-        site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, unit: App.unitDefaults ? App.unitDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, tpl: App.tplDefaults ? App.tplDefaults() : {}, geo: { busy: null, msg: '', err: null },
+        site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, etut: App.etutDefaults ? App.etutDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, tpl: App.tplDefaults ? App.tplDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
         busy: null, hintDismissed: false, style: App.theme.name, boardWide: readWide(),
       },
@@ -100,7 +99,7 @@
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
   // geri al/ileri al: kat etüdü (study), arsa / imar (site) ve aday konumlar (cand) da projeyle birlikte geri alınır
-  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, unit: project.unit, plan: project.plan, collage: project.collage, tpl: project.tpl }; }
+  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, plan: project.plan, collage: project.collage, tpl: project.tpl }; }
   function withHistory(state, project) {
     const meta = project.meta.example ? Object.assign({}, project.meta, { example: false }) : project.meta;
     return Object.assign({}, state, {

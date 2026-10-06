@@ -86,17 +86,11 @@
     ctl.planView({ tool: 'select', draft: null }, true);
     ctl.toast('Örnek vaziyet yüklendi. Öğeleri sürükleyin, köşeleri çekin, kendi çiziminizi ekleyin.', 'success');
   };
-  ctl.planFromUnit = function () {
-    const u = get().project.unit;
-    if (!u) return;
-    // seçili adımda kütle yoksa kütle içeren son adım alınır
-    let i = Math.min(u.cur, u.steps.length - 1);
-    if (!u.steps[i].els.some((e) => e.t === 'mass')) {
-      for (let k = u.steps.length - 1; k >= 0; k--) if (u.steps[k].els.some((e) => e.t === 'mass')) { i = k; break; }
-    }
-    const els = plan.fromUnit(Object.assign({}, u, { cur: i }));
+  ctl.planFromStudy = function () {
+    const els = plan.fromStudy(get().project);
+    if (!els) { ctl.toast('Önce Mekân Etüdü’nde mekân ekleyin.', 'error'); return; }
     load(els, { scale: 500 });
-    ctl.toast('Birim Oluşturucu’daki “' + (u.steps[i].title || 'adım') + '” adımı aktarıldı.', 'success');
+    ctl.toast('Mekân Etüdü’ndeki düzen vaziyete aktarıldı (mekânlar tek yapı kütlesi olarak).', 'success');
   };
   ctl.planFromImar = function () {
     const els = plan.fromImar(get().project);
@@ -112,7 +106,10 @@
     ctl.dispatch({ type: 'UI', patch: { busy: label } });
     const P = get().project;
     const sc = plan.scene(P.plan, { live: false });
-    App.sheet.exportScene(sc.prims, App.sheet.W, App.sheet.H, P.meta.name + '-vaziyet-1-' + P.plan.scale, kind).then((r) => ctl.report(r, label + ' hazır')).catch((e) => ctl.report({ ok: false, message: e && e.message }));
+    App.basemap.preload(sc.prims).then((failed) => {
+      if (failed) ctl.toast('Harita karoları bu sağlayıcıdan çıktıya eklenemedi; çıktıda harita boş görünebilir. Başka bir sağlayıcı deneyin.', 'error');
+      return App.sheet.exportScene(sc.prims, App.sheet.W, App.sheet.H, P.meta.name + '-vaziyet-1-' + P.plan.scale, kind);
+    }).then((r) => ctl.report(r, label + ' hazır')).catch((e) => ctl.report({ ok: false, message: e && e.message }));
   };
 
   /* DXF: gerçek koordinat (m), y yukarı; her tür ayrı katman */

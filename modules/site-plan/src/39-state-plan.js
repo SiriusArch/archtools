@@ -100,7 +100,7 @@
         return Object.assign(apply(o, true), { selectedId: null });
       }
       case 'PLAN_CLEAR':
-        return Object.assign(apply(Object.assign({}, plan.defaults(), { title: p.title, style: p.style }), true), { selectedId: null });
+        return Object.assign(apply(Object.assign({}, plan.defaults(), { title: p.title, style: p.style, map: p.map }), true), { selectedId: null });
       default:
     }
     return same();
@@ -114,7 +114,7 @@
     const M = plan.metrics(p);
     return {
       sitePlan: {
-        version: 1, unit: 'm', title: p.title, scale: p.scale, center: [p.cx, p.cy], style: p.style, snap: p.snap, grid: p.grid, shadow: p.shadow, labels: p.labels,
+        version: 1, unit: 'm', title: p.title, scale: p.scale, center: [p.cx, p.cy], style: p.style, snap: p.snap, grid: p.grid, shadow: p.shadow, labels: p.labels, basemap: p.map,
         elements: p.els.map((e) => {
           if (e.t === 'tree') return { type: 'tree', id: e.id, x: e.x, y: e.y, radius: e.r };
           if (e.t === 'text') return { type: 'text', id: e.id, x: e.x, y: e.y, text: e.s, size: e.size };
@@ -142,7 +142,7 @@
       if (!plan.TYPES[e.type]) return null;
       return { id: id, t: e.type, pts: e.points, floors: e.floors, k: e.kind, w: e.width, smooth: e.smooth };
     }).filter(Boolean);
-    const doc = plan.cleanDoc({ title: x.title, scale: x.scale, cx: x.center && x.center[0], cy: x.center && x.center[1], style: x.style, snap: x.snap, grid: x.grid, shadow: x.shadow, labels: x.labels, els: els });
+    const doc = plan.cleanDoc({ title: x.title, scale: x.scale, cx: x.center && x.center[0], cy: x.center && x.center[1], style: x.style, snap: x.snap, grid: x.grid, shadow: x.shadow, labels: x.labels, map: x.basemap, els: els });
     return { plan: doc };
   });
 })();

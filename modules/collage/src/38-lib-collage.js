@@ -168,7 +168,7 @@
   /* ---------- katman fabrikaları ---------- */
   const base = (t) => ({ id: uid(), t: t, name: '', hidden: false, locked: false });
   C.make = {
-    photo: (src, x, y, w, h, o) => Object.assign(base('photo'), { src: src, x: x, y: y, w: w, h: h, zoom: 1, ox: 0.5, oy: 0.5, bw: true, con: 1.15, bri: 0, op: 1, mask: 'rect', flip: false }, o || {}),
+    photo: (src, x, y, w, h, o) => Object.assign(base('photo'), { src: src, x: x, y: y, w: w, h: h, zoom: 1, ox: 0.5, oy: 0.5, crop: { l: 0, t: 0, r: 0, b: 0 }, bw: true, con: 1.15, bri: 0, op: 1, mask: 'rect', flip: false }, o || {}),
     shape: (kind, x, y, w, h, col, o) => Object.assign(base('shape'), { kind: kind, x: x, y: y, w: w, h: h, rot: 0, col: col || '#D93A1F', op: 0.92, blend: 'normal' }, o || {}),
     fig: (kind, x, y, w, o) => Object.assign(base('fig'), { kind: kind, x: x, y: y, w: w, rot: 0, flip: false, col: '#FFFFFF', op: 1 }, o || {}),
     line: (kind, pts, o) => Object.assign(base('line'), { kind: kind, pts: pts, col: '#17181B', w: 3, dash: 0, op: 1, hand: true }, o || {}),
@@ -187,12 +187,26 @@
 
   /* ---------- temizleme ---------- */
   const clampBox = (o) => ({ x: r1(U.clamp(num(o.x, 0), -4000, 6000)), y: r1(U.clamp(num(o.y, 0), -4000, 6000)), w: r1(U.clamp(num(o.w, 100), 8, 6000)), h: r1(U.clamp(num(o.h, 100), 8, 6000)) });
+  /* kırpma: kaynak görselin her kenarından kesilen oran (0–0.9; karşılıklı kenarların toplamı en çok %94) */
+  C.cleanCrop = function (c) {
+    const o = c && typeof c === 'object' ? c : {};
+    const f = (v) => { v = Number(v); return isFinite(v) ? Math.round(U.clamp(v, 0, 0.9) * 1000) / 1000 : 0; };
+    let l = f(o.l), t = f(o.t), r = f(o.r), b = f(o.b);
+    if (l + r > 0.94) { const k = 0.94 / (l + r); l *= k; r *= k; }
+    if (t + b > 0.94) { const k = 0.94 / (t + b); t *= k; b *= k; }
+    return { l: l, t: t, r: r, b: b };
+  };
+  /* görünen kaynak bölgesi (kaynak piksel) */
+  C.cropRegion = function (im, c) {
+    const k = c || { l: 0, t: 0, r: 0, b: 0 };
+    return { x: im.w * k.l, y: im.h * k.t, w: Math.max(2, im.w * (1 - k.l - k.r)), h: Math.max(2, im.h * (1 - k.t - k.b)) };
+  };
   C.clean = function (l, patch) {
     const o = Object.assign({}, l, patch || {});
     const b = { id: o.id, t: o.t, name: String(o.name || '').slice(0, 40), hidden: !!o.hidden, locked: !!o.locked };
     const op = (v, d) => r2(U.clamp(num(v, d), 0.05, 1));
     if (o.t === 'photo') {
-      return Object.assign(b, clampBox(o), { src: String(o.src || ''), zoom: r2(U.clamp(num(o.zoom, 1), 1, 5)), ox: r2(U.clamp(num(o.ox, 0.5), 0, 1)), oy: r2(U.clamp(num(o.oy, 0.5), 0, 1)), bw: o.bw !== false, con: r2(U.clamp(num(o.con, 1.15), 0.5, 2.2)), bri: r2(U.clamp(num(o.bri, 0), -0.4, 0.4)), op: op(o.op, 1), mask: ['rect', 'ellipse', 'arch'].indexOf(o.mask) >= 0 ? o.mask : 'rect', flip: !!o.flip });
+      return Object.assign(b, clampBox(o), { src: String(o.src || ''), zoom: r2(U.clamp(num(o.zoom, 1), 1, 5)), ox: r2(U.clamp(num(o.ox, 0.5), 0, 1)), oy: r2(U.clamp(num(o.oy, 0.5), 0, 1)), crop: C.cleanCrop(o.crop), bw: o.bw !== false, con: r2(U.clamp(num(o.con, 1.15), 0.5, 2.2)), bri: r2(U.clamp(num(o.bri, 0), -0.4, 0.4)), op: op(o.op, 1), mask: ['rect', 'ellipse', 'arch'].indexOf(o.mask) >= 0 ? o.mask : 'rect', flip: !!o.flip });
     }
     if (o.t === 'shape') {
       const kind = ['rect', 'ellipse', 'tri', 'arch', 'poly'].indexOf(o.kind) >= 0 ? o.kind : 'rect';
@@ -346,51 +360,6 @@
     });
     walk(prims);
     return Promise.all(jobs);
-  };
-
-  /* ---------- örnek fotoğraflar (üretilmiş, siyah-beyaz) ---------- */
-  C.demoPhoto = function (kind, seed) {
-    const W = 1500, H = 1000;
-    const cv = document.createElement('canvas');
-    cv.width = W; cv.height = H;
-    const g = cv.getContext('2d');
-    const R = rng(seed || 7);
-    const sky = g.createLinearGradient(0, 0, 0, H * 0.7);
-    sky.addColorStop(0, '#9a9da2'); sky.addColorStop(1, '#e4e5e7');
-    g.fillStyle = sky; g.fillRect(0, 0, W, H);
-    if (kind === 'cephe') {
-      // uzak siluet
-      g.fillStyle = '#b9bbbf';
-      for (let x = 0; x < W; x += 60 + R() * 60) { const hh = 120 + R() * 260; g.fillRect(x, H * 0.66 - hh, 40 + R() * 70, hh); }
-      // ana hacim: betonarme cephe, kolon-kiriş ızgarası
-      g.fillStyle = '#6f7277'; g.fillRect(180, 60, 1140, H * 0.6);
-      g.fillStyle = '#8c8f94'; g.fillRect(180, 60, 1140, 22);
-      const cols = 9, rows = 5, cw = 1140 / cols, rh = (H * 0.6 - 40) / rows;
-      for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
-        const x = 180 + i * cw + 14, y = 100 + j * rh + 8;
-        const v = 30 + R() * 55;
-        g.fillStyle = 'rgb(' + v + ',' + (v + 4) + ',' + (v + 8) + ')'; g.fillRect(x, y, cw - 28, rh - 22);
-        g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x, y, (cw - 28) * 0.3, rh - 22);
-      }
-      g.fillStyle = 'rgba(20,22,26,.28)'; g.beginPath(); g.moveTo(180, 60); g.lineTo(520, 60); g.lineTo(180, H * 0.62); g.closePath(); g.fill();
-    } else if (kind === 'meydan') {
-      g.fillStyle = '#c9cacd'; g.fillRect(0, 0, W, H * 0.55);
-      for (let i = 0; i < 7; i++) { const x = 90 + i * 210; g.fillStyle = i % 2 ? '#5d6065' : '#74777c'; g.fillRect(x, 80, 74, H * 0.62); g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(x + 74, 80, 24, H * 0.62); }
-      g.fillStyle = '#4a4d52'; g.fillRect(40, 60, W - 80, 34);
-    } else {
-      for (let k = 0; k < 9; k++) { const cx = R() * W, cy = 80 + R() * 380; g.fillStyle = 'rgba(255,255,255,' + (0.35 + R() * 0.3) + ')'; g.beginPath(); g.ellipse(cx, cy, 160 + R() * 220, 36 + R() * 50, 0, 0, Math.PI * 2); g.fill(); }
-    }
-    // zemin
-    const gr = g.createLinearGradient(0, H * 0.62, 0, H);
-    gr.addColorStop(0, '#6a6d72'); gr.addColorStop(1, '#2c2e32');
-    g.fillStyle = gr; g.fillRect(0, H * 0.62, W, H * 0.38);
-    g.strokeStyle = 'rgba(255,255,255,.14)'; g.lineWidth = 2;
-    for (let i = -8; i < 20; i++) { g.beginPath(); g.moveTo(W / 2 + i * 40, H * 0.62); g.lineTo(W / 2 + i * 260, H); g.stroke(); }
-    // gren
-    const id = g.getImageData(0, 0, W, H), d = id.data;
-    for (let i = 0; i < d.length; i += 4) { const n = (R() - 0.5) * 26; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
-    g.putImageData(id, 0, 0);
-    return { name: { cephe: 'Örnek cephe', meydan: 'Örnek meydan', gok: 'Örnek gökyüzü' }[kind] || 'Örnek', w: W, h: H, src: cv.toDataURL('image/jpeg', 0.85) };
   };
 
   /* ---------- örnek kolaj ---------- */

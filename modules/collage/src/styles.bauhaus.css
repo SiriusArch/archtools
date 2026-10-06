@@ -2,3 +2,8 @@
 .btn-tool.on, .btn-tool[aria-pressed="true"] { background: var(--blue); color: #fff; box-shadow: 4px 4px 0 var(--shadow); }
 .fig-tile { background: var(--ink); }
 .img-btn { box-shadow: inset 0 0 0 3px var(--ink); }
+.stock-tab { text-transform: uppercase; letter-spacing: .06em; box-shadow: inset 0 0 0 3px var(--ink); background: var(--surface); }
+.stock-tab.on { background: var(--blue); color: #fff; box-shadow: 3px 3px 0 var(--shadow); }
+.stock-btn img { box-shadow: 0 0 0 3px var(--ink); }
+.stock-btn:hover img { box-shadow: 0 0 0 3px var(--blue), 4px 4px 0 var(--shadow); }
+.stock-btn span { text-transform: uppercase; letter-spacing: .05em; }

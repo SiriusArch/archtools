@@ -159,6 +159,101 @@
     return P;
   }
 
+  /* ---------------- tek renk (monokrom) ----------------
+     Her renk, parlaklığına göre seçilen rengin (siyah) ile beyaz arasındaki tonuna çevrilir; görüntüler (img) aynı eşlemeyle boyanır.
+     App.board.monoPrims(prims, '#1F3A5F') → yeni primitif listesi (girdiyi değiştirmez). */
+  const NAMED = { white: [255, 255, 255, 1], black: [0, 0, 0, 1] };
+  function parseColor(c) {
+    if (typeof c !== 'string') return null;
+    const s = c.trim().toLowerCase();
+    if (NAMED[s]) return NAMED[s];
+    let m = /^#([0-9a-f]{3})$/.exec(s);
+    if (m) return [parseInt(m[1][0] + m[1][0], 16), parseInt(m[1][1] + m[1][1], 16), parseInt(m[1][2] + m[1][2], 16), 1];
+    m = /^#([0-9a-f]{6})([0-9a-f]{2})?$/.exec(s);
+    if (m) { const n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255, m[2] ? parseInt(m[2], 16) / 255 : 1]; }
+    m = /^rgba?\(\s*([\d.]+)[ ,]+([\d.]+)[ ,]+([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)$/.exec(s);
+    if (m) return [+m[1], +m[2], +m[3], m[4] != null ? +m[4] : 1];
+    return null;
+  }
+  const lumOf = (r, g, b) => (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  function monoColor(c, base) {
+    const q = parseColor(c);
+    if (!q) return c;
+    const L = lumOf(q[0], q[1], q[2]);
+    const r = Math.round(base[0] + (255 - base[0]) * L), g = Math.round(base[1] + (255 - base[1]) * L), b = Math.round(base[2] + (255 - base[2]) * L);
+    if (q[3] >= 0.999) return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + Math.round(q[3] * 1000) / 1000 + ')';
+  }
+  function monoPrims(prims, hex) {
+    const base = parseColor(hex);
+    if (!base) return prims;
+    const norm = '#' + ((1 << 24) | (base[0] << 16) | (base[1] << 8) | base[2]).toString(16).slice(1);
+    const walk = (p) => {
+      const q = Object.assign({}, p);
+      if (typeof q.fill === 'string') q.fill = monoColor(q.fill, base);
+      if (typeof q.stroke === 'string') q.stroke = monoColor(q.stroke, base);
+      if (q.shadow && typeof q.shadow.color === 'string') q.shadow = Object.assign({}, q.shadow, { color: monoColor(q.shadow.color, base) });
+      if (q.t === 'img') q.tint = norm;
+      if (q.t === 'g' && q.items) q.items = q.items.map(walk);
+      return q;
+    };
+    return prims.map(walk);
+  }
+  /* SVG ön izleme için: belge içinde bir kez tanımlanan "iki ton" süzgeci */
+  function monoFilterUrl(hex) {
+    const base = parseColor(hex);
+    if (!base || typeof document === 'undefined') return null;
+    const id = 'mono-' + hex.replace('#', '');
+    if (!document.getElementById(id)) {
+      const NS = 'http://www.w3.org/2000/svg';
+      let defs = document.getElementById('mono-defs');
+      if (!defs) {
+        defs = document.createElementNS(NS, 'svg');
+        defs.setAttribute('id', 'mono-defs'); defs.setAttribute('width', '0'); defs.setAttribute('height', '0'); defs.setAttribute('aria-hidden', 'true');
+        defs.style.position = 'absolute';
+        document.body.appendChild(defs);
+      }
+      const f = document.createElementNS(NS, 'filter');
+      f.setAttribute('id', id); f.setAttribute('color-interpolation-filters', 'sRGB'); f.setAttribute('x', '0'); f.setAttribute('y', '0'); f.setAttribute('width', '1'); f.setAttribute('height', '1');
+      const cm = document.createElementNS(NS, 'feColorMatrix');
+      cm.setAttribute('type', 'matrix'); cm.setAttribute('values', '0.299 0.587 0.114 0 0 0.299 0.587 0.114 0 0 0.299 0.587 0.114 0 0 0 0 0 1 0');
+      const ct = document.createElementNS(NS, 'feComponentTransfer');
+      ['R', 'G', 'B'].forEach((ch, i) => {
+        const fn = document.createElementNS(NS, 'feFunc' + ch);
+        fn.setAttribute('type', 'table'); fn.setAttribute('tableValues', (base[i] / 255).toFixed(4) + ' 1');
+        ct.appendChild(fn);
+      });
+      f.appendChild(cm); f.appendChild(ct);
+      defs.appendChild(f);
+    }
+    return 'url(#' + id + ')';
+  }
+  const tintCache = new Map();
+  /* tuval çıktısı için: görüntüyü piksel piksel iki tonlu yapar (en çok 2048 px) */
+  function tintedSource(im, key, hex) {
+    const ck = key + '|' + hex;
+    if (tintCache.has(ck)) return tintCache.get(ck);
+    const base = parseColor(hex);
+    const k = Math.min(1, 2048 / Math.max(im.naturalWidth, im.naturalHeight));
+    const w = Math.max(1, Math.round(im.naturalWidth * k)), hh = Math.max(1, Math.round(im.naturalHeight * k));
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = hh;
+    const cx = cv.getContext('2d');
+    cx.drawImage(im, 0, 0, w, hh);
+    let out = cv;
+    try {
+      const id = cx.getImageData(0, 0, w, hh), d = id.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const L = lumOf(d[i], d[i + 1], d[i + 2]);
+        d[i] = base[0] + (255 - base[0]) * L; d[i + 1] = base[1] + (255 - base[1]) * L; d[i + 2] = base[2] + (255 - base[2]) * L;
+      }
+      cx.putImageData(id, 0, 0);
+    } catch (err) { out = im; } // harici kaynak tuvali kirletmişse özgün görüntü çizilir
+    tintCache.set(ck, out);
+    if (tintCache.size > 24) tintCache.delete(tintCache.keys().next().value);
+    return out;
+  }
+
   /* ---------------- SVG çizici (sanal DOM düğümü) ---------------- */
   function shadowCss(sh) { return 'drop-shadow(' + sh.dx + 'px ' + sh.dy + 'px ' + sh.blur + 'px ' + (sh.css || sh.color) + ')'; }
 
@@ -169,6 +264,8 @@
     switch (p.t) {
       case 'img': {
         // görüntü: p.href (data URL), x, y, w, h; p.clip (isteğe bağlı, dikdörtgen) ile kırpılır
+        if (p.tint) { const fu = monoFilterUrl(p.tint); if (fu) a.style = Object.assign(a.style || {}, { filter: fu }); else a.style = Object.assign(a.style || {}, { filter: 'grayscale(1)' }); }
+        else if (p.gray) a.style = Object.assign(a.style || {}, { filter: 'grayscale(1)' });
         const im = h('image', Object.assign(a, { x: p.x, y: p.y, width: p.w, height: p.h, href: p.href, preserveAspectRatio: 'none', 'pointer-events': 'none' }));
         if (!p.clip) return im;
         const cid = 'clip-' + p.clip.id;
@@ -244,7 +341,11 @@
         const im = App.board.imgCache && App.board.imgCache[p.ik || p.href];
         if (im && im.complete && im.naturalWidth) {
           if (p.clip) { ctx.beginPath(); ctx.rect(p.clip.x, p.clip.y, p.clip.w, p.clip.h); ctx.clip(); }
-          ctx.drawImage(im, p.x, p.y, p.w, p.h);
+          if (p.tint) ctx.drawImage(tintedSource(im, p.ik || p.href, p.tint), p.x, p.y, p.w, p.h);
+          else {
+            if (p.gray && 'filter' in ctx) ctx.filter = 'grayscale(1)';
+            ctx.drawImage(im, p.x, p.y, p.w, p.h);
+          }
         }
         break;
       }
@@ -331,6 +432,6 @@
 
   App.board = {
     staticPrims: staticPrims, relLinePrims: relLinePrims, bubblePrims: bubblePrims, infoOf: infoOf,
-    imgCache: {}, allPrims: allPrims, primToV: primToV, paintPrim: paintPrim, toCanvas: toCanvas, primsToCanvas: primsToCanvas, shadowCss: shadowCss,
+    imgCache: {}, allPrims: allPrims, primToV: primToV, paintPrim: paintPrim, toCanvas: toCanvas, primsToCanvas: primsToCanvas, shadowCss: shadowCss, monoPrims: monoPrims, monoColor: (c, hex) => monoColor(c, parseColor(hex) || [0, 0, 0]),
   };
 })();

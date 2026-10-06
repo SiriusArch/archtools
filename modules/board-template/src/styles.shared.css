@@ -40,3 +40,7 @@
 .tkind-legend, .tkind-facts { background: transparent; box-shadow: inset 0 0 0 2px var(--ink-3, #8C9199); }
 .tkind-line { height: 3px; margin: 5px 0; }
 .tkind-north { border-radius: 50%; width: 12px; height: 12px; background: transparent; box-shadow: inset 0 0 0 2px var(--ink); }
+
+/* tek renk (monokrom) ve görsel kırpma */
+.mono-box { display: flex; flex-direction: column; gap: 10px; padding-bottom: 12px; margin-bottom: 4px; border-bottom: 1.5px solid var(--ink-3, rgba(0, 0, 0, .15)); }
+.crop-wrap { display: flex; flex-direction: column; gap: 8px; }

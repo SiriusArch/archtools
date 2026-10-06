@@ -14,3 +14,12 @@
 .fr-bad { background: var(--red); color: #fff; }
 .fitem-hit:hover { fill: rgba(38, 29, 17, .09); }
 .fhandle { stroke: var(--blue-2); }
+
+/* Mekân Etüdü: serbest düzen — Bauhaus */
+.echip { text-transform: uppercase; letter-spacing: .06em; box-shadow: inset 0 0 0 3px var(--ink); background: var(--surface); }
+.shp { box-shadow: inset 0 0 0 2.5px var(--ink); background: var(--surface); }
+.shp.on { background: var(--blue); color: #fff; box-shadow: 3px 3px 0 var(--shadow); }
+.ehit:hover { fill: rgba(38, 29, 17, .09); }
+.estep-n { box-shadow: inset 0 0 0 2.5px var(--ink); }
+.ekind-void { box-shadow: inset 0 0 0 2px var(--ink); }
+.shp-cap { text-transform: uppercase; }

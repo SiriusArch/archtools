@@ -5,7 +5,7 @@
 ## Dosyalar
 | Dosya | İçerik |
 |---|---|
-| `38-lib-plan.js` | `App.plan`: veri modeli, geometri (`plan.geo`), öğe fabrikaları (`plan.make`), temizleme, ölçüler (TAKS / KAKS / yeşil oranı), örnek vaziyet, `fromUnit`, `fromImar` |
+| `38-lib-plan.js` | `App.plan`: veri modeli, geometri (`plan.geo`), öğe fabrikaları (`plan.make`), temizleme, ölçüler (TAKS / KAKS / yeşil oranı), örnek vaziyet, `fromStudy`, `fromImar` |
 | `39-lib-planscene.js` | `plan.scene(P.plan, {live})`: palet (sade / renkli), yol kenarlıkları, gölgeler, otopark taraması, ağaçlar, ölçek çubuğu, kuzey oku, lejant; pafta alanına kırpılmış grup |
 | `39-state-plan.js` | Reducer eklentisi `PLAN_*` ve `extensions.sitePlan` sağlayıcı / içe aktarıcı |
 | `78-ui-plan.js` | Sol panel (Çizim · Sayfa · Liste) ve pafta etkileşimi |

@@ -79,6 +79,7 @@
         ui.fld2('Tür', ui.segmented({ label: 'Yapı türü', wide: true, value: el.k, options: [{ v: 'yeni', label: 'Yeni' }, { v: 'mevcut', label: 'Mevcut' }], onchange: (v) => set({ k: v }) })),
         ui.fld2('Kat sayısı', ui.stepper({ label: 'Kat sayısı', value: el.floors, min: 1, max: 80, unit: 'kat', onchange: (v) => set({ floors: v }) }), 'Gölge uzunluğu kat sayısıyla büyür.'),
         h('p', { class: 'fr-area' }, h('b', { class: 'mono' }, fmt(a, 1) + ' m²'), ' taban · ', h('span', { class: 'mono' }, fmt(a * el.floors) + ' m²'), ' toplam'),
+        ui.btn('İçini Mekân Etüdü’nde aç', { icon: 'layout', cls: 'btn-yellow', onclick: () => c.freeLinkEl(el.id), title: 'Bu yapının içini mekân mekân tasarla; çevre (yollar, komşu yapılar, harita) etütte de görünür' }),
       ];
     } else if (el.t === 'road') {
       body = [
@@ -117,11 +118,10 @@
     const c = ctl();
     const P = state.project;
     const hasParcel = !!(P.site && P.site.parcel && P.site.parcel.length >= 3);
-    const u = P.unit;
-    const hasUnit = !!(u && u.steps && u.steps.some((s) => s.els.some((e) => e.t === 'mass')));
+    const hasStudy = !!P.spaces.length;
     return ui.section('Başlangıç', h('div', { class: 'sec-box' },
       ui.btn('Örnek vaziyet', { icon: 'play', onclick: () => c.planSample(), title: 'Mahalle dokusu, yollar, yeşil alan ve proje parseliyle dolu örnek' }),
-      ui.btn('Birim Oluşturucu’dan al', { icon: 'cube', disabled: !hasUnit, onclick: () => c.planFromUnit(), title: hasUnit ? 'Modül 09’daki seçili adımı vaziyet planına aktar' : 'Önce Birim Oluşturucu’da bir kütle kurun' }),
+      ui.btn('Mekân Etüdü’nden al', { icon: 'cube', disabled: !hasStudy, onclick: () => c.planFromStudy(), title: hasStudy ? 'Modül 02’deki mekân düzenini tek yapı kütlesi olarak vaziyet planına aktar' : 'Önce Mekân Etüdü’nde mekân ekleyin' }),
       ui.btn('İmar parselinden al', { icon: 'parcel', disabled: !hasParcel, onclick: () => c.planFromImar(), title: hasParcel ? 'Modül 05’teki parseli ve kütle parçalarını aktar' : 'Önce Arsa / İmar modülünde bir parsel çizin' }),
       p.els.length ? ui.btn('Temizle', { icon: 'trash', onclick: () => c.planClear(), title: 'Tüm öğeleri sil (Geri al ile döndürülebilir)' }) : null,
       h('p', { class: 'note' }, 'Aktarılan öğeler üst üste eklenmez; mevcut çizimin yerini alır. Geri al ile dönebilirsiniz.')), null, 'pl-start');
@@ -131,6 +131,7 @@
     const c = ctl();
     const dxf = () => c.planDxf();
     return [
+      ui.basemapSection(state, p.map, { key: 'plan', onSet: (patch, live) => c.dispatch({ type: live ? 'PLAN_SET_LIVE' : 'PLAN_SET', patch: { map: Object.assign({}, p.map, patch) } }) }),
       ui.section('Sayfa', h('div', { class: 'sec-box' },
         ui.fld2('Pafta başlığı', h('input', { id: 'pl-title', class: 'inp', type: 'text', maxlength: 60, placeholder: 'Örn. Vaziyet planı', value: p.title, keep: true, onchange: (e) => c.planSet({ title: e.target.value.trim() }), onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } }), 'Boş bırakılırsa proje adı kullanılır.'),
         ui.fld2('Ölçek', ui.segmented({ label: 'Pafta ölçeği', wide: true, value: p.scale, options: plan.SCALES.map((s) => ({ v: s, label: '1/' + s })), onchange: (v) => c.planScale(v) }), 'A3 yatay: 1/1000’de pafta yaklaşık ' + fmt(plan.area().w / plan.pxPerM(1000)) + ' m genişliğindedir. Tekerlek de ölçeği değiştirir.'),
@@ -581,7 +582,7 @@
         : (sel ? h('div', { class: 'pl-chip' }, h('b', {}, nameOf(sel)),
           sel.t === 'bld' ? h('span', { class: 'mono' }, fmt(areaOf(sel)) + ' m² · ' + sel.floors + ' kat') : sel.t === 'road' ? h('span', { class: 'mono' }, fmt(G.polyLen(sel.pts)) + ' m · ' + fmt(sel.w, 1) + ' m') : sel.pts && sel.t !== 'road' ? h('span', { class: 'mono' }, fmt(areaOf(sel)) + ' m²') : null,
           h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null),
-      empty ? ui.emptyCard('Önce bir vaziyet çizin', 'Soldan bir araç seçip paftada çizin ya da hazır bir başlangıçla ilerleyin: örnek mahalle, Birim Oluşturucu’daki kütleniz ya da İmar modülündeki parseliniz.', [
+      empty ? ui.emptyCard('Önce bir vaziyet çizin', 'Soldan bir araç seçip paftada çizin ya da hazır bir başlangıçla ilerleyin: örnek mahalle, Mekân Etüdü’ndeki düzeniniz ya da İmar modülündeki parseliniz.', [
         ui.btn('Örnek vaziyet', { icon: 'play', cls: 'btn-primary', onclick: () => c.planSample() }),
         ui.btn('Yeni yapı çiz', { icon: 'rect', onclick: () => c.planTool('yeni') })]) : null);
 

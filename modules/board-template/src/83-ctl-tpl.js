@@ -34,6 +34,7 @@
   ctl.tplLiveBegin = function () { if (!liveOn) { liveOn = true; ctl.dispatch({ type: 'SNAPSHOT' }); } };
   ctl.tplLiveEnd = function () { liveOn = false; };
   ctl.tplSet = (patch, rescale) => ctl.dispatch({ type: 'TPL_SET', patch: patch, rescale: !!rescale });
+  ctl.tplMono = function (patch) { const m = (get().project.tpl && get().project.tpl.mono) || { on: false, col: T.MONO_DEFAULT }; ctl.tplSet({ mono: Object.assign({}, m, patch) }); };
   ctl.tplSetP = (id, patch) => ctl.dispatch({ type: 'TPL_SET_P', id: id, patch: patch });
   ctl.tplLive = function (id, patch) { ctl.tplLiveBegin(); ctl.dispatch({ type: 'TPL_LIVE', id: id, patch: patch }); };
   ctl.tplDel = (id) => ctl.dispatch({ type: 'TPL_DEL', id: id });

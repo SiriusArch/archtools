@@ -123,6 +123,32 @@
   }
 
   /* opts: { live, grid } */
+  /* Mekân Etüdü için çevre katmanı: vaziyet planının sade, gri tonlu hâli.
+     o: { X, Y (dünya → ekran), ppm, skip (çizilmeyecek öğe kimliği), win (dünya penceresi, yalnızca kırpma için) } */
+  plan.ctxPrims = function (P, o) {
+    const C = palette('sade');
+    const out = [];
+    const px = (pts) => pts.map((q) => [o.X(q[0]), o.Y(q[1])]);
+    const near = (pts) => {
+      if (!o.win) return true;
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      pts.forEach((q) => { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); });
+      return !(x1 < o.win.x0 || x0 > o.win.x1 || y1 < o.win.y0 || y0 > o.win.y1);
+    };
+    const els = P.els.filter((e) => e.id !== o.skip);
+    const by = (t, f) => els.filter((e) => e.t === t && (!f || f(e)) && (!e.pts || near(e.pts)));
+    by('water').forEach((e) => out.push({ t: 'path', d: pathOf(px(e.pts), e.smooth, true), fill: C.water, stroke: C.waterEdge, sw: 1 }));
+    by('green').forEach((e) => out.push({ t: 'path', d: pathOf(px(e.pts), e.smooth, true), fill: e.k === 'orman' ? C.forest : C.green, stroke: C.greenEdge, sw: 1 }));
+    by('plaza').forEach((e) => out.push({ t: 'path', d: pathOf(px(e.pts), e.smooth, true), fill: C.plaza, stroke: C.plazaEdge, sw: 1 }));
+    by('park').forEach((e) => out.push({ t: 'path', d: pathOf(px(e.pts), false, true), fill: C.park, stroke: C.plazaEdge, sw: 1 }));
+    const sw = (m, min) => Math.max(min || 1.2, m * o.ppm);
+    by('road').forEach((e) => out.push({ t: 'path', d: pathOf(px(e.pts), e.smooth, false), stroke: e.k === 'yaya' ? C.pathEdge : C.roadEdge, sw: sw(e.w, 2) + 2, cap: 'round' }));
+    by('road').forEach((e) => out.push({ t: 'path', d: pathOf(px(e.pts), e.smooth, false), stroke: e.k === 'yaya' ? C.path : C.road, sw: sw(e.w, 2), cap: 'round' }));
+    by('bld').forEach((e) => out.push({ t: 'poly', pts: px(e.pts), fill: C.bldOld, stroke: C.bldOldEdge, sw: 1.2 }));
+    els.filter((e) => e.t === 'tree').forEach((e) => out.push({ t: 'circle', cx: o.X(e.x), cy: o.Y(e.y), r: Math.max(1.5, e.r * o.ppm), fill: C.tree, stroke: C.treeEdge, sw: 0.8, opacity: 0.9 }));
+    return out;
+  };
+
   plan.scene = function (P, opts) {
     opts = opts || {};
     const style = plan.styleOf(P);
@@ -142,6 +168,13 @@
     const prims = sheet.frame(info, opts.live !== false);
     const items = [];
     items.push({ t: 'rect', x: a.x, y: a.y, w: a.w, h: a.h, fill: C.ground });
+    let bmAttr = '';
+    if (P.map && P.map.on) {
+      const loc = opts.loc || App.basemap.loc(App.store.get().project);
+      const r = App.basemap.prims({ loc: loc, cfg: P.map, ppm: v.ppm, win: { x0: v.win.x0, y0: v.win.y0, x1: v.win.x1, y1: v.win.y1 }, X: v.X, Y: v.Y });
+      r.prims.forEach((q) => items.push(q));
+      bmAttr = r.attrib;
+    }
     if (P.grid) gridPrims(v, C, P).forEach((p) => items.push(p));
     const by = (t, f) => P.els.filter((e) => e.t === t && (!f || f(e)));
     const sw = (m, min) => Math.max(min || 1.2, m * v.ppm);
@@ -174,6 +207,7 @@
     prims.push(glass() ? { t: 'rect', x: a.x, y: a.y, w: a.w, h: a.h, rx: 8, stroke: C.panelStroke, sw: 1 } : { t: 'rect', x: a.x, y: a.y, w: a.w, h: a.h, stroke: C.ink, sw: 4 });
     scaleBar(v, C, a.x + 36, a.y + a.h - 24).forEach((p) => prims.push(p));
     northArrow(C, a.x + a.w - 36, a.y + 44).forEach((p) => prims.push(p));
+    if (bmAttr) prims.push({ t: 'text', x: a.x + a.w - 10, y: a.y + a.h - 8, s: bmAttr, size: 10.5, weight: 600, fam: 'm', fill: C.ink, opacity: 0.7, anchor: 'end' });
     // ölçek etiketi
     const lab = '1/' + P.scale;
     const lw = sheet.tw(lab, 17, 700, 'd', 0) + 24;

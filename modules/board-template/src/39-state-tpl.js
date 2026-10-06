@@ -118,7 +118,7 @@
     if (!c || !c.panels.length) return {};
     const sz = T.sizeOf(c);
     const out = {
-      version: 1, title: c.title, size: c.size, canvas: { width: sz.w, height: sz.h, unit: 'px' }, background: c.bg, accent: c.accent,
+      version: 1, title: c.title, size: c.size, canvas: { width: sz.w, height: sz.h, unit: 'px' }, background: c.bg, accent: c.accent, monochrome: { on: !!(c.mono && c.mono.on), color: c.mono ? c.mono.col : T.MONO_DEFAULT },
       margin: c.margin, gutter: c.gutter, snap: c.snap, panels: c.panels.map((l) => JSON.parse(JSON.stringify(l))),
     };
     if (!App.autosaving && App.collage) {
@@ -141,6 +141,6 @@
         if (r && typeof r.data === 'string' && /^data:image\//.test(r.data) && !App.collage.imgs[id]) App.collage.addImg({ id: id, name: r.name, w: Number(r.width) || 1000, h: Number(r.height) || 700, src: r.data });
       });
     }
-    return { tpl: T.cleanDoc({ title: x.title, size: x.size, bg: x.background, accent: x.accent, margin: x.margin, gutter: x.gutter, snap: x.snap, panels: x.panels }) };
+    return { tpl: T.cleanDoc({ title: x.title, size: x.size, bg: x.background, accent: x.accent, mono: x.monochrome ? { on: x.monochrome.on, col: x.monochrome.color } : null, margin: x.margin, gutter: x.gutter, snap: x.snap, panels: x.panels }) };
   });
 })();

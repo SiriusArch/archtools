@@ -12,3 +12,11 @@
 .altc-best { border-radius: 99px; background: var(--ink); color: var(--on-ink); }
 .rel-chip { border-radius: 99px; }
 .fr-bad { border-radius: 50%; }
+
+/* Mekân Etüdü: serbest düzen — glass */
+.echip { border-radius: 99px; box-shadow: var(--raise-sm); background: var(--glass-2); }
+.shp { border-radius: 12px; box-shadow: var(--raise-sm); background: var(--glass-2); }
+.shp.on { box-shadow: var(--press-sm); background: var(--ink); }
+.estep-n { border-radius: 50%; }
+.estep-desc { border-radius: 14px; }
+.frow-lv { border-radius: 99px; }

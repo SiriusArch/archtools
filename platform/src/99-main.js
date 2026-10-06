@@ -29,7 +29,7 @@
   App.ctl.loadImarView();
   App.ctl.loadDsnView();
   App.ctl.loadFizView();
-  App.ctl.loadUnitView();
+  App.ctl.loadEtutView();
   App.ctl.loadPlanView();
   App.ctl.loadColView();
   App.ctl.loadColImages();

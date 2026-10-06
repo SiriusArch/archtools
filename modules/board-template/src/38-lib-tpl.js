@@ -55,10 +55,9 @@
     { id: 'kolaj', label: 'Kolaj', mod: 'kolaj', framed: false },
     { id: 'vaziyet', label: 'Vaziyet planı', mod: 'vaziyet', framed: true },
     { id: 'islev', label: 'İşlev şeması', mod: 'islev', framed: true },
-    { id: 'birim-plan', label: 'Birim · plan', mod: 'birim', framed: true },
-    { id: 'birim-iso', label: 'Birim · izometrik', mod: 'birim', framed: true },
-    { id: 'birim-surec', label: 'Birim · süreç', mod: 'birim', framed: true },
-    { id: 'kat', label: 'Kat etüdü', mod: 'kat', framed: true },
+    { id: 'kat', label: 'Mekân etüdü · plan', mod: 'kat', framed: true },
+    { id: 'etut-iso', label: 'Mekân etüdü · izometrik', mod: 'kat', framed: true },
+    { id: 'etut-surec', label: 'Mekân etüdü · süreç', mod: 'kat', framed: true },
     { id: 'analiz', label: 'Mekân analizi', mod: 'analiz', framed: true },
     { id: 'arsa', label: 'Arsa analizi', mod: 'arsa', framed: true },
     { id: 'imar-plan', label: 'İmar · plan', mod: 'imar', framed: true },
@@ -75,7 +74,7 @@
   ];
   T.srcInfo = (id) => T.SOURCES.find((s) => s.id === id) || null;
   /* otomatik doldururken tercih sırası */
-  T.SRC_PREF = ['kolaj', 'vaziyet', 'imar-iso', 'islev', 'birim-iso', 'tasarim-kutle', 'tasarim-vaziyet', 'kat', 'analiz', 'arsa', 'birim-plan', 'imar-plan', 'tasarim-tipik', 'birim-surec', 'tasarim-kiyas', 'fiz-ozet', 'tasarim-bodrum'];
+  T.SRC_PREF = ['kolaj', 'vaziyet', 'imar-iso', 'islev', 'etut-iso', 'tasarim-kutle', 'tasarim-vaziyet', 'kat', 'analiz', 'arsa', 'imar-plan', 'tasarim-tipik', 'etut-surec', 'tasarim-kiyas', 'fiz-ozet', 'tasarim-bodrum'];
 
   /* ---------- veri satırları (bilgi paneli) ---------- */
   T.FACT_KEYS = [
@@ -111,7 +110,7 @@
   /* ---------- panel fabrikaları ---------- */
   const base = (t) => ({ id: uid(), t: t, name: '', hidden: false, locked: false, bg: 'none', bd: 0, bdc: '#17181B', pad: 14 });
   T.make = {
-    view: (x, y, w, h, src, o) => Object.assign(base('view'), { x: x, y: y, w: w, h: h, src: src || { k: 'none', id: '' }, fit: 'cover', zoom: 1, ox: 0.5, oy: 0.5, trim: true, bw: false, label: '', pad: 0 }, o || {}),
+    view: (x, y, w, h, src, o) => Object.assign(base('view'), { x: x, y: y, w: w, h: h, src: src || { k: 'none', id: '' }, fit: 'cover', zoom: 1, ox: 0.5, oy: 0.5, crop: { l: 0, t: 0, r: 0, b: 0 }, trim: true, bw: false, label: '', pad: 0 }, o || {}),
     text: (s, x, y, w, h, o) => Object.assign(base('text'), { x: x, y: y, w: w, h: h, s: s, size: 22, weight: 500, fam: 'b', col: '#17181B', align: 'l', valign: 't', caps: false, lh: 1.3, pad: 0 }, o || {}),
     title: (x, y, w, h, o) => Object.assign(base('title'), { x: x, y: y, w: w, h: h, name: '', sub: '', rows: [['Pafta', ''], ['Ölçek', ''], ['Tarih', U.today()], ['No', '01']], bd: 3, bg: 'white', pad: 0 }, o || {}),
     legend: (x, y, w, h, items, o) => Object.assign(base('legend'), { x: x, y: y, w: w, h: h, items: items || [{ col: '#D93A1F', label: 'Yeni yapı' }, { col: '#17181B', label: 'Mevcut yapı' }, { col: '#2F8F4E', label: 'Yeşil alan' }], size: 17, col: '#17181B', pad: 0 }, o || {}),
@@ -140,9 +139,10 @@
     };
     const col = (v, d) => T.hex(v, d);
     if (o.t === 'view') {
-      const s = o.src && typeof o.src === 'object' ? o.src : {};
+      const s = o.src && typeof o.src === 'object' ? Object.assign({}, o.src) : {};
+      if (s.k === 'mod') s.id = { 'birim-plan': 'kat', 'birim-iso': 'etut-iso', 'birim-surec': 'etut-surec' }[s.id] || s.id; // eski Birim Oluşturucu kaynakları
       const k = s.k === 'mod' && T.srcInfo(String(s.id)) ? 'mod' : s.k === 'img' && s.id ? 'img' : 'none';
-      return Object.assign(b, { src: { k: k, id: k === 'none' ? '' : String(s.id).slice(0, 40) }, fit: o.fit === 'contain' ? 'contain' : 'cover', zoom: r2(U.clamp(num(o.zoom, 1), 0.2, 6)), ox: r2(U.clamp(num(o.ox, 0.5), 0, 1)), oy: r2(U.clamp(num(o.oy, 0.5), 0, 1)), trim: o.trim !== false, bw: !!o.bw, label: String(o.label || '').slice(0, 60) });
+      return Object.assign(b, { src: { k: k, id: k === 'none' ? '' : String(s.id).slice(0, 40) }, fit: o.fit === 'contain' ? 'contain' : 'cover', zoom: r2(U.clamp(num(o.zoom, 1), 0.2, 6)), ox: r2(U.clamp(num(o.ox, 0.5), 0, 1)), oy: r2(U.clamp(num(o.oy, 0.5), 0, 1)), crop: T.cleanCrop(o.crop), trim: o.trim !== false, bw: !!o.bw, label: String(o.label || '').slice(0, 60) });
     }
     if (o.t === 'text') {
       return Object.assign(b, { s: String(o.s == null ? '' : o.s).slice(0, 2400), size: Math.round(U.clamp(num(o.size, 22), 6, 400)), weight: [300, 400, 500, 600, 700, 800].indexOf(Number(o.weight)) >= 0 ? Number(o.weight) : 500, fam: ['b', 'd', 'm', 'l'].indexOf(o.fam) >= 0 ? o.fam : 'b', col: col(o.col, '#17181B'), align: ['l', 'c', 'r'].indexOf(o.align) >= 0 ? o.align : 'l', valign: ['t', 'm', 'b'].indexOf(o.valign) >= 0 ? o.valign : 't', caps: !!o.caps, lh: r2(U.clamp(num(o.lh, 1.3), 0.9, 2.4)) });
@@ -164,7 +164,17 @@
     if (o.t === 'north') return Object.assign(b, { col: col(o.col, '#17181B') });
     return null;
   };
-  T.defaults = function () { return { v: 1, title: '', size: 'a1l', bg: 'white', accent: '#D93A1F', margin: 72, gutter: 29, snap: true, panels: [] }; };
+  /* kırpma: kaynak görselin her kenarından kesilen oran (0–0.9; karşılıklı kenarların toplamı en çok %94) */
+  T.cleanCrop = function (c) {
+    const o = c && typeof c === 'object' ? c : {};
+    const f = (v) => { v = Number(v); return isFinite(v) ? Math.round(U.clamp(v, 0, 0.9) * 1000) / 1000 : 0; };
+    let l = f(o.l), t = f(o.t), r = f(o.r), b = f(o.b);
+    if (l + r > 0.94) { const k = 0.94 / (l + r); l *= k; r *= k; }
+    if (t + b > 0.94) { const k = 0.94 / (t + b); t *= k; b *= k; }
+    return { l: l, t: t, r: r, b: b };
+  };
+  T.MONO_DEFAULT = '#1F3A5F';
+  T.defaults = function () { return { v: 1, title: '', size: 'a1l', bg: 'white', accent: '#D93A1F', mono: { on: false, col: T.MONO_DEFAULT }, margin: 72, gutter: 29, snap: true, panels: [] }; };
   T.cleanDoc = function (p) {
     const d = T.defaults();
     const o = Object.assign({}, d, p || {});
@@ -172,6 +182,7 @@
     o.size = T.SIZES[o.size] ? o.size : d.size;
     o.bg = ['white', 'paper', 'grey', 'ink', 'accent'].indexOf(o.bg) >= 0 ? o.bg : 'white';
     o.accent = T.hex(o.accent, d.accent);
+    o.mono = { on: !!(o.mono && o.mono.on), col: T.hex(o.mono && o.mono.col, T.MONO_DEFAULT) };
     o.margin = Math.round(U.clamp(num(o.margin, 72), 0, 400));
     o.gutter = Math.round(U.clamp(num(o.gutter, 29), 0, 200));
     o.snap = o.snap !== false;

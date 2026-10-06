@@ -50,6 +50,10 @@
     let body = [];
     if (l.t === 'photo') {
       body = [
+        (C.imgs[l.src] ? ui.fld2('Kırp', h('div', { class: 'crop-wrap' },
+          ui.cropEditor({ id: 'col-crop', src: C.imgs[l.src].src, w: C.imgs[l.src].w, h: C.imgs[l.src].h, gray: l.bw, crop: l.crop, onlive: (n) => c.colCrop(l.id, n, false), oncommit: (n) => c.colCrop(l.id, n, true) }),
+          ui.btn('Kırpmayı sıfırla', { icon: 'reset', onclick: () => c.colCropReset(l.id), disabled: ui.cropIsEmpty(l.crop) })),
+          'Çerçeveyi ya da köşeleri sürükleyin; kutu kırpılan bölgeye uyar, özgün görsel korunur.') : null),
         ui.fld2('Kesim', ui.segmented({ label: 'Fotoğraf maskesi', wide: true, value: l.mask, options: [{ v: 'rect', label: 'Dikdörtgen' }, { v: 'ellipse', label: 'Elips' }, { v: 'arch', label: 'Kemer' }], onchange: (v) => set({ mask: v }) })),
         h('div', { class: 'tgl-row' },
           ui.toggle({ label: 'Siyah-beyaz', on: l.bw, onclick: () => set({ bw: !l.bw }) }),
@@ -109,16 +113,25 @@
     return ui.section('Seçili katman', h('div', { class: 'sec-box' }, head, body, order, tail), null, 'col-sel');
   }
 
+  /* ---------------- hazır fotoğraflar ---------------- */
+  let stockTab = 'cephe';
+  function stockGrid(c) {
+    const groups = C.STOCK_GROUPS;
+    const list = C.STOCK.filter((s) => s.g === stockTab);
+    return h('div', { class: 'stock' },
+      h('p', { class: 'stock-cap' }, 'Hazır fotoğraflar · ' + C.STOCK.length + ' çeşit'),
+      h('div', { class: 'stock-tabs', role: 'tablist', 'aria-label': 'Fotoğraf türü' }, groups.map((g) => h('button', { key: g.g, type: 'button', role: 'tab', class: 'stock-tab' + (stockTab === g.g ? ' on' : ''), 'aria-selected': String(stockTab === g.g), onclick: () => { stockTab = g.g; c.dispatch({ type: 'UI', patch: { col: Object.assign({}, App.store.get().ui.col, { stick: (App.store.get().ui.col.stick || 0) + 1 }) } }); } }, g.label))),
+      h('div', { class: 'stock-grid' }, list.map((s) => h('button', { key: s.k, type: 'button', class: 'stock-btn', title: s.label + ' — kolaja ekle (her tıklamada farklı bir görüntü üretilir)', 'aria-label': s.label + ' fotoğrafını ekle', onclick: () => c.colDemo(s.k) },
+        h('img', { src: C.stockThumb(s.k), alt: '', draggable: false }), h('span', {}, s.label)))));
+  }
+
   /* ---------------- Ekle sekmesi ---------------- */
   function photoSection(state, doc) {
     const c = ctl();
     const imgs = Object.keys(C.imgs).map((k) => C.imgs[k]);
     return ui.section('Fotoğraf', h('div', { class: 'sec-box' },
       ui.btn('Fotoğraf yükle', { icon: 'image', cls: 'btn-yellow', onclick: () => c.colPick(), title: 'Bir ya da birden çok fotoğraf seçin; sürükleyip paftaya bırakabilir ya da panodan yapıştırabilirsiniz' }),
-      h('div', { class: 'btn-row' },
-        ui.btn('Cephe', { onclick: () => c.colDemo('cephe'), title: 'Üretilmiş örnek fotoğraf: cephe' }),
-        ui.btn('Meydan', { onclick: () => c.colDemo('meydan'), title: 'Üretilmiş örnek fotoğraf: kolonlu meydan' }),
-        ui.btn('Gökyüzü', { onclick: () => c.colDemo('gok'), title: 'Üretilmiş örnek fotoğraf: bulutlu gökyüzü' })),
+      stockGrid(c),
       imgs.length ? h('div', { class: 'imgs' }, imgs.map((im) => h('div', { key: im.id, class: 'img-tile' },
         h('button', { type: 'button', class: 'img-btn', title: im.name + ' — kolaja ekle', 'aria-label': im.name + ' görselini kolaja ekle', onclick: () => c.colAddPhoto(im.id) },
           h('img', { src: im.src, alt: '', draggable: false })),

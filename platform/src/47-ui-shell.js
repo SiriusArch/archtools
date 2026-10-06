@@ -1,7 +1,7 @@
 /* ==========================================================================
    47-ui-shell.js — archtools kabuğu: modül gezgini, ortak skor kadranı verisi,
    araç çubuğu ve sayfa iskeleti. Modüller yalnızca kendi içeriğini üretir.
-   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · birim · vaziyet · kolaj · pafta
+   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · vaziyet · kolaj · pafta
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -18,10 +18,9 @@
     { id: 'yer', n: '06', label: 'Yer Seçimi', sub: 'Yer seçimi · aday karşılaştırma ve tarama', shape: 'target' },
     { id: 'tasarim', n: '07', label: 'Tasarım Üretici', sub: 'Tasarım üretici · kütle, tipik kat ve otopark', shape: 'tower' },
     { id: 'fizibilite', n: '08', label: 'Maliyet ve Fizibilite', sub: 'Maliyet ve fizibilite · metraj, kâr, nakit akışı', shape: 'coin' },
-    { id: 'birim', n: '09', label: 'Birim Oluşturucu', sub: 'Birim oluşturucu · adım adım kütle şekillendirme', shape: 'stack' },
-    { id: 'vaziyet', n: '10', label: 'Vaziyet Planı', sub: 'Vaziyet planı · ölçekli yerleşim paftası', shape: 'sitemap' },
-    { id: 'kolaj', n: '11', label: 'Kolaj Oluşturucu', sub: 'Kolaj oluşturucu · fotoğraf, kütle, siluet ve etiket', shape: 'collage' },
-    { id: 'pafta', n: '12', label: 'Pafta Şablonu', sub: 'Pafta şablonu · araç çıktılarıyla jüri paftası', shape: 'layout' },
+    { id: 'vaziyet', n: '09', label: 'Vaziyet Planı', sub: 'Vaziyet planı · ölçekli yerleşim paftası', shape: 'sitemap' },
+    { id: 'kolaj', n: '10', label: 'Kolaj Oluşturucu', sub: 'Kolaj oluşturucu · fotoğraf, kütle, siluet ve etiket', shape: 'collage' },
+    { id: 'pafta', n: '11', label: 'Pafta Şablonu', sub: 'Pafta şablonu · araç çıktılarıyla jüri paftası', shape: 'layout' },
   ];
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
@@ -132,29 +131,6 @@
     };
   }
 
-  function birimMeter(state) {
-    const P = state.project;
-    const u = P.unit;
-    if (!u || !App.unit) return { label: 'Açık alan', percent: null, msg: '', chips: [], issues: 0 };
-    const step = u.steps[Math.min(u.cur, u.steps.length - 1)];
-    const M = App.unit.metrics(u, step);
-    const f = App.unit.findings(u);
-    const p = M.masses ? Math.round((1 - M.taks) * 100) : null;
-    return {
-      label: 'Açık alan', percent: p,
-      msg: !M.masses ? 'Bir kütle ekleyerek başlayın' : 'Adım ' + (u.cur + 1) + '/' + u.steps.length + ' · ' + step.title + ' · TAKS ' + U.fmt(M.taks, 2) + ' · KAKS ' + U.fmt(M.kaks, 2),
-      chips: [
-        { label: 'TAKS', value: U.fmt(M.taks, 2), cls: 'dot' },
-        { label: 'KAKS', value: U.fmt(M.kaks, 2), cls: 'dot' },
-        { label: 'Yeşil', value: '%' + Math.round(M.greenShare * 100), cls: 'dot' },
-        { label: 'Kat', value: String(M.maxFloors), cls: 'dot' },
-      ],
-      issues: f.counts.hata + f.counts.uyari,
-      issuesText: 'uyarı · bulgulara git',
-      onIssues: () => App.ctl.dispatch({ type: 'UI', patch: { unit: Object.assign({}, state.ui.unit, { tab: 'bulgular' }) } }),
-    };
-  }
-
   function vaziyetMeter(state) {
     const p = state.project.plan;
     if (!p || !App.plan) return { label: 'Yeşil oranı', percent: null, msg: '', chips: [], issues: 0 };
@@ -207,7 +183,7 @@
     };
   }
 
-  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, birim: birimMeter, vaziyet: vaziyetMeter, kolaj: kolajMeter, pafta: paftaMeter };
+  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, vaziyet: vaziyetMeter, kolaj: kolajMeter, pafta: paftaMeter };
   ui.meterFor = (state, d) => (ui.meterOpts[state.ui.module] || islevMeter)(state, d);
 
   /* ---------------- araç çubuğu ----------------
@@ -264,7 +240,6 @@
     if (m === 'imar' && ui.imar) return h('main', { class: 'main main-imar', key: 'main-imar' }, ui.imar.sidebar(state, d), ui.imar.board(state, d));
     if (m === 'tasarim' && ui.design) return h('main', { class: 'main main-tasarim', key: 'main-tasarim' }, ui.design.sidebar(state, d), ui.design.board(state, d));
     if (m === 'fizibilite' && ui.fizb) return h('main', { class: 'main main-fizibilite', key: 'main-fizibilite' }, ui.fizb.sidebar(state, d), ui.fizb.board(state, d));
-    if (m === 'birim' && ui.unit) return h('main', { class: 'main main-birim', key: 'main-birim' }, ui.unit.sidebar(state, d), ui.unit.board(state, d));
     if (m === 'vaziyet' && ui.plan) return h('main', { class: 'main main-vaziyet', key: 'main-vaziyet' }, ui.plan.sidebar(state, d), ui.plan.board(state, d));
     if (m === 'kolaj' && ui.col) return h('main', { class: 'main main-kolaj', key: 'main-kolaj' }, ui.col.sidebar(state, d), ui.col.board(state, d));
     if (m === 'pafta' && ui.tpl) return h('main', { class: 'main main-pafta', key: 'main-pafta' }, ui.tpl.sidebar(state, d), ui.tpl.board(state, d));

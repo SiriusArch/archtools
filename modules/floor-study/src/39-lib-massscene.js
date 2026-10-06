@@ -1,5 +1,6 @@
 /* ==========================================================================
-   39-lib-unitscene.js — Modül 9 · Birim Oluşturucu paftaları (plan · izometrik · süreç afişi)
+   39-lib-massscene.js — Mekân Etüdü: izometrik görünüm ve süreç afişi (adımlar yan yana)
+   Mekânlar katlarına göre yükselir (kat × 3,2 m), kat numarası düşey konumu belirler; çevre, yeşil ve oklar korunur.
    Canlı SVG ve PNG/PDF çıktısı aynı primitif listesinden çizilir (App.board.primToV / primsToCanvas).
    ========================================================================== */
 (function () {
@@ -8,7 +9,7 @@
   const iso = App.iso;
   const U = App.util;
   const fmt = U.fmt;
-  const unit = App.unit;
+  const unit = App.massing;
   const FH = unit.FH;
 
   const glass = () => App.theme.name === 'glass';
@@ -23,7 +24,6 @@
       : { g: false, ink: PAL.ink, panel: PAL.paperDark, panelStroke: PAL.ink, ground: PAL.paper, parcel: '#FBF3DC', ctx: '#BDB49C', ctxTop: '#CFC7B1', mass: PAL.red, massTop: '#D9573D', green: PAL.green, greenDk: '#2C6330', voidF: PAL.paper, flow: PAL.ink, thru: PAL.blue, entry: PAL.yellow, edge: PAL.ink, edgeW: 2.2, soft: 'rgba(38,29,17,.3)' };
   }
   unit.colors = colors;
-
   /* ---------- görünüm: dünya (m) → paftaya ---------- */
   function fitView(area, b, padM) {
     const x0 = b.x0 - padM, x1 = b.x1 + padM, y0 = b.y0 - padM, y1 = b.y1 + padM;
@@ -40,13 +40,15 @@
   unit.win = function (u, kind) {
     const site = u.site;
     const k = Math.min(site.w, site.d);
-    const m = kind === 'iso' ? U.clamp(k * 0.3, 14, 30) : U.clamp(k * 0.2, 9, 22);
-    const bb = { x0: -m, y0: -m, x1: site.w + m, y1: site.d + m };
+    const m = !u.siteOn ? U.clamp(k * 0.12, 4, 9) : kind === 'iso' ? U.clamp(k * 0.3, 14, 30) : U.clamp(k * 0.2, 9, 22);
+    const bb = u.siteOn ? { x0: -m, y0: -m, x1: site.w + m, y1: site.d + m } : { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
     u.steps.forEach((s) => s.els.forEach((e) => {
       if (e.t === 'mass' || e.t === 'void' || e.t === 'green') { bb.x0 = Math.min(bb.x0, e.x - 4); bb.y0 = Math.min(bb.y0, e.y - 4); bb.x1 = Math.max(bb.x1, e.x + e.w + 4); bb.y1 = Math.max(bb.y1, e.y + e.d + 4); }
       if (e.t === 'tree') { bb.x0 = Math.min(bb.x0, e.x - e.r - 2); bb.y0 = Math.min(bb.y0, e.y - e.r - 2); bb.x1 = Math.max(bb.x1, e.x + e.r + 2); bb.y1 = Math.max(bb.y1, e.y + e.r + 2); }
       if (e.t === 'arrow') { bb.x0 = Math.min(bb.x0, e.x1 - 3, e.x2 - 3); bb.y0 = Math.min(bb.y0, e.y1 - 3, e.y2 - 3); bb.x1 = Math.max(bb.x1, e.x1 + 3, e.x2 + 3); bb.y1 = Math.max(bb.y1, e.y1 + 3, e.y2 + 3); }
     }));
+    if (!isFinite(bb.x0)) { bb.x0 = -m; bb.y0 = -m; bb.x1 = site.w + m; bb.y1 = site.d + m; }
+    else if (!u.siteOn) { bb.x0 -= m * 0.5; bb.y0 -= m * 0.5; bb.x1 += m * 0.5; bb.y1 += m * 0.5; }
     return bb;
   };
   // çevre yapıları pencereye kırpılır: pencere dışına taşan kısım çizilmez
@@ -59,17 +61,6 @@
     });
     return out;
   };
-
-  unit.planView = function (u, frozen) {
-    const area = AREA();
-    if (frozen) {
-      const s = Math.min(area.w / frozen.w, area.h / frozen.h);
-      const ox = area.x + (area.w - frozen.w * s) / 2, oy = area.y + (area.h - frozen.h * s) / 2;
-      return { area: area, win: frozen, s: s, ox: ox, oy: oy, X: (wx) => ox + (wx - frozen.x0) * s, Y: (wy) => oy + (wy - frozen.y0) * s, wx: (px) => frozen.x0 + (px - ox) / s, wy: (py) => frozen.y0 + (py - oy) / s };
-    }
-    return fitView(area, unit.win(u, 'plan'), 1);
-  };
-
   /* ---------- ortak yardımcılar ---------- */
   function wrapText(s, maxW, size, weight, fam, maxLines) {
     const words = String(s || '').split(/\s+/).filter(Boolean);
@@ -87,53 +78,32 @@
     }
     return lines;
   }
-
   function headPoly(x, y, ux, uy, len, wid, fill, stroke, sw) {
     return { t: 'poly', pts: [[x, y], [x - ux * len - uy * wid, y - uy * len + ux * wid], [x - ux * len + uy * wid, y - uy * len - ux * wid]], fill: fill, stroke: stroke, sw: sw };
   }
-
-  // ekranda ok: kind 'flow' dolu çizgi + ok başı · 'through' noktalı kesik çizgi · 'entry' üçgen işaret
-  function arrowScreen(a, C, scale) {
-    const P = [];
-    const x1 = a[0], y1 = a[1], x2 = a[2], y2 = a[3];
-    const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
-    const ux = dx / L, uy = dy / L;
-    const k = scale || 1;
-    if (a.k === 'entry') {
-      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, s = 9 * k;
-      P.push({ t: 'poly', pts: [[mx + ux * s * 1.2, my + uy * s * 1.2], [mx - ux * s * 0.8 - uy * s, my - uy * s * 0.8 + ux * s], [mx - ux * s * 0.8 + uy * s, my - uy * s * 0.8 - ux * s]], fill: C.entry, stroke: C.ink, sw: 1.8 });
-      return P;
-    }
-    if (a.k === 'through') {
-      P.push({ t: 'line', x1: x1, y1: y1, x2: x2, y2: y2, stroke: C.thru, sw: 2.6 * k, dash: [0.5, 7 * k], cap: 'round' });
-      return P;
-    }
-    const hl = 11 * k;
-    P.push({ t: 'line', x1: x1, y1: y1, x2: x2 - ux * hl * 0.5, y2: y2 - uy * hl * 0.5, stroke: C.flow, sw: 2.2 * k, cap: 'round' });
-    P.push(headPoly(x2, y2, ux, uy, hl, hl * 0.52, C.flow, C.flow, 1));
-    return P;
-  }
-
-  function legendFor(u, C) {
+  function legendFor(u, C, step) {
     const lineLg = (label, stroke, sw, dash) => ({ label: label, line: { stroke: stroke, sw: sw, dash: dash, cap: 'round' } });
-    return [
-      { label: 'Mevcut çevre', fill: C.ctx },
-      { label: 'Yeni kütle', fill: C.mass },
-      { label: 'Yeşil alan', fill: C.green },
-      lineLg('Yaya akışı', C.flow, 3),
-      lineLg('Geçit', C.thru, 3, [0.5, 7]),
-      { label: 'Ana giriş', fill: C.entry },
-    ];
+    const zones = [];
+    step.els.forEach((e) => { if (e.t === 'mass' && zones.indexOf(e.zone) < 0) zones.push(e.zone); });
+    const out = sheet.zoneLegend(zones).slice(0, 5);
+    if (u.ctx.length) out.push({ label: 'Mevcut çevre', fill: C.ctx });
+    if (step.els.some((e) => e.t === 'green') || step.els.some((e) => e.t === 'mass' && e.roof === 'green')) out.push({ label: 'Yeşil alan', fill: C.green });
+    if (step.els.some((e) => e.t === 'arrow' && e.k === 'flow')) out.push(lineLg('Yaya akışı', C.flow, 3));
+    if (step.els.some((e) => e.t === 'arrow' && e.k === 'through')) out.push(lineLg('Geçit', C.thru, 3, [0.5, 7]));
+    if (step.els.some((e) => e.t === 'arrow' && e.k === 'entry')) out.push({ label: 'Ana giriş', fill: C.entry });
+    return out.slice(0, 8);
   }
 
   function frameInfo(u, step, sub, M) {
     const C = colors();
     return {
-      name: u.title || 'Birim',
+      name: u.title || 'Mekân etüdü',
       subtitle: sub,
-      legend: legendFor(u, C),
-      stats: [['Taban alanı', fmt(M.footprint) + ' m²'], ['TAKS / KAKS', fmt(M.taks, 2) + ' / ' + fmt(M.kaks, 2)], ['En yüksek', fmt(M.maxHeight) + ' m · ' + M.maxFloors + ' kat']],
-      scoreLabel: 'Açık alan', percent: M.masses ? Math.round((1 - M.taks) * 100) : null,
+      legend: legendFor(u, C, step),
+      stats: u.siteOn
+        ? [['Taban alanı', fmt(M.footprint) + ' m²'], ['TAKS / KAKS', fmt(M.taks, 2) + ' / ' + fmt(M.kaks, 2)], ['En yüksek', fmt(M.maxHeight) + ' m · ' + M.maxFloors + ' kat']]
+        : [['Mekân', String(M.masses)], ['Toplam alan', fmt(M.gfa) + ' m²'], ['En yüksek', fmt(M.maxHeight) + ' m · ' + M.maxFloors + ' kat']],
+      scoreLabel: u.siteOn ? 'Açık alan' : 'Kat', percent: u.siteOn ? (M.masses ? Math.round((1 - M.taks) * 100) : null) : null,
     };
   }
   unit.frameInfo = frameInfo;
@@ -143,46 +113,6 @@
       ? { t: 'rect', x: a.x, y: a.y, w: a.w, h: a.h, rx: 8, fill: C.panel, stroke: C.panelStroke, sw: 1 }
       : { t: 'rect', x: a.x, y: a.y, w: a.w, h: a.h, fill: C.panel, stroke: C.ink, sw: 4 });
   }
-
-  /* ==========================================================================
-     PLAN
-     ========================================================================== */
-  function gridPrims(view, C) {
-    const P = [];
-    const a = view.area, s = view.s, w = view.win;
-    const minor = s >= 9 ? 1 : 0;
-    const major = s >= 4 ? 5 : 10;
-    for (let x = Math.ceil(w.x0); x <= Math.floor(w.x0 + w.w); x++) {
-      const mj = x % major === 0;
-      if (!mj && !minor) continue;
-      const px = view.X(x);
-      if (px < a.x + 2 || px > a.x + a.w - 2) continue;
-      P.push({ t: 'line', x1: px, y1: a.y + 2, x2: px, y2: a.y + a.h - 2, stroke: C.ink, sw: mj ? 0.9 : 0.6, opacity: mj ? 0.12 : 0.05 });
-    }
-    for (let y = Math.ceil(w.y0); y <= Math.floor(w.y0 + w.h); y++) {
-      const mj = y % major === 0;
-      if (!mj && !minor) continue;
-      const py = view.Y(y);
-      if (py < a.y + 2 || py > a.y + a.h - 2) continue;
-      P.push({ t: 'line', x1: a.x + 2, y1: py, x2: a.x + a.w - 2, y2: py, stroke: C.ink, sw: mj ? 0.9 : 0.6, opacity: mj ? 0.12 : 0.05 });
-    }
-    return P;
-  }
-
-  function scaleBar(view, C, x, y) {
-    const P = [];
-    const cand = [1, 2, 5, 10, 20, 50, 100];
-    let m = cand[0];
-    cand.forEach((c) => { if (c * view.s <= 150) m = c; });
-    const len = m * view.s;
-    const st0 = { stroke: C.ink, sw: 2, opacity: 0.75 };
-    P.push(Object.assign({ t: 'line', x1: x - len, y1: y, x2: x, y2: y }, st0));
-    P.push(Object.assign({ t: 'line', x1: x - len, y1: y - 5, x2: x - len, y2: y + 5 }, st0));
-    P.push(Object.assign({ t: 'line', x1: x, y1: y - 5, x2: x, y2: y + 5 }, st0));
-    P.push(Object.assign({ t: 'line', x1: x - len / 2, y1: y - 3, x2: x - len / 2, y2: y + 3 }, st0));
-    P.push({ t: 'text', x: x - len / 2, y: y - 10, s: m + ' m', size: 11.5, weight: 700, fam: 'm', fill: C.ink, opacity: 0.75, anchor: 'middle' });
-    return P;
-  }
   function northArrow(C, x, y) {
     const P = [];
     P.push({ t: 'circle', cx: x, cy: y, r: 16, stroke: C.ink, sw: 1.6, opacity: 0.7 });
@@ -190,98 +120,6 @@
     P.push({ t: 'text', x: x, y: y - 22, s: 'K', size: 11.5, weight: 700, fam: 'm', fill: C.ink, opacity: 0.75, anchor: 'middle' });
     return P;
   }
-
-  function dimsPrims(u, view, C) {
-    const P = [];
-    const site = u.site, X = view.X, Y = view.Y, a = view.area;
-    const dl = { stroke: C.ink, sw: 1, opacity: 0.42 };
-    const by = Y(site.d) + 18, lx = X(0) - 18;
-    if (by < a.y + a.h - 20) {
-      P.push(Object.assign({ t: 'line', x1: X(0), y1: by, x2: X(site.w), y2: by }, dl));
-      P.push(Object.assign({ t: 'line', x1: X(0), y1: by - 4, x2: X(0), y2: by + 4 }, dl));
-      P.push(Object.assign({ t: 'line', x1: X(site.w), y1: by - 4, x2: X(site.w), y2: by + 4 }, dl));
-      P.push({ t: 'text', x: (X(0) + X(site.w)) / 2, y: by + 14, s: 'Parsel ' + fmt(site.w, 1) + ' m', size: 12, weight: 600, fam: C.g ? 'b' : 'm', fill: C.ink, opacity: 0.62, anchor: 'middle' });
-    }
-    if (lx > a.x + 22) {
-      P.push(Object.assign({ t: 'line', x1: lx, y1: Y(0), x2: lx, y2: Y(site.d) }, dl));
-      P.push(Object.assign({ t: 'line', x1: lx - 4, y1: Y(0), x2: lx + 4, y2: Y(0) }, dl));
-      P.push(Object.assign({ t: 'line', x1: lx - 4, y1: Y(site.d), x2: lx + 4, y2: Y(site.d) }, dl));
-      P.push({ t: 'text', x: lx - 6, y: (Y(0) + Y(site.d)) / 2, s: fmt(site.d, 1) + ' m', size: 12, weight: 600, fam: C.g ? 'b' : 'm', fill: C.ink, opacity: 0.62, anchor: 'middle', xf: [0, -1, 1, 0] });
-    }
-    return P;
-  }
-
-  function planPrims(u, step, prev, view, C, o) {
-    const P = [];
-    const X = view.X, Y = view.Y, s = view.s;
-    const site = u.site;
-    // parsel
-    P.push({ t: 'rect', x: X(0), y: Y(0), w: site.w * s, h: site.d * s, fill: C.parcel, stroke: C.ink, sw: 1.6, dash: [8, 6], opacity: 1 });
-    // çevre
-    unit.ctxIn(u, { x0: view.win.x0, y0: view.win.y0, x1: view.win.x0 + view.win.w, y1: view.win.y0 + view.win.h }).forEach((c) => P.push({ t: 'rect', x: X(c.x), y: Y(c.y), w: c.w * s, h: c.d * s, fill: C.ctx, stroke: C.edge, sw: 1, opacity: 0.95 }));
-    // önceki adım (hayalet)
-    if (o.ghost && prev) prev.els.forEach((e) => {
-      if (e.t !== 'mass') return;
-      P.push({ t: 'poly', pts: unit.ring(e).map((q) => [X(q[0]), Y(q[1])]), stroke: C.ink, sw: 1.3, dash: [5, 5], opacity: 0.4 });
-    });
-    const by = (t) => step.els.filter((e) => e.t === t);
-    by('green').forEach((e) => {
-      if (e.round) P.push({ t: 'circle', cx: X(e.x + e.w / 2), cy: Y(e.y + e.d / 2), r: Math.min(e.w, e.d) * s / 2, fill: C.green, stroke: C.greenDk, sw: 1.4, opacity: 0.9 });
-      else P.push({ t: 'rect', x: X(e.x), y: Y(e.y), w: e.w * s, h: e.d * s, fill: C.green, stroke: C.greenDk, sw: 1.4, opacity: 0.9 });
-    });
-    by('void').forEach((e) => {
-      P.push({ t: 'rect', x: X(e.x), y: Y(e.y), w: e.w * s, h: e.d * s, fill: C.voidF, stroke: C.ink, sw: 1.6, dash: [3, 5], opacity: 0.95 });
-      if (e.w * s > 60 && e.d * s > 30) P.push({ t: 'text', x: X(e.x + e.w / 2), y: Y(e.y + e.d / 2) + 4, s: UP('Boşluk'), size: 11, weight: 600, fam: 'b', fill: C.ink, opacity: 0.45, anchor: 'middle', ls: upper() ? 1 : 0, pe: false });
-    });
-    by('mass').forEach((e) => {
-      P.push({ t: 'poly', pts: unit.ring(e).map((q) => [X(q[0]), Y(q[1])]), fill: e.roof === 'green' ? C.green : C.mass, stroke: C.ink, sw: C.edgeW });
-    });
-    by('mass').forEach((e) => {
-      const lr = App.study.freeLabelRect({ x: e.x, y: e.y, w: e.w, h: e.d, shape: e.shape, rot: e.rot, cut: e.cut });
-      const w = lr.w * s, h = lr.h * s;
-      if (w < 30 || h < 18) return;
-      const dark = e.roof !== 'green';
-      const txt = e.floors + ' kat';
-      P.push({ t: 'text', x: X(lr.x + lr.w / 2), y: Y(lr.y + lr.h / 2) + 4, s: txt, size: Math.max(9, Math.min(15, w / 6)), weight: 700, fam: 'b', fill: dark ? (C.g ? '#F6F7F9' : App.PAL.paper) : C.ink, anchor: 'middle', pe: false });
-    });
-    by('tree').forEach((e) => {
-      P.push({ t: 'circle', cx: X(e.x), cy: Y(e.y), r: Math.max(2.5, e.r * s), fill: C.green, stroke: C.greenDk, sw: 1, opacity: 0.8 });
-      P.push({ t: 'circle', cx: X(e.x), cy: Y(e.y), r: 1.4, fill: C.ink, opacity: 0.6 });
-    });
-    by('arrow').forEach((e) => {
-      arrowScreen(Object.assign([X(e.x1), Y(e.y1), X(e.x2), Y(e.y2)], { k: e.k }), C, 1).forEach((p) => P.push(p));
-    });
-    return P;
-  }
-
-  /* opts: { live, frozen, ghost, dims } */
-  unit.planScene = function (u, opts) {
-    opts = opts || {};
-    const C = colors();
-    const view = unit.planView(u, opts.frozen);
-    const step = u.steps[Math.min(u.cur, u.steps.length - 1)];
-    const prev = u.cur > 0 ? u.steps[u.cur - 1] : null;
-    const M = unit.metrics(u, step);
-    const info = frameInfo(u, step, 'Plan · adım ' + (u.cur + 1) + '/' + u.steps.length + ' · ' + step.title, M);
-    const prims = sheet.frame(info, opts.live !== false);
-    const a = view.area;
-    panelRect(prims, a, C);
-    gridPrims(view, C).forEach((p) => prims.push(p));
-    planPrims(u, step, prev, view, C, { ghost: opts.ghost !== false }).forEach((p) => prims.push(p));
-    if (opts.dims !== false) dimsPrims(u, view, C).forEach((p) => prims.push(p));
-    prims.push({ t: 'rect', x: a.x + a.w - 190, y: a.y + 6, w: 184, h: 40, rx: C.g ? 10 : 0, fill: C.panel, opacity: 0.92 });
-    scaleBar(view, C, a.x + a.w - 24, a.y + 30).forEach((p) => prims.push(p));
-    prims.push({ t: 'rect', x: a.x + 8, y: a.y + 8, w: 56, h: 56, rx: C.g ? 10 : 0, fill: C.panel, opacity: 0.92 });
-    northArrow(C, a.x + 36, a.y + 40).forEach((p) => prims.push(p));
-    // adım etiketi
-    const lab = UP((u.cur + 1) + ' · ' + step.title + (step.sub ? ' — ' + step.sub : ''));
-    const labS = sheet.clip(lab, a.w * 0.55, 15, 700, 'd', upper() ? 1 : 0);
-    const labW = sheet.tw(labS, 15, 700, 'd', upper() ? 1 : 0);
-    prims.push({ t: 'rect', x: a.x + 64, y: a.y + 8, w: labW + 14, h: 52, rx: C.g ? 10 : 0, fill: C.panel, opacity: 0.92 });
-    prims.push({ t: 'text', x: a.x + 70, y: a.y + 40, s: labS, size: 15, weight: 700, fam: 'd', fill: C.ink, ls: upper() ? 1 : 0, opacity: 0.85 });
-    return { prims: prims, view: view };
-  };
-
   /* ==========================================================================
      İZOMETRİK
      ========================================================================== */
@@ -291,7 +129,7 @@
     const cxw = (w.x0 + w.x1) / 2, cyw = (w.y0 + w.y1) / 2;
     let hMax = 6;
     unit.ctxIn(u, w).forEach((c) => { hMax = Math.max(hMax, c.h); });
-    steps.forEach((s) => s.els.forEach((e) => { if (e.t === 'mass') hMax = Math.max(hMax, e.floors * FH); }));
+    steps.forEach((s) => s.els.forEach((e) => { if (e.t === 'mass') hMax = Math.max(hMax, (e.lv + e.floors) * FH); }));
     const I0 = iso.make({ yaw: yaw, pitch: pitch, s: 1, cx: 0, cy: 0, center: [cxw, cyw] });
     let mnx = 1e9, mxx = -1e9, mny = 1e9, mxy = -1e9;
     const hz = hMax * (zx || 1);
@@ -325,8 +163,8 @@
     // zemin tablası
     const b = o.bounds;
     P.push(flat(ring4(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0), 0, C.ground, { stroke: C.soft, sw: 1 }));
-    P.push(flat(ring4(0, 0, site.w, site.d), 0.02, C.parcel, { stroke: C.ink, sw: 1.3, dash: [7, 5] }));
-    if (o.grid !== false) {
+    if (u.siteOn) P.push(flat(ring4(0, 0, site.w, site.d), 0.02, C.parcel, { stroke: C.ink, sw: 1.3, dash: [7, 5] }));
+    if (o.grid !== false && u.siteOn) {
       const gs = site.w > 80 || site.d > 80 ? 10 : 5;
       iso.grid(I, site.w, site.d, 0.03, gs, { stroke: C.ink, sw: 0.6, opacity: 0.12 }).forEach((p) => {
         // iso.grid yalnızca (0,0)-(W,D) kutusunda; parsel ile aynı
@@ -336,23 +174,21 @@
     const by = (t) => step.els.filter((e) => e.t === t);
     // zemin düzeyi: yeşil, boşluk, oklar
     by('green').forEach((e) => {
-      if (e.round) {
-        const pts = [];
-        for (let i = 0; i < 28; i++) { const a = (i / 28) * Math.PI * 2; pts.push([e.x + e.w / 2 + Math.cos(a) * e.w / 2, e.y + e.d / 2 + Math.sin(a) * e.d / 2]); }
-        P.push(flat(pts, 0.05, C.green, { stroke: C.greenDk, sw: 1, opacity: 0.92 }));
-      } else P.push(flat(ring4(e.x, e.y, e.w, e.d), 0.05, C.green, { stroke: C.greenDk, sw: 1, opacity: 0.92 }));
+      P.push(flat(App.study.extraRing({ t: 'green', x: e.x, y: e.y, w: e.w, h: e.d, round: e.round, organic: e.organic, seed: e.seed }), 0.05, C.green, { stroke: C.greenDk, sw: 1, opacity: 0.92 }));
     });
     by('void').forEach((e) => P.push(flat(ring4(e.x, e.y, e.w, e.d), 0.06, C.voidF, { stroke: C.ink, sw: 1.4, dash: [3, 4], opacity: 0.95 })));
     // hacimler: derinliğe göre
     const solids = [];
     unit.ctxIn(u, o.bounds).forEach((c) => solids.push({ d: I.depth(c.x + c.w / 2, c.y + c.d / 2), mk: () => iso.extrude(I, ring4(c.x, c.y, c.w, c.d), 0, c.h, C.ctx, { stroke: C.edge, sw: 0.9, topFill: C.ctxTop }) }));
     by('mass').forEach((e) => {
-      const ring = unit.ring(e), h = e.floors * FH;
-      solids.push({ d: I.depth(e.x + e.w / 2, e.y + e.d / 2) + 0.01, mk: () => {
-        const F = iso.extrudeFaces(I, ring, 0, h);
-        const out = F.walls.map((w) => ({ t: 'poly', pts: w.pts, fill: iso.shade(C.mass, w.f), stroke: C.ink, sw: 1.1 }));
+      const ring = unit.ring(e), z0 = e.lv * FH, h = e.floors * FH;
+      const zf = (App.ZONES[e.zone] || App.ZONES.sosyal).fill;
+      const wall = C.g ? zf : zf, top = iso.shade(zf, 1.18);
+      solids.push({ d: I.depth(e.x + e.w / 2, e.y + e.d / 2) + 0.01 + e.lv * 0.002, mk: () => {
+        const F = iso.extrudeFaces(I, ring, z0, z0 + h);
+        const out = F.walls.map((w) => ({ t: 'poly', pts: w.pts, fill: iso.shade(wall, w.f), stroke: C.ink, sw: 1.1 }));
         floorLines(F, e.floors <= 14 ? e.floors : 0, h, C, out);
-        out.push({ t: 'poly', pts: F.roof, fill: e.roof === 'green' ? C.green : C.massTop, stroke: C.ink, sw: 1.3 });
+        out.push({ t: 'poly', pts: F.roof, fill: e.roof === 'green' ? C.green : top, stroke: C.ink, sw: 1.3 });
         return out;
       } });
     });
@@ -367,7 +203,7 @@
     // akışlar en üstte: bir kütlenin arkasında kalsalar da okunur (anlatım şeması)
     by('arrow').forEach((e) => {
       const a = I.proj(e.x1, e.y1, 0.3), bq = I.proj(e.x2, e.y2, 0.3);
-      const pr = arrowScreen(Object.assign([a[0], a[1], bq[0], bq[1]], { k: e.k }), C, o.k || 1);
+      const pr = App.study.arrowPrims(e.k, a[0], a[1], bq[0], bq[1], C, o.k || 1);
       if (e.k !== 'entry') pr.forEach((p) => { if (p.t === 'line') P.push(Object.assign({}, p, { stroke: C.ground, sw: p.sw + 3.5, dash: undefined, opacity: 0.75 })); });
       pr.forEach((p) => P.push(p));
     });
@@ -399,7 +235,6 @@
     northArrow(C, a.x + a.w - 40, a.y + a.h - 40).forEach((p) => prims.push(p));
     return { prims: prims, I: I };
   };
-
   /* ==========================================================================
      SÜREÇ AFİŞİ
      ========================================================================== */
@@ -419,12 +254,12 @@
     const n = u.steps.length;
     const last = u.steps[n - 1];
     const M = unit.metrics(u, last);
-    const info = frameInfo(u, last, 'Süreç · ' + n + ' adım · yoğunluk ve boşluk', M);
+    const info = frameInfo(u, last, 'Süreç · ' + n + ' adım', M);
     const prims = sheet.frame(info, opts.live !== false);
     const a = AREA();
     panelRect(prims, a, C);
     const g = C.g, up = upper();
-    const title = (u.title || 'Birim') + (g ? '' : '.');
+    const title = (u.title || 'Mekân etüdü') + (g ? '' : '.');
     // başlık
     const tsize = sheet.fitLine(UP(title), a.w * 0.5, 46, 26, g ? 400 : 700, 'd', up ? 1 : 0);
     prims.push({ t: 'text', x: a.x + 28, y: a.y + 56, s: tsize.s, size: tsize.size, weight: g ? 400 : 700, fam: 'd', fill: C.ink, ls: up ? 1 : 0 });

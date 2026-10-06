@@ -17,7 +17,9 @@
   }
   const MAKERS = {
     islev: { ok: (c) => c.P.spaces.length > 0, make: (st) => { const d = App.state.derive(st); return App.board.toCanvas(st.project, d.k, d.score, F()); } },
-    kat: { ok: (c) => c.P.spaces.length > 0 && !!c.P.study, make: (st) => { const P = st.project; return sc(App.study.scene(P, App.study.derive(P), false)); } },
+    kat: { ok: (c) => c.P.spaces.length > 0 && !!c.P.study, make: (st) => { const P = st.project; if (App.study.modeOf(st) === 'mekanlar') return etut(st, 'plan'); return sc(App.study.scene(P, App.study.derive(P), false)); } },
+    'etut-iso': { ok: etutOk, make: (st) => etut(st, 'iso') },
+    'etut-surec': { ok: (c) => etutOk(c) && c.P.study.free && (c.P.study.free.steps || []).length > 0, make: (st) => etut(st, 'surec') },
     analiz: { ok: (c) => c.P.spaces.length > 0 && !!c.P.study, make: (st) => { const P = st.project; return sc(App.analysis.scene(P, App.study.derive(P), Object.assign({}, st.ui.an, { sel: null }), false)); } },
     arsa: { ok: (c) => !!c.e, make: (st) => { const c = ctxs(st); const A = App.site.analyze(c.s, c.e); return sc(App.siteScene.arsa(c.P, A, Object.assign({}, st.ui.site, { sel: null, lod: false }), false)); } },
     'imar-plan': { ok: (c) => c.hasParcel, make: (st) => imar(st, 'plan') },
@@ -31,9 +33,6 @@
     'fiz-nakit': { ok: fizOk, make: (st) => fiz(st, 'nakit') },
     'fiz-duyarlilik': { ok: fizOk, make: (st) => fiz(st, 'duyarlilik') },
     'fiz-metraj': { ok: fizOk, make: (st) => fiz(st, 'metraj') },
-    'birim-plan': { ok: unitOk, make: (st) => unit(st, 'plan') },
-    'birim-iso': { ok: unitOk, make: (st) => unit(st, 'iso') },
-    'birim-surec': { ok: (c) => unitOk(c) && c.P.unit.steps.length > 1, make: (st) => unit(st, 'surec') },
     vaziyet: { ok: (c) => !!(c.P.plan && c.P.plan.els && c.P.plan.els.length), make: (st) => sc(App.plan.scene(st.project.plan, { live: false })) },
     kolaj: { ok: (c) => !!(c.P.collage && c.P.collage.layers && c.P.collage.layers.length), make: (st) => sc(App.collage.scene(st.project.collage, { live: false })) },
   };
@@ -42,7 +41,7 @@
   function sc(scene) { return scene; }
   function dsnOk(c) { try { return c.hasParcel && App.dsnCtx(c.P).ok; } catch (e) { return false; } }
   function fizOk(c) { try { return dsnOk(c) && App.fizCtx(c.P).ok; } catch (e) { return false; } }
-  function unitOk(c) { const u = c.P.unit; return !!(u && u.steps && u.steps.some((s) => s.els && s.els.some((e) => e.t === 'mass'))); }
+  function etutOk(c) { return c.P.spaces.length > 0 && !!c.P.study && !!App.massing; }
   function imar(st, mode) {
     const cx = App.ui.site.imarCtx(st);
     const view = Object.assign({}, st.ui.imar, { mode: mode, fixed: null, tool: null, draft: null, lod: false });
@@ -56,9 +55,11 @@
     const P = st.project, f = App.fizCtx(P);
     return sc(App.fizScene.scene(P, f, Object.assign({}, st.ui.fiz, { mode: mode }), false));
   }
-  function unit(st, mode) {
-    const o = Object.assign({}, App.unitDefaults ? App.unitDefaults() : {}, { live: false, mode: mode, kind: 'png' });
-    return sc(App.unit.scene(st.project.unit, o));
+  function etut(st, mode) {
+    const P = st.project, v = Object.assign({}, App.etutDefaults ? App.etutDefaults() : {}, st.ui.etut || {});
+    if (mode === 'iso') return sc(App.massing.isoScene(App.massing.doc(P, { live: true }), { live: false, yaw: v.yaw, pitch: v.pitch, zx: v.zx, grid: v.grid }));
+    if (mode === 'surec') return sc(App.massing.processScene(App.massing.doc(P, {}), { live: false, yaw: v.yaw, pitch: v.pitch, zx: v.zx }));
+    return sc(App.study.freeScene(P, App.study.freeDerive(P), { live: false, lv: v.lv, furn: v.furn, rel: v.rel, grid: v.grid }));
   }
 
   T.available = function (st) {
@@ -76,7 +77,7 @@
   T.stamp = function (st) {
     const P = st.project;
     const u = st.ui;
-    return [P.meta, P.spaces, P.relations, P.study, P.site, P.cand, P.design, P.fiz, P.unit, P.plan, P.collage, u.an, u.site, u.imar, u.dsn, u.fiz, App.collage ? App.collage.version : 0, App.theme.name].map(idOf).join('.');
+    return [P.meta, P.spaces, P.relations, P.study, P.site, P.cand, P.design, P.fiz, P.plan, P.collage, u.etut, u.an, u.site, u.imar, u.dsn, u.fiz, App.collage ? App.collage.version : 0, App.theme.name].map(idOf).join('.');
   };
 
   /* ---------- tuvale çizim ve önbellek ---------- */

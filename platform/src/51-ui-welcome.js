@@ -24,7 +24,7 @@
     { id: 'imar', label: 'Parselin imar kapasitesini hesaplayın', sub: 'TAKS, KAKS, çekmeler ve yençok ile kütleyi ve birim sayısını görün.', icon: 'parcel' },
     { id: 'tasarim', label: 'Parsele bina tasarımı üretin', sub: 'Kütle alternatifleri, tipik kat planı, daire karması ve otopark; CAD, IFC ve Excel çıktısı.', icon: 'layers' },
     { id: 'fizibilite', label: 'Maliyet ve fizibilite hesaplayın', sub: 'Metraj, maliyet, satış geliri, kâr, başabaş fiyat ve nakit akışı.', icon: 'compare' },
-    { id: 'birim', label: 'Bir kütleyi adım adım şekillendirin', sub: 'Parselde bir birim kurun; böl, boşluk aç, yeşil ekle ve süreci tek afişte görün.', icon: 'cube' },
+    { id: 'etut', label: 'Mekânları serbest şekillerle yerleştirin', sub: 'Dikdörtgenden organik biçime 32 şekil, isteğe bağlı kat ve donatı; çevre ve haritayla birlikte, adım adım süreç afişi.', icon: 'cube' },
     { id: 'vaziyet', label: 'Ölçekli vaziyet planı çizin', sub: 'Yapılar, yollar, yeşil alan ve ağaçlarla 1/200–1/5000 ölçekli vaziyet paftası; PNG, PDF ve DXF.', icon: 'parcel' },
     { id: 'kolaj', label: 'Sunum kolajı hazırlayın', sub: 'Siyah-beyaz fotoğraf üzerine tek renkli kütleler, beyaz siluetler, elle çizgiler ve etiketler; PNG ve PDF.', icon: 'image' },
     { id: 'pafta', label: 'Jüri paftası hazırlayın', sub: 'A3–A0 pafta şablonu: vaziyet, kolaj, işlev şeması gibi araç çıktılarını serbestçe yerleştirin; metin, künye ve lejant ekleyin; PNG ve PDF.', icon: 'layout' },
@@ -86,12 +86,12 @@
       else if (id === 'imar') { c.go('imar'); }
       else if (id === 'tasarim') { c.go('tasarim'); }
       else if (id === 'fizibilite') { c.go('fizibilite'); }
-      else if (id === 'birim') { c.go('birim'); }
+      else if (id === 'etut') { c.go('kat'); }
       else if (id === 'vaziyet') { c.go('vaziyet'); }
       else if (id === 'kolaj') { c.go('kolaj'); }
       else if (id === 'pafta') { c.go('pafta'); }
       else if (id === 'bina') { c.go('islev'); }
-      else c.toast('İyi keşifler: üst çubuktan on iki modül arasında gezinebilirsiniz.');
+      else c.toast('İyi keşifler: üst çubuktan on bir modül arasında gezinebilirsiniz.');
     },
   });
   ui.helpBtn = function () { W.open(1); };

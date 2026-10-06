@@ -174,7 +174,7 @@
 
   /* ---------- boş belge ---------- */
   plan.defaults = function () {
-    return { v: 1, title: '', scale: 1000, cx: 0, cy: 0, style: 'auto', snap: 1, grid: false, shadow: true, labels: true, els: [] };
+    return { v: 1, title: '', scale: 1000, cx: 0, cy: 0, style: 'auto', snap: 1, grid: false, shadow: true, labels: true, map: App.basemap.defaults(), els: [] };
   };
   plan.cleanDoc = function (p) {
     const d = plan.defaults();
@@ -185,6 +185,7 @@
     o.style = ['auto', 'sade', 'renkli'].indexOf(o.style) >= 0 ? o.style : 'auto';
     o.snap = [0.5, 1, 2, 5].indexOf(Number(o.snap)) >= 0 ? Number(o.snap) : 1;
     o.grid = !!o.grid; o.shadow = o.shadow !== false; o.labels = o.labels !== false;
+    o.map = App.basemap.clean(o.map);
     o.els = (Array.isArray(o.els) ? o.els : []).slice(0, 1800).map((e) => plan.clean(e)).filter(Boolean);
     return o;
   };
@@ -260,24 +261,34 @@
     return els;
   };
 
-  /* ---------- Birim Oluşturucu'dan (Modül 9) ---------- */
-  plan.fromUnit = function (u) {
-    const S = u.site;
+  /* ---------- Mekân Etüdü'nden (Modül 2) ---------- */
+  plan.fromStudy = function (P) {
+    const M = App.massing;
+    if (!M || !P.spaces.length) return null;
+    const doc = M.doc(P, { live: true });
+    const step = doc.steps[0];
+    const S = doc.site;
     const ox = -S.w / 2, oy = -S.d / 2;
     const T = (q) => [r1(q[0] + ox), r1(q[1] + oy)];
-    const step = u.steps[Math.min(u.cur, u.steps.length - 1)];
     const els = [];
-    // çevre sokakları
     const sw = 5, off = 3;
-    els.push(make.road([[ox - off, oy - off], [ox + S.w + off, oy - off], [ox + S.w + off, oy + S.d + off], [ox - off, oy + S.d + off], [ox - off, oy - off]], { w: sw }));
-    u.ctx.forEach((c) => els.push(make.bld(rectPts(r1(c.x + ox), r1(c.y + oy), r1(c.x + c.w + ox), r1(c.y + c.d + oy)), { k: 'mevcut', floors: Math.max(1, Math.round(c.h / FH)) })));
-    els.push(make.bound(rectPts(ox, oy, ox + S.w, oy + S.d)));
+    if (doc.siteOn) {
+      els.push(make.road([[ox - off, oy - off], [ox + S.w + off, oy - off], [ox + S.w + off, oy + S.d + off], [ox - off, oy + S.d + off], [ox - off, oy - off]], { w: sw }));
+      els.push(make.bound(rectPts(ox, oy, ox + S.w, oy + S.d)));
+    }
+    doc.ctx.forEach((c) => els.push(make.bld(rectPts(r1(c.x + ox), r1(c.y + oy), r1(c.x + c.w + ox), r1(c.y + c.d + oy)), { k: 'mevcut', floors: Math.max(1, Math.round(c.h / FH)) })));
+    const masses = step.els.filter((e) => e.t === 'mass');
+    if (masses.length) {
+      const pts = [];
+      masses.forEach((m) => M.ring(m).forEach((q) => pts.push(T(q))));
+      const floors = Math.max(1, masses.reduce((q, m) => Math.max(q, m.lv + m.floors), 1));
+      els.push(make.bld(hull(pts), { k: 'yeni', floors: floors, name: P.meta.name }));
+    }
     step.els.forEach((e) => {
       if (e.t === 'green') els.push(make.green(e.round ? circlePts(e.x + e.w / 2 + ox, e.y + e.d / 2 + oy, Math.min(e.w, e.d) / 2, 20) : rectPts(r1(e.x + ox), r1(e.y + oy), r1(e.x + e.w + ox), r1(e.y + e.d + oy)), { smooth: !!e.round }));
       else if (e.t === 'void') els.push(make.plaza(rectPts(r1(e.x + ox), r1(e.y + oy), r1(e.x + e.w + ox), r1(e.y + e.d + oy))));
       else if (e.t === 'tree') els.push(make.tree(r1(e.x + ox), r1(e.y + oy), e.r));
       else if (e.t === 'arrow' && e.k !== 'entry') els.push(make.road([T([e.x1, e.y1]), T([e.x2, e.y2])], { w: 2.4, k: 'yaya' }));
-      else if (e.t === 'mass') els.push(make.bld(App.unit.ring(e).map(T), { k: 'yeni', floors: e.floors }));
     });
     return els;
   };

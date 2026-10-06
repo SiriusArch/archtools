@@ -3,3 +3,7 @@
 .img-btn, .fig-tile { border-radius: 12px; }
 .img-del { border-radius: 50%; }
 .btn-tool.on, .btn-tool[aria-pressed="true"] { box-shadow: var(--press-sm); }
+.stock-tab { border-radius: 99px; box-shadow: var(--raise-sm); background: var(--glass-2); }
+.stock-tab.on { box-shadow: var(--press-sm); background: var(--ink); }
+.stock-btn img { border-radius: 12px; box-shadow: var(--raise-sm); }
+.stock-btn:hover img { box-shadow: var(--raise-sm), 0 0 0 2px var(--ink); }
