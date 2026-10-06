@@ -1,0 +1,42 @@
+/* Modül 12 — Pafta Şablonu: iki temada ortak yerleşim (renk örnekleri ve görsel kutuları Kolaj modülünün sınıflarını kullanır) */
+.board-svg-tpl { touch-action: none; cursor: default; }
+.thit { cursor: move; pointer-events: all; outline: none; }
+.thit.locked { cursor: default; }
+.thit:hover { fill: rgba(23, 24, 27, .045); }
+.thandle { fill: #fff; stroke: #17181B; pointer-events: all; cursor: nwse-resize; }
+.tmargin { stroke: #1F4FD8; stroke-width: 1.4; stroke-dasharray: 8 6; opacity: .5; vector-effect: non-scaling-stroke; }
+.tguide { stroke: #F26B1D; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.tpl-busy { position: absolute; left: 14px; bottom: 14px; padding: 6px 10px; font-size: 11px; letter-spacing: .04em; pointer-events: none; background: var(--glass-2, var(--surface, #fff)); color: var(--ink); }
+.tpl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.tpl-card { display: grid; gap: 4px; padding: 7px; border: 0; cursor: pointer; text-align: left; background: var(--glass-2, var(--surface, #fff)); color: var(--ink); font: inherit; }
+.tpl-thumb { width: 100%; height: auto; max-height: 92px; display: block; background: #fff; box-shadow: inset 0 0 0 1px rgba(23, 24, 27, .3); }
+.tpl-card-n { font-weight: 700; font-size: 12.5px; line-height: 1.2; }
+.tpl-card-s { font-size: 10.5px; opacity: .6; }
+.tpl-card:hover .tpl-card-n, .tpl-card:focus-visible .tpl-card-n { text-decoration: underline; }
+.src-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.src-btn { display: flex; align-items: center; gap: 7px; min-width: 0; padding: 7px 9px; border: 0; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; text-align: left; background: var(--glass-2, var(--surface, #fff)); color: var(--ink); }
+.src-btn .src-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.src-dot { flex: none; width: 9px; height: 9px; background: #2F8F4E; }
+.src-btn.off { opacity: .55; }
+.src-btn.off .src-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink); }
+.tpl-xywh { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tpl-num { display: grid; gap: 3px; font-size: 11px; font-weight: 600; }
+.tpl-num .inp { width: 100%; }
+.tpl-rows { display: grid; gap: 6px; }
+.tpl-row2 { display: grid; grid-template-columns: 1fr 1.5fr; gap: 6px; align-items: center; }
+.tpl-row2.tpl-leg { grid-template-columns: 30px 1fr 28px; }
+.tpl-al .btn { flex: 1 1 28%; }
+.tpl-ta { width: 100%; resize: vertical; min-height: 90px; }
+.tpl-facts { display: grid; gap: 5px; }
+.chip-tgl { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 6px 9px; border: 0; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; text-align: left; background: var(--glass-2, var(--surface, #fff)); color: var(--ink); opacity: .6; }
+.chip-tgl.on { opacity: 1; }
+.chip-tgl b { font-size: 11.5px; }
+.tstage .pl-chip .mono { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+.img-btn.img-btn-col img { filter: none; }
+.tkind-view { background: var(--ink-3, #8C9199); }
+.tkind-text { background: transparent; box-shadow: inset 0 -2px 0 var(--ink); }
+.tkind-title { background: transparent; box-shadow: inset 0 0 0 2px var(--ink); }
+.tkind-block { background: #D93A1F; }
+.tkind-legend, .tkind-facts { background: transparent; box-shadow: inset 0 0 0 2px var(--ink-3, #8C9199); }
+.tkind-line { height: 3px; margin: 5px 0; }
+.tkind-north { border-radius: 50%; width: 12px; height: 12px; background: transparent; box-shadow: inset 0 0 0 2px var(--ink); }

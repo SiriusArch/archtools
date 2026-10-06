@@ -33,6 +33,7 @@
   App.ctl.loadPlanView();
   App.ctl.loadColView();
   App.ctl.loadColImages();
+  App.ctl.loadTplView();
   const fromLink = App.ctl.hashSite(); // #/arsa?lat=…&lon=… paylaşım bağlantısı
 
   function view() {

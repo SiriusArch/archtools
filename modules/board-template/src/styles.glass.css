@@ -1,0 +1,7 @@
+/* Modül 12 — cam teması */
+.tpl-card, .src-btn, .chip-tgl { border-radius: 12px; box-shadow: var(--raise-sm); }
+.tpl-card:hover, .src-btn:hover { box-shadow: var(--press-sm); }
+.tpl-thumb { border-radius: 6px; }
+.tpl-busy { border-radius: 999px; box-shadow: var(--raise-sm); }
+.src-dot { border-radius: 50%; }
+.chip-tgl.on { box-shadow: var(--press-sm); }

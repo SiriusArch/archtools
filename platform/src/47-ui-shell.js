@@ -1,7 +1,7 @@
 /* ==========================================================================
    47-ui-shell.js — archtools kabuğu: modül gezgini, ortak skor kadranı verisi,
    araç çubuğu ve sayfa iskeleti. Modüller yalnızca kendi içeriğini üretir.
-   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · birim · vaziyet · kolaj
+   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · birim · vaziyet · kolaj · pafta
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -21,6 +21,7 @@
     { id: 'birim', n: '09', label: 'Birim Oluşturucu', sub: 'Birim oluşturucu · adım adım kütle şekillendirme', shape: 'stack' },
     { id: 'vaziyet', n: '10', label: 'Vaziyet Planı', sub: 'Vaziyet planı · ölçekli yerleşim paftası', shape: 'sitemap' },
     { id: 'kolaj', n: '11', label: 'Kolaj Oluşturucu', sub: 'Kolaj oluşturucu · fotoğraf, kütle, siluet ve etiket', shape: 'collage' },
+    { id: 'pafta', n: '12', label: 'Pafta Şablonu', sub: 'Pafta şablonu · araç çıktılarıyla jüri paftası', shape: 'layout' },
   ];
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
@@ -40,6 +41,7 @@
     else if (shape === 'stack') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 9.6, width: 8.4, height: 6, rx: 1 }, p)), h('rect', Object.assign({ x: 7.2, y: 2.4, width: 8.4, height: 6, rx: 1 }, q)));
     else if (shape === 'sitemap') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 2.4, width: 13.2, height: 13.2, rx: 1 }, q)), h('rect', Object.assign({ x: 5, y: 5.4, width: 4.6, height: 4.2, rx: 0.6 }, p)), h('path', { d: 'M2.6 12.6h12.8', stroke: 'currentColor', 'stroke-width': 1.6, fill: 'none' }), h('circle', Object.assign({ cx: 12.6, cy: 6.4, r: 1.7 }, p)));
     else if (shape === 'collage') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 3.4, width: 9.6, height: 11.2, rx: 1 }, q)), h('circle', Object.assign({ cx: 11.4, cy: 6.8, r: 3.6 }, p)), h('path', { d: 'M8 14.6l3.2-3.6 4.4 3.6z', fill: 'currentColor', stroke: 'currentColor', 'stroke-width': 1.2, 'stroke-linejoin': 'round' }));
+    else if (shape === 'layout') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 2.4, width: 13.2, height: 13.2, rx: 1 }, q)), h('rect', Object.assign({ x: 4.6, y: 4.6, width: 5.2, height: 5.6, rx: 0.5 }, p)), h('path', { d: 'M12 5h1.6M12 8h1.6M5 13h8', stroke: 'currentColor', 'stroke-width': 1.4, fill: 'none', 'stroke-linecap': 'round' }));
     else if (shape === 'coin') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.6 }, q)), h('path', { d: 'M9 5.2v7.6M6.8 7.4c0-1 .9-1.7 2.2-1.7s2.2.7 2.2 1.6c0 2.3-4.4 1.1-4.4 3.4 0 .9 1 1.7 2.2 1.7s2.2-.7 2.2-1.7', stroke: 'currentColor', 'stroke-width': 1.3, fill: 'none', 'stroke-linecap': 'round' }));
     else g = h('path', Object.assign({ d: 'M2.5 15.2L9 3l6.5 12.2z' }, p));
     return h('svg', { viewBox: '0 0 18 18', width: 16, height: 16, class: 'msh msh-' + shape, 'aria-hidden': 'true' }, g);
@@ -187,7 +189,25 @@
     };
   }
 
-  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, birim: birimMeter, vaziyet: vaziyetMeter, kolaj: kolajMeter };
+  function paftaMeter(state) {
+    const t = state.project.tpl;
+    if (!t || !App.tpl) return { label: 'Panel', percent: null, msg: '', chips: [], issues: 0 };
+    const cnt = (k) => t.panels.filter((p) => p.t === k).length;
+    const refs = App.tpl.refsOf(t).length;
+    return {
+      label: 'Panel', percent: null,
+      msg: !t.panels.length ? 'Bir şablon seçerek paftaya başlayın' : t.panels.length + ' panel · ' + App.tpl.sizeOf(t).label + ' · ' + refs + ' araç çıktısı',
+      chips: [
+        { label: 'Görsel', value: String(cnt('view')), cls: 'dot' },
+        { label: 'Metin', value: String(cnt('text')), cls: 'dot' },
+        { label: 'Araç', value: String(refs), cls: 'dot' },
+        { label: 'Boyut', value: App.tpl.sizeOf(t).label.split(' ')[0], cls: 'dot' },
+      ],
+      issues: 0, issuesText: '', onIssues: null,
+    };
+  }
+
+  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, birim: birimMeter, vaziyet: vaziyetMeter, kolaj: kolajMeter, pafta: paftaMeter };
   ui.meterFor = (state, d) => (ui.meterOpts[state.ui.module] || islevMeter)(state, d);
 
   /* ---------------- araç çubuğu ----------------
@@ -247,6 +267,7 @@
     if (m === 'birim' && ui.unit) return h('main', { class: 'main main-birim', key: 'main-birim' }, ui.unit.sidebar(state, d), ui.unit.board(state, d));
     if (m === 'vaziyet' && ui.plan) return h('main', { class: 'main main-vaziyet', key: 'main-vaziyet' }, ui.plan.sidebar(state, d), ui.plan.board(state, d));
     if (m === 'kolaj' && ui.col) return h('main', { class: 'main main-kolaj', key: 'main-kolaj' }, ui.col.sidebar(state, d), ui.col.board(state, d));
+    if (m === 'pafta' && ui.tpl) return h('main', { class: 'main main-pafta', key: 'main-pafta' }, ui.tpl.sidebar(state, d), ui.tpl.board(state, d));
     if (m === 'yer' && ui.yer) return h('main', { class: 'main main-yer', key: 'main-yer' }, ui.yer.sidebar(state, d), ui.yer.board(state, d));
     return h('main', { class: 'main main-islev', key: 'main-islev' }, ui.sidebar(state, d), ui.board(state, d), ui.assistant(state, d));
   };

@@ -1,6 +1,6 @@
 # archtools — Mimari Tasarım Asistanı Platformu
 
-Mimari yardımcı araçların toplandığı depo. On bir modül tek sitede, ortak proje verisiyle çalışır: bir modülde yaptığınız değişiklik diğerlerine otomatik yansır. İlk üçü bina içini, sonraki üçü bina çevresini ve parseli, sonraki ikisi tasarım üretimini ve maliyeti, sonuncusu bir yapı kütlesinin adım adım şekillendirilmesini ele alır.
+Mimari yardımcı araçların toplandığı depo. On iki modül tek sitede, ortak proje verisiyle çalışır: bir modülde yaptığınız değişiklik diğerlerine otomatik yansır. İlk üçü bina içini, sonraki üçü bina çevresini ve parseli, sonraki ikisi tasarım üretimini ve maliyeti, sonraki üçü kütle şekillendirme, ölçekli vaziyet ve kolaj çizimini, sonuncusu bütün bu çıktıları tek paftada toplamayı ele alır.
 
 | # | Modül | Ne yapar | Rota |
 |---|---|---|---|
@@ -15,6 +15,7 @@ Mimari yardımcı araçların toplandığı depo. On bir modül tek sitede, orta
 | 09 | **Birim Oluşturucu** | Parsel üzerinde bir yapı kütlesi kur (dikdörtgen / L / T / U, kat sayısı), her adımı bir öncekinin kopyası olarak şekillendir (böl, boşluk aç, yeşil ve ağaç ekle, yaya akışı / geçit / giriş okları); plan, izometrik ve tüm adımları yan yana gösteren **süreç afişi**; TAKS / KAKS / yeşil oranı; PNG · PDF | `#/birim` |
 | 10 | **Vaziyet Planı** | 1/200 – 1/5000 ölçekli A3 vaziyet paftası: sürükleyerek / köşe tıklayarak yeni ve mevcut yapı, taşıt ve yaya yolu, yeşil alan, su, meydan, otopark, proje sınırı, ağaç ve yazı çiz; köşe tutamaçları, kaydır, tekerlekle ölçek, komşu köşeye yapışma; gölge, kat etiketi, ölçek çubuğu, kuzey oku, lejant; TAKS / KAKS / yeşil oranı; örnek mahalle, Birim Oluşturucu ve İmar parselinden içe alma; PNG · PDF · DXF | `#/vaziyet` |
 | 11 | **Kolaj Oluşturucu** | Sunum kolajı: fotoğraf yükle (siyah-beyaz, kontrast / parlaklık, elips / kemer maskesi), tek vurgu renkli kütleler (dörtgen, elips, üçgen, kemer, serbest çokgen; çarpma karışımı), beyaz siluetler (insan, ağaç, kuş, siluet), elle çizilmiş çizgi / ok, etiketler; sürükle, boyutlandır, döndür, katman sırası, kilitle / gizle; sürükle-bırak ve yapıştırma; A3 / kare / 16:9; PNG · PDF; görselleri de içeren JSON | `#/kolaj` |
+| 12 | **Pafta Şablonu** | A3 – A0 jüri paftası düzenleyici: 7 hazır şablon (jüri paftası, dikey afiş, ızgara, kolaj + vaziyet, süreç şeridi, tek görsel, boş); diğer araçların çıktıları (vaziyet, kolaj, işlev şeması, birim, kat etüdü, mekân analizi, arsa, imar, tasarım, fizibilite — 20 çıktı) **canlı bağlı** panel olarak yerleşir; yüklenen görseller, metin, künye, lejant, otomatik veri satırları (parsel, TAKS, KAKS, kat, daire, maliyet), renk bloğu, çizgi, kuzey oku; sürükle, boyutlandır, kenar / orta / kenar boşluğuna yaslanma kılavuzları, hizala, katman sırası, kilitle / gizle, geri al; PNG · PDF · JSON | `#/pafta` |
 
 Arsa Analizi'nde 15 dakikalık şehir karnesi, kural tabanlı **Sor** kutusu ve işlev yoğunluğu katmanı; Mekân Etüdü'nün kat kipinde plan alternatifleri galerisi, her iki kipte DXF çıktısı vardır. Üst çubuktaki **Rapor** düğmesi, verisi olan tüm modüllerin paftalarını kapak, içindekiler ve yöntem/kaynaklar sayfasıyla tek çok sayfalı PDF'te toplar.
 
@@ -40,6 +41,7 @@ modules/building-design/src  Modül 7 · 8 — tasarım motoru, maliyet motoru, 
 modules/mass-builder/src     Modül 9 — birim oluşturucu: veri modeli, plan / izometrik / süreç paftası, adım ve öğe eylemleri, arayüz, controller
 modules/site-plan/src        Modül 10 — vaziyet planı: ölçekli veri modeli, pafta sahnesi, çizim araçları, içe alma, PNG / PDF / DXF
 modules/collage/src          Modül 11 — kolaj oluşturucu: katman modeli, figür kitaplığı, görsel deposu (IndexedDB), sahne, araçlar, PNG / PDF
+modules/board-template/src   Modül 12 — pafta şablonu: panel modeli, hazır şablonlar, araç çıktısı kaynakları (canlı bağlı), sahne, arayüz, PNG / PDF
 platform/src                 Kabuk: ortak pafta çerçevesi, DXF / XLSX / PDF yazıcıları, modül gezgini, kontroller, intro, rota, başlatma
 ```
 JS dosyaları klasörden bağımsız olarak **dosya adındaki sayı önekine** göre birleşir: 00–27 çekirdek ve ortak mantık · 28–29 ortak pafta · 30 state · 31–39 modül mantığı · 40–49 ortak arayüz · 50–59 controller (Modül 1) · 60–79 modül arayüzleri ve controller'ları · 90–99 kabuk ve başlatma. Yeni modül eklemek için `modules/<ad>/src` klasörünü `build.py` içindeki `SRC_DIRS` listesine ekleyin.
@@ -63,7 +65,8 @@ Dosya şeması `mimari-asistan.bubble-diagram` v1'dir; `platform: "archtools"` a
     "feasibility":   { "assumptions": {}, "result": {} },
     "massBuilder":   { "version": 1, "unit": "m", "site": {}, "context": {}, "steps": [ { "title": "", "elements": [], "metrics": {} } ] },
     "sitePlan":      { "version": 1, "unit": "m", "scale": 1000, "center": [0, 0], "elements": [ { "type": "bld", "points": [], "floors": 4, "kind": "yeni" } ], "metrics": {} },
-    "collage":       { "version": 1, "size": "a3l", "background": "white", "accent": "#D93A1F", "layers": [], "images": {} }
+    "collage":       { "version": 1, "size": "a3l", "background": "white", "accent": "#D93A1F", "layers": [], "images": {} },
+    "boardTemplate": { "version": 1, "size": "a1l", "background": "white", "accent": "#D93A1F", "margin": 72, "gutter": 29, "panels": [ { "type": "view", "src": { "k": "mod", "id": "vaziyet" }, "x": 0, "y": 0, "w": 0, "h": 0 } ], "images": {} }
   }
 }
 ```

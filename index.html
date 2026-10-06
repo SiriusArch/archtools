@@ -372,6 +372,49 @@ body.kbd .board-svg-arsa:focus-visible, body.kbd .board-svg-imar:focus-visible, 
 .lock-tag { font-weight: 500; color: var(--ink-2); }
 .kstage .pl-chip .mono { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
 
+/* Modül 12 — Pafta Şablonu: iki temada ortak yerleşim (renk örnekleri ve görsel kutuları Kolaj modülünün sınıflarını kullanır) */
+.board-svg-tpl { touch-action: none; cursor: default; }
+.thit { cursor: move; pointer-events: all; outline: none; }
+.thit.locked { cursor: default; }
+.thit:hover { fill: rgba(23, 24, 27, .045); }
+.thandle { fill: #fff; stroke: #17181B; pointer-events: all; cursor: nwse-resize; }
+.tmargin { stroke: #1F4FD8; stroke-width: 1.4; stroke-dasharray: 8 6; opacity: .5; vector-effect: non-scaling-stroke; }
+.tguide { stroke: #F26B1D; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.tpl-busy { position: absolute; left: 14px; bottom: 14px; padding: 6px 10px; font-size: 11px; letter-spacing: .04em; pointer-events: none; background: var(--glass-2, var(--surface, #fff)); color: var(--ink); }
+.tpl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.tpl-card { display: grid; gap: 4px; padding: 7px; border: 0; cursor: pointer; text-align: left; background: var(--glass-2, var(--surface, #fff)); color: var(--ink); font: inherit; }
+.tpl-thumb { width: 100%; height: auto; max-height: 92px; display: block; background: #fff; box-shadow: inset 0 0 0 1px rgba(23, 24, 27, .3); }
+.tpl-card-n { font-weight: 700; font-size: 12.5px; line-height: 1.2; }
+.tpl-card-s { font-size: 10.5px; opacity: .6; }
+.tpl-card:hover .tpl-card-n, .tpl-card:focus-visible .tpl-card-n { text-decoration: underline; }
+.src-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.src-btn { display: flex; align-items: center; gap: 7px; min-width: 0; padding: 7px 9px; border: 0; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; text-align: left; background: var(--glass-2, var(--surface, #fff)); color: var(--ink); }
+.src-btn .src-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.src-dot { flex: none; width: 9px; height: 9px; background: #2F8F4E; }
+.src-btn.off { opacity: .55; }
+.src-btn.off .src-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink); }
+.tpl-xywh { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tpl-num { display: grid; gap: 3px; font-size: 11px; font-weight: 600; }
+.tpl-num .inp { width: 100%; }
+.tpl-rows { display: grid; gap: 6px; }
+.tpl-row2 { display: grid; grid-template-columns: 1fr 1.5fr; gap: 6px; align-items: center; }
+.tpl-row2.tpl-leg { grid-template-columns: 30px 1fr 28px; }
+.tpl-al .btn { flex: 1 1 28%; }
+.tpl-ta { width: 100%; resize: vertical; min-height: 90px; }
+.tpl-facts { display: grid; gap: 5px; }
+.chip-tgl { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 6px 9px; border: 0; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; text-align: left; background: var(--glass-2, var(--surface, #fff)); color: var(--ink); opacity: .6; }
+.chip-tgl.on { opacity: 1; }
+.chip-tgl b { font-size: 11.5px; }
+.tstage .pl-chip .mono { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+.img-btn.img-btn-col img { filter: none; }
+.tkind-view { background: var(--ink-3, #8C9199); }
+.tkind-text { background: transparent; box-shadow: inset 0 -2px 0 var(--ink); }
+.tkind-title { background: transparent; box-shadow: inset 0 0 0 2px var(--ink); }
+.tkind-block { background: #D93A1F; }
+.tkind-legend, .tkind-facts { background: transparent; box-shadow: inset 0 0 0 2px var(--ink-3, #8C9199); }
+.tkind-line { height: 3px; margin: 5px 0; }
+.tkind-north { border-radius: 50%; width: 12px; height: 12px; background: transparent; box-shadow: inset 0 0 0 2px var(--ink); }
+
 /* archtools kabuğu — iki temada ortak: açılış (intro) yapısı, modül geçişi, gezgin düzeni */
 
 /* ---------- açılış ---------- */
@@ -888,6 +931,12 @@ html[data-style="glass"] .kswatch { border-radius: 50%; }
 html[data-style="glass"] .img-btn, html[data-style="glass"] .fig-tile { border-radius: 12px; }
 html[data-style="glass"] .img-del { border-radius: 50%; }
 html[data-style="glass"] .btn-tool.on, html[data-style="glass"] .btn-tool[aria-pressed="true"] { box-shadow: var(--press-sm); }
+html[data-style="glass"] .tpl-card, html[data-style="glass"] .src-btn, html[data-style="glass"] .chip-tgl { border-radius: 12px; box-shadow: var(--raise-sm); }
+html[data-style="glass"] .tpl-card:hover, html[data-style="glass"] .src-btn:hover { box-shadow: var(--press-sm); }
+html[data-style="glass"] .tpl-thumb { border-radius: 6px; }
+html[data-style="glass"] .tpl-busy { border-radius: 999px; box-shadow: var(--raise-sm); }
+html[data-style="glass"] .src-dot { border-radius: 50%; }
+html[data-style="glass"] .chip-tgl.on { box-shadow: var(--press-sm); }
 html[data-style="glass"] .intro { background-color: var(--bg); background-image: radial-gradient(70% 55% at 10% 6%, var(--bg-2), transparent 62%), radial-gradient(55% 50% at 94% 92%, var(--bg-3), transparent 70%); color: var(--ink); }
 html[data-style="glass"] .intro-glow { background: radial-gradient(closest-side, var(--hi), transparent 72%); }
 html[data-style="glass"] .intro-disc { border-radius: 50%; background: var(--glass-2); border: 1px solid var(--stroke); box-shadow: var(--raise); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
@@ -1473,6 +1522,12 @@ html[data-style="bauhaus"] .pl-chip { border: 3px solid var(--ink); box-shadow: 
 html[data-style="bauhaus"] .btn-tool.on, html[data-style="bauhaus"] .btn-tool[aria-pressed="true"] { background: var(--blue); color: #fff; box-shadow: 4px 4px 0 var(--shadow); }
 html[data-style="bauhaus"] .fig-tile { background: var(--ink); }
 html[data-style="bauhaus"] .img-btn { box-shadow: inset 0 0 0 3px var(--ink); }
+html[data-style="bauhaus"] .tpl-card, html[data-style="bauhaus"] .src-btn, html[data-style="bauhaus"] .chip-tgl { box-shadow: inset 0 0 0 3px var(--ink); }
+html[data-style="bauhaus"] .tpl-card:hover, html[data-style="bauhaus"] .src-btn:hover { background: var(--yellow); color: var(--on-yellow); }
+html[data-style="bauhaus"] .chip-tgl.on { background: var(--blue); color: var(--on-blue); }
+html[data-style="bauhaus"] .tpl-thumb { box-shadow: inset 0 0 0 2px var(--ink); }
+html[data-style="bauhaus"] .tpl-busy { box-shadow: 3px 3px 0 var(--shadow); }
+html[data-style="bauhaus"] .thandle { stroke-width: 3; }
 html[data-style="bauhaus"] .intro { background-color: var(--bg); background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px); background-size: 20px 20px; color: var(--ink); }
 html[data-style="bauhaus"] .intro::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 16px; border-top: 4px solid var(--line); background: linear-gradient(90deg, var(--blue) 0 33.33%, var(--yellow) 33.33% 66.66%, var(--red) 66.66%); transform: scaleY(0); transform-origin: bottom; }
 html[data-style="bauhaus"] .run.intro::before { animation: ib-rise .6s 2.6s cubic-bezier(.2, .9, .3, 1) forwards; }
@@ -5366,6 +5421,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (App.unit && !project.unit) project = Object.assign({}, project, { unit: App.unit.init(project) });
     if (App.plan && !project.plan) project = Object.assign({}, project, { plan: App.plan.defaults() });
     if (App.collage && !project.collage) project = Object.assign({}, project, { collage: App.collage.defaults() });
+    if (App.tpl && !project.tpl) project = Object.assign({}, project, { tpl: App.tpl.defaults() });
     return {
       project: project,
       past: [], future: [],
@@ -5374,7 +5430,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       ui: {
         module: 'islev', tab: 'spaces', assistantOpen: false, asTab: 'analysis', messages: [], toast: null, highlight: null,
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
-        site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, unit: App.unitDefaults ? App.unitDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, geo: { busy: null, msg: '', err: null },
+        site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, unit: App.unitDefaults ? App.unitDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, tpl: App.tplDefaults ? App.tplDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
         busy: null, hintDismissed: false, style: App.theme.name, boardWide: readWide(),
       },
@@ -5386,7 +5442,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
   // geri al/ileri al: kat etüdü (study), arsa / imar (site) ve aday konumlar (cand) da projeyle birlikte geri alınır
-  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, unit: project.unit, plan: project.plan, collage: project.collage }; }
+  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, unit: project.unit, plan: project.plan, collage: project.collage, tpl: project.tpl }; }
   function withHistory(state, project) {
     const meta = project.meta.example ? Object.assign({}, project.meta, { example: false }) : project.meta;
     return Object.assign({}, state, {
@@ -14409,6 +14465,354 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
+   38-lib-tpl.js — Modül 12 · Pafta Şablonu: veri modeli, hazır şablonlar, bilgi (veri) kaynakları
+   Pafta; serbestçe yerleştirilen panellerden oluşur. Paneller diğer araçların çıktısını (canlı bağlantılı),
+   yüklenen görselleri, metin, künye, lejant, veri satırları ve renk bloklarını gösterir.
+   Model:
+     project.tpl = { v, title, size: 'a3l|a3p|a2l|a1l|a1p|a0l|a0p', bg: 'white|paper|grey|ink|accent', accent: '#hex',
+                     margin, gutter, snap: bool, panels: [panel] }
+     panel = { id, t, name, hidden, locked, x, y, w, h, bg: 'none|white|paper|grey|ink|accent', bd: 0..8, bdc: '#hex', pad, ... }
+       view   { src: { k: 'mod'|'img'|'none', id }, fit: 'cover'|'contain', zoom, ox, oy, trim, bw, label }
+       text   { s, size, weight, fam, col, align: 'l|c|r', valign: 't|m|b', caps, lh }
+       title  { name, sub, rows: [[anahtar, değer] × ≤4] }
+       legend { items: [{ col, label }], size, col }
+       facts  { keys: [id], size, col }
+       block  { col, op, s, size, tcol }
+       line   { dir: 'h|v', lw, col, dash: 0|1|2 }
+       north  { col }
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const U = App.util;
+  const T = (App.tpl = {});
+
+  const num = (v, d) => (isFinite(Number(v)) && v !== '' && v !== null ? Number(v) : d);
+  const uid = () => 'p' + Math.random().toString(36).slice(2, 8);
+  const r1 = (v) => Math.round(v * 10) / 10;
+  const r2 = (v) => Math.round(v * 100) / 100;
+
+  T.SIZES = {
+    a3l: { w: 1400, h: 990, label: 'A3 yatay' },
+    a3p: { w: 990, h: 1400, label: 'A3 dikey' },
+    a2l: { w: 1800, h: 1273, label: 'A2 yatay' },
+    a1l: { w: 2400, h: 1697, label: 'A1 yatay' },
+    a1p: { w: 1697, h: 2400, label: 'A1 dikey' },
+    a0l: { w: 3200, h: 2263, label: 'A0 yatay' },
+    a0p: { w: 2263, h: 3200, label: 'A0 dikey' },
+  };
+  T.SIZE_ORDER = ['a3l', 'a3p', 'a2l', 'a1l', 'a1p', 'a0l', 'a0p'];
+  T.BGS = { white: '#FFFFFF', paper: '#EFECE4', grey: '#D5D6D8', ink: '#17181B' };
+  T.PANEL_BGS = ['none', 'white', 'paper', 'grey', 'ink', 'accent'];
+  T.SWATCHES = [
+    { v: '#D93A1F', label: 'Kırmızı' }, { v: '#F26B1D', label: 'Turuncu' }, { v: '#F2B705', label: 'Sarı' }, { v: '#2F8F4E', label: 'Yeşil' },
+    { v: '#1F4FD8', label: 'Mavi' }, { v: '#4B3FA0', label: 'Çivit' }, { v: '#E58FB0', label: 'Pembe' }, { v: '#17181B', label: 'Siyah' }, { v: '#FFFFFF', label: 'Beyaz' },
+  ];
+  T.FONT_OPTS = [{ v: 'b', label: 'Gövde' }, { v: 'd', label: 'Başlık' }, { v: 'm', label: 'Mono' }];
+  T.hex = (v, d) => (/^#[0-9a-fA-F]{6}$/.test(String(v || '')) ? String(v).toUpperCase() : d);
+  T.sizeOf = (d) => T.SIZES[d.size] || T.SIZES.a1l;
+  T.bgColor = (d) => (d.bg === 'accent' ? d.accent : T.BGS[d.bg] || '#FFFFFF');
+  T.panelBg = (p, d) => (p.bg === 'none' ? null : p.bg === 'accent' ? d.accent : T.BGS[p.bg] || null);
+  T.lum = (hex) => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
+  T.contrast = (hex) => (T.lum(hex) > 0.6 ? '#17181B' : '#FFFFFF');
+  T.PANEL_LABEL = { view: 'Görsel', text: 'Metin', title: 'Künye', legend: 'Lejant', facts: 'Veriler', block: 'Blok', line: 'Çizgi', north: 'Kuzey oku' };
+
+  /* ---------- diğer araçlardan alınabilen çıktılar (kaynaklar) ---------- */
+  T.SOURCES = [
+    { id: 'kolaj', label: 'Kolaj', mod: 'kolaj', framed: false },
+    { id: 'vaziyet', label: 'Vaziyet planı', mod: 'vaziyet', framed: true },
+    { id: 'islev', label: 'İşlev şeması', mod: 'islev', framed: true },
+    { id: 'birim-plan', label: 'Birim · plan', mod: 'birim', framed: true },
+    { id: 'birim-iso', label: 'Birim · izometrik', mod: 'birim', framed: true },
+    { id: 'birim-surec', label: 'Birim · süreç', mod: 'birim', framed: true },
+    { id: 'kat', label: 'Kat etüdü', mod: 'kat', framed: true },
+    { id: 'analiz', label: 'Mekân analizi', mod: 'analiz', framed: true },
+    { id: 'arsa', label: 'Arsa analizi', mod: 'arsa', framed: true },
+    { id: 'imar-plan', label: 'İmar · plan', mod: 'imar', framed: true },
+    { id: 'imar-iso', label: 'İmar · izometrik', mod: 'imar', framed: true },
+    { id: 'tasarim-vaziyet', label: 'Tasarım · vaziyet', mod: 'tasarim', framed: true },
+    { id: 'tasarim-tipik', label: 'Tasarım · tipik kat', mod: 'tasarim', framed: true },
+    { id: 'tasarim-bodrum', label: 'Tasarım · bodrum', mod: 'tasarim', framed: true },
+    { id: 'tasarim-kutle', label: 'Tasarım · kütle', mod: 'tasarim', framed: true },
+    { id: 'tasarim-kiyas', label: 'Tasarım · karşılaştırma', mod: 'tasarim', framed: true },
+    { id: 'fiz-ozet', label: 'Fizibilite · özet', mod: 'fizibilite', framed: true },
+    { id: 'fiz-nakit', label: 'Fizibilite · nakit akışı', mod: 'fizibilite', framed: true },
+    { id: 'fiz-duyarlilik', label: 'Fizibilite · duyarlılık', mod: 'fizibilite', framed: true },
+    { id: 'fiz-metraj', label: 'Fizibilite · metraj', mod: 'fizibilite', framed: true },
+  ];
+  T.srcInfo = (id) => T.SOURCES.find((s) => s.id === id) || null;
+  /* otomatik doldururken tercih sırası */
+  T.SRC_PREF = ['kolaj', 'vaziyet', 'imar-iso', 'islev', 'birim-iso', 'tasarim-kutle', 'tasarim-vaziyet', 'kat', 'analiz', 'arsa', 'birim-plan', 'imar-plan', 'tasarim-tipik', 'birim-surec', 'tasarim-kiyas', 'fiz-ozet', 'tasarim-bodrum'];
+
+  /* ---------- veri satırları (bilgi paneli) ---------- */
+  T.FACT_KEYS = [
+    { id: 'mekan', label: 'Mekân sayısı' }, { id: 'parsel', label: 'Parsel alanı' }, { id: 'taks', label: 'TAKS' }, { id: 'kaks', label: 'KAKS' },
+    { id: 'yesil', label: 'Yeşil oranı' }, { id: 'kat', label: 'Kat sayısı' }, { id: 'daire', label: 'Daire sayısı' }, { id: 'insaat', label: 'İnşaat alanı' },
+    { id: 'maliyet', label: 'Toplam maliyet (ÖRNEK)' }, { id: 'marj', label: 'Kâr marjı (ÖRNEK)' },
+  ];
+  T.facts = function (P) {
+    const out = {};
+    const set = (id, v) => { if (v != null && v !== '') out[id] = v; };
+    const f0 = (v) => U.fmt(v, 0), f2 = (v) => U.fmt(v, 2);
+    try { if (P.spaces && P.spaces.length) set('mekan', String(P.spaces.length)); } catch (e) { /* yok say */ }
+    try {
+      if (P.site && P.site.parcel && App.gis) set('parsel', f0(Math.abs(App.gis.area(P.site.parcel))) + ' m²');
+      const M = App.plan && P.plan ? App.plan.metrics(P.plan) : null;
+      if (M && M.hasBound) {
+        if (!out.parsel) set('parsel', f0(M.boundArea) + ' m²');
+        set('taks', f2(M.taks)); set('kaks', f2(M.kaks)); set('yesil', '%' + Math.round((M.greenShare || 0) * 100));
+        if (M.maxFloors) set('kat', String(M.maxFloors));
+      }
+    } catch (e) { /* yok say */ }
+    try {
+      const dc = App.dsnCtx ? App.dsnCtx(P) : null;
+      if (dc && dc.ok) {
+        set('kat', dc.alt.floors + ' kat · ' + U.fmt(dc.alt.height, 1) + ' m'); set('daire', String(dc.alt.unitTotals.total)); set('insaat', f0(dc.alt.built) + ' m²');
+        const f = App.fizCtx(P);
+        if (f && f.ok) { set('maliyet', App.fizScene.money(f.res.total, f.a.currency)); set('marj', (f.res.margin < 0 ? '−' : '') + '%' + U.fmt(Math.abs(f.res.margin) * 100, 1)); }
+      }
+    } catch (e) { /* yok say */ }
+    return out;
+  };
+
+  /* ---------- panel fabrikaları ---------- */
+  const base = (t) => ({ id: uid(), t: t, name: '', hidden: false, locked: false, bg: 'none', bd: 0, bdc: '#17181B', pad: 14 });
+  T.make = {
+    view: (x, y, w, h, src, o) => Object.assign(base('view'), { x: x, y: y, w: w, h: h, src: src || { k: 'none', id: '' }, fit: 'cover', zoom: 1, ox: 0.5, oy: 0.5, trim: true, bw: false, label: '', pad: 0 }, o || {}),
+    text: (s, x, y, w, h, o) => Object.assign(base('text'), { x: x, y: y, w: w, h: h, s: s, size: 22, weight: 500, fam: 'b', col: '#17181B', align: 'l', valign: 't', caps: false, lh: 1.3, pad: 0 }, o || {}),
+    title: (x, y, w, h, o) => Object.assign(base('title'), { x: x, y: y, w: w, h: h, name: '', sub: '', rows: [['Pafta', ''], ['Ölçek', ''], ['Tarih', U.today()], ['No', '01']], bd: 3, bg: 'white', pad: 0 }, o || {}),
+    legend: (x, y, w, h, items, o) => Object.assign(base('legend'), { x: x, y: y, w: w, h: h, items: items || [{ col: '#D93A1F', label: 'Yeni yapı' }, { col: '#17181B', label: 'Mevcut yapı' }, { col: '#2F8F4E', label: 'Yeşil alan' }], size: 17, col: '#17181B', pad: 0 }, o || {}),
+    facts: (x, y, w, h, keys, o) => Object.assign(base('facts'), { x: x, y: y, w: w, h: h, keys: keys || ['parsel', 'taks', 'kaks', 'kat'], size: 18, col: '#17181B', pad: 0 }, o || {}),
+    block: (x, y, w, h, col, o) => Object.assign(base('block'), { x: x, y: y, w: w, h: h, col: col || '#D93A1F', op: 1, s: '', size: 22, tcol: '#FFFFFF', pad: 14 }, o || {}),
+    line: (x, y, w, h, o) => Object.assign(base('line'), { x: x, y: y, w: w, h: h, dir: 'h', lw: 3, col: '#17181B', dash: 0, pad: 0 }, o || {}),
+    north: (x, y, w, h, o) => Object.assign(base('north'), { x: x, y: y, w: w, h: h, col: '#17181B', pad: 0 }, o || {}),
+  };
+  T.panelName = function (p) {
+    if (p.name) return p.name;
+    if (p.t === 'view') { const si = p.src && p.src.k === 'mod' ? T.srcInfo(p.src.id) : null; return si ? si.label : p.src && p.src.k === 'img' ? ((App.collage && App.collage.imgs[p.src.id] && App.collage.imgs[p.src.id].name) || 'Görsel') : 'Görsel (boş)'; }
+    if (p.t === 'text') { const s = String(p.s || '').replace(/\s+/g, ' ').trim(); return s ? (s.length > 24 ? s.slice(0, 23) + '…' : s) : 'Metin'; }
+    if (p.t === 'block') return p.s ? p.s.slice(0, 22) : 'Renk bloğu';
+    return T.PANEL_LABEL[p.t] || 'Panel';
+  };
+
+  /* ---------- temizleme ---------- */
+  const bgOf = (v) => (T.PANEL_BGS.indexOf(v) >= 0 ? v : 'none');
+  T.clean = function (l, patch) {
+    const o = Object.assign({}, l, patch || {});
+    if (!T.PANEL_LABEL[o.t]) return null;
+    const b = {
+      id: String(o.id || uid()), t: o.t, name: String(o.name || '').slice(0, 40), hidden: !!o.hidden, locked: !!o.locked,
+      x: r1(U.clamp(num(o.x, 0), -2000, 9000)), y: r1(U.clamp(num(o.y, 0), -2000, 9000)), w: r1(U.clamp(num(o.w, 200), 8, 9000)), h: r1(U.clamp(num(o.h, 120), 8, 9000)),
+      bg: bgOf(o.bg), bd: r1(U.clamp(num(o.bd, 0), 0, 12)), bdc: T.hex(o.bdc, '#17181B'), pad: Math.round(U.clamp(num(o.pad, 0), 0, 200)),
+    };
+    const col = (v, d) => T.hex(v, d);
+    if (o.t === 'view') {
+      const s = o.src && typeof o.src === 'object' ? o.src : {};
+      const k = s.k === 'mod' && T.srcInfo(String(s.id)) ? 'mod' : s.k === 'img' && s.id ? 'img' : 'none';
+      return Object.assign(b, { src: { k: k, id: k === 'none' ? '' : String(s.id).slice(0, 40) }, fit: o.fit === 'contain' ? 'contain' : 'cover', zoom: r2(U.clamp(num(o.zoom, 1), 0.2, 6)), ox: r2(U.clamp(num(o.ox, 0.5), 0, 1)), oy: r2(U.clamp(num(o.oy, 0.5), 0, 1)), trim: o.trim !== false, bw: !!o.bw, label: String(o.label || '').slice(0, 60) });
+    }
+    if (o.t === 'text') {
+      return Object.assign(b, { s: String(o.s == null ? '' : o.s).slice(0, 2400), size: Math.round(U.clamp(num(o.size, 22), 6, 400)), weight: [300, 400, 500, 600, 700, 800].indexOf(Number(o.weight)) >= 0 ? Number(o.weight) : 500, fam: ['b', 'd', 'm', 'l'].indexOf(o.fam) >= 0 ? o.fam : 'b', col: col(o.col, '#17181B'), align: ['l', 'c', 'r'].indexOf(o.align) >= 0 ? o.align : 'l', valign: ['t', 'm', 'b'].indexOf(o.valign) >= 0 ? o.valign : 't', caps: !!o.caps, lh: r2(U.clamp(num(o.lh, 1.3), 0.9, 2.4)) });
+    }
+    if (o.t === 'title') {
+      const rows = (Array.isArray(o.rows) ? o.rows : []).slice(0, 4).map((r) => [String((r && r[0]) || '').slice(0, 24), String((r && r[1]) || '').slice(0, 48)]);
+      return Object.assign(b, { name: String(o.name || '').slice(0, 80), sub: String(o.sub || '').slice(0, 120), rows: rows });
+    }
+    if (o.t === 'legend') {
+      const items = (Array.isArray(o.items) ? o.items : []).slice(0, 14).map((it) => ({ col: col(it && it.col, '#17181B'), label: String((it && it.label) || '').slice(0, 40) }));
+      return Object.assign(b, { items: items, size: Math.round(U.clamp(num(o.size, 17), 8, 120)), col: col(o.col, '#17181B') });
+    }
+    if (o.t === 'facts') {
+      const keys = (Array.isArray(o.keys) ? o.keys : []).filter((k) => T.FACT_KEYS.some((f) => f.id === k)).filter((k, i, a) => a.indexOf(k) === i);
+      return Object.assign(b, { keys: keys, size: Math.round(U.clamp(num(o.size, 18), 8, 120)), col: col(o.col, '#17181B') });
+    }
+    if (o.t === 'block') return Object.assign(b, { col: col(o.col, '#D93A1F'), op: r2(U.clamp(num(o.op, 1), 0.05, 1)), s: String(o.s || '').slice(0, 80), size: Math.round(U.clamp(num(o.size, 22), 8, 300)), tcol: col(o.tcol, '#FFFFFF') });
+    if (o.t === 'line') return Object.assign(b, { dir: o.dir === 'v' ? 'v' : 'h', lw: r1(U.clamp(num(o.lw, 3), 0.5, 40)), col: col(o.col, '#17181B'), dash: [0, 1, 2].indexOf(Number(o.dash)) >= 0 ? Number(o.dash) : 0 });
+    if (o.t === 'north') return Object.assign(b, { col: col(o.col, '#17181B') });
+    return null;
+  };
+  T.defaults = function () { return { v: 1, title: '', size: 'a1l', bg: 'white', accent: '#D93A1F', margin: 72, gutter: 29, snap: true, panels: [] }; };
+  T.cleanDoc = function (p) {
+    const d = T.defaults();
+    const o = Object.assign({}, d, p || {});
+    o.title = String(o.title || '').slice(0, 60);
+    o.size = T.SIZES[o.size] ? o.size : d.size;
+    o.bg = ['white', 'paper', 'grey', 'ink', 'accent'].indexOf(o.bg) >= 0 ? o.bg : 'white';
+    o.accent = T.hex(o.accent, d.accent);
+    o.margin = Math.round(U.clamp(num(o.margin, 72), 0, 400));
+    o.gutter = Math.round(U.clamp(num(o.gutter, 29), 0, 200));
+    o.snap = o.snap !== false;
+    o.panels = (Array.isArray(o.panels) ? o.panels : []).slice(0, 120).map((l) => T.clean(l)).filter(Boolean);
+    return o;
+  };
+
+  /* ---------- hazır şablonlar ---------- */
+  /* ctx: { W, H, pick(i) → kaynak kimliği | null, name, today, accent } */
+  const I = (v) => Math.round(v);
+  function mk(ctx) {
+    const W = ctx.W, H = ctx.H;
+    let n = 0;
+    const m = I(W * 0.03), g = I(W * 0.012);
+    const ctxO = {
+      W: W, H: H, m: m, g: g,
+      view: (x, y, w, h, o) => { const id = ctx.pick(n++); return T.make.view(I(x), I(y), I(w), I(h), id ? { k: 'mod', id: id } : { k: 'none', id: '' }, Object.assign({ label: id ? T.srcInfo(id).label : '' }, o || {})); },
+      text: (s, x, y, w, h, o) => T.make.text(s, I(x), I(y), I(w), I(h), o),
+      title: (x, y, w, h, o) => T.make.title(I(x), I(y), I(w), I(h), Object.assign({ name: ctx.name, sub: ctx.title || 'Mimari ön proje', rows: [['Pafta', ctx.title || 'Vaziyet ve kütle'], ['Ölçek', '1/500'], ['Tarih', ctx.today], ['No', '01']] }, o || {})),
+      block: (x, y, w, h, col, o) => T.make.block(I(x), I(y), I(w), I(h), col, o),
+      line: (x, y, w, h, o) => T.make.line(I(x), I(y), I(w), I(h), o),
+      legend: (x, y, w, h, items, o) => T.make.legend(I(x), I(y), I(w), I(h), items, o),
+      facts: (x, y, w, h, keys, o) => T.make.facts(I(x), I(y), I(w), I(h), keys, o),
+      north: (x, y, w, h, o) => T.make.north(I(x), I(y), I(w), I(h), o),
+      fs: (k) => Math.max(9, I(W * k)),
+    };
+    return ctxO;
+  }
+  const LOREM = 'Proje kısa açıklaması buraya yazılır. Yaklaşımı, kararları ve bölgeyle kurduğu ilişkiyi iki üç cümleyle anlatın.';
+  const heading = (c, s, x, y, w) => c.text(s, x, y, w, c.fs(0.014) * 1.8, { size: c.fs(0.0125), fam: 'm', weight: 700, caps: true, lh: 1.1 });
+
+  T.TEMPLATES = [
+    {
+      id: 'juri', label: 'Jüri paftası', size: 'a1l', desc: 'Büyük ana görsel, sağda üç yardımcı görsel, altta metin ve künye',
+      build: function (ctx) {
+        const c = mk(ctx), W = c.W, H = c.H, m = c.m, g = c.g, o = [];
+        const hh = I(H * 0.085);
+        o.push(c.text((ctx.title || ctx.name || 'Proje adı'), m, m, W - m * 2, hh, { size: I(H * 0.058), fam: 'd', weight: 800, caps: true, lh: 1, valign: 'm' }));
+        o.push(c.text('Mimari ön proje · ' + ctx.today, m, m + hh, W - m * 2, I(H * 0.03), { size: c.fs(0.0105), fam: 'm', weight: 600, caps: true, lh: 1.1 }));
+        const y0 = m + hh + I(H * 0.045), sh = I(H * 0.2), y1 = H - m - sh - g;
+        const hw = I((W - m * 2 - g) * 0.6);
+        o.push(c.view(m, y0, hw, y1 - y0, { bd: 3 }));
+        const rx = m + hw + g, rw = W - m - rx, rh = I((y1 - y0 - g * 2) / 3);
+        for (let i = 0; i < 3; i++) o.push(c.view(rx, y0 + i * (rh + g), rw, rh, { bd: 3 }));
+        const sy = H - m - sh, tw = W - m * 2 - g * 3;
+        const w1 = I(tw * 0.22), w2 = I(tw * 0.22), w3 = I(tw * 0.18), w4 = tw - w1 - w2 - w3;
+        o.push(heading(c, 'Kavram', m, sy, w1)); o.push(c.text(LOREM, m, sy + c.fs(0.026), w1, sh - c.fs(0.026), { size: c.fs(0.0115) }));
+        o.push(heading(c, 'Program', m + w1 + g, sy, w2)); o.push(c.text('Mekân programı, alan dağılımı ve işlevsel kurgu burada özetlenir.', m + w1 + g, sy + c.fs(0.026), w2, sh - c.fs(0.026), { size: c.fs(0.0115) }));
+        o.push(c.facts(m + w1 + w2 + g * 2, sy, w3, sh, ['parsel', 'taks', 'kaks', 'kat', 'daire'], { size: c.fs(0.0115), bd: 0 }));
+        o.push(c.title(W - m - w4, sy, w4, sh));
+        return o;
+      },
+    },
+    {
+      id: 'afis', label: 'Dikey afiş', size: 'a1p', desc: 'Üstte başlık, büyük görsel, ikili görsel sırası, metin sütunları ve künye',
+      build: function (ctx) {
+        const c = mk(ctx), W = c.W, H = c.H, m = c.m, g = c.g, o = [];
+        o.push(c.block(0, 0, W, I(H * 0.12), ctx.accent, { tcol: '#FFFFFF' }));
+        o.push(c.text((ctx.title || ctx.name || 'Proje adı'), m, I(H * 0.018), W - m * 2, I(H * 0.085), { size: I(H * 0.042), fam: 'd', weight: 800, caps: true, lh: 1, valign: 'm', col: T.contrast(ctx.accent) }));
+        const y0 = I(H * 0.12) + g, hh = I(H * 0.38);
+        o.push(c.view(m, y0, W - m * 2, hh, { bd: 3 }));
+        const y1 = y0 + hh + g, rh = I(H * 0.19), cw = I((W - m * 2 - g) / 2);
+        o.push(c.view(m, y1, cw, rh, { bd: 3 })); o.push(c.view(m + cw + g, y1, cw, rh, { bd: 3 }));
+        const y2 = y1 + rh + g, th = H - m - y2 - I(H * 0.1) - g;
+        const w3 = I((W - m * 2 - g * 2) / 3);
+        ['Kavram', 'Program', 'Kararlar'].forEach((s, i) => { const x = m + i * (w3 + g); o.push(heading(c, s, x, y2, w3)); o.push(c.text(LOREM, x, y2 + c.fs(0.026), w3, th - c.fs(0.026), { size: c.fs(0.0175) })); });
+        o.push(c.title(m, H - m - I(H * 0.1), W - m * 2, I(H * 0.1)));
+        return o;
+      },
+    },
+    {
+      id: 'izgara', label: 'Izgara 3 × 2', size: 'a3l', desc: 'Eşit altı hücre, üstte başlık şeridi, altta künye', 
+      build: function (ctx) {
+        const c = mk(ctx), W = c.W, H = c.H, m = I(W * 0.025), g = I(W * 0.01), o = [];
+        const hh = I(H * 0.08);
+        o.push(c.text((ctx.title || ctx.name || 'Proje adı'), m, m, W - m * 2, hh, { size: I(H * 0.055), fam: 'd', weight: 800, caps: true, lh: 1, valign: 'm' }));
+        const ty = H - m - I(H * 0.095), y0 = m + hh + g;
+        const cw = I((W - m * 2 - g * 2) / 3), ch = I((ty - g - y0 - g) / 2);
+        for (let j = 0; j < 2; j++) for (let i = 0; i < 3; i++) o.push(c.view(m + i * (cw + g), y0 + j * (ch + g), cw, ch, { bd: 2 }));
+        o.push(c.title(m, ty, W - m * 2, I(H * 0.095)));
+        return o;
+      },
+    },
+    {
+      id: 'kolaj-vaziyet', label: 'Kolaj + vaziyet', size: 'a2l', desc: 'Solda geniş kolaj, sağda vaziyet planı, lejant, kuzey oku ve metin',
+      build: function (ctx) {
+        const c = mk(ctx), W = c.W, H = c.H, m = c.m, g = c.g, o = [];
+        const th = I(H * 0.1), y1 = H - m - th - g;
+        const lw = I((W - m * 2 - g) * 0.58);
+        o.push(c.view(m, m, lw, y1 - m, { bd: 3 }));
+        const rx = m + lw + g, rw = W - m - rx;
+        const vh = I((y1 - m) * 0.56);
+        o.push(c.view(rx, m, rw, vh, { bd: 3, bg: 'white' }));
+        o.push(c.north(rx + rw - I(W * 0.05) - 10, m + 10, I(W * 0.05), I(W * 0.05), { bd: 0 }));
+        const ly = m + vh + g;
+        o.push(heading(c, 'Açıklama', rx, ly, rw));
+        o.push(c.text(LOREM, rx, ly + c.fs(0.026), rw, I((y1 - ly) * 0.5), { size: c.fs(0.0125) }));
+        o.push(c.legend(rx, ly + I((y1 - ly) * 0.55), rw, I((y1 - ly) * 0.45), null, { size: c.fs(0.0115) }));
+        o.push(c.title(m, H - m - th, W - m * 2, th));
+        return o;
+      },
+    },
+    {
+      id: 'surec', label: 'Süreç şeridi', size: 'a1l', desc: 'Beş adımlı yatay görsel dizisi, numaralı başlıklar ve açıklamalar',
+      build: function (ctx) {
+        const c = mk(ctx), W = c.W, H = c.H, m = c.m, g = c.g, o = [];
+        const hh = I(H * 0.09);
+        o.push(c.text((ctx.title || ctx.name || 'Proje adı'), m, m, W * 0.7, hh, { size: I(H * 0.06), fam: 'd', weight: 800, caps: true, lh: 1, valign: 'm' }));
+        o.push(c.line(m, m + hh + I(H * 0.01), W - m * 2, 8, { lw: 4 }));
+        const n = 5, cw = I((W - m * 2 - g * (n - 1)) / n), y0 = m + hh + I(H * 0.04), ch = I(H * 0.46);
+        for (let i = 0; i < n; i++) {
+          const x = m + i * (cw + g);
+          o.push(c.text(String(i + 1).padStart(2, '0'), x, y0, cw, c.fs(0.03), { size: c.fs(0.026), fam: 'd', weight: 800, col: ctx.accent, lh: 1 }));
+          o.push(c.view(x, y0 + c.fs(0.034), cw, ch, { bd: 2 }));
+          o.push(c.text(LOREM, x, y0 + c.fs(0.034) + ch + g, cw, I(H * 0.14), { size: c.fs(0.0105) }));
+        }
+        const ty = H - m - I(H * 0.1);
+        o.push(c.title(m, ty, W - m * 2, I(H * 0.1)));
+        return o;
+      },
+    },
+    {
+      id: 'tek', label: 'Tek görsel', size: 'a3l', desc: 'Tüm sayfayı kaplayan görsel, üstünde başlık bloğu ve altta künye',
+      build: function (ctx) {
+        const c = mk(ctx), W = c.W, H = c.H, o = [];
+        o.push(c.view(0, 0, W, H, { pad: 0 }));
+        const bw = I(W * 0.46), bh = I(H * 0.2), m = I(W * 0.03);
+        o.push(c.block(m, m, bw, bh, '#17181B', { s: '', pad: 0 }));
+        o.push(c.text((ctx.title || ctx.name || 'Proje adı'), m + I(W * 0.02), m + I(bh * 0.1), bw - I(W * 0.04), I(bh * 0.55), { size: I(H * 0.062), fam: 'd', weight: 800, caps: true, lh: 1, valign: 'm', col: '#FFFFFF' }));
+        o.push(c.text('Mimari ön proje · ' + ctx.today, m + I(W * 0.02), m + I(bh * 0.68), bw - I(W * 0.04), I(bh * 0.2), { size: c.fs(0.0105), fam: 'm', weight: 600, caps: true, col: '#FFFFFF', lh: 1.1 }));
+        const th = I(H * 0.09);
+        o.push(c.title(m, H - m - th, W - m * 2, th, { bg: 'white' }));
+        return o;
+      },
+    },
+    {
+      id: 'bos', label: 'Boş pafta', size: 'a1l', desc: 'Yalnızca künye; gerisini siz yerleştirin',
+      build: function (ctx) {
+        const c = mk(ctx), W = c.W, H = c.H, m = c.m;
+        return [c.title(m, H - m - I(H * 0.1), W - m * 2, I(H * 0.1))];
+      },
+    },
+  ];
+  T.templateById = (id) => T.TEMPLATES.find((t) => t.id === id) || null;
+
+  /* şablon uygula: belge (sayfa boyutu şablonun, ya da verilen) + paneller; kullanılabilir kaynaklar tercih sırasıyla yerleşir */
+  T.fromTemplate = function (id, o) {
+    o = o || {};
+    const tpl = T.templateById(id);
+    if (!tpl) return null;
+    const size = o.size && T.SIZES[o.size] ? o.size : tpl.size;
+    const sz = T.SIZES[size];
+    const avail = (o.avail || []).slice().sort((a, b) => {
+      const ia = T.SRC_PREF.indexOf(a), ib = T.SRC_PREF.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+    const ctx = { W: sz.w, H: sz.h, name: o.name || 'Proje adı', title: o.title || '', today: U.today(), accent: o.accent || '#D93A1F', pick: (i) => avail[i] || null };
+    const m = I(sz.w * 0.03);
+    return T.cleanDoc({ v: 1, title: o.title || '', size: size, bg: o.bg || 'white', accent: ctx.accent, margin: m, gutter: I(sz.w * 0.012), snap: true, panels: tpl.build(ctx) });
+  };
+
+  /* panelin sınır kutusu ve hizalama yardımcıları */
+  T.alignTo = function (p, doc, how) {
+    const s = T.sizeOf(doc), m = doc.margin;
+    const o = {};
+    if (how === 'left') o.x = m; else if (how === 'right') o.x = s.w - m - p.w; else if (how === 'hcenter') o.x = Math.round((s.w - p.w) / 2);
+    else if (how === 'top') o.y = m; else if (how === 'bottom') o.y = s.h - m - p.h; else if (how === 'vcenter') o.y = Math.round((s.h - p.h) / 2);
+    else if (how === 'fill') { o.x = m; o.y = m; o.w = s.w - m * 2; o.h = s.h - m * 2; }
+    else if (how === 'fillw') { o.x = m; o.w = s.w - m * 2; }
+    else if (how === 'fillh') { o.y = m; o.h = s.h - m * 2; }
+    return o;
+  };
+})();
+
+/* ==========================================================================
    38-lib-unit.js — Modül 9 · Birim Oluşturucu: veri modeli ve hesaplar (saf fonksiyonlar)
    Fikir: bir yapı kütlesi (birim) kurulur, sonra adım adım şekillendirilir. Her adım, bir önceki adımın
           kopyasıdır; üzerinde istediğiniz değişiklik yapılır. Adımlar yan yana "süreç paftası" olur.
@@ -18733,6 +19137,427 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
+   39-lib-tplscene.js — Modül 12 · pafta sahnesi
+   Paneller alttan üste primitiflere çevrilir; canlı SVG ve PNG / PDF çıktısı aynı listeden çizilir.
+   T.scene(doc, { st, live, hi }) → { prims, W, H, refs } — refs: kullanılan araç kaynakları
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const T = App.tpl;
+  const U = App.util;
+  const sheet = () => App.sheet;
+  const INK = '#17181B';
+
+  /* ---------- yazı yardımcıları ---------- */
+  T.wrapLines = function (s, maxW, size, weight, fam, ls) {
+    const out = [];
+    String(s == null ? '' : s).split('\n').forEach((para) => {
+      const words = para.split(/\s+/).filter(Boolean);
+      if (!words.length) { out.push(''); return; }
+      let cur = '';
+      const push = () => { if (cur) out.push(cur); cur = ''; };
+      words.forEach((w) => {
+        let t = w;
+        // sığmayan uzun sözcüğü karakter karakter böl
+        while (sheet().tw(t, size, weight, fam, ls) > maxW && t.length > 1) {
+          let k = t.length - 1;
+          while (k > 1 && sheet().tw(t.slice(0, k), size, weight, fam, ls) > maxW) k--;
+          push();
+          out.push(t.slice(0, k));
+          t = t.slice(k);
+        }
+        const next = cur ? cur + ' ' + t : t;
+        if (cur && sheet().tw(next, size, weight, fam, ls) > maxW) { push(); cur = t; } else cur = next;
+      });
+      push();
+    });
+    return out;
+  };
+  const up = (s) => String(s).toLocaleUpperCase('tr');
+
+  /* ---------- panel çizimleri ---------- */
+  function viewPrims(p, doc, env, out) {
+    const bx = p.x + p.pad, by = p.y + p.pad, bw = Math.max(4, p.w - p.pad * 2), bh = Math.max(4, p.h - p.pad * 2);
+    let img = null, msg = null, region = null;
+    if (p.src.k === 'mod') {
+      const info = T.srcInfo(p.src.id);
+      let e = null;
+      if (env.hi) e = T.entryFor(env.st, p.src.id, true);
+      else if (env.st) e = T.want(env.st, p.src.id, false);
+      if (e && e.status === 'ok') {
+        img = { href: e.href, ik: e.ik, w: e.W, h: e.H };
+        region = info && info.framed && p.trim ? T.frameRegion(e.W, e.H) : { x: 0, y: 0, w: e.W, h: e.H };
+        if (env.refs && env.refs.indexOf(p.src.id) < 0) env.refs.push(p.src.id);
+      } else if (e && e.status === 'err') msg = e.msg || 'Çıktı alınamadı';
+      else msg = 'Hazırlanıyor…';
+      if (!e && env.refs && env.refs.indexOf(p.src.id) < 0) env.refs.push(p.src.id);
+    } else if (p.src.k === 'img') {
+      const C = App.collage;
+      const im = C && C.imgs[p.src.id];
+      if (im) {
+        const pr = C.processed({ src: p.src.id, bw: p.bw, con: 1.05, bri: 0, flip: false });
+        img = { href: pr.href, ik: pr.ik, w: im.w, h: im.h };
+        region = { x: 0, y: 0, w: im.w, h: im.h };
+      } else msg = 'Görsel bulunamadı';
+    } else msg = 'Araç çıktısı seçin ya da görsel yükleyin';
+    if (img) {
+      const k = p.fit === 'contain' ? Math.min(bw / region.w, bh / region.h) : Math.max(bw / region.w, bh / region.h);
+      const s = k * p.zoom;
+      const dx = bx + (bw - region.w * s) * p.ox - region.x * s;
+      const dy = by + (bh - region.h * s) * p.oy - region.y * s;
+      out.push({ t: 'g', clip: { id: 'tp' + p.id, x: bx, y: by, w: bw, h: bh }, items: [{ t: 'img', href: img.href, ik: img.ik, x: dx, y: dy, w: img.w * s, h: img.h * s }] });
+    } else if (env.live) {
+      out.push({ t: 'rect', x: bx, y: by, w: bw, h: bh, fill: '#EFECE4', opacity: 0.55, stroke: '#8C9199', sw: 2, dash: [9, 7] });
+      const fs = Math.max(11, Math.min(26, Math.round(Math.min(bw, bh) / 14)));
+      const lines = T.wrapLines(msg, bw * 0.84, fs, 600, 'm', 0);
+      lines.slice(0, 4).forEach((ln, i) => out.push({ t: 'text', x: bx + bw / 2, y: by + bh / 2 + (i - (Math.min(lines.length, 4) - 1) / 2) * fs * 1.4 + fs * 0.35, s: ln, size: fs, weight: 600, fam: 'm', fill: '#5B6068', anchor: 'middle', pe: false }));
+    }
+    if (p.label) {
+      const ts = Math.max(11, Math.round(Math.min(doc._W, doc._H) * 0.0105));
+      const txt = up(p.label);
+      const tw = sheet().tw(txt, ts, 700, 'm', ts * 0.08) + ts * 1.5;
+      out.push({ t: 'rect', x: p.x, y: p.y, w: tw, h: ts * 2, fill: INK });
+      out.push({ t: 'text', x: p.x + ts * 0.75, y: p.y + ts * 1.33, s: txt, size: ts, weight: 700, fam: 'm', fill: '#FFFFFF', ls: ts * 0.08, pe: false });
+    }
+  }
+
+  function textPrims(p, doc, out) {
+    const px = p.x + p.pad, py = p.y + p.pad, iw = Math.max(8, p.w - p.pad * 2), ih = Math.max(8, p.h - p.pad * 2);
+    const ls = p.caps ? Math.round(p.size * 0.06 * 10) / 10 : 0;
+    const lines = T.wrapLines(p.caps ? up(p.s) : p.s, iw, p.size, p.weight, p.fam, ls);
+    const lh = p.size * p.lh;
+    const total = lines.length * lh;
+    const top = py + (p.valign === 'm' ? (ih - total) / 2 : p.valign === 'b' ? ih - total : 0);
+    const anchor = p.align === 'c' ? 'middle' : p.align === 'r' ? 'end' : 'start';
+    const x = p.align === 'c' ? px + iw / 2 : p.align === 'r' ? px + iw : px;
+    const items = [];
+    lines.forEach((ln, i) => { if (ln) items.push({ t: 'text', x: x, y: top + i * lh + p.size * 0.95, s: ln, size: p.size, weight: p.weight, fam: p.fam, fill: p.col, ls: ls, anchor: anchor, pe: false }); });
+    if (items.length) out.push({ t: 'g', clip: { id: 'tp' + p.id, x: p.x, y: p.y, w: p.w, h: p.h }, items: items });
+  }
+
+  function markPrims(x, y, s, out) {
+    const bau = App.theme.name === 'bauhaus';
+    const P = App.PAL;
+    if (bau) {
+      out.push({ t: 'rect', x: x, y: y, w: s, h: s, fill: P.blue });
+      out.push({ t: 'circle', cx: x + s * 0.35, cy: y + s * 0.35, r: s * 0.19, fill: P.yellow, stroke: INK, sw: Math.max(1.5, s * 0.03) });
+      out.push({ t: 'rect', x: x + s * 0.52, y: y + s * 0.48, w: s * 0.35, h: s * 0.35, fill: P.red, stroke: INK, sw: Math.max(1.5, s * 0.03) });
+      out.push({ t: 'poly', pts: [[x + s * 0.13, y + s * 0.87], [x + s * 0.44, y + s * 0.87], [x + s * 0.29, y + s * 0.56]], fill: P.paper, stroke: INK, sw: Math.max(1.5, s * 0.03) });
+    } else {
+      out.push({ t: 'rect', x: x, y: y, w: s, h: s, fill: INK });
+      out.push({ t: 'circle', cx: x + s * 0.35, cy: y + s * 0.35, r: s * 0.18, fill: '#FFFFFF' });
+      out.push({ t: 'rect', x: x + s * 0.55, y: y + s * 0.5, w: s * 0.28, h: s * 0.28, fill: '#FFFFFF', opacity: 0.85 });
+      out.push({ t: 'poly', pts: [[x + s * 0.15, y + s * 0.85], [x + s * 0.43, y + s * 0.85], [x + s * 0.29, y + s * 0.58]], fill: '#FFFFFF', opacity: 0.7 });
+    }
+  }
+
+  function titlePrims(p, doc, env, out) {
+    const bgc = T.panelBg(p, doc);
+    const ink = bgc && T.lum(bgc) < 0.45 ? '#FFFFFF' : INK;
+    const name = p.name || (env.st ? env.st.project.meta.name : '') || 'Adsız proje';
+    const rows = p.rows.filter((r) => r[0] || r[1]);
+    const compact = p.w / p.h < 3.4;
+    const pad = Math.round(Math.min(p.h * 0.14, p.w * 0.04));
+    const nameTxt = up(name), subTxt = p.sub ? up(p.sub) : '';
+    // ad ve alt başlık: verilen kutuya sığdır (gerekirse iki satır)
+    const nameBlock = (x0, areaW, yTop, areaH) => {
+      const sub = subTxt ? sheet().fitLine(subTxt, areaW, Math.min(areaH * 0.2, 20), 9, 600, 'b', 1) : null;
+      const avail = Math.max(10, areaH - (sub ? sub.size * 1.7 : 0) - 4);
+      const nameMax = Math.min(areaH * 0.5, 64, avail / 1.12);
+      const one = sheet().fitLine(nameTxt, areaW, nameMax, 11, 800, 'd', 0.5);
+      let lines = [one.s], size = one.size;
+      if (one.size < nameMax * 0.62) { const two = sheet().wrap2(nameTxt, areaW, Math.min(nameMax * 0.9, avail / 2.24), 9, 800, 'd', 0.5); if (two && two.size > one.size) { lines = two.lines; size = two.size; } }
+      const total = lines.length * size * 1.12 + (sub ? sub.size * 1.7 : 0);
+      const top = yTop + (areaH - total) / 2;
+      lines.forEach((ln, i) => out.push({ t: 'text', x: x0, y: top + size * 0.88 + i * size * 1.12, s: ln, size: size, weight: 800, fam: 'd', fill: ink, ls: 0.5, pe: false }));
+      if (sub) out.push({ t: 'text', x: x0, y: top + lines.length * size * 1.12 + sub.size * 1.05, s: sub.s, size: sub.size, weight: 600, fam: 'b', fill: ink, ls: 1, opacity: 0.7, pe: false });
+    };
+    const rowLine = (x, y, w, r, rs) => {
+      const lab = up(r[0]);
+      const lw = Math.min(w * 0.5, sheet().tw(lab, rs * 0.78, 600, 'm', 1));
+      out.push({ t: 'text', x: x, y: y, s: sheet().clip(lab, w * 0.5, rs * 0.78, 600, 'm', 1), size: rs * 0.78, weight: 600, fam: 'm', fill: ink, ls: 1, opacity: 0.6, pe: false });
+      const vf = sheet().fitLine(r[1], Math.max(20, w - lw - 8), rs, 8, 700, 'b', 0);
+      out.push({ t: 'text', x: x + lw + 8, y: y, s: vf.s, size: vf.size, weight: 700, fam: 'b', fill: ink, pe: false });
+    };
+    if (compact) {
+      const topH = rows.length ? p.h * 0.52 : p.h;
+      const ms = Math.min(topH - pad * 0.4, p.w * 0.3);
+      markPrims(p.x, p.y, ms, out);
+      nameBlock(p.x + ms + pad, Math.max(40, p.w - ms - pad * 2), p.y, topH);
+      if (rows.length) {
+        out.push({ t: 'line', x1: p.x + pad * 0.6, y1: p.y + topH, x2: p.x + p.w - pad * 0.6, y2: p.y + topH, stroke: ink, sw: 2, opacity: 0.5 });
+        const nc = rows.length > 2 ? 2 : 1, nr = Math.ceil(rows.length / nc);
+        const cw = (p.w - pad * 2) / nc, rh = (p.h - topH - pad * 0.6) / nr;
+        const rs = Math.max(9, Math.min(rh * 0.36, 24));
+        rows.forEach((r, i) => { const c = i % nc, rr = Math.floor(i / nc); rowLine(p.x + pad + c * cw, p.y + topH + rh * (rr + 0.5) + rs * 0.5, cw - pad * 0.6, r, rs); });
+      }
+    } else {
+      const h = p.h;
+      markPrims(p.x, p.y, h, out);
+      const rs = Math.max(10, Math.min(h * 0.17, 26));
+      let labW = 0, valW = 0;
+      rows.forEach((r) => { labW = Math.max(labW, sheet().tw(up(r[0]), rs * 0.78, 600, 'm', 1)); valW = Math.max(valW, sheet().tw(r[1], rs, 700, 'b', 0)); });
+      const rowsW = rows.length ? Math.min(p.w * 0.4, labW + valW + pad * 2.4) : 0;
+      const x0 = p.x + h + pad, x1 = p.x + p.w - rowsW - pad;
+      nameBlock(x0, Math.max(60, x1 - x0), p.y, h);
+      if (rowsW) {
+        const vx = p.x + p.w - rowsW;
+        out.push({ t: 'line', x1: vx, y1: p.y + pad * 0.6, x2: vx, y2: p.y + h - pad * 0.6, stroke: ink, sw: 2, opacity: 0.5 });
+        const rh = (h - pad * 1.2) / rows.length;
+        rows.forEach((r, i) => rowLine(vx + pad, p.y + pad * 0.6 + rh * (i + 0.5) + rs * 0.35, rowsW - pad * 1.6, r, rs));
+      }
+    }
+    if (!p.bd) out.push({ t: 'rect', x: p.x + 1.5, y: p.y + 1.5, w: p.w - 3, h: p.h - 3, stroke: ink, sw: 3 });
+  }
+
+  function legendPrims(p, doc, out) {
+    const rh = p.size * 1.75, sw = p.size * 1.05;
+    const items = [];
+    p.items.forEach((it, i) => {
+      const y = p.y + p.pad + i * rh;
+      items.push({ t: 'rect', x: p.x + p.pad, y: y, w: sw, h: sw, fill: it.col, stroke: INK, sw: 1, opacity: 1 });
+      const fit = sheet().fitLine(it.label, Math.max(20, p.w - p.pad * 2 - sw - 12), p.size, 8, 600, 'b', 0);
+      items.push({ t: 'text', x: p.x + p.pad + sw + 12, y: y + sw * 0.82, s: fit.s, size: fit.size, weight: 600, fam: 'b', fill: p.col, pe: false });
+    });
+    if (items.length) out.push({ t: 'g', clip: { id: 'tp' + p.id, x: p.x, y: p.y, w: p.w, h: p.h }, items: items });
+  }
+
+  function factsPrims(p, doc, env, out) {
+    const F = env.st ? T.facts(env.st.project) : {};
+    const rh = p.size * 1.95;
+    const items = [];
+    p.keys.forEach((k, i) => {
+      const meta = T.FACT_KEYS.find((f) => f.id === k);
+      const y = p.y + p.pad + i * rh;
+      items.push({ t: 'text', x: p.x + p.pad, y: y + p.size * 1.15, s: up(meta.label), size: p.size * 0.66, weight: 600, fam: 'm', fill: p.col, ls: 1, opacity: 0.62, pe: false });
+      const v = F[k] != null ? F[k] : '—';
+      const labW = sheet().tw(up(meta.label), p.size * 0.66, 600, 'm', 1);
+      const vf = sheet().fitLine(v, Math.max(20, p.w - p.pad * 2 - labW - 14), p.size * 1.1, 8, 700, 'b', 0);
+      items.push({ t: 'text', x: p.x + p.w - p.pad, y: y + p.size * 1.15, s: vf.s, size: vf.size, weight: 700, fam: 'b', fill: p.col, anchor: 'end', pe: false });
+      items.push({ t: 'line', x1: p.x + p.pad, y1: y + rh * 0.86, x2: p.x + p.w - p.pad, y2: y + rh * 0.86, stroke: p.col, sw: 1, opacity: 0.25 });
+    });
+    if (items.length) out.push({ t: 'g', clip: { id: 'tp' + p.id, x: p.x, y: p.y, w: p.w, h: p.h }, items: items });
+  }
+
+  function blockPrims(p, doc, out) {
+    out.push({ t: 'rect', x: p.x, y: p.y, w: p.w, h: p.h, fill: p.col, opacity: p.op });
+    if (p.s) {
+      const lines = T.wrapLines(p.s, Math.max(10, p.w - p.pad * 2), p.size, 700, 'd', 0);
+      const items = lines.map((ln, i) => ({ t: 'text', x: p.x + p.pad, y: p.y + p.h - p.pad - (lines.length - 1 - i) * p.size * 1.15 - p.size * 0.18, s: ln, size: p.size, weight: 700, fam: 'd', fill: p.tcol, pe: false }));
+      out.push({ t: 'g', clip: { id: 'tp' + p.id, x: p.x, y: p.y, w: p.w, h: p.h }, items: items });
+    }
+  }
+
+  function linePrims(p, out) {
+    const o = { stroke: p.col, sw: p.lw, cap: p.dash === 2 ? 'round' : 'butt' };
+    if (p.dash === 1) o.dash = [p.lw * 3.5, p.lw * 2.2]; else if (p.dash === 2) o.dash = [0.1, p.lw * 2.4];
+    if (p.dir === 'v') out.push(Object.assign({ t: 'line', x1: p.x + p.w / 2, y1: p.y, x2: p.x + p.w / 2, y2: p.y + p.h }, o));
+    else out.push(Object.assign({ t: 'line', x1: p.x, y1: p.y + p.h / 2, x2: p.x + p.w, y2: p.y + p.h / 2 }, o));
+  }
+
+  function northPrims(p, out) {
+    const s = Math.min(p.w, p.h);
+    const cx = p.x + p.w / 2, cy = p.y + p.h / 2 + s * 0.1, r = s * 0.36;
+    out.push({ t: 'circle', cx: cx, cy: cy, r: r, stroke: p.col, sw: Math.max(1.5, s * 0.03) });
+    out.push({ t: 'poly', pts: [[cx, cy - r * 0.8], [cx - r * 0.36, cy + r * 0.58], [cx, cy + r * 0.3], [cx + r * 0.36, cy + r * 0.58]], fill: p.col });
+    out.push({ t: 'text', x: cx, y: cy - r - s * 0.06, s: 'K', size: s * 0.2, weight: 700, fam: 'm', fill: p.col, anchor: 'middle', pe: false });
+  }
+
+  T.panelPrims = function (p, doc, env, out) {
+    const bg = T.panelBg(p, doc);
+    if (bg && p.t !== 'block' && p.t !== 'line') out.push({ t: 'rect', x: p.x, y: p.y, w: p.w, h: p.h, fill: bg });
+    if (p.t === 'view') viewPrims(p, doc, env, out);
+    else if (p.t === 'text') textPrims(p, doc, out);
+    else if (p.t === 'title') titlePrims(p, doc, env, out);
+    else if (p.t === 'legend') legendPrims(p, doc, out);
+    else if (p.t === 'facts') factsPrims(p, doc, env, out);
+    else if (p.t === 'block') blockPrims(p, doc, out);
+    else if (p.t === 'line') linePrims(p, out);
+    else if (p.t === 'north') northPrims(p, out);
+    if (p.bd > 0 && p.t !== 'line') out.push({ t: 'rect', x: p.x + p.bd / 2, y: p.y + p.bd / 2, w: p.w - p.bd, h: p.h - p.bd, stroke: p.bdc, sw: p.bd });
+  };
+
+  T.scene = function (doc, env) {
+    env = env || {};
+    const sz = T.sizeOf(doc);
+    const d = Object.assign({}, doc, { _W: sz.w, _H: sz.h });
+    const prims = [{ t: 'rect', x: 0, y: 0, w: sz.w, h: sz.h, fill: T.bgColor(doc) }];
+    const refs = [];
+    const e2 = Object.assign({}, env, { refs: refs });
+    doc.panels.forEach((p) => { if (!p.hidden) T.panelPrims(p, d, e2, prims); });
+    return { prims: prims, W: sz.w, H: sz.h, refs: refs };
+  };
+  /* belgedeki tüm araç kaynakları (görünür paneller) */
+  T.refsOf = function (doc) {
+    const out = [];
+    doc.panels.forEach((p) => { if (!p.hidden && p.t === 'view' && p.src.k === 'mod' && out.indexOf(p.src.id) < 0) out.push(p.src.id); });
+    return out;
+  };
+  /* bir panelin sınır kutusu (hit-test, tutamaç) */
+  T.boxOf = (p) => ({ x: p.x, y: p.y, w: p.w, h: p.h });
+})();
+
+/* ==========================================================================
+   39-lib-tplsrc.js — Modül 12 · diğer araçların çıktısını pafta paneline getirir
+   Her kaynak, ilgili modülün sahnesini (primitif listesi) üretir; sahne bir tuvale çizilir ve görüntü olarak önbelleğe alınır.
+   Çıktılar canlı bağlıdır: proje verisi değişince önbellek geçersiz olur ve yeniden üretilir. Veri JSON'a yazılmaz, yalnızca bağlantı yazılır.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const T = App.tpl;
+  const U = App.util;
+
+  /* ---------- kaynaklar: kullanılabilirlik ve üretim ---------- */
+  function ctxs(st) {
+    const P = st.project;
+    const s = P.site;
+    const e = s && App.site ? App.site.entry(s) : null;
+    return { P: P, s: s, e: e, hasParcel: !!(s && s.parcel) };
+  }
+  const MAKERS = {
+    islev: { ok: (c) => c.P.spaces.length > 0, make: (st) => { const d = App.state.derive(st); return App.board.toCanvas(st.project, d.k, d.score, F()); } },
+    kat: { ok: (c) => c.P.spaces.length > 0 && !!c.P.study, make: (st) => { const P = st.project; return sc(App.study.scene(P, App.study.derive(P), false)); } },
+    analiz: { ok: (c) => c.P.spaces.length > 0 && !!c.P.study, make: (st) => { const P = st.project; return sc(App.analysis.scene(P, App.study.derive(P), Object.assign({}, st.ui.an, { sel: null }), false)); } },
+    arsa: { ok: (c) => !!c.e, make: (st) => { const c = ctxs(st); const A = App.site.analyze(c.s, c.e); return sc(App.siteScene.arsa(c.P, A, Object.assign({}, st.ui.site, { sel: null, lod: false }), false)); } },
+    'imar-plan': { ok: (c) => c.hasParcel, make: (st) => imar(st, 'plan') },
+    'imar-iso': { ok: (c) => c.hasParcel, make: (st) => imar(st, 'iso') },
+    'tasarim-vaziyet': { ok: dsnOk, make: (st) => dsn(st, 'vaziyet') },
+    'tasarim-tipik': { ok: dsnOk, make: (st) => dsn(st, 'tipik') },
+    'tasarim-bodrum': { ok: dsnOk, make: (st) => dsn(st, 'bodrum') },
+    'tasarim-kutle': { ok: dsnOk, make: (st) => dsn(st, 'kutle') },
+    'tasarim-kiyas': { ok: dsnOk, make: (st) => dsn(st, 'kiyas') },
+    'fiz-ozet': { ok: fizOk, make: (st) => fiz(st, 'ozet') },
+    'fiz-nakit': { ok: fizOk, make: (st) => fiz(st, 'nakit') },
+    'fiz-duyarlilik': { ok: fizOk, make: (st) => fiz(st, 'duyarlilik') },
+    'fiz-metraj': { ok: fizOk, make: (st) => fiz(st, 'metraj') },
+    'birim-plan': { ok: unitOk, make: (st) => unit(st, 'plan') },
+    'birim-iso': { ok: unitOk, make: (st) => unit(st, 'iso') },
+    'birim-surec': { ok: (c) => unitOk(c) && c.P.unit.steps.length > 1, make: (st) => unit(st, 'surec') },
+    vaziyet: { ok: (c) => !!(c.P.plan && c.P.plan.els && c.P.plan.els.length), make: (st) => sc(App.plan.scene(st.project.plan, { live: false })) },
+    kolaj: { ok: (c) => !!(c.P.collage && c.P.collage.layers && c.P.collage.layers.length), make: (st) => sc(App.collage.scene(st.project.collage, { live: false })) },
+  };
+  let hiRes = false;
+  const F = () => (hiRes ? 2 : 1.25);
+  function sc(scene) { return scene; }
+  function dsnOk(c) { try { return c.hasParcel && App.dsnCtx(c.P).ok; } catch (e) { return false; } }
+  function fizOk(c) { try { return dsnOk(c) && App.fizCtx(c.P).ok; } catch (e) { return false; } }
+  function unitOk(c) { const u = c.P.unit; return !!(u && u.steps && u.steps.some((s) => s.els && s.els.some((e) => e.t === 'mass'))); }
+  function imar(st, mode) {
+    const cx = App.ui.site.imarCtx(st);
+    const view = Object.assign({}, st.ui.imar, { mode: mode, fixed: null, tool: null, draft: null, lod: false });
+    return sc(App.imarScene.scene(st.project, cx.A, cx.R, view, false));
+  }
+  function dsn(st, mode) {
+    const P = st.project, dc = App.dsnCtx(P);
+    return sc(App.dsnScene.scene(P, dc, Object.assign({}, st.ui.dsn, { mode: mode, sel: null }), false));
+  }
+  function fiz(st, mode) {
+    const P = st.project, f = App.fizCtx(P);
+    return sc(App.fizScene.scene(P, f, Object.assign({}, st.ui.fiz, { mode: mode }), false));
+  }
+  function unit(st, mode) {
+    const o = Object.assign({}, App.unitDefaults ? App.unitDefaults() : {}, { live: false, mode: mode, kind: 'png' });
+    return sc(App.unit.scene(st.project.unit, o));
+  }
+
+  T.available = function (st) {
+    const c = ctxs(st);
+    const out = {};
+    T.SOURCES.forEach((s) => { let ok = false; try { ok = !!MAKERS[s.id].ok(c); } catch (e) { ok = false; } out[s.id] = ok; });
+    return out;
+  };
+  T.availableIds = (st) => { const a = T.available(st); return T.SOURCES.filter((s) => a[s.id]).map((s) => s.id); };
+
+  /* ---------- damga: proje verisi değişince önbellek geçersiz olur ---------- */
+  const ids = new WeakMap();
+  let seq = 0;
+  const idOf = (o) => { if (o == null || typeof o !== 'object') return String(o); let v = ids.get(o); if (!v) { v = ++seq; ids.set(o, v); } return v; };
+  T.stamp = function (st) {
+    const P = st.project;
+    const u = st.ui;
+    return [P.meta, P.spaces, P.relations, P.study, P.site, P.cand, P.design, P.fiz, P.unit, P.plan, P.collage, u.an, u.site, u.imar, u.dsn, u.fiz, App.collage ? App.collage.version : 0, App.theme.name].map(idOf).join('.');
+  };
+
+  /* ---------- tuvale çizim ve önbellek ---------- */
+  const cache = new Map(); // anahtar → { status: 'busy'|'ok'|'err', href, ik, W, H, msg }
+  T.onChange = null;
+  const pending = [];
+  let running = false;
+  const keyOf = (id, stamp, hi) => id + '|' + stamp + '|' + (hi ? 'h' : 'l');
+
+  function drain() {
+    if (running) return;
+    const job = pending.shift();
+    if (!job) return;
+    running = true;
+    const done = () => { running = false; const w = job.entry.waiters || []; job.entry.waiters = []; w.forEach((f) => { try { f(job.entry); } catch (e) { /* yok say */ } }); if (T.onChange) T.onChange(); setTimeout(drain, 0); };
+    let out;
+    try { hiRes = job.hi; out = Promise.resolve(MAKERS[job.id].make(job.st)); } catch (e) { out = Promise.reject(e); }
+    out.then((r) => {
+      if (r && typeof r.getContext === 'function') return { cv: r, W: App.sheet.W, H: App.sheet.H };
+      const W = r.W || App.sheet.W, H = r.H || App.sheet.H;
+      const pre = App.collage ? App.collage.preload(r.prims) : Promise.resolve();
+      return pre.then(() => App.board.primsToCanvas(r.prims, W, H, job.hi ? 2 : 1.25)).then((cv) => ({ cv: cv, W: W, H: H }));
+    }).then((o) => {
+      const href = o.cv.toDataURL('image/jpeg', job.hi ? 0.92 : 0.86);
+      const ik = 'tp|' + job.key;
+      const el = new Image();
+      el.onload = () => { App.board.imgCache[ik] = el; job.entry.status = 'ok'; done(); };
+      el.onerror = () => { job.entry.status = 'err'; job.entry.msg = 'Görüntü çözülemedi.'; done(); };
+      Object.assign(job.entry, { href: href, ik: ik, W: o.W, H: o.H });
+      el.src = href;
+    }).catch((e) => { job.entry.status = 'err'; job.entry.msg = (e && e.message) || 'Çıktı alınamadı.'; done(); }).then(() => { hiRes = false; });
+  }
+  function evict() {
+    if (cache.size <= 26) return;
+    const k = cache.keys().next().value;
+    const e = cache.get(k);
+    if (e && e.ik) delete App.board.imgCache[e.ik];
+    cache.delete(k);
+  }
+  /* kaynağı iste: hazırsa girdiyi, değilse null döner (arka planda üretilir; bitince T.onChange çağrılır) */
+  T.want = function (st, id, hi, cb) {
+    if (!MAKERS[id]) return null;
+    const stamp = T.stamp(st);
+    const key = keyOf(id, stamp, hi);
+    let e = cache.get(key);
+    if (e) { cache.delete(key); cache.set(key, e); if (e.status === 'busy' && cb) e.waiters.push(cb); return e.status === 'busy' ? null : e; }
+    e = { status: 'busy', waiters: cb ? [cb] : [] };
+    cache.set(key, e);
+    evict();
+    pending.push({ id: id, st: st, key: key, entry: e, hi: !!hi });
+    setTimeout(drain, 0);
+    return null;
+  };
+  T.entryState = function (st, id) {
+    const e = cache.get(keyOf(id, T.stamp(st), false)) || cache.get(keyOf(id, T.stamp(st), true));
+    return e ? e.status : 'none';
+  };
+  /* dışa aktarma: gerekli tüm kaynaklar yüksek çözünürlükte hazır olana kadar bekle */
+  T.ensure = function (st, srcIds) {
+    const uniq = srcIds.filter((x, i, a) => a.indexOf(x) === i && MAKERS[x]);
+    return Promise.all(uniq.map((id) => new Promise((res) => {
+      const e = T.want(st, id, true, () => res());
+      if (e) res();
+    })));
+  };
+  T.entryFor = function (st, id, hi) {
+    const e = cache.get(keyOf(id, T.stamp(st), hi));
+    return e && e.status === 'ok' ? e : null;
+  };
+  T.errorFor = function (st, id) {
+    const e = cache.get(keyOf(id, T.stamp(st), false));
+    return e && e.status === 'err' ? e.msg : null;
+  };
+
+  /* çerçeveli sahnelerde kenarlık ve künye dışarıda kalacak kırpma bölgesi (sahne birimi) */
+  T.frameRegion = function (W, H) {
+    const F = App.sheet.F, tb = App.sheet.tb;
+    return { x: F + 9, y: F + 9, w: W - F * 2 - 18, h: tb.y - F - 18 };
+  };
+})();
+
+/* ==========================================================================
    39-lib-unitscene.js — Modül 9 · Birim Oluşturucu paftaları (plan · izometrik · süreç afişi)
    Canlı SVG ve PNG/PDF çıktısı aynı primitif listesinden çizilir (App.board.primToV / primsToCanvas).
    ========================================================================== */
@@ -19787,6 +20612,153 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
+   39-state-tpl.js — Pafta Şablonu eylemleri (reducer eklentisi) ve JSON uzantısı
+   Veri project.tpl içinde durur; geri al / ileri al, otomatik kayıt ve JSON akışı Modül 1 ile ortaktır.
+   Eylemler:
+     TPL_SET {patch, rescale}               başlık, sayfa boyutu, zemin, vurgu, kenar boşluğu, aralık, yaslama
+     TPL_ADD {panel}  TPL_ADD_MANY {panels}
+     TPL_SET_P {id, patch}  TPL_LIVE {id, patch}   (canlı: geri alma noktası açmaz)
+     TPL_DEL {id}  TPL_DUP {id}  TPL_ORDER {id, dir | to}  TPL_ALIGN {id, how}
+     TPL_APPLY {doc}  (şablon uygula)   TPL_LOAD {doc}   TPL_CLEAR
+   JSON uzantısı: extensions.boardTemplate (yüklenen görseller dahil; otomatik kayıtta görseller atlanır)
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const S = App.state;
+  const T = App.tpl;
+
+  const withT = (P, t) => Object.assign({}, P, { tpl: t });
+
+  S.hooks.push(function (next, a) {
+    let P = next.project;
+    let state = next;
+    if (!T) return undefined;
+    if (!P.tpl || !Array.isArray(P.tpl.panels)) { P = withT(P, T.defaults()); state = Object.assign({}, state, { project: P }); }
+    const same = () => (state === next ? undefined : state);
+    if (!a.type || a.type.indexOf('TPL_') !== 0) return same();
+    const c = P.tpl;
+    const apply = (nc, history) => (history ? Object.assign(S.withHistory(state, withT(P, nc)), { selectedId: state.selectedId }) : Object.assign({}, state, { project: withT(P, nc) }));
+    const setPanels = (panels, history) => apply(Object.assign({}, c, { panels: panels.slice(0, 120) }), history);
+
+    switch (a.type) {
+      case 'TPL_SET': {
+        const patch = a.patch || {};
+        let panels = c.panels;
+        if (patch.size && patch.size !== c.size && T.SIZES[patch.size] && a.rescale) {
+          const o = T.SIZES[c.size], n = T.SIZES[patch.size];
+          const kx = n.w / o.w, ky = n.h / o.h, kf = Math.min(kx, ky);
+          panels = panels.map((p) => {
+            const q = Object.assign({}, p, { x: p.x * kx, y: p.y * ky, w: p.w * kx, h: p.h * ky, pad: Math.round(p.pad * kf) });
+            if (p.t === 'text' || p.t === 'legend' || p.t === 'facts' || p.t === 'block') q.size = Math.round(p.size * kf);
+            if (p.t === 'line') q.lw = p.lw * kf;
+            return T.clean(q) || p;
+          });
+          patch.margin = Math.round(c.margin * kx); patch.gutter = Math.round(c.gutter * kx);
+        }
+        const o = T.cleanDoc(Object.assign({}, c, patch, { panels: panels }));
+        return apply(o, true);
+      }
+      case 'TPL_ADD': {
+        const l = T.clean(a.panel);
+        if (!l) return same();
+        const r = setPanels(c.panels.concat([l]), true);
+        r.selectedId = l.id;
+        return r;
+      }
+      case 'TPL_ADD_MANY': {
+        const ls = (a.panels || []).map((l) => T.clean(l)).filter(Boolean);
+        if (!ls.length) return same();
+        return setPanels(c.panels.concat(ls), true);
+      }
+      case 'TPL_SET_P':
+      case 'TPL_LIVE': {
+        const l = c.panels.find((q) => q.id === a.id);
+        if (!l) return same();
+        const nx = T.clean(l, a.patch);
+        if (!nx) return same();
+        if (Object.keys(nx).every((k) => nx[k] === l[k] || (typeof nx[k] === 'object' && JSON.stringify(nx[k]) === JSON.stringify(l[k])))) return same();
+        return setPanels(c.panels.map((q) => (q.id === a.id ? nx : q)), a.type === 'TPL_SET_P');
+      }
+      case 'TPL_DEL': {
+        if (!c.panels.some((q) => q.id === a.id)) return same();
+        const r = setPanels(c.panels.filter((q) => q.id !== a.id), true);
+        if (state.selectedId === a.id) r.selectedId = null;
+        return r;
+      }
+      case 'TPL_DUP': {
+        const l = c.panels.find((q) => q.id === a.id);
+        if (!l) return same();
+        const cp = T.clean(Object.assign({}, l, { id: 'p' + Math.random().toString(36).slice(2, 8), locked: false, x: l.x + 30, y: l.y + 30 }));
+        const i = c.panels.findIndex((q) => q.id === a.id);
+        const r = setPanels(c.panels.slice(0, i + 1).concat([cp], c.panels.slice(i + 1)), true);
+        r.selectedId = cp.id;
+        return r;
+      }
+      case 'TPL_ORDER': {
+        const i = c.panels.findIndex((q) => q.id === a.id);
+        if (i < 0) return same();
+        let j = i + (a.dir < 0 ? -1 : 1);
+        if (a.to === 'top') j = c.panels.length - 1; else if (a.to === 'bottom') j = 0;
+        if (j < 0 || j >= c.panels.length || j === i) return same();
+        const ls = c.panels.slice();
+        const it = ls.splice(i, 1)[0];
+        ls.splice(j, 0, it);
+        return setPanels(ls, true);
+      }
+      case 'TPL_ALIGN': {
+        const l = c.panels.find((q) => q.id === a.id);
+        if (!l) return same();
+        const patch = T.alignTo(l, c, a.how);
+        const nx = T.clean(l, patch);
+        if (!nx) return same();
+        return setPanels(c.panels.map((q) => (q.id === a.id ? nx : q)), true);
+      }
+      case 'TPL_APPLY':
+      case 'TPL_LOAD': {
+        const doc = T.cleanDoc(a.doc);
+        return Object.assign(apply(doc, true), { selectedId: null });
+      }
+      case 'TPL_CLEAR':
+        return Object.assign(apply(Object.assign({}, c, { panels: [] }), true), { selectedId: null });
+      default:
+    }
+    return same();
+  });
+
+  /* ---------- JSON uzantısı: extensions.boardTemplate ---------- */
+  T.toExt = function (project) {
+    const c = project.tpl;
+    if (!c || !c.panels.length) return {};
+    const sz = T.sizeOf(c);
+    const out = {
+      version: 1, title: c.title, size: c.size, canvas: { width: sz.w, height: sz.h, unit: 'px' }, background: c.bg, accent: c.accent,
+      margin: c.margin, gutter: c.gutter, snap: c.snap, panels: c.panels.map((l) => JSON.parse(JSON.stringify(l))),
+    };
+    if (!App.autosaving && App.collage) {
+      out.images = {};
+      c.panels.forEach((l) => {
+        if (l.t === 'view' && l.src.k === 'img' && App.collage.imgs[l.src.id] && !out.images[l.src.id]) { const im = App.collage.imgs[l.src.id]; out.images[l.src.id] = { name: im.name, width: im.w, height: im.h, data: im.src }; }
+      });
+    }
+    return { boardTemplate: out };
+  };
+  App.extProviders.push(T.toExt);
+
+  App.extImporters = App.extImporters || [];
+  App.extImporters.push(function (ext) {
+    const x = ext && ext.boardTemplate;
+    if (!x || !Array.isArray(x.panels)) return {};
+    if (x.images && typeof x.images === 'object' && App.collage) {
+      Object.keys(x.images).forEach((id) => {
+        const r = x.images[id];
+        if (r && typeof r.data === 'string' && /^data:image\//.test(r.data) && !App.collage.imgs[id]) App.collage.addImg({ id: id, name: r.name, w: Number(r.width) || 1000, h: Number(r.height) || 700, src: r.data });
+      });
+    }
+    return { tpl: T.cleanDoc({ title: x.title, size: x.size, bg: x.background, accent: x.accent, margin: x.margin, gutter: x.gutter, snap: x.snap, panels: x.panels }) };
+  });
+})();
+
+/* ==========================================================================
    39-state-unit.js — Birim Oluşturucu eylemleri (reducer eklentisi) ve JSON uzantısı
    Veri project.unit içinde durur; geri al / ileri al, otomatik kayıt ve JSON akışı Modül 1 ile ortaktır.
    Eylemler:
@@ -20631,7 +21603,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 /* ==========================================================================
    47-ui-shell.js — archtools kabuğu: modül gezgini, ortak skor kadranı verisi,
    araç çubuğu ve sayfa iskeleti. Modüller yalnızca kendi içeriğini üretir.
-   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · birim · vaziyet · kolaj
+   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · birim · vaziyet · kolaj · pafta
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -20651,6 +21623,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     { id: 'birim', n: '09', label: 'Birim Oluşturucu', sub: 'Birim oluşturucu · adım adım kütle şekillendirme', shape: 'stack' },
     { id: 'vaziyet', n: '10', label: 'Vaziyet Planı', sub: 'Vaziyet planı · ölçekli yerleşim paftası', shape: 'sitemap' },
     { id: 'kolaj', n: '11', label: 'Kolaj Oluşturucu', sub: 'Kolaj oluşturucu · fotoğraf, kütle, siluet ve etiket', shape: 'collage' },
+    { id: 'pafta', n: '12', label: 'Pafta Şablonu', sub: 'Pafta şablonu · araç çıktılarıyla jüri paftası', shape: 'layout' },
   ];
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
@@ -20670,6 +21643,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     else if (shape === 'stack') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 9.6, width: 8.4, height: 6, rx: 1 }, p)), h('rect', Object.assign({ x: 7.2, y: 2.4, width: 8.4, height: 6, rx: 1 }, q)));
     else if (shape === 'sitemap') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 2.4, width: 13.2, height: 13.2, rx: 1 }, q)), h('rect', Object.assign({ x: 5, y: 5.4, width: 4.6, height: 4.2, rx: 0.6 }, p)), h('path', { d: 'M2.6 12.6h12.8', stroke: 'currentColor', 'stroke-width': 1.6, fill: 'none' }), h('circle', Object.assign({ cx: 12.6, cy: 6.4, r: 1.7 }, p)));
     else if (shape === 'collage') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 3.4, width: 9.6, height: 11.2, rx: 1 }, q)), h('circle', Object.assign({ cx: 11.4, cy: 6.8, r: 3.6 }, p)), h('path', { d: 'M8 14.6l3.2-3.6 4.4 3.6z', fill: 'currentColor', stroke: 'currentColor', 'stroke-width': 1.2, 'stroke-linejoin': 'round' }));
+    else if (shape === 'layout') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 2.4, width: 13.2, height: 13.2, rx: 1 }, q)), h('rect', Object.assign({ x: 4.6, y: 4.6, width: 5.2, height: 5.6, rx: 0.5 }, p)), h('path', { d: 'M12 5h1.6M12 8h1.6M5 13h8', stroke: 'currentColor', 'stroke-width': 1.4, fill: 'none', 'stroke-linecap': 'round' }));
     else if (shape === 'coin') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.6 }, q)), h('path', { d: 'M9 5.2v7.6M6.8 7.4c0-1 .9-1.7 2.2-1.7s2.2.7 2.2 1.6c0 2.3-4.4 1.1-4.4 3.4 0 .9 1 1.7 2.2 1.7s2.2-.7 2.2-1.7', stroke: 'currentColor', 'stroke-width': 1.3, fill: 'none', 'stroke-linecap': 'round' }));
     else g = h('path', Object.assign({ d: 'M2.5 15.2L9 3l6.5 12.2z' }, p));
     return h('svg', { viewBox: '0 0 18 18', width: 16, height: 16, class: 'msh msh-' + shape, 'aria-hidden': 'true' }, g);
@@ -20817,7 +21791,25 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     };
   }
 
-  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, birim: birimMeter, vaziyet: vaziyetMeter, kolaj: kolajMeter };
+  function paftaMeter(state) {
+    const t = state.project.tpl;
+    if (!t || !App.tpl) return { label: 'Panel', percent: null, msg: '', chips: [], issues: 0 };
+    const cnt = (k) => t.panels.filter((p) => p.t === k).length;
+    const refs = App.tpl.refsOf(t).length;
+    return {
+      label: 'Panel', percent: null,
+      msg: !t.panels.length ? 'Bir şablon seçerek paftaya başlayın' : t.panels.length + ' panel · ' + App.tpl.sizeOf(t).label + ' · ' + refs + ' araç çıktısı',
+      chips: [
+        { label: 'Görsel', value: String(cnt('view')), cls: 'dot' },
+        { label: 'Metin', value: String(cnt('text')), cls: 'dot' },
+        { label: 'Araç', value: String(refs), cls: 'dot' },
+        { label: 'Boyut', value: App.tpl.sizeOf(t).label.split(' ')[0], cls: 'dot' },
+      ],
+      issues: 0, issuesText: '', onIssues: null,
+    };
+  }
+
+  ui.meterOpts = { islev: islevMeter, bubble: islevMeter, kat: katMeter, analiz: analizMeter, birim: birimMeter, vaziyet: vaziyetMeter, kolaj: kolajMeter, pafta: paftaMeter };
   ui.meterFor = (state, d) => (ui.meterOpts[state.ui.module] || islevMeter)(state, d);
 
   /* ---------------- araç çubuğu ----------------
@@ -20877,6 +21869,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (m === 'birim' && ui.unit) return h('main', { class: 'main main-birim', key: 'main-birim' }, ui.unit.sidebar(state, d), ui.unit.board(state, d));
     if (m === 'vaziyet' && ui.plan) return h('main', { class: 'main main-vaziyet', key: 'main-vaziyet' }, ui.plan.sidebar(state, d), ui.plan.board(state, d));
     if (m === 'kolaj' && ui.col) return h('main', { class: 'main main-kolaj', key: 'main-kolaj' }, ui.col.sidebar(state, d), ui.col.board(state, d));
+    if (m === 'pafta' && ui.tpl) return h('main', { class: 'main main-pafta', key: 'main-pafta' }, ui.tpl.sidebar(state, d), ui.tpl.board(state, d));
     if (m === 'yer' && ui.yer) return h('main', { class: 'main main-yer', key: 'main-yer' }, ui.yer.sidebar(state, d), ui.yer.board(state, d));
     return h('main', { class: 'main main-islev', key: 'main-islev' }, ui.sidebar(state, d), ui.board(state, d), ui.assistant(state, d));
   };
@@ -21187,7 +22180,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const exporter = (kind) => (ctl.exporters[get().ui.module] || ctl.exporters.islev)(kind);
   ctl.exportPNG = () => exporter('png');
   ctl.exportPDF = () => exporter('pdf');
-  const JSON_SUFFIX = { islev: undefined, kat: 'kat-etudu', analiz: 'mekan-analizi', arsa: 'arsa-analizi', imar: 'imar-kapasite', yer: 'yer-secimi', tasarim: 'tasarim-uretici', fizibilite: 'maliyet-fizibilite', birim: 'birim-olusturucu', vaziyet: 'vaziyet-plani', kolaj: 'kolaj' };
+  const JSON_SUFFIX = { islev: undefined, kat: 'kat-etudu', analiz: 'mekan-analizi', arsa: 'arsa-analizi', imar: 'imar-kapasite', yer: 'yer-secimi', tasarim: 'tasarim-uretici', fizibilite: 'maliyet-fizibilite', birim: 'birim-olusturucu', vaziyet: 'vaziyet-plani', kolaj: 'kolaj', pafta: 'pafta-sablonu' };
   ctl.saveJSON = function () {
     const st = get();
     const d = derived();
@@ -21291,6 +22284,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     { id: 'birim', label: 'Bir kütleyi adım adım şekillendirin', sub: 'Parselde bir birim kurun; böl, boşluk aç, yeşil ekle ve süreci tek afişte görün.', icon: 'cube' },
     { id: 'vaziyet', label: 'Ölçekli vaziyet planı çizin', sub: 'Yapılar, yollar, yeşil alan ve ağaçlarla 1/200–1/5000 ölçekli vaziyet paftası; PNG, PDF ve DXF.', icon: 'parcel' },
     { id: 'kolaj', label: 'Sunum kolajı hazırlayın', sub: 'Siyah-beyaz fotoğraf üzerine tek renkli kütleler, beyaz siluetler, elle çizgiler ve etiketler; PNG ve PDF.', icon: 'image' },
+    { id: 'pafta', label: 'Jüri paftası hazırlayın', sub: 'A3–A0 pafta şablonu: vaziyet, kolaj, işlev şeması gibi araç çıktılarını serbestçe yerleştirin; metin, künye ve lejant ekleyin; PNG ve PDF.', icon: 'layout' },
     { id: 'bina', label: 'Bina programı kurgulayın', sub: 'İşlev şeması, kat etüdü ve mekân analizi ile bina içini tasarlayın.', icon: 'layout' },
     { id: 'kesif', label: 'Sadece keşfediyorum', sub: 'Örnek verilerle gezin; istediğiniz modülü üst çubuktan açın.', icon: 'spark' },
   ];
@@ -21352,8 +22346,9 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       else if (id === 'birim') { c.go('birim'); }
       else if (id === 'vaziyet') { c.go('vaziyet'); }
       else if (id === 'kolaj') { c.go('kolaj'); }
+      else if (id === 'pafta') { c.go('pafta'); }
       else if (id === 'bina') { c.go('islev'); }
-      else c.toast('İyi keşifler: üst çubuktan on bir modül arasında gezinebilirsiniz.');
+      else c.toast('İyi keşifler: üst çubuktan on iki modül arasında gezinebilirsiniz.');
     },
   });
   ui.helpBtn = function () { W.open(1); };
@@ -27218,13 +28213,597 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
-   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/birim · #/vaziyet · #/kolaj
+   82-ui-tpl.js — Modül 12 arayüzü: Pafta Şablonu
+   Sol panel: Şablon (hazır şablonlar, sayfa) · Ekle (araç çıktıları, görseller, metin ve işaretler) · Panel (seçili panel, katman sırası).
+   Pafta: seç / taşı / boyutlandır; kenar ve ortalara yaslanma kılavuzları; ok tuşlarıyla ince taşıma; sürükle-bırak ile görsel.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const U = App.util;
+  const fmt = U.fmt;
+  const T = App.tpl;
+  const ctl = () => App.ctl;
+  const tp = (ui.tpl = {});
+  const get = () => App.store.get();
+
+  App.tplDefaults = () => ({ tab: 'sablon', guides: true, tplSize: 'auto', stick: 0 });
+
+  /* ---------------- küçük bileşenler ---------------- */
+  function swatches(cur, onpick) {
+    return h('div', { class: 'kswatches' },
+      T.SWATCHES.map((s) => h('button', { key: s.v, type: 'button', class: 'kswatch' + (cur && cur.toUpperCase() === s.v ? ' on' : ''), style: { background: s.v }, title: s.label, 'aria-label': s.label, 'aria-pressed': String(!!cur && cur.toUpperCase() === s.v), onclick: () => onpick(s.v) })),
+      h('input', { class: 'kswatch-in', type: 'color', value: cur || '#17181B', 'aria-label': 'Özel renk', title: 'Özel renk', keep: true, onchange: (e) => onpick(e.target.value.toUpperCase()) }));
+  }
+  const numRange = (id, label, min, max, step, val, text, live, end) => ui.range({ id: id, label: label, min: min, max: max, step: step, value: val, text: text, oninput: live, onchange: end });
+  const BG_OPTS = [{ v: 'none', label: 'Yok' }, { v: 'white', label: 'Beyaz' }, { v: 'paper', label: 'Kâğıt' }, { v: 'grey', label: 'Gri' }, { v: 'ink', label: 'Siyah' }, { v: 'accent', label: 'Vurgu' }];
+  const textInp = (id, val, ph, max, on) => h('input', { id: id, class: 'inp', type: 'text', maxlength: max, placeholder: ph || '', value: val, keep: true, onchange: (e) => on(e.target.value) });
+
+  /* ---------------- şablon küçük resmi ---------------- */
+  const thumbMemo = {};
+  function thumb(t) {
+    if (!thumbMemo[t.id]) thumbMemo[t.id] = T.fromTemplate(t.id, { avail: [], name: 'Proje', title: '' });
+    const d = thumbMemo[t.id];
+    const s = T.sizeOf(d);
+    const parts = [h('rect', { key: 'bg', x: 0, y: 0, width: s.w, height: s.h, fill: '#fff' })];
+    d.panels.forEach((p, i) => {
+      const k = 'p' + i;
+      if (p.t === 'view') parts.push(h('rect', { key: k, x: p.x, y: p.y, width: p.w, height: p.h, fill: '#B9BCC1' }), h('path', { key: k + 'x', d: 'M' + p.x + ' ' + p.y + 'L' + (p.x + p.w) + ' ' + (p.y + p.h) + 'M' + (p.x + p.w) + ' ' + p.y + 'L' + p.x + ' ' + (p.y + p.h), stroke: '#fff', 'stroke-width': s.w / 160, opacity: 0.55 }));
+      else if (p.t === 'block') parts.push(h('rect', { key: k, x: p.x, y: p.y, width: p.w, height: p.h, fill: p.col }));
+      else if (p.t === 'title') parts.push(h('rect', { key: k, x: p.x, y: p.y, width: p.w, height: p.h, fill: '#fff', stroke: '#17181B', 'stroke-width': s.w / 190 }), h('rect', { key: k + 'm', x: p.x, y: p.y, width: p.h, height: p.h, fill: '#17181B' }));
+      else if (p.t === 'text') { const n = Math.max(1, Math.min(5, Math.floor(p.h / (p.size * 1.6)))); for (let j = 0; j < n; j++) parts.push(h('rect', { key: k + j, x: p.x, y: p.y + (p.valign === 'm' ? p.h * 0.3 : 0) + j * p.size * 1.5, width: p.w * (j === n - 1 ? 0.6 : 1) * (p.size > s.h * 0.03 ? 0.9 : 0.9), height: Math.max(s.h / 130, p.size * (p.size > s.h * 0.03 ? 0.7 : 0.32)), fill: '#17181B', opacity: p.size > s.h * 0.03 ? 0.85 : 0.5 })); }
+      else if (p.t === 'line') parts.push(h('rect', { key: k, x: p.x, y: p.y + p.h / 2 - p.lw / 2, width: p.w, height: p.lw, fill: '#17181B' }));
+      else parts.push(h('rect', { key: k, x: p.x, y: p.y, width: p.w, height: p.h, fill: '#17181B', opacity: 0.18 }));
+    });
+    return h('svg', { viewBox: '0 0 ' + s.w + ' ' + s.h, class: 'tpl-thumb', 'aria-hidden': 'true', preserveAspectRatio: 'xMidYMid meet' }, parts);
+  }
+
+  /* ---------------- Şablon sekmesi ---------------- */
+  function templatesSection(state, doc) {
+    const c = ctl();
+    const sel = state.ui.tpl.tplSize || 'auto';
+    return ui.section('Hazır şablonlar', h('div', { class: 'sec-box' },
+      h('div', { class: 'tpl-grid' }, T.TEMPLATES.map((t) => h('button', { key: t.id, type: 'button', class: 'tpl-card', title: t.desc, 'aria-label': t.label + ' şablonunu uygula — ' + t.desc, onclick: () => c.tplApply(t.id) },
+        thumb(t), h('span', { class: 'tpl-card-n' }, t.label), h('span', { class: 'tpl-card-s mono' }, T.SIZES[t.size].label)))),
+      ui.fld2('Şablon boyutu', h('select', { id: 'tpl-tsize', class: 'inp', value: sel, onchange: (e) => c.tplView({ tplSize: e.target.value }) },
+        [h('option', { key: 'auto', value: 'auto' }, 'Şablonun kendi boyutu')].concat(T.SIZE_ORDER.map((k) => h('option', { key: k, value: k }, T.SIZES[k].label + ' · ' + T.SIZES[k].w + ' × ' + T.SIZES[k].h)))), 'Şablon uygulanınca araç çıktıları boş alanlara tercih sırasıyla yerleşir; sonra hepsini değiştirebilirsiniz.'),
+      h('p', { class: 'note' }, 'Şablon uygulamak mevcut panelleri değiştirir; Geri al ile döndürebilirsiniz.')), null, 'tpl-templates');
+  }
+
+  function pageSection(state, doc) {
+    const c = ctl();
+    return ui.section('Sayfa', h('div', { class: 'sec-box' },
+      ui.fld2('Pafta başlığı', textInp('tpl-title', doc.title, 'Örn. Vaziyet ve kütle', 60, (v) => c.tplSet({ title: v.trim() }))),
+      ui.fld2('Boyut', h('select', { id: 'tpl-size', class: 'inp', value: doc.size, onchange: (e) => c.tplSet({ size: e.target.value }, true) },
+        T.SIZE_ORDER.map((k) => h('option', { key: k, value: k }, T.SIZES[k].label + ' · ' + T.SIZES[k].w + ' × ' + T.SIZES[k].h))), 'Boyut değişince paneller oranla ölçeklenir.'),
+      ui.fld2('Zemin', ui.segmented({ label: 'Pafta zemini', wide: true, value: doc.bg, options: [{ v: 'white', label: 'Beyaz' }, { v: 'paper', label: 'Kâğıt' }, { v: 'grey', label: 'Gri' }, { v: 'ink', label: 'Siyah' }, { v: 'accent', label: 'Vurgu' }], onchange: (v) => c.tplSet({ bg: v }) })),
+      ui.fld2('Vurgu rengi', swatches(doc.accent, (v) => c.tplSet({ accent: v })), 'Şablonlardaki başlık bandı ve numaralar bu renkte gelir.'),
+      numRange('tpl-margin', 'Kenar boşluğu', 0, 200, 2, doc.margin, doc.margin + ' px', (v) => c.tplSet({ margin: v }), () => {}),
+      numRange('tpl-gutter', 'Panel aralığı', 0, 100, 1, doc.gutter, doc.gutter + ' px', (v) => c.tplSet({ gutter: v }), () => {}),
+      h('div', { class: 'tgl-row' },
+        ui.toggle({ label: 'Kenarlara yaslan', on: doc.snap, onclick: () => c.tplSet({ snap: !doc.snap }), title: 'Taşırken panel kenarlarına, ortalara ve kenar boşluğuna yaslanır (Alt basılıyken kapalı)' }),
+        ui.toggle({ label: 'Kılavuz çizgileri', on: state.ui.tpl.guides !== false, onclick: () => c.tplView({ guides: state.ui.tpl.guides === false }), title: 'Kenar boşluğu çizgisini göster (dışa aktarılmaz)' }))), null, 'tpl-page');
+  }
+
+  function startSection(state, doc) {
+    const c = ctl();
+    return ui.section('Başlangıç', h('div', { class: 'sec-box' },
+      ui.btn('Boş pafta', { onclick: () => c.tplApply('bos') }),
+      doc.panels.length ? ui.btn('Panelleri temizle', { icon: 'trash', onclick: () => c.tplClear() }) : null,
+      h('p', { class: 'note' }, 'Her panel serbestçe taşınır, boyutlandırılır, kopyalanır ve sıralanır. PNG ve PDF için üstteki Dışa aktar düğmelerini kullanın; JSON, paftayı ve yüklenen görselleri içerir.')), null, 'tpl-start');
+  }
+
+  /* ---------------- Ekle sekmesi ---------------- */
+  function sourcesSection(state, doc) {
+    const c = ctl();
+    const av = T.available(state);
+    return ui.section('Araç çıktıları', h('div', { class: 'sec-box' },
+      h('div', { class: 'src-grid' }, T.SOURCES.map((s) => h('button', { key: s.id, type: 'button', class: 'src-btn' + (av[s.id] ? '' : ' off'), title: av[s.id] ? s.label + ' çıktısını panel olarak ekle' : s.label + ': ilgili araçta henüz veri yok', onclick: () => c.tplAddMod(s.id) },
+        h('span', { class: 'src-dot', 'aria-hidden': 'true' }), h('span', { class: 'src-n' }, s.label)))),
+      h('p', { class: 'note' }, 'Çıktılar canlı bağlıdır: ilgili araçta değişiklik yaptığınızda paftadaki panel de güncellenir. Soluk olanlarda henüz veri yok; yine de eklenip sonra dolabilir.')), Object.keys(av).filter((k) => av[k]).length + ' hazır', 'tpl-src');
+  }
+
+  function imagesSection(state, doc) {
+    const c = ctl();
+    const C = App.collage;
+    const imgs = C ? Object.keys(C.imgs).map((k) => C.imgs[k]) : [];
+    return ui.section('Görseller', h('div', { class: 'sec-box' },
+      ui.btn('Görsel yükle', { icon: 'image', cls: 'btn-yellow', onclick: () => c.tplPick(), title: 'Fotoğraf, çizim ya da render seçin; sürükleyip paftaya bırakabilir ya da panodan yapıştırabilirsiniz' }),
+      imgs.length ? h('div', { class: 'imgs' }, imgs.map((im) => h('div', { key: im.id, class: 'img-tile' },
+        h('button', { type: 'button', class: 'img-btn img-btn-col', title: im.name + ' — panele ekle', 'aria-label': im.name + ' görselini ekle', onclick: () => c.tplUseImage(im.id) }, h('img', { src: im.src, alt: '', draggable: false })),
+        h('button', { type: 'button', class: 'img-del', title: 'Kitaplıktan sil', 'aria-label': 'Görseli kitaplıktan sil', onclick: () => c.tplDelImg(im.id) }, ui.icon('close', 12)))))
+        : h('p', { class: 'note' }, 'Görseller bu tarayıcıda saklanır (Kolaj aracıyla ortak kitaplık); JSON dosyasına da gömülür. Görsel panel seçiliyken bir görsele tıklamak onu o panele atar.'),
+      h('input', { id: 'tpl-file', class: 'sr', type: 'file', accept: 'image/*', multiple: true, tabindex: -1, 'aria-label': 'Görsel seç', onchange: (e) => { c.tplFiles(Array.prototype.slice.call(e.target.files || [])); e.target.value = ''; } })), imgs.length ? String(imgs.length) : null, 'tpl-img');
+  }
+
+  function itemsSection(state, doc) {
+    const c = ctl();
+    const b = (label, icon, fn, title) => ui.btn(label, { icon: icon, cls: 'btn-tool', onclick: fn, title: title });
+    return ui.section('Metin ve işaretler', h('div', { class: 'sec-box' },
+      h('div', { class: 'tool-grid' },
+        b('Metin', 'newdoc', () => c.tplAddText('text'), 'Açıklama metni'), b('Büyük başlık', 'spark', () => c.tplAddText('title'), 'Pafta başlığı'),
+        b('Künye', 'layout', () => c.tplAddTitle(), 'Proje adı, ölçek, tarih ve pafta no'), b('Lejant', 'layers', () => c.tplAddLegend(), 'Renk-anlam listesi'),
+        b('Veriler', 'check', () => c.tplAddFacts(), 'Parsel alanı, TAKS, KAKS, kat sayısı… araçlardan otomatik'), b('Renk bloğu', 'rect', () => c.tplAddBlock(), 'Düz renkli alan, isteğe bağlı yazı'),
+        b('Yatay çizgi', 'link', () => c.tplAddLine('h'), 'Ayırıcı çizgi'), b('Dikey çizgi', 'link', () => c.tplAddLine('v'), 'Ayırıcı çizgi'),
+        b('Kuzey oku', 'target', () => c.tplAddNorth(), 'Kuzey işareti'))), null, 'tpl-items');
+  }
+
+  /* ---------------- seçili panel ---------------- */
+  function selectedPanel(state, doc) {
+    const c = ctl();
+    const p = doc.panels.find((q) => q.id === state.selectedId);
+    if (!p) return null;
+    const set = (patch) => c.tplSetP(p.id, patch);
+    const live = (patch) => c.tplLive(p.id, patch);
+    const end = () => c.tplLiveEnd();
+    const head = h('p', { class: 'fr-area' }, h('b', {}, T.PANEL_LABEL[p.t] + ' · ' + T.panelName(p)), p.locked ? h('span', { class: 'lock-tag' }, ' kilitli') : null);
+    let body = [];
+    if (p.t === 'view') {
+      const av = T.available(state);
+      const C = App.collage;
+      const cur = p.src.k === 'none' ? 'none' : p.src.k + ':' + p.src.id;
+      const opts = [h('option', { key: 'none', value: 'none' }, '— Boş —')]
+        .concat(T.SOURCES.map((s) => h('option', { key: 'm' + s.id, value: 'mod:' + s.id }, s.label + (av[s.id] ? '' : ' (veri yok)'))))
+        .concat(C ? Object.keys(C.imgs).map((k) => h('option', { key: 'i' + k, value: 'img:' + k }, 'Görsel · ' + C.imgs[k].name)) : []);
+      const stt = p.src.k === 'mod' ? T.entryState(state, p.src.id) : null;
+      const err = p.src.k === 'mod' ? T.errorFor(state, p.src.id) : null;
+      body = [
+        ui.fld2('Kaynak', h('select', { id: 'tpl-src-sel', class: 'inp', value: cur, onchange: (e) => { const v = e.target.value; if (v === 'none') set({ src: { k: 'none', id: '' } }); else { const i = v.indexOf(':'); const k = v.slice(0, i), id = v.slice(i + 1); const lab = k === 'mod' ? T.srcInfo(id).label : ''; set({ src: { k: k, id: id }, label: p.label && p.label !== (p.src.k === 'mod' ? (T.srcInfo(p.src.id) || {}).label : '') ? p.label : lab }); } } }, opts),
+          p.src.k === 'mod' ? (!av[p.src.id] ? 'Bu araçta henüz veri yok.' : stt === 'busy' ? 'Hazırlanıyor…' : err ? 'Çıktı alınamadı: ' + err : 'Canlı bağlı: araçtaki değişiklikler buraya yansır.') : null),
+        ui.fld2('Yerleşim', ui.segmented({ label: 'Görsel yerleşimi', wide: true, value: p.fit, options: [{ v: 'cover', label: 'Doldur' }, { v: 'contain', label: 'Sığdır' }], onchange: (v) => set({ fit: v }) })),
+        numRange('tpl-zoom', 'Yakınlaştır', 20, 600, 5, Math.round(p.zoom * 100), '%' + Math.round(p.zoom * 100), (v) => live({ zoom: v / 100 }), end),
+        numRange('tpl-ox', 'Yatay konum', 0, 100, 1, Math.round(p.ox * 100), '%' + Math.round(p.ox * 100), (v) => live({ ox: v / 100 }), end),
+        numRange('tpl-oy', 'Dikey konum', 0, 100, 1, Math.round(p.oy * 100), '%' + Math.round(p.oy * 100), (v) => live({ oy: v / 100 }), end),
+        h('div', { class: 'tgl-row' },
+          p.src.k === 'mod' ? ui.toggle({ label: 'Çerçeve ve künyeyi kırp', on: p.trim, onclick: () => set({ trim: !p.trim }), title: 'Araç paftasının kendi çerçevesini ve künyesini çıkarır; yalnızca çizim kalır' }) : null,
+          p.src.k === 'img' ? ui.toggle({ label: 'Siyah-beyaz', on: p.bw, onclick: () => set({ bw: !p.bw }) }) : null),
+        ui.fld2('Etiket', textInp('tpl-label', p.label, 'Örn. 01 · Vaziyet', 60, (v) => set({ label: v.trim() })), 'Görselin köşesinde küçük bir şerit olarak görünür.'),
+      ];
+    } else if (p.t === 'text') {
+      body = [
+        ui.fld2('Metin', h('textarea', { id: 'tpl-text', class: 'inp tpl-ta', rows: 6, maxlength: 2400, value: p.s, keep: true, onchange: (e) => set({ s: e.target.value }) })),
+        numRange('tpl-ts', 'Boyut', 6, 220, 1, p.size, p.size + ' px', (v) => live({ size: v }), end),
+        ui.fld2('Yazı tipi', ui.segmented({ label: 'Yazı tipi', wide: true, value: p.fam, options: T.FONT_OPTS, onchange: (v) => set({ fam: v }) })),
+        ui.fld2('Hizalama', ui.segmented({ label: 'Yatay hizalama', wide: true, value: p.align, options: [{ v: 'l', label: 'Sol' }, { v: 'c', label: 'Orta' }, { v: 'r', label: 'Sağ' }], onchange: (v) => set({ align: v }) })),
+        ui.fld2('Dikey', ui.segmented({ label: 'Dikey hizalama', wide: true, value: p.valign, options: [{ v: 't', label: 'Üst' }, { v: 'm', label: 'Orta' }, { v: 'b', label: 'Alt' }], onchange: (v) => set({ valign: v }) })),
+        h('div', { class: 'tgl-row' }, ui.toggle({ label: 'BÜYÜK HARF', on: p.caps, onclick: () => set({ caps: !p.caps }) }), ui.toggle({ label: 'Kalın', on: p.weight >= 700, onclick: () => set({ weight: p.weight >= 700 ? 500 : 800 }) })),
+        numRange('tpl-lh', 'Satır aralığı', 90, 240, 5, Math.round(p.lh * 100), '×' + fmt(p.lh, 2), (v) => live({ lh: v / 100 }), end),
+        ui.fld2('Yazı rengi', swatches(p.col, (v) => set({ col: v }))),
+      ];
+    } else if (p.t === 'title') {
+      body = [
+        ui.fld2('Proje adı', textInp('tpl-tname', p.name, state.project.meta.name || 'Proje adı', 80, (v) => set({ name: v.trim() })), 'Boş bırakırsanız projenin adı kullanılır.'),
+        ui.fld2('Alt başlık', textInp('tpl-tsub', p.sub, 'Örn. Mimari ön proje', 120, (v) => set({ sub: v.trim() }))),
+        h('div', { class: 'tpl-rows' }, [0, 1, 2, 3].map((i) => { const r = p.rows[i] || ['', '']; return h('div', { key: i, class: 'tpl-row2' },
+          h('input', { class: 'inp', type: 'text', maxlength: 24, placeholder: 'Alan', value: r[0], 'aria-label': 'Alan adı ' + (i + 1), keep: true, onchange: (e) => { const rows = p.rows.slice(); while (rows.length <= i) rows.push(['', '']); rows[i] = [e.target.value, rows[i][1]]; set({ rows: rows }); } }),
+          h('input', { class: 'inp', type: 'text', maxlength: 48, placeholder: 'Değer', value: r[1], 'aria-label': 'Alan değeri ' + (i + 1), keep: true, onchange: (e) => { const rows = p.rows.slice(); while (rows.length <= i) rows.push(['', '']); rows[i] = [rows[i][0], e.target.value]; set({ rows: rows }); } })); })),
+      ];
+    } else if (p.t === 'legend') {
+      const items = p.items;
+      body = [
+        h('div', { class: 'tpl-rows' }, items.map((it, i) => h('div', { key: i, class: 'tpl-row2 tpl-leg' },
+          h('input', { class: 'kswatch-in', type: 'color', value: it.col, 'aria-label': 'Renk ' + (i + 1), keep: true, onchange: (e) => { const n = items.slice(); n[i] = { col: e.target.value.toUpperCase(), label: it.label }; set({ items: n }); } }),
+          h('input', { class: 'inp', type: 'text', maxlength: 40, value: it.label, 'aria-label': 'Açıklama ' + (i + 1), keep: true, onchange: (e) => { const n = items.slice(); n[i] = { col: it.col, label: e.target.value }; set({ items: n }); } }),
+          h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Öğeyi sil', title: 'Sil', onclick: () => set({ items: items.filter((_, j) => j !== i) }) }, ui.icon('close', 14))))),
+        ui.btn('Öğe ekle', { icon: 'plus', onclick: () => set({ items: items.concat([{ col: '#D93A1F', label: 'Yeni öğe' }]) }), disabled: items.length >= 14 }),
+        numRange('tpl-ls', 'Yazı boyutu', 8, 90, 1, p.size, p.size + ' px', (v) => live({ size: v }), end),
+        ui.fld2('Yazı rengi', swatches(p.col, (v) => set({ col: v }))),
+      ];
+    } else if (p.t === 'facts') {
+      const F = T.facts(state.project);
+      body = [
+        h('div', { class: 'tpl-facts' }, T.FACT_KEYS.map((f) => { const on = p.keys.indexOf(f.id) >= 0; return h('button', { key: f.id, type: 'button', class: 'chip-tgl' + (on ? ' on' : ''), 'aria-pressed': String(on), title: F[f.id] != null ? f.label + ': ' + F[f.id] : f.label + ': veri yok', onclick: () => set({ keys: on ? p.keys.filter((k) => k !== f.id) : p.keys.concat([f.id]) }) }, f.label, h('b', { class: 'mono' }, F[f.id] != null ? F[f.id] : '—')); })),
+        h('p', { class: 'note' }, 'Değerler Vaziyet planı, Tasarım ve Fizibilite araçlarından otomatik gelir; veri yoksa “—” görünür.'),
+        numRange('tpl-fs', 'Yazı boyutu', 8, 90, 1, p.size, p.size + ' px', (v) => live({ size: v }), end),
+        ui.fld2('Yazı rengi', swatches(p.col, (v) => set({ col: v }))),
+      ];
+    } else if (p.t === 'block') {
+      body = [
+        ui.fld2('Renk', swatches(p.col, (v) => set({ col: v, tcol: T.contrast(v) }))),
+        numRange('tpl-bop', 'Opaklık', 5, 100, 5, Math.round(p.op * 100), '%' + Math.round(p.op * 100), (v) => live({ op: v / 100 }), end),
+        ui.fld2('Yazı', textInp('tpl-bs', p.s, 'İsteğe bağlı', 80, (v) => set({ s: v }))),
+        p.s ? numRange('tpl-bsz', 'Yazı boyutu', 8, 200, 1, p.size, p.size + ' px', (v) => live({ size: v }), end) : null,
+        p.s ? ui.fld2('Yazı rengi', swatches(p.tcol, (v) => set({ tcol: v }))) : null,
+      ];
+    } else if (p.t === 'line') {
+      body = [
+        ui.fld2('Yön', ui.segmented({ label: 'Çizgi yönü', wide: true, value: p.dir, options: [{ v: 'h', label: 'Yatay' }, { v: 'v', label: 'Dikey' }], onchange: (v) => set({ dir: v }) })),
+        numRange('tpl-lw', 'Kalınlık', 1, 30, 0.5, p.lw, fmt(p.lw, 1) + ' px', (v) => live({ lw: v }), end),
+        ui.fld2('Çizgi tipi', ui.segmented({ label: 'Çizgi tipi', wide: true, value: p.dash, options: [{ v: 0, label: 'Düz' }, { v: 1, label: 'Kesik' }, { v: 2, label: 'Nokta' }], onchange: (v) => set({ dash: v }) })),
+        ui.fld2('Renk', swatches(p.col, (v) => set({ col: v }))),
+      ];
+    } else if (p.t === 'north') body = [ui.fld2('Renk', swatches(p.col, (v) => set({ col: v })))];
+
+    const frame = p.t === 'line' || p.t === 'north' ? null : [
+      ui.fld2('Zemin', h('select', { id: 'tpl-pbg', class: 'inp', value: p.bg, onchange: (e) => set({ bg: e.target.value }) }, BG_OPTS.map((o) => h('option', { key: o.v, value: o.v }, o.label)))),
+      ui.fld2('Kenarlık', ui.segmented({ label: 'Kenarlık kalınlığı', wide: true, value: p.bd <= 0 ? 0 : p.bd <= 1.5 ? 1 : p.bd <= 3 ? 3 : 6, options: [{ v: 0, label: 'Yok' }, { v: 1, label: 'İnce' }, { v: 3, label: 'Orta' }, { v: 6, label: 'Kalın' }], onchange: (v) => set({ bd: v }) })),
+      p.bd > 0 ? ui.fld2('Kenarlık rengi', swatches(p.bdc, (v) => set({ bdc: v }))) : null,
+      p.t === 'text' || p.t === 'block' || p.t === 'legend' || p.t === 'facts' || p.t === 'view' ? numRange('tpl-pad', 'İç boşluk', 0, 120, 1, p.pad, p.pad + ' px', (v) => live({ pad: v }), end) : null,
+    ];
+    const nf = (id, label, key, min) => h('label', { class: 'tpl-num', for: id }, h('span', {}, label),
+      h('input', { id: id, class: 'inp', type: 'number', step: 1, min: min, value: Math.round(p[key]), keep: true, onchange: (e) => { const v = Number(e.target.value); if (isFinite(v)) set({ [key]: Math.max(min, Math.round(v)) }); } }));
+    const geo = h('div', { class: 'tpl-xywh' }, nf('tpl-x', 'X', 'x', -2000), nf('tpl-y', 'Y', 'y', -2000), nf('tpl-w', 'Genişlik', 'w', 8), nf('tpl-h', 'Yükseklik', 'h', 8));
+    const al = (how, label, title) => ui.btn(label, { onclick: () => c.tplAlign(p.id, how), title: title, cls: 'btn-sm' });
+    const aligns = h('div', { class: 'btn-row tpl-al' },
+      al('left', 'Sol', 'Sol kenar boşluğuna'), al('hcenter', 'Orta', 'Sayfa ortasına (yatay)'), al('right', 'Sağ', 'Sağ kenar boşluğuna'),
+      al('top', 'Üst', 'Üst kenar boşluğuna'), al('vcenter', 'Orta', 'Sayfa ortasına (dikey)'), al('bottom', 'Alt', 'Alt kenar boşluğuna'));
+    const fills = h('div', { class: 'btn-row' }, al('fillw', 'Genişliğe yay', 'Kenar boşlukları arasında yatay doldur'), al('fillh', 'Yüksekliğe yay', 'Kenar boşlukları arasında dikey doldur'), al('fill', 'Sayfayı kapla', 'Kenar boşluklarına kadar doldur'));
+    const order = h('div', { class: 'btn-row' }, ui.btn('Öne al', { onclick: () => c.tplOrder(p.id, { to: 'top' }) }), ui.btn('Arkaya al', { onclick: () => c.tplOrder(p.id, { to: 'bottom' }) }));
+    const tail = h('div', { class: 'btn-row' },
+      ui.btn('Çoğalt', { icon: 'copy', onclick: () => c.tplDup(p.id) }),
+      ui.btn(p.locked ? 'Kilidi aç' : 'Kilitle', { onclick: () => set({ locked: !p.locked }) }),
+      ui.btn('Sil', { icon: 'trash', onclick: () => c.tplDel(p.id) }));
+    return [
+      ui.section('Seçili panel', h('div', { class: 'sec-box' }, head, body), null, 'tpl-sel'),
+      frame ? ui.section('Zemin ve kenarlık', h('div', { class: 'sec-box' }, frame), null, 'tpl-frame') : null,
+      ui.section('Konum ve boyut', h('div', { class: 'sec-box' }, geo, aligns, fills, order, tail), null, 'tpl-geo'),
+    ];
+  }
+
+  function panelList(state, doc) {
+    const c = ctl();
+    const sel = state.selectedId;
+    const rows = doc.panels.slice().reverse().map((p) => h('li', { key: p.id, id: 'trow-' + p.id, class: 'row krow' + (sel === p.id ? ' sel' : '') + (p.hidden ? ' off' : '') },
+      h('div', { class: 'row-main', onclick: () => c.dispatch({ type: 'SELECT', id: sel === p.id ? null : p.id }) },
+        h('span', { class: 'kkind tkind-' + p.t, 'aria-hidden': 'true' }),
+        h('span', { class: 'row-name' }, T.panelName(p)),
+        h('span', { class: 'frow-area' }, T.PANEL_LABEL[p.t])),
+      h('div', { class: 'krow-act' },
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': p.hidden ? 'Paneli göster' : 'Paneli gizle', title: p.hidden ? 'Göster' : 'Gizle', onclick: () => c.tplSetP(p.id, { hidden: !p.hidden }) }, ui.icon(p.hidden ? 'close' : 'check', 14)),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Öne taşı', title: 'Öne', onclick: () => c.tplOrder(p.id, { dir: 1 }) }, ui.icon('chevron', 14)),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Arkaya taşı', title: 'Arkaya', onclick: () => c.tplOrder(p.id, { dir: -1 }) }, ui.icon('chevron', 14)))));
+    return ui.section('Paneller', rows.length ? h('ul', { class: 'rows' }, rows) : h('p', { class: 'note' }, 'Henüz panel yok. Şablon sekmesinden bir şablon seçin ya da Ekle sekmesinden panel ekleyin.'), doc.panels.length + ' panel · üstteki en önde', 'tpl-list');
+  }
+
+  tp.sidebar = function (state, d) {
+    const doc = state.project.tpl;
+    const c = ctl();
+    const tab = ['sablon', 'ekle', 'panel'].indexOf(state.ui.tpl.tab) >= 0 ? state.ui.tpl.tab : 'sablon';
+    const tabs = ui.tabsBar([{ id: 'sablon', label: 'Şablon' }, { id: 'ekle', label: 'Ekle' }, { id: 'panel', label: 'Panel', n: doc.panels.length }], tab, (id) => c.tplView({ tab: id }, true));
+    let body;
+    if (tab === 'sablon') body = [templatesSection(state, doc), pageSection(state, doc), startSection(state, doc)];
+    else if (tab === 'ekle') body = [sourcesSection(state, doc), imagesSection(state, doc), itemsSection(state, doc)];
+    else body = (selectedPanel(state, doc) || []).concat([panelList(state, doc)]);
+    return ui.sideShell('sb-pafta', 'Pafta şablonu paneli', tabs, body);
+  };
+
+  /* ---------------- pafta etkileşimi ---------------- */
+  let gest = null;
+  tp.svgEl = null;
+  function toSvg(e) {
+    const svg = tp.svgEl;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+  }
+  const docNow = () => get().project.tpl;
+  const panelNow = (id) => docNow().panels.find((q) => q.id === id);
+  const q = (id) => document.getElementById(id);
+
+  function elDown(e, p) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.stopPropagation(); e.preventDefault();
+    const s = toSvg(e);
+    ctl().dispatch({ type: 'SELECT', id: p.id });
+    if (p.locked) return;
+    gest = { t: 'move', id: p.id, sx: s.x, sy: s.y, orig: p, moved: false, cX: e.clientX, cY: e.clientY };
+    try { tp.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+  }
+  function handleDown(e, p, hd) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.stopPropagation(); e.preventDefault();
+    gest = { t: 'handle', id: p.id, hd: hd, orig: p, moved: false, cX: e.clientX, cY: e.clientY };
+    try { tp.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+  }
+  function bgDown(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
+  }
+
+  /* yaslama: sayfa kenarı/ortası, kenar boşluğu ve diğer panellerin kenar-orta çizgileri */
+  function snapLines(exceptId) {
+    const d = docNow(), s = T.sizeOf(d), m = d.margin;
+    const xs = [0, m, s.w / 2, s.w - m, s.w], ys = [0, m, s.h / 2, s.h - m, s.h];
+    d.panels.forEach((p) => { if (p.id === exceptId || p.hidden) return; xs.push(p.x, p.x + p.w / 2, p.x + p.w); ys.push(p.y, p.y + p.h / 2, p.y + p.h); });
+    return { xs: xs, ys: ys };
+  }
+  function best(vals, cands, thr) {
+    let b = null;
+    vals.forEach((v) => cands.forEach((c) => { const dd = c - v; if (Math.abs(dd) <= thr && (b === null || Math.abs(dd) < Math.abs(b.d))) b = { d: dd, at: c }; }));
+    return b;
+  }
+  function guide(id, a, b, c2, d2) {
+    const el = q(id);
+    if (!el) return;
+    if (a == null) { el.setAttribute('visibility', 'hidden'); return; }
+    el.setAttribute('x1', a); el.setAttribute('y1', b); el.setAttribute('x2', c2); el.setAttribute('y2', d2); el.setAttribute('visibility', 'visible');
+  }
+  const threshold = () => { const r = tp.svgEl.getBoundingClientRect(); const s = T.sizeOf(docNow()); return 8 * (s.w / Math.max(1, r.width)); };
+  const hideGuides = () => { guide('tpg-v'); guide('tpg-h'); };
+
+  function svgMove(e) {
+    if (!gest) return;
+    const g = gest;
+    const s = toSvg(e);
+    if (!g.moved) { if (Math.hypot(e.clientX - g.cX, e.clientY - g.cY) < 3) return; g.moved = true; ctl().tplLiveBegin(); }
+    const o = g.orig, d = docNow(), S = T.sizeOf(d);
+    const snapOn = d.snap && !e.altKey;
+    const L = snapOn ? snapLines(o.id) : null, thr = snapOn ? threshold() : 0;
+    if (g.t === 'move') {
+      let dx = s.x - g.sx, dy = s.y - g.sy;
+      if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
+      let nx = o.x + dx, ny = o.y + dy;
+      let gx = null, gy = null;
+      if (snapOn) {
+        const bx = best([nx, nx + o.w / 2, nx + o.w], L.xs, thr), by = best([ny, ny + o.h / 2, ny + o.h], L.ys, thr);
+        if (bx) { nx += bx.d; gx = bx.at; }
+        if (by) { ny += by.d; gy = by.at; }
+      }
+      guide('tpg-v', gx, 0, gx, S.h); guide('tpg-h', 0, gy, S.w, gy);
+      if (gx == null) guide('tpg-v'); if (gy == null) guide('tpg-h');
+      ctl().tplLive(o.id, { x: nx, y: ny });
+      return;
+    }
+    let x0 = o.x, y0 = o.y, x1 = o.x + o.w, y1 = o.y + o.h;
+    const hx = g.hd.indexOf('e') >= 0 ? 1 : g.hd.indexOf('w') >= 0 ? -1 : 0, hy = g.hd.indexOf('s') >= 0 ? 1 : g.hd.indexOf('n') >= 0 ? -1 : 0;
+    let px = s.x, py = s.y, gx = null, gy = null;
+    if (snapOn) {
+      if (hx) { const b = best([px], L.xs, thr); if (b) { px = b.at; gx = b.at; } }
+      if (hy) { const b = best([py], L.ys, thr); if (b) { py = b.at; gy = b.at; } }
+    }
+    const MIN = 20;
+    if (hx > 0) x1 = Math.max(x0 + MIN, px); else if (hx < 0) x0 = Math.min(x1 - MIN, px);
+    if (hy > 0) y1 = Math.max(y0 + MIN, py); else if (hy < 0) y0 = Math.min(y1 - MIN, py);
+    if (e.shiftKey && hx && hy) {
+      const ar = o.w / o.h;
+      const nw = x1 - x0, nh = y1 - y0;
+      if (nw / nh > ar) { const w2 = nh * ar; if (hx > 0) x1 = x0 + w2; else x0 = x1 - w2; } else { const h2 = nw / ar; if (hy > 0) y1 = y0 + h2; else y0 = y1 - h2; }
+    }
+    guide('tpg-v', gx, 0, gx, S.h); guide('tpg-h', 0, gy, S.w, gy);
+    if (gx == null) guide('tpg-v'); if (gy == null) guide('tpg-h');
+    ctl().tplLive(o.id, { x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
+  }
+  function svgUp(e) {
+    const g = gest;
+    if (!g) return;
+    gest = null;
+    try { tp.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+    hideGuides();
+    ctl().tplLiveEnd();
+  }
+
+  document.addEventListener('keydown', function (e) {
+    const S = get();
+    if (S.ui.module !== 'pafta') return;
+    const tg = e.target;
+    if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT' || tg.isContentEditable)) return;
+    const c = ctl();
+    if (e.key === 'Escape') { if (S.selectedId) c.dispatch({ type: 'SELECT', id: null }); }
+    else if ((e.key === 'Delete' || e.key === 'Backspace') && S.selectedId) { e.preventDefault(); const p = panelNow(S.selectedId); if (p && !p.locked) c.tplDel(S.selectedId); }
+    else if (S.selectedId && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) >= 0) {
+      const p = panelNow(S.selectedId);
+      if (!p || p.locked) return;
+      e.preventDefault();
+      const n = e.shiftKey ? 10 : 1;
+      const dv = { ArrowLeft: [-n, 0], ArrowRight: [n, 0], ArrowUp: [0, -n], ArrowDown: [0, n] }[e.key];
+      c.tplSetP(p.id, { x: p.x + dv[0], y: p.y + dv[1] });
+    }
+  });
+  document.addEventListener('paste', function (e) {
+    if (get().ui.module !== 'pafta') return;
+    const items = (e.clipboardData && e.clipboardData.files) || [];
+    const files = Array.prototype.slice.call(items).filter((f) => /^image\//.test(f.type));
+    if (files.length) { e.preventDefault(); ctl().tplFiles(files); }
+  });
+
+  /* ---------------- hedefler ve tutamaçlar ---------------- */
+  function hitsLayer(state, doc) {
+    const out = [];
+    const ink = '#17181B';
+    doc.panels.forEach((p) => {
+      if (p.hidden) return;
+      out.push(h('rect', { key: 'h' + p.id, class: 'thit' + (p.locked ? ' locked' : ''), x: p.x, y: p.y, width: p.w, height: p.h, fill: 'transparent', onpointerdown: (e) => elDown(e, p), ondblclick: (e) => { e.stopPropagation(); ctl().tplView({ tab: 'panel' }, true); setTimeout(() => { const i = q('tpl-text') || q('tpl-tname') || q('tpl-src-sel'); if (i) i.focus(); }, 80); } }));
+    });
+    const p = doc.panels.find((x) => x.id === state.selectedId);
+    if (p && !p.hidden) {
+      const sw = Math.max(2, T.sizeOf(doc).w / 700);
+      out.push(h('rect', { key: 'selring', x: p.x, y: p.y, width: p.w, height: p.h, fill: 'none', stroke: ink, 'stroke-width': sw, 'stroke-dasharray': (sw * 4) + ' ' + (sw * 3), 'pointer-events': 'none' }));
+      out.push(h('rect', { key: 'selring2', x: p.x - sw, y: p.y - sw, width: p.w + sw * 2, height: p.h + sw * 2, fill: 'none', stroke: '#fff', 'stroke-width': sw * 0.6, opacity: 0.8, 'pointer-events': 'none' }));
+      if (!p.locked) {
+        const hs = Math.max(11, T.sizeOf(doc).w / 120);
+        [['nw', 0, 0], ['n', 0.5, 0], ['ne', 1, 0], ['e', 1, 0.5], ['se', 1, 1], ['s', 0.5, 1], ['sw', 0, 1], ['w', 0, 0.5]].forEach((hh) => {
+          out.push(h('rect', { key: 'hd' + hh[0], class: 'thandle', x: p.x + hh[1] * p.w - hs / 2, y: p.y + hh[2] * p.h - hs / 2, width: hs, height: hs, 'stroke-width': hs / 5, onpointerdown: (e) => handleDown(e, p, hh[0]) }));
+        });
+      }
+    }
+    return out;
+  }
+
+  /* ---------------- pafta ---------------- */
+  tp.board = function (state, d) {
+    const doc = state.project.tpl;
+    const c = ctl();
+    const sc = T.scene(doc, { st: state, live: true });
+    const S = T.sizeOf(doc);
+    const sel = doc.panels.find((p) => p.id === state.selectedId);
+    const showG = state.ui.tpl.guides !== false;
+    const svg = h('svg', {
+      id: 'pafta-sablon', class: 'board-svg board-svg-tpl', viewBox: '0 0 ' + sc.W + ' ' + sc.H, preserveAspectRatio: 'xMidYMid meet', role: 'group',
+      'aria-label': 'Pafta şablonu, ' + doc.panels.length + ' panel',
+      ref: (el) => { tp.svgEl = el; }, onpointerdown: bgDown, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp,
+    }, sc.prims.map((p) => App.board.primToV(p)),
+    showG && doc.margin > 0 ? h('rect', { key: 'mg', class: 'tmargin', x: doc.margin, y: doc.margin, width: sc.W - doc.margin * 2, height: sc.H - doc.margin * 2, fill: 'none', 'pointer-events': 'none' }) : null,
+    h('g', { class: 'thits' }, hitsLayer(state, doc)),
+    h('line', { key: 'gv', id: 'tpg-v', class: 'tguide', x1: 0, y1: 0, x2: 0, y2: S.h, visibility: 'hidden', 'pointer-events': 'none' }),
+    h('line', { key: 'gh', id: 'tpg-h', class: 'tguide', x1: 0, y1: 0, x2: S.w, y2: 0, visibility: 'hidden', 'pointer-events': 'none' }));
+    const refsBusy = T.refsOf(doc).some((id) => { const s = T.entryState(state, id); return s === 'busy' || s === 'none'; });
+    const stage = h('div', { class: 'board-stage tstage', ondragover: (e) => { e.preventDefault(); }, ondrop: (e) => { e.preventDefault(); const f = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []); if (f.length) c.tplFiles(f); } }, svg,
+      sel ? h('div', { class: 'pl-chip' }, h('b', {}, T.PANEL_LABEL[sel.t]), T.panelName(sel) !== T.PANEL_LABEL[sel.t] ? h('span', { class: 'mono' }, T.panelName(sel)) : null,
+        h('button', { type: 'button', class: 'btn pl-fin', onclick: () => c.tplView({ tab: 'panel' }, true) }, 'Düzenle'),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null,
+      refsBusy ? h('div', { class: 'tpl-busy mono', role: 'status' }, 'Araç çıktıları hazırlanıyor…') : null,
+      !doc.panels.length ? ui.emptyCard('Boş bir paftayla başlıyorsunuz', 'Soldaki Şablon sekmesinden bir şablon seçin: araçlardan yaptıklarınız (vaziyet, kolaj, işlev şeması, birim, tasarım…) boş alanlara otomatik yerleşir. Sonra her paneli taşıyıp boyutlandırabilir, metinleri ve künyeyi değiştirebilirsiniz.', [
+        ui.btn('Jüri paftası', { icon: 'play', cls: 'btn-primary', onclick: () => c.tplApply('juri') }),
+        ui.btn('Izgara 3 × 2', { onclick: () => c.tplApply('izgara') }),
+        ui.btn('Boş pafta', { onclick: () => c.tplApply('bos') })]) : null);
+
+    return ui.boardPage(state, d, {
+      label: 'Pafta şablonu',
+      stage: stage,
+      scale: T.sizeOf(doc).label + ' · ' + sc.W + ' × ' + sc.H + ' px',
+      foot: h('p', { class: 'board-hint' }, 'Paneli tıklayıp sürükleyin · kenar tutamaçlarıyla boyutlandırın · Shift: eksen / oran korur · Alt: yaslamayı kapatır · ok tuşları taşır · Delete siler'),
+      tools: [
+        { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => c.dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
+        { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => c.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },
+      ],
+    });
+  };
+})();
+
+/* ==========================================================================
+   83-ctl-tpl.js — Pafta Şablonu yan etkileri: görünüm, canlı düzenleme, panel ekleme, görsel yükleme, dışa aktarma (PNG · PDF)
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const ctl = App.ctl;
+  const U = App.util;
+  const T = App.tpl;
+  const get = () => App.store.get();
+  const doc = () => get().project.tpl;
+
+  /* ---------------- arayüz durumu ---------------- */
+  const BV = ctl.makeView('tpl', 'archtools.view.pafta', ['tab', 'guides', 'tplSize']);
+  ctl.tplView = BV.set;
+  ctl.loadTplView = function () {
+    BV.load(function (o) {
+      const p = {};
+      if (['sablon', 'ekle', 'panel'].indexOf(o.tab) >= 0) p.tab = o.tab;
+      if (typeof o.guides === 'boolean') p.guides = o.guides;
+      if (o.tplSize === 'auto' || T.SIZES[o.tplSize]) p.tplSize = o.tplSize;
+      return p;
+    });
+  };
+
+  /* araç çıktıları ya da görseller hazır olunca yeniden çiz */
+  T.onChange = function () { if (get().ui.module === 'pafta') ctl.dispatch({ type: 'UI', patch: { tpl: Object.assign({}, get().ui.tpl, { stick: (get().ui.tpl.stick || 0) + 1 }) } }); };
+  if (App.collage) {
+    const prev = App.collage.onChange;
+    App.collage.onChange = function () { if (prev) prev(); if (get().ui.module === 'pafta') T.onChange(); };
+  }
+
+  /* ---------------- belge ve paneller ---------------- */
+  let liveOn = false;
+  ctl.tplLiveBegin = function () { if (!liveOn) { liveOn = true; ctl.dispatch({ type: 'SNAPSHOT' }); } };
+  ctl.tplLiveEnd = function () { liveOn = false; };
+  ctl.tplSet = (patch, rescale) => ctl.dispatch({ type: 'TPL_SET', patch: patch, rescale: !!rescale });
+  ctl.tplSetP = (id, patch) => ctl.dispatch({ type: 'TPL_SET_P', id: id, patch: patch });
+  ctl.tplLive = function (id, patch) { ctl.tplLiveBegin(); ctl.dispatch({ type: 'TPL_LIVE', id: id, patch: patch }); };
+  ctl.tplDel = (id) => ctl.dispatch({ type: 'TPL_DEL', id: id });
+  ctl.tplDup = (id) => ctl.dispatch({ type: 'TPL_DUP', id: id });
+  ctl.tplOrder = (id, o) => ctl.dispatch({ type: 'TPL_ORDER', id: id, dir: o && o.dir, to: o && o.to });
+  ctl.tplAlign = (id, how) => ctl.dispatch({ type: 'TPL_ALIGN', id: id, how: how });
+  ctl.tplClear = function () { ctl.dispatch({ type: 'TPL_CLEAR' }); ctl.toast('Paftadaki paneller silindi. Geri al ile döndürebilirsiniz.', 'info'); };
+
+  ctl.tplApply = function (id) {
+    const st = get();
+    const t = T.templateById(id);
+    if (!t) return;
+    const sel = st.ui.tpl.tplSize;
+    const d = T.fromTemplate(id, { size: sel && sel !== 'auto' ? sel : null, avail: T.availableIds(st), name: st.project.meta.name, title: doc().title, accent: doc().accent, bg: doc().bg });
+    ctl.dispatch({ type: 'TPL_APPLY', doc: d });
+    ctl.tplView({ tab: 'panel' }, true);
+    const used = d.panels.filter((p) => p.t === 'view' && p.src.k === 'mod').length, empty = d.panels.filter((p) => p.t === 'view' && p.src.k === 'none').length;
+    ctl.toast('“' + t.label + '” uygulandı' + (used ? ' · ' + used + ' görsel alanına araç çıktısı yerleşti' : '') + (empty ? (used ? '; ' : ' · ') + empty + ' alan boş — panele tıklayıp çıktı seçin' : '') + '.', 'success');
+  };
+
+  /* ---------------- panel ekleme ---------------- */
+  const sz = () => T.sizeOf(doc());
+  const fs = (k) => Math.max(9, Math.round(sz().w * k));
+  const jit = (n) => ((n * 41) % 120) - 60;
+  const add = (p) => ctl.dispatch({ type: 'TPL_ADD', panel: p });
+  const center = (w, h) => { const s = sz(), n = doc().panels.length; return [Math.round((s.w - w) / 2 + jit(n)), Math.round((s.h - h) / 2 + jit(n + 3))]; };
+  ctl.tplAddView = function (src) {
+    const s = sz();
+    const w = Math.round(s.w * 0.36), h = Math.round(w * 0.72);
+    const c = center(w, h);
+    add(T.make.view(c[0], c[1], w, h, src || { k: 'none', id: '' }, { bd: 3, label: src && src.k === 'mod' ? T.srcInfo(src.id).label : '' }));
+    ctl.tplView({ tab: 'panel' }, true);
+  };
+  ctl.tplAddMod = function (id) { ctl.tplAddView({ k: 'mod', id: id }); };
+  ctl.tplAddText = function (kind) {
+    const s = sz();
+    const big = kind === 'title';
+    const w = Math.round(s.w * (big ? 0.5 : 0.22)), h = Math.round(s.h * (big ? 0.09 : 0.14));
+    const c = center(w, h);
+    add(T.make.text(big ? (doc().title || get().project.meta.name || 'Başlık') : 'Proje kısa açıklaması buraya yazılır. Yaklaşımı ve kararları iki üç cümleyle anlatın.', c[0], c[1], w, h, big ? { size: Math.round(s.h * 0.055), fam: 'd', weight: 800, caps: true, lh: 1, valign: 'm' } : { size: fs(0.0125) }));
+    ctl.tplView({ tab: 'panel' }, true);
+    setTimeout(() => { const i = document.getElementById('tpl-text'); if (i) { i.focus(); i.select(); } }, 100);
+  };
+  ctl.tplAddTitle = function () {
+    const s = sz(), m = doc().margin;
+    const w = Math.round(s.w * 0.46), h = Math.round(s.h * 0.1);
+    add(T.make.title(s.w - m - w, s.h - m - h, w, h, { name: '', sub: doc().title || 'Mimari ön proje', rows: [['Pafta', doc().title || ''], ['Ölçek', ''], ['Tarih', U.today()], ['No', '01']] }));
+    ctl.tplView({ tab: 'panel' }, true);
+  };
+  ctl.tplAddLegend = function () { const s = sz(); const w = Math.round(s.w * 0.14), h = Math.round(s.h * 0.12); const c = center(w, h); add(T.make.legend(c[0], c[1], w, h, null, { size: fs(0.0115) })); ctl.tplView({ tab: 'panel' }, true); };
+  ctl.tplAddFacts = function () { const s = sz(); const w = Math.round(s.w * 0.16), h = Math.round(s.h * 0.15); const c = center(w, h); add(T.make.facts(c[0], c[1], w, h, null, { size: fs(0.0115) })); ctl.tplView({ tab: 'panel' }, true); };
+  ctl.tplAddBlock = function () { const s = sz(); const w = Math.round(s.w * 0.2), h = Math.round(s.h * 0.2); const c = center(w, h); add(T.make.block(c[0], c[1], w, h, doc().accent, { s: '', size: fs(0.016) })); ctl.tplView({ tab: 'panel' }, true); };
+  ctl.tplAddLine = function (dir) { const s = sz(); const L = Math.round((dir === 'v' ? s.h : s.w) * 0.3); const c = center(dir === 'v' ? 20 : L, dir === 'v' ? L : 20); add(T.make.line(c[0], c[1], dir === 'v' ? 20 : L, dir === 'v' ? L : 20, { dir: dir, lw: Math.max(2, Math.round(s.w / 600)) })); ctl.tplView({ tab: 'panel' }, true); };
+  ctl.tplAddNorth = function () { const s = sz(); const w = Math.round(s.w * 0.05); const c = center(w, w); add(T.make.north(c[0], c[1], w, w)); ctl.tplView({ tab: 'panel' }, true); };
+
+  /* ---------------- görseller (Kolaj ile ortak kitaplık) ---------------- */
+  ctl.tplPick = function () { const el = document.getElementById('tpl-file'); if (el) el.click(); };
+  ctl.tplUseImage = function (imgId) {
+    const st = get();
+    const sel = doc().panels.find((p) => p.id === st.selectedId);
+    if (sel && sel.t === 'view') { ctl.tplSetP(sel.id, { src: { k: 'img', id: imgId }, label: sel.label }); return; }
+    ctl.tplAddView({ k: 'img', id: imgId });
+  };
+  ctl.tplFiles = function (files) {
+    const C = App.collage;
+    if (!C) return;
+    let n = 0, last = null;
+    files.reduce((p, f) => p.then(() => C.readFile(f).then((r) => { const im = C.addImg(r); last = im; n++; }).catch((e) => ctl.toast(e && e.message ? e.message : 'Görüntü eklenemedi.', 'error'))), Promise.resolve())
+      .then(() => { if (n) { ctl.toast(n + ' görsel eklendi.', 'success'); if (last && files.length === 1) ctl.tplUseImage(last.id); } });
+  };
+  ctl.tplDelImg = function (id) {
+    if (doc().panels.some((p) => p.t === 'view' && p.src.k === 'img' && p.src.id === id)) { ctl.toast('Bu görsel paftada kullanılıyor; önce panelini silin ya da kaynağını değiştirin.', 'error'); return; }
+    if (App.collage.imgs[id] && get().project.collage.layers.some((l) => l.t === 'photo' && l.src === id)) { ctl.toast('Bu görsel Kolaj aracında da kullanılıyor; oradan kaldırmadan silinemez.', 'error'); return; }
+    App.collage.delImg(id);
+  };
+
+  /* ---------------- dışa aktarma ---------------- */
+  const blob = (cv, type, q) => new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error('Görüntü oluşturulamadı.'))), type, q));
+  ctl.exporters.pafta = function (kind) {
+    const label = kind === 'png' ? 'PNG' : 'PDF';
+    ctl.dispatch({ type: 'UI', patch: { busy: label } });
+    const st = get(), P = st.project, d = P.tpl;
+    const nm = (d.title || P.meta.name) + '-pafta';
+    const refs = T.refsOf(d);
+    T.ensure(st, refs).then(() => {
+      const sc = T.scene(d, { st: st, live: false, hi: true });
+      const pre = App.collage ? App.collage.preload(sc.prims) : Promise.resolve();
+      return pre.then(() => {
+        const big = Math.max(sc.W, sc.H);
+        const f = kind === 'png' ? Math.min(2, 5600 / big) : Math.min(2.2, 4800 / big);
+        return App.board.primsToCanvas(sc.prims, sc.W, sc.H, f);
+      });
+    }).then((cv) => {
+      if (kind === 'png') return blob(cv, 'image/png').then((b) => App.files.saveBlob(U.slug(nm) + '.png', b));
+      return blob(cv, 'image/jpeg', 0.93).then((b) => b.arrayBuffer()).then((buf) => App.files.buildPdf(new Uint8Array(buf), cv.width, cv.height, nm)).then((b) => App.files.saveBlob(U.slug(nm) + '.pdf', b));
+    }).then((r) => ctl.report(r, label + ' hazır')).catch((e) => ctl.report({ ok: false, message: e && e.message }));
+  };
+})();
+
+/* ==========================================================================
+   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/birim · #/vaziyet · #/kolaj · #/pafta
    Geçiş: View Transitions varsa yumuşak çapraz solma, yoksa anında.
    ========================================================================== */
 (function () {
   const App = window.App;
   const ctl = App.ctl;
-  const IDS = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'birim', 'vaziyet', 'kolaj'];
+  const IDS = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'birim', 'vaziyet', 'kolaj', 'pafta'];
   const get = () => App.store.get();
 
   const fromHash = function () {
@@ -27305,6 +28884,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   App.ctl.loadPlanView();
   App.ctl.loadColView();
   App.ctl.loadColImages();
+  App.ctl.loadTplView();
   const fromLink = App.ctl.hashSite(); // #/arsa?lat=…&lon=… paylaşım bağlantısı
 
   function view() {

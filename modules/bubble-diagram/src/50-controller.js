@@ -157,7 +157,7 @@
   const exporter = (kind) => (ctl.exporters[get().ui.module] || ctl.exporters.islev)(kind);
   ctl.exportPNG = () => exporter('png');
   ctl.exportPDF = () => exporter('pdf');
-  const JSON_SUFFIX = { islev: undefined, kat: 'kat-etudu', analiz: 'mekan-analizi', arsa: 'arsa-analizi', imar: 'imar-kapasite', yer: 'yer-secimi', tasarim: 'tasarim-uretici', fizibilite: 'maliyet-fizibilite', birim: 'birim-olusturucu', vaziyet: 'vaziyet-plani', kolaj: 'kolaj' };
+  const JSON_SUFFIX = { islev: undefined, kat: 'kat-etudu', analiz: 'mekan-analizi', arsa: 'arsa-analizi', imar: 'imar-kapasite', yer: 'yer-secimi', tasarim: 'tasarim-uretici', fizibilite: 'maliyet-fizibilite', birim: 'birim-olusturucu', vaziyet: 'vaziyet-plani', kolaj: 'kolaj', pafta: 'pafta-sablonu' };
   ctl.saveJSON = function () {
     const st = get();
     const d = derived();

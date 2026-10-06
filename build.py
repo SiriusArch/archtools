@@ -31,6 +31,7 @@ SRC_DIRS = [
     os.path.join(root, 'modules', 'mass-builder', 'src'),
     os.path.join(root, 'modules', 'site-plan', 'src'),
     os.path.join(root, 'modules', 'collage', 'src'),
+    os.path.join(root, 'modules', 'board-template', 'src'),
     os.path.join(root, 'platform', 'src'),
 ]
 

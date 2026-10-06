@@ -27,6 +27,7 @@
     { id: 'birim', label: 'Bir kütleyi adım adım şekillendirin', sub: 'Parselde bir birim kurun; böl, boşluk aç, yeşil ekle ve süreci tek afişte görün.', icon: 'cube' },
     { id: 'vaziyet', label: 'Ölçekli vaziyet planı çizin', sub: 'Yapılar, yollar, yeşil alan ve ağaçlarla 1/200–1/5000 ölçekli vaziyet paftası; PNG, PDF ve DXF.', icon: 'parcel' },
     { id: 'kolaj', label: 'Sunum kolajı hazırlayın', sub: 'Siyah-beyaz fotoğraf üzerine tek renkli kütleler, beyaz siluetler, elle çizgiler ve etiketler; PNG ve PDF.', icon: 'image' },
+    { id: 'pafta', label: 'Jüri paftası hazırlayın', sub: 'A3–A0 pafta şablonu: vaziyet, kolaj, işlev şeması gibi araç çıktılarını serbestçe yerleştirin; metin, künye ve lejant ekleyin; PNG ve PDF.', icon: 'layout' },
     { id: 'bina', label: 'Bina programı kurgulayın', sub: 'İşlev şeması, kat etüdü ve mekân analizi ile bina içini tasarlayın.', icon: 'layout' },
     { id: 'kesif', label: 'Sadece keşfediyorum', sub: 'Örnek verilerle gezin; istediğiniz modülü üst çubuktan açın.', icon: 'spark' },
   ];
@@ -88,8 +89,9 @@
       else if (id === 'birim') { c.go('birim'); }
       else if (id === 'vaziyet') { c.go('vaziyet'); }
       else if (id === 'kolaj') { c.go('kolaj'); }
+      else if (id === 'pafta') { c.go('pafta'); }
       else if (id === 'bina') { c.go('islev'); }
-      else c.toast('İyi keşifler: üst çubuktan on bir modül arasında gezinebilirsiniz.');
+      else c.toast('İyi keşifler: üst çubuktan on iki modül arasında gezinebilirsiniz.');
     },
   });
   ui.helpBtn = function () { W.open(1); };
