@@ -3819,7 +3819,10 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
    çizim aynı metre ölçeğinde harita üzerinde yapılır. Kuzey yukarıdadır.
    Kullanım : App.basemap.prims({ loc, cfg, X, Y, win })  → { prims, attrib }
               App.basemap.preload(prims)                 → Promise (dışa aktarma için karoları tuvale hazırlar)
-   Veri     : cfg = { on, prov: 'osm'|'here'|'yandex', sat, op, gray }   (her aracın belgesinde durur; JSON'a girer)
+   Veri     : cfg = { on, prov: 'yandex'|'osm'|'here', view: '2d'|'3d', sat, op, gray }   (her aracın belgesinde durur; JSON'a girer)
+   Öncelik  : Yandex → OpenStreetMap → HERE (sağlayıcı sırası ve varsayılan budur).
+   2B / 3B  : Yandex için. 2B = düz plan karosu (binalar yalnızca taban izi; çizimle birebir örter).
+              3B = Yandex'in bina gövdeli (hacimli) karosu; gövde yana yattığı için taban izi çizimle kaymış görünür. Uydu yalnızca 2B.
    Dünya    : (x doğu, y güney) metre, başlangıç = loc. (Vaziyet Planı ile aynı yön: y aşağı.)
    Anahtarlar yalnızca bu tarayıcının localStorage'ında durur (HERE: archtools.here.key · Yandex: archtools.yandex.key);
    proje dosyasına yazılmaz.
@@ -3840,19 +3843,23 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   /* ---------- sağlayıcılar ---------- */
   const E = 0.0818191908426; // WGS84 birinci dış merkezkaçlık (Yandex: eliptik Mercator, EPSG:3395)
   bm.PROVIDERS = [
+    { id: 'yandex', label: 'Yandex Haritalar', short: 'Yandex', max: 19, merc: 'ell', attr: '© Yandex', sat: true, key: 'yandex', keyOptional: true, views: true },
     { id: 'osm', label: 'OpenStreetMap', short: 'OSM', max: 19, merc: 'sph', attr: '© OpenStreetMap katkıcıları', sat: false },
     { id: 'here', label: 'HERE', short: 'HERE', max: 20, merc: 'sph', attr: '© HERE', sat: true, key: 'here' },
-    { id: 'yandex', label: 'Yandex Haritalar', short: 'Yandex', max: 19, merc: 'ell', attr: '© Yandex', sat: true, key: 'yandex', keyOptional: true },
   ];
+  // sıradaki (öncelik sırasına göre) sağlayıcı: açılmayan sağlayıcıdan sonra denenecek olan
+  bm.nextProvider = (id) => { const i = bm.PROVIDERS.findIndex((p) => p.id === id); return bm.PROVIDERS[i + 1] || null; };
   bm.provider = (id) => bm.PROVIDERS.find((p) => p.id === id) || bm.PROVIDERS[0];
+  bm.VIEWS = [{ v: '2d', label: '2B' }, { v: '3d', label: '3B' }];
 
-  bm.defaults = () => ({ on: false, prov: 'osm', sat: false, op: 0.8, gray: false });
+  bm.defaults = () => ({ on: false, prov: 'yandex', view: '2d', sat: false, op: 0.8, gray: false });
   bm.clean = function (m) {
     const d = bm.defaults();
     const o = Object.assign({}, d, m || {});
     o.on = !!o.on;
-    o.prov = bm.PROVIDERS.some((p) => p.id === o.prov) ? o.prov : 'osm';
-    o.sat = !!o.sat && bm.provider(o.prov).sat;
+    o.prov = bm.PROVIDERS.some((p) => p.id === o.prov) ? o.prov : d.prov;
+    o.view = o.view === '3d' && bm.provider(o.prov).views ? '3d' : '2d';
+    o.sat = !!o.sat && bm.provider(o.prov).sat && o.view === '2d';
     o.op = U.clamp(Math.round((Number(o.op) || d.op) * 20) / 20, 0.2, 1);
     o.gray = !!o.gray;
     return o;
@@ -3866,10 +3873,14 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       if (!k) return null;
       return 'https://maps.hereapi.com/v3/base/mc/' + z + '/' + x + '/' + y + '/png8?style=' + (cfg.sat ? 'satellite.day' : 'explore.day') + '&lang=tr&apiKey=' + encodeURIComponent(k);
     }
+    // Yandex — elipsoidal Mercator (EPSG:3395). Karo sunucusu 1–4 arasında dağıtılır.
+    const sv = ((x + y) % 4) + 1;
+    if (cfg.sat) return 'https://sat0' + sv + '.maps.yandex.net/tiles?l=sat&x=' + x + '&y=' + y + '&z=' + z + '&lang=tr_TR';
+    if (cfg.view === '2d') return 'https://vec0' + sv + '.maps.yandex.net/tiles?l=map&x=' + x + '&y=' + y + '&z=' + z + '&scale=1&lang=tr_TR';
+    // 3B: bina gövdeli (hacimli) harita; anahtar varsa resmî Karo API'si, yoksa genel çizici
     const k = bm.yandexKey();
-    const l = cfg.sat ? 'sat' : 'map';
-    if (k) return 'https://tiles.api-maps.yandex.ru/v1/tiles/?l=' + l + '&x=' + x + '&y=' + y + '&z=' + z + '&lang=tr_TR&apikey=' + encodeURIComponent(k);
-    return 'https://core-renderer-tiles.maps.yandex.net/tiles?l=' + l + '&x=' + x + '&y=' + y + '&z=' + z + '&scale=1&lang=tr_TR';
+    if (k) return 'https://tiles.api-maps.yandex.ru/v1/tiles/?l=map&x=' + x + '&y=' + y + '&z=' + z + '&lang=tr_TR&projection=wgs84_mercator&apikey=' + encodeURIComponent(k);
+    return 'https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x=' + x + '&y=' + y + '&z=' + z + '&scale=1&lang=tr_TR';
   };
   // anahtar gerekiyor ama yok mu?
   bm.needsKey = (cfg) => (cfg.prov === 'here' && !bm.hereKey());
@@ -3975,7 +3986,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const t = llToTile(pv.merc, loc.lat, loc.lon, 15);
     const href = urlOf(cfg, 15, Math.floor(t[0]), Math.floor(t[1]));
     if (!href) return;
-    const key = cfg.prov + (cfg.sat ? ':sat' : '') + ':' + (cfg.prov === 'yandex' ? (bm.yandexKey() ? 'k' : 'nk') : '') + ':' + (cfg.prov === 'here' ? bm.hereKey().slice(0, 4) : '');
+    const key = cfg.prov + (cfg.sat ? ':sat' : '') + ':' + (cfg.prov === 'yandex' ? cfg.view + (bm.yandexKey() ? 'k' : 'nk') : '') + ':' + (cfg.prov === 'here' ? bm.hereKey().slice(0, 4) : '');
     if (bm.state[key] && bm.state[key].display !== 'wait') { return; }
     bm.state[key] = { display: 'wait', cors: 'wait' };
     const fin = () => { if (done) done(); };
@@ -3991,7 +4002,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   };
   bm.status = function (cfg) {
     cfg = bm.clean(cfg);
-    const key = cfg.prov + (cfg.sat ? ':sat' : '') + ':' + (cfg.prov === 'yandex' ? (bm.yandexKey() ? 'k' : 'nk') : '') + ':' + (cfg.prov === 'here' ? bm.hereKey().slice(0, 4) : '');
+    const key = cfg.prov + (cfg.sat ? ':sat' : '') + ':' + (cfg.prov === 'yandex' ? cfg.view + (bm.yandexKey() ? 'k' : 'nk') : '') + ':' + (cfg.prov === 'here' ? bm.hereKey().slice(0, 4) : '');
     return bm.state[key] || null;
   };
 
@@ -23087,10 +23098,11 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     let note = null;
     if (cfg.on && !loc) note = 'Demo konumunda gerçek harita yoktur. Aşağıdan bir konum arayın; harita o noktada açılır.';
     else if (cfg.on && bm.needsKey(cfg)) note = 'HERE haritası için API anahtarı gerekir. Anahtar yalnızca bu tarayıcıda saklanır.';
-    else if (st && st.display === 'err') note = 'Harita karoları bu sağlayıcıdan alınamadı (ağ, anahtar ya da erişim izni). Başka bir sağlayıcı deneyin.';
+    else if (st && st.display === 'err') note = 'Harita karoları bu sağlayıcıdan alınamadı (ağ, anahtar ya da erişim izni).' + (bm.nextProvider(cfg.prov) ? '' : ' Başka bir sağlayıcı deneyin.');
+    else if (cfg.on && pv.views && cfg.view === '3d') note = '3B görünümde Yandex binaları hacimli çizer; hacim yana yattığı için bina tabanı çizimle kaymış görünür. Ölçülü çalışmak için 2B kullanın.';
     else if (st && st.display === 'ok' && st.cors === 'err') note = 'Harita ekranda görünür ama bu sağlayıcı PNG / PDF çıktısına eklenmeye izin vermiyor; çıktıda harita olmayabilir.';
     else if (st && st.display === 'wait') note = STATUS.wait;
-    const keyForm = cfg.on && ((cfg.prov === 'here' && !bm.hereKey()) || cfg.prov === 'yandex')
+    const keyForm = cfg.on && ((cfg.prov === 'here' && !bm.hereKey()) || (cfg.prov === 'yandex' && cfg.view === '3d'))
       ? h('form', { class: 'here-form', onsubmit: (e) => { e.preventDefault(); const v = e.target.elements.k.value.trim(); if (cfg.prov === 'here') bm.setHereKey(v); else bm.setYandexKey(v); set({}); ctl.toast('Anahtar bu tarayıcıya kaydedildi.', 'success'); } },
         h('label', { class: 'sr', for: 'bm-key' }, pv.label + ' API anahtarı'),
         h('input', { id: 'bm-key', name: 'k', class: 'inp mono', type: 'password', placeholder: (cfg.prov === 'here' ? bm.hereKey() : bm.yandexKey()) ? '•••••••• (kayıtlı)' : pv.label + ' API anahtarı' + (pv.keyOptional ? ' (isteğe bağlı)' : ''), autocomplete: 'off', spellcheck: 'false', keep: true }),
@@ -23099,16 +23111,18 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     return ui.section('Harita altlığı', h('div', { class: 'sec-box' },
       h('div', { class: 'tgl-row' }, ui.toggle({ label: 'Haritayı altlık olarak aç', on: cfg.on, onclick: () => set({ on: !cfg.on }), title: 'Seçili konumun haritasını çizimin altına ölçekli olarak sererek çalış' })),
       cfg.on ? [
-        ui.fld2('Sağlayıcı', ui.segmented({ label: 'Harita sağlayıcı', wide: true, value: cfg.prov, options: bm.PROVIDERS.map((p) => ({ v: p.id, label: p.short, title: p.label })), onchange: (v) => set({ prov: v, sat: false }) })),
-        pv.sat ? h('div', { class: 'tgl-row' }, ui.toggle({ label: 'Uydu görüntüsü', on: cfg.sat, onclick: () => set({ sat: !cfg.sat }) })) : null,
+        ui.fld2('Sağlayıcı', ui.segmented({ label: 'Harita sağlayıcı', wide: true, value: cfg.prov, options: bm.PROVIDERS.map((p) => ({ v: p.id, label: p.short, title: p.label + (p === bm.PROVIDERS[0] ? ' (öncelikli)' : '') })), onchange: (v) => set({ prov: v, sat: false, view: '2d' }) })),
+        pv.views ? ui.fld2('Görünüm', ui.segmented({ label: 'Harita görünümü 2B / 3B', value: cfg.view, options: bm.VIEWS.map((v) => ({ v: v.v, label: v.label, title: v.v === '2d' ? 'Düz plan: binalar yalnızca taban izi, çizimle birebir örter' : 'Bina gövdeli harita: hacim görünür ama taban izi kayar' })), onchange: (v) => set({ view: v, sat: false }) })) : null,
+        pv.sat && cfg.view === '2d' ? h('div', { class: 'tgl-row' }, ui.toggle({ label: 'Uydu görüntüsü', on: cfg.sat, onclick: () => set({ sat: !cfg.sat }) })) : null,
         ui.range({ id: 'bm-op', label: 'Harita görünürlüğü', min: 20, max: 100, step: 5, value: Math.round(cfg.op * 100), text: '%' + Math.round(cfg.op * 100), oninput: (v) => o.onSet({ op: v / 100 }, true) }),
         h('div', { class: 'tgl-row' }, ui.toggle({ label: 'Gri ton harita', on: cfg.gray, onclick: () => set({ gray: !cfg.gray }), title: 'Haritayı siyah-beyaz yap; çizim öne çıkar' })),
         keyForm,
         note ? h('p', { class: 'note' }, note) : null,
+        st && st.display === 'err' && bm.nextProvider(cfg.prov) ? ui.btn(bm.nextProvider(cfg.prov).short + ' haritasına geç', { icon: 'pin', onclick: () => set({ prov: bm.nextProvider(cfg.prov).id, sat: false, view: '2d' }) }) : null,
         h('div', { class: 'loc-top bm-loc' }, ui.icon('pin', 16), h('div', { class: 'loc-t' }, h('b', { class: 'loc-name' }, loc ? loc.name : 'Konum seçilmedi'), loc ? h('span', { class: 'loc-sub mono' }, loc.lat.toFixed(5) + ', ' + loc.lon.toFixed(5)) : null)),
         ui.site && ui.site.searchBox ? ui.site.searchBox(state, { id: 'bm-q-' + o.key, placeholder: 'Konum ara: adres ya da 41.0082, 28.9784', pickLabel: 'Haritayı buraya aç', onPick: (r) => { ctl.mapSetLoc(r); setTimeout(() => set({}), 0); } }) : null,
         h('p', { class: 'note' }, 'Çizimin başlangıç noktası (0, 0) bu konuma denk gelir; harita metre ölçeğinde çizimle birlikte kayar ve ölçeklenir. Konum Arsa Analizi ile ortaktır.'),
-      ] : h('p', { class: 'note' }, 'Seçili konumun OpenStreetMap, HERE ya da Yandex haritasını çizimin altına sererek yer üstünde çalışın.')), cfg.on ? pv.short : null, 'bm-' + o.key);
+      ] : h('p', { class: 'note' }, 'Seçili konumun Yandex, OpenStreetMap ya da HERE haritasını çizimin altına sererek yer üstünde çalışın.')), cfg.on ? pv.short : null, 'bm-' + o.key);
   };
 })();
 
