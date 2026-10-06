@@ -50,6 +50,8 @@
   ctl.planSetEl = (id, patch) => ctl.dispatch({ type: 'PLAN_EL_SET', id: id, patch: patch });
   ctl.planLive = function (id, patch) { ctl.planLiveBegin(); ctl.dispatch({ type: 'PLAN_EL_SET_LIVE', id: id, patch: patch }); };
   ctl.planDel = (id) => ctl.dispatch({ type: 'PLAN_EL_DEL', id: id });
+  ctl.planMoveMany = function (moves, live) { if (live) ctl.planLiveBegin(); ctl.dispatch({ type: 'PLAN_EL_MOVE_MANY', moves: moves, live: !!live }); };
+  ctl.planDelMany = function (ids) { ctl.dispatch({ type: 'PLAN_EL_DEL_MANY', ids: ids }); ctl.planView({ ms: [] }, true); ctl.toast(ids.length + ' öğe silindi. Geri al ile döndürebilirsiniz.', 'info'); };
   ctl.planDup = (id) => ctl.dispatch({ type: 'PLAN_EL_DUP', id: id });
   ctl.planOrder = (id, dir) => ctl.dispatch({ type: 'PLAN_EL_ORDER', id: id, dir: dir });
 

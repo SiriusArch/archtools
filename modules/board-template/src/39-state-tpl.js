@@ -66,6 +66,25 @@
         if (Object.keys(nx).every((k) => nx[k] === l[k] || (typeof nx[k] === 'object' && JSON.stringify(nx[k]) === JSON.stringify(l[k])))) return same();
         return setPanels(c.panels.map((q) => (q.id === a.id ? nx : q)), a.type === 'TPL_SET_P');
       }
+      case 'TPL_MOVE_MANY': {
+        // seçili panelleri birlikte taşı: a.moves {id: yama}; a.live → geri-al noktası açmaz
+        const mv = a.moves || {};
+        let ch = false;
+        const panels = c.panels.map((q) => {
+          if (!mv[q.id]) return q;
+          const nx = T.clean(q, mv[q.id]);
+          if (!nx || Object.keys(nx).every((k) => nx[k] === q[k] || (typeof nx[k] === 'object' && JSON.stringify(nx[k]) === JSON.stringify(q[k])))) return q;
+          ch = true; return nx;
+        });
+        return ch ? setPanels(panels, !a.live) : same();
+      }
+      case 'TPL_DEL_MANY': {
+        const del = new Set(a.ids || []);
+        if (!c.panels.some((q) => del.has(q.id))) return same();
+        const r = setPanels(c.panels.filter((q) => !del.has(q.id)), true);
+        r.selectedId = null;
+        return r;
+      }
       case 'TPL_DEL': {
         if (!c.panels.some((q) => q.id === a.id)) return same();
         const r = setPanels(c.panels.filter((q) => q.id !== a.id), true);

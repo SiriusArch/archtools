@@ -14,7 +14,7 @@
   const tp = (ui.tpl = {});
   const get = () => App.store.get();
 
-  App.tplDefaults = () => ({ tab: 'sablon', guides: true, tplSize: 'auto', stick: 0 });
+  App.tplDefaults = () => ({ tab: 'sablon', guides: true, tplSize: 'auto', stick: 0, ms: [], mq: null });
 
   /* ---------------- küçük bileşenler ---------------- */
   function swatches(cur, onpick) {
@@ -292,10 +292,38 @@
   const panelNow = (id) => docNow().panels.find((q) => q.id === id);
   const q = (id) => document.getElementById(id);
 
+  const ms = App.multi;
+  /* çoklu seçim: kilitli ve gizli paneller seçilmez */
+  const selectable = (p) => !p.hidden && !p.locked;
+  const activeMs = (S) => { const have = new Set(S.project.tpl.panels.filter(selectable).map((x) => x.id)); const r = (S.ui.tpl.ms || []).filter((id) => have.has(id)); return !S.selectedId && r.length >= 2 ? r : []; };
+  const boxOfP = (p) => ({ id: p.id, x0: p.x, y0: p.y, x1: p.x + p.w, y1: p.y + p.h });
+  const allBoxes = (doc) => doc.panels.filter(selectable).map(boxOfP);
+  tp.multi = function (list) {
+    if (list.length === 1) { ctl().tplView({ ms: [] }, true); ctl().dispatch({ type: 'SELECT', id: list[0] }); return; }
+    ctl().dispatch({ type: 'SELECT', id: null });
+    ctl().tplView({ ms: list }, true);
+  };
+
   function elDown(e, p) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.stopPropagation(); e.preventDefault();
     const s = toSvg(e);
+    const S0 = get();
+    if (e.shiftKey && selectable(p)) {
+      // Shift + tık: seçime ekle / çıkar · Shift + sürükle: panelin üstünden de kutu seçimi başlar
+      gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: true, tog: p.id, moved: false };
+      try { tp.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
+    const list = activeMs(S0);
+    if (list.length >= 2 && ms.has(list, p.id)) {
+      const orig = {};
+      docNow().panels.forEach((x) => { if (ms.has(list, x.id)) orig[x.id] = x; });
+      gest = { t: 'gmove', id: p.id, ids: list, orig: orig, bb: ms.bounds(list.map((id) => boxOfP(orig[id]))), sx: s.x, sy: s.y, moved: false, cX: e.clientX, cY: e.clientY };
+      try { tp.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
+    if ((S0.ui.tpl.ms || []).length) ctl().tplView({ ms: [] }, true);
     ctl().dispatch({ type: 'SELECT', id: p.id });
     if (p.locked) return;
     gest = { t: 'move', id: p.id, sx: s.x, sy: s.y, orig: p, moved: false, cX: e.clientX, cY: e.clientY };
@@ -309,7 +337,10 @@
   }
   function bgDown(e) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    if (get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
+    if (!e.shiftKey && get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
+    const s = toSvg(e);
+    gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: e.shiftKey, moved: false };
+    try { tp.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
   }
 
   /* yaslama: sayfa kenarı/ortası, kenar boşluğu ve diğer panellerin kenar-orta çizgileri */
@@ -327,7 +358,7 @@
   function guide(id, a, b, c2, d2) {
     const el = q(id);
     if (!el) return;
-    if (a == null) { el.setAttribute('visibility', 'hidden'); return; }
+    if (a == null || b == null || c2 == null || d2 == null) { el.setAttribute('visibility', 'hidden'); return; }
     el.setAttribute('x1', a); el.setAttribute('y1', b); el.setAttribute('x2', c2); el.setAttribute('y2', d2); el.setAttribute('visibility', 'visible');
   }
   const threshold = () => { const r = tp.svgEl.getBoundingClientRect(); const s = T.sizeOf(docNow()); return 8 * (s.w / Math.max(1, r.width)); };
@@ -337,7 +368,35 @@
     if (!gest) return;
     const g = gest;
     const s = toSvg(e);
+    if (g.t === 'marq') {
+      if (!g.moved && Math.hypot(e.clientX - g.cX, e.clientY - g.cY) < 3) return;
+      g.moved = true;
+      ctl().tplView({ mq: ms.rect([g.sx, g.sy], [s.x, s.y]) }, true);
+      return;
+    }
     if (!g.moved) { if (Math.hypot(e.clientX - g.cX, e.clientY - g.cY) < 3) return; g.moved = true; ctl().tplLiveBegin(); }
+    if (g.t === 'gmove') {
+      const d0 = docNow(), S1 = T.sizeOf(d0);
+      let dx = s.x - g.sx, dy = s.y - g.sy;
+      if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
+      let gx = null, gy = null;
+      if (d0.snap && !e.altKey) {
+        // grubun kenar / orta çizgileri sayfa ve seçilmeyen panellerle yaslanır
+        const m0 = d0.margin;
+        const xs = [0, m0, S1.w / 2, S1.w - m0, S1.w], ys = [0, m0, S1.h / 2, S1.h - m0, S1.h];
+        d0.panels.forEach((p) => { if (ms.has(g.ids, p.id) || p.hidden) return; xs.push(p.x, p.x + p.w / 2, p.x + p.w); ys.push(p.y, p.y + p.h / 2, p.y + p.h); });
+        const thr0 = threshold(), bb = g.bb;
+        const bx = best([bb.x0 + dx, bb.x0 + dx + bb.w / 2, bb.x1 + dx], xs, thr0), by = best([bb.y0 + dy, bb.y0 + dy + bb.h / 2, bb.y1 + dy], ys, thr0);
+        if (bx) { dx += bx.d; gx = bx.at; }
+        if (by) { dy += by.d; gy = by.at; }
+      }
+      guide('tpg-v', gx, 0, gx, S1.h); guide('tpg-h', 0, gy, S1.w, gy);
+      if (gx == null) guide('tpg-v'); if (gy == null) guide('tpg-h');
+      const moves = {};
+      g.ids.forEach((id) => { const o2 = g.orig[id]; moves[id] = { x: o2.x + dx, y: o2.y + dy }; });
+      ctl().tplMoveMany(moves, true);
+      return;
+    }
     const o = g.orig, d = docNow(), S = T.sizeOf(d);
     const snapOn = d.snap && !e.altKey;
     const L = snapOn ? snapLines(o.id) : null, thr = snapOn ? threshold() : 0;
@@ -381,6 +440,20 @@
     gest = null;
     try { tp.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok say */ }
     hideGuides();
+    if (g.t === 'marq') {
+      const S = get();
+      if (!g.moved) {
+        if (g.tog) { const base = activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : []); tp.multi(ms.toggle(base, g.tog)); }
+        else if (!g.add && (S.ui.tpl.ms || []).length) ctl().tplView({ ms: [], mq: null }, true);
+        return;
+      }
+      const ids = ms.hit(S.ui.tpl.mq || ms.rect([g.sx, g.sy], [g.sx, g.sy]), allBoxes(S.project.tpl));
+      const base = g.add ? (activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : [])) : [];
+      ctl().tplView({ mq: null }, true);
+      tp.multi(ms.merge(base, ids, g.add));
+      return;
+    }
+    if (g.t === 'gmove' && !g.moved) { ctl().tplLiveEnd(); tp.multi([g.id]); return; }
     ctl().tplLiveEnd();
   }
 
@@ -390,6 +463,20 @@
     const tg = e.target;
     if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT' || tg.isContentEditable)) return;
     const c = ctl();
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); tp.multi(S.project.tpl.panels.filter(selectable).map((x) => x.id)); return; }
+    if (activeMs(S).length && (ms.DIRS[e.key] || e.key === 'Delete' || e.key === 'Backspace' || e.key === 'Escape')) {
+      e.preventDefault();
+      const list = activeMs(S);
+      if (e.key === 'Escape') c.tplView({ ms: [] }, true);
+      else if (e.key === 'Delete' || e.key === 'Backspace') c.tplDelMany(list);
+      else {
+        const n = e.shiftKey ? 10 : 1, dv = ms.DIRS[e.key];
+        const moves = {};
+        S.project.tpl.panels.forEach((x) => { if (ms.has(list, x.id)) moves[x.id] = { x: x.x + dv[0] * n, y: x.y + dv[1] * n }; });
+        c.tplMoveMany(moves, false);
+      }
+      return;
+    }
     if (e.key === 'Escape') { if (S.selectedId) c.dispatch({ type: 'SELECT', id: null }); }
     else if ((e.key === 'Delete' || e.key === 'Backspace') && S.selectedId) { e.preventDefault(); const p = panelNow(S.selectedId); if (p && !p.locked) c.tplDel(S.selectedId); }
     else if (S.selectedId && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) >= 0) {
@@ -416,6 +503,13 @@
       if (p.hidden) return;
       out.push(h('rect', { key: 'h' + p.id, class: 'thit' + (p.locked ? ' locked' : ''), x: p.x, y: p.y, width: p.w, height: p.h, fill: 'transparent', onpointerdown: (e) => elDown(e, p), ondblclick: (e) => { e.stopPropagation(); ctl().tplView({ tab: 'panel' }, true); setTimeout(() => { const i = q('tpl-text') || q('tpl-tname') || q('tpl-src-sel'); if (i) i.focus(); }, 80); } }));
     });
+    const grp = activeMs(state);
+    if (grp.length) {
+      const sw0 = Math.max(2, T.sizeOf(doc).w / 700);
+      doc.panels.forEach((x) => { if (ms.has(grp, x.id)) out.push(h('rect', { key: 'gr' + x.id, x: x.x, y: x.y, width: x.w, height: x.h, fill: 'none', stroke: ink, 'stroke-width': sw0, 'stroke-dasharray': (sw0 * 4) + ' ' + (sw0 * 3), 'pointer-events': 'none' })); });
+      const bb = ms.bounds(allBoxes(doc).filter((x) => ms.has(grp, x.id)));
+      if (bb) out.push(ms.frame(bb, sw0 * 5));
+    }
     const p = doc.panels.find((x) => x.id === state.selectedId);
     if (p && !p.hidden) {
       const sw = Math.max(2, T.sizeOf(doc).w / 700);
@@ -447,10 +541,12 @@
     showG && doc.margin > 0 ? h('rect', { key: 'mg', class: 'tmargin', x: doc.margin, y: doc.margin, width: sc.W - doc.margin * 2, height: sc.H - doc.margin * 2, fill: 'none', 'pointer-events': 'none' }) : null,
     h('g', { class: 'thits' }, hitsLayer(state, doc)),
     h('line', { key: 'gv', id: 'tpg-v', class: 'tguide', x1: 0, y1: 0, x2: 0, y2: S.h, visibility: 'hidden', 'pointer-events': 'none' }),
-    h('line', { key: 'gh', id: 'tpg-h', class: 'tguide', x1: 0, y1: 0, x2: S.w, y2: 0, visibility: 'hidden', 'pointer-events': 'none' }));
+    h('line', { key: 'gh', id: 'tpg-h', class: 'tguide', x1: 0, y1: 0, x2: S.w, y2: 0, visibility: 'hidden', 'pointer-events': 'none' }),
+    state.ui.tpl.mq ? ms.marquee(state.ui.tpl.mq) : null);
+    const grpN = activeMs(state).length;
     const refsBusy = T.refsOf(doc).some((id) => { const s = T.entryState(state, id); return s === 'busy' || s === 'none'; });
     const stage = h('div', { class: 'board-stage tstage', ondragover: (e) => { e.preventDefault(); }, ondrop: (e) => { e.preventDefault(); const f = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []); if (f.length) c.tplFiles(f); } }, svg,
-      sel ? h('div', { class: 'pl-chip' }, h('b', {}, T.PANEL_LABEL[sel.t]), T.panelName(sel) !== T.PANEL_LABEL[sel.t] ? h('span', { class: 'mono' }, T.panelName(sel)) : null,
+      grpN ? ms.chip(grpN, { noun: 'panel', onclear: () => c.tplView({ ms: [] }, true) }) : sel ? h('div', { class: 'pl-chip' }, h('b', {}, T.PANEL_LABEL[sel.t]), T.panelName(sel) !== T.PANEL_LABEL[sel.t] ? h('span', { class: 'mono' }, T.panelName(sel)) : null,
         h('button', { type: 'button', class: 'btn pl-fin', onclick: () => c.tplView({ tab: 'panel' }, true) }, 'Düzenle'),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null,
       refsBusy ? h('div', { class: 'tpl-busy mono', role: 'status' }, 'Araç çıktıları hazırlanıyor…') : null,
@@ -463,9 +559,10 @@
       label: 'Pafta şablonu',
       stage: stage,
       scale: T.sizeOf(doc).label + ' · ' + sc.W + ' × ' + sc.H + ' px',
-      foot: h('p', { class: 'board-hint' }, 'Paneli tıklayıp sürükleyin · kenar tutamaçlarıyla boyutlandırın · Shift: eksen / oran korur · Alt: yaslamayı kapatır · ok tuşları taşır · Delete siler'),
+      foot: h('p', { class: 'board-hint' }, 'Paneli tıklayıp sürükleyin · kenar tutamaçlarıyla boyutlandırın · Shift: eksen / oran korur · Alt: yaslamayı kapatır · ok tuşları taşır · Delete siler · boş yerde kutu çizerek birkaç paneli seçin (soldan sağa: tamamen içindekiler, sağdan sola: değenler; Shift: ekle / çıkar) ve birlikte taşıyın · Ctrl+A tümünü seçer'),
       tools: [
         { k: 'btn', label: 'Monokrom', icon: 'sun', pressed: !!(doc.mono && doc.mono.on), onclick: () => c.tplMono({ on: !(doc.mono && doc.mono.on) }), title: 'Tüm paftayı tek rengin tonlarına çevir / özgün renklere dön' },
+        { k: 'icon', label: 'Tümünü seç', icon: 'selall', onclick: () => tp.multi(doc.panels.filter(selectable).map((x) => x.id)), disabled: doc.panels.filter(selectable).length < 2, title: 'Tüm panelleri seç (Ctrl+A)' },
         { k: 'sep' },
         { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => c.dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
         { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => c.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },

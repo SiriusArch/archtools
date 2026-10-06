@@ -17,11 +17,11 @@
   const pl = (ui.plan = {});
   const get = () => App.store.get();
 
-  App.planDefaults = () => ({ tab: 'cizim', tool: 'select', draft: null, floors: 4, treeR: 3, stick: 0 });
+  App.planDefaults = () => ({ tab: 'cizim', tool: 'select', draft: null, floors: 4, treeR: 3, stick: 0, ms: [], mq: null, hand: false });
 
   /* araç tanımları: poly (çokgen), line (çizgi), pt (tek tık) */
   const TOOLS = [
-    { id: 'select', label: 'Seç', icon: 'target', hint: 'Öğeyi tıklayıp sürükleyin · köşe tutamaçlarını çekin · ortadaki + köşe ekler · sağ tık köşe siler · boş yeri sürükleyerek kaydırın · tekerlek ölçeği değiştirir' },
+    { id: 'select', label: 'Seç', icon: 'target', hint: 'Öğeyi tıklayıp sürükleyin · köşe tutamaçlarını çekin · ortadaki + köşe ekler · sağ tık köşe siler · boş yerde kutu çizerek birkaç öğeyi seçin (soldan sağa: tamamen içindekiler, sağdan sola: değenler; Shift: ekle / çıkar) ve birlikte taşıyın · Kaydır aracı ya da orta tuş kaydırır · tekerlek ölçeği değiştirir' },
     { id: 'yeni', label: 'Yeni yapı', icon: 'rect', kind: 'poly', hint: 'Sürükleyerek dikdörtgen çizin ya da köşeleri tıklayın · çift tık veya Enter bitirir · Backspace son köşeyi siler · Esc iptal' },
     { id: 'mevcut', label: 'Mevcut', full: 'Mevcut yapı', icon: 'cube', kind: 'poly', hint: 'Çevredeki mevcut yapıyı çizin: sürükleyerek dikdörtgen ya da köşeleri tıklayarak · çift tık veya Enter bitirir' },
     { id: 'road', label: 'Yol', icon: 'draw', kind: 'line', hint: 'Yol eksenini noktalarla çizin · çift tık veya Enter bitirir · genişlik panelden ayarlanır' },
@@ -278,6 +278,19 @@
     try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
   }
 
+  const ms = App.multi;
+  const activeMs = (S) => { const l = S.ui.plan.ms || []; const have = new Set(S.project.plan.els.map((q) => q.id)); const r = l.filter((id) => have.has(id)); return !S.selectedId && r.length >= 2 ? r : []; };
+  /* ekran (SVG px) koordinatında öğe kutusu */
+  function elBox(el, view) {
+    const X = view.X, Y = view.Y;
+    if (el.t === 'tree') { const r = Math.max(8, el.r * view.ppm); return { id: el.id, x0: X(el.x) - r, y0: Y(el.y) - r, x1: X(el.x) + r, y1: Y(el.y) + r }; }
+    if (el.t === 'text') { const w = Math.max(40, el.s.length * el.size * 0.64); return { id: el.id, x0: X(el.x) - w / 2, y0: Y(el.y) - el.size * 0.7, x1: X(el.x) + w / 2, y1: Y(el.y) + el.size * 0.6 }; }
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    el.pts.forEach((q) => { x0 = Math.min(x0, X(q[0])); y0 = Math.min(y0, Y(q[1])); x1 = Math.max(x1, X(q[0])); y1 = Math.max(y1, Y(q[1])); });
+    return { id: el.id, x0: x0, y0: y0, x1: x1, y1: y1 };
+  }
+  const allBoxes = (P, view) => P.els.map((el) => elBox(el, view));
+
   function selectBgDown(e) {
     const s = toSvg(e);
     const P = get().project.plan;
@@ -291,8 +304,11 @@
     if (e.pointerType === 'mouse' && e.button === 1) { e.preventDefault(); selectBgDown(e); return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     if (st.tool !== 'select') { drawDown(e); return; }
-    if (get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
-    selectBgDown(e);
+    if (!e.shiftKey && get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
+    if (st.hand) { if (!e.shiftKey && (st.ms || []).length) ctl().planView({ ms: [] }, true); selectBgDown(e); return; }
+    const s = toSvg(e);
+    gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: e.shiftKey, moved: false, view: viewNow() };
+    try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
   }
 
   function elDown(e, el) {
@@ -300,10 +316,32 @@
     if (get().ui.plan.tool !== 'select') return; // çizim araçlarında olay svg'ye düşer
     e.stopPropagation(); e.preventDefault();
     const s = toSvg(e);
+    const S0 = get();
+    const list = activeMs(S0);
+    if (e.shiftKey) {
+      // Shift + tık: seçime ekle / çıkar · Shift + sürükle: öğenin üstünden de kutu seçimi başlar
+      gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: true, tog: el.id, moved: false, view: viewNow() };
+      try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
+    if (list.length >= 2 && ms.has(list, el.id)) {
+      const orig = {};
+      S0.project.plan.els.forEach((q) => { if (ms.has(list, q.id)) orig[q.id] = q; });
+      gest = { t: 'gmove', id: el.id, ids: list, orig: orig, sx: s.x, sy: s.y, moved: false, cX: e.clientX, cY: e.clientY, view: viewNow() };
+      try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
     gest = { t: 'move', id: el.id, sx: s.x, sy: s.y, orig: el, moved: false, cX: e.clientX, cY: e.clientY, view: viewNow() };
     try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
     ctl().dispatch({ type: 'SELECT', id: el.id });
+    if ((S0.ui.plan.ms || []).length) ctl().planView({ ms: [] }, true);
   }
+  /* çoklu seçimi ayarla: tek öğe → normal seçim */
+  pl.multi = function (list) {
+    if (list.length === 1) { ctl().planView({ ms: [] }, true); ctl().dispatch({ type: 'SELECT', id: list[0] }); return; }
+    ctl().dispatch({ type: 'SELECT', id: null });
+    ctl().planView({ ms: list }, true);
+  };
 
   function vtxDown(e, el, i, insert) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
@@ -340,6 +378,27 @@
       if (!gest.moved && Math.hypot(e.clientX - gest.cX, e.clientY - gest.cY) < 3) return;
       gest.moved = true;
       ctl().planVp({ cx: gest.cx - (s.x - gest.sx) / gest.ppm, cy: gest.cy - (s.y - gest.sy) / gest.ppm });
+      return;
+    }
+    if (gest.t === 'marq') {
+      if (!gest.moved && Math.hypot(e.clientX - gest.cX, e.clientY - gest.cY) < 3) return;
+      gest.moved = true;
+      ctl().planView({ mq: ms.rect([gest.sx, gest.sy], [s.x, s.y]) }, true);
+      return;
+    }
+    if (gest.t === 'gmove') {
+      if (!gest.moved) {
+        if (Math.hypot(e.clientX - gest.cX, e.clientY - gest.cY) < 3) return;
+        gest.moved = true;
+        ctl().planLiveBegin();
+      }
+      const P = get().project.plan;
+      const ppm = gest.view.ppm;
+      let dx = (s.x - gest.sx) / ppm, dy = (s.y - gest.sy) / ppm;
+      if (!e.altKey) { dx = gridSnap(dx, P.snap); dy = gridSnap(dy, P.snap); }
+      const moves = {};
+      gest.ids.forEach((id) => { moves[id] = plan.moveEl(gest.orig[id], dx, dy); });
+      ctl().planMoveMany(moves, true);
       return;
     }
     if (gest.t === 'draw') {
@@ -418,7 +477,22 @@
     gest = null;
     try { pl.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok say */ }
     if (g.t === 'pan') { return; }
-    if (g.t === 'move' || g.t === 'vtx') { ctl().planLiveEnd(); return; }
+    if (g.t === 'marq') {
+      const S = get();
+      if (!g.moved) {
+        if (g.tog) { const base = activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : []); pl.multi(ms.toggle(base, g.tog)); }
+        else if (!g.add && (S.ui.plan.ms || []).length) ctl().planView({ ms: [], mq: null }, true);
+        return;
+      }
+      const r = S.ui.plan.mq;
+      const ids = ms.hit(r || ms.rect([g.sx, g.sy], [g.sx, g.sy]), allBoxes(S.project.plan, g.view));
+      const base = g.add ? (activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : [])) : [];
+      ctl().planView({ mq: null }, true);
+      pl.multi(ms.merge(base, ids, g.add));
+      return;
+    }
+    if (g.t === 'gmove' && !g.moved) { ctl().planLiveEnd(); pl.multi([g.id]); return; }
+    if (g.t === 'move' || g.t === 'vtx' || g.t === 'gmove') { ctl().planLiveEnd(); return; }
     if (g.t === 'draw') {
       const st = get().ui.plan;
       const t = toolOf(st.tool);
@@ -482,6 +556,19 @@
     const st = S.ui.plan;
     const c = ctl();
     if (e.key === 'Enter' && st.draft) { e.preventDefault(); finishDraft(); }
+    else if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A') && st.tool === 'select') { e.preventDefault(); pl.multi(S.project.plan.els.map((q) => q.id)); }
+    else if (activeMs(S).length && st.tool === 'select' && (ms.DIRS[e.key] || e.key === 'Delete' || e.key === 'Backspace' || e.key === 'Escape')) {
+      e.preventDefault();
+      const list = activeMs(S);
+      if (e.key === 'Escape') c.planView({ ms: [] }, true);
+      else if (e.key === 'Delete' || e.key === 'Backspace') c.planDelMany(list);
+      else {
+        const sn = S.project.plan.snap * (e.shiftKey ? 5 : 1), dv = ms.DIRS[e.key];
+        const moves = {};
+        S.project.plan.els.forEach((q) => { if (ms.has(list, q.id)) moves[q.id] = plan.moveEl(q, dv[0] * sn, dv[1] * sn); });
+        c.planMoveMany(moves, false);
+      }
+    }
     else if (e.key === 'Escape') {
       if (st.draft) { c.planView({ draft: null }, true); hideAll(); }
       else if (S.selectedId) c.dispatch({ type: 'SELECT', id: null });
@@ -516,6 +603,17 @@
       else node = h('path', Object.assign(base(el), { d: el.smooth && (el.t === 'green' || el.t === 'water' || el.t === 'plaza') ? plan.smoothPath(px(el), true) : plan.linePath(px(el), true) }));
       out.push(node);
     });
+    const grp = activeMs(state);
+    if (grp.length) {
+      const ink0 = App.PAL.ink;
+      P.els.forEach((q) => {
+        if (!ms.has(grp, q.id)) return;
+        if (q.pts) out.push(h('path', { key: 'gr' + q.id, d: plan.linePath(px(q), q.t !== 'road'), fill: 'none', stroke: ink0, 'stroke-width': 2, 'stroke-dasharray': '6 5', 'stroke-linejoin': 'round', 'pointer-events': 'none' }));
+        else { const b = elBox(q, view); out.push(h('rect', { key: 'gr' + q.id, x: b.x0 - 3, y: b.y0 - 3, width: b.x1 - b.x0 + 6, height: b.y1 - b.y0 + 6, fill: 'none', stroke: ink0, 'stroke-width': 2, 'stroke-dasharray': '5 4', 'pointer-events': 'none' })); }
+      });
+      const bb = ms.bounds(allBoxes(P, view).filter((q) => ms.has(grp, q.id)));
+      if (bb) out.push(ms.frame(bb, 8));
+    }
     const el = P.els.find((e) => e.id === sel);
     if (el) {
       const ink = App.PAL.ink;
@@ -572,13 +670,16 @@
       ref: (el) => { pl.svgEl = el; }, onpointerdown: svgDown, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp, onwheel: svgWheel, ondblclick: () => { if (get().ui.plan.draft) finishDraft(); }, oncontextmenu: (e) => e.preventDefault(),
     }, sc.prims.map((q) => App.board.primToV(q)),
     h('g', { class: 'phits' }, st.tool === 'select' ? hitsLayer(state, p, sc.view) : null),
-    h('g', { class: 'pdraft' }, draftLayer(state, sc.view)));
+    h('g', { class: 'pdraft' }, draftLayer(state, sc.view)),
+    st.mq ? ms.marquee(st.mq) : null);
+    const grpN = activeMs(state).length;
     const empty = !p.els.length && !dr;
     const chipTxt = t.id === 'select' ? null : (t.full || t.label);
     const stage = h('div', { class: 'board-stage' }, svg,
       chipTxt ? h('div', { class: 'pl-chip' }, h('b', {}, chipTxt + (dr ? ' · ' + dr.pts.length + ' nokta' : '')),
         dr && dr.pts.length >= minPts(dr.tool) ? h('button', { type: 'button', class: 'btn btn-yellow pl-fin', onclick: finishDraft }, 'Bitir') : null,
         dr ? h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Çizimi iptal et', title: 'İptal (Esc)', onclick: () => { c.planView({ draft: null }, true); hideAll(); } }, ui.icon('close', 14)) : h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seç aracına dön', title: 'Seç aracına dön (Esc)', onclick: () => c.planTool('select') }, ui.icon('close', 14)))
+        : grpN ? ms.chip(grpN, { noun: 'öğe', onclear: () => c.planView({ ms: [] }, true) })
         : (sel ? h('div', { class: 'pl-chip' }, h('b', {}, nameOf(sel)),
           sel.t === 'bld' ? h('span', { class: 'mono' }, fmt(areaOf(sel)) + ' m² · ' + sel.floors + ' kat') : sel.t === 'road' ? h('span', { class: 'mono' }, fmt(G.polyLen(sel.pts)) + ' m · ' + fmt(sel.w, 1) + ' m') : sel.pts && sel.t !== 'road' ? h('span', { class: 'mono' }, fmt(areaOf(sel)) + ' m²') : null,
           h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null),
@@ -593,6 +694,10 @@
       foot: h('p', { class: 'board-hint' }, t.hint),
       tools: [
         { k: 'seg', label: 'Pafta ölçeği', value: p.scale, options: plan.SCALES.map((s) => ({ v: s, label: '1/' + s })), onchange: (v) => c.planScale(v) },
+        { k: 'sep' },
+        { k: 'icon', label: 'Kutu seç', icon: 'marquee', pressed: !st.hand, onclick: () => c.planView({ hand: false, tool: 'select', draft: null }, true), title: 'Boş yerde sürükleyerek birkaç öğeyi seç; seçileni birlikte taşı' },
+        { k: 'icon', label: 'Kaydır', icon: 'hand', pressed: !!st.hand, onclick: () => c.planView({ hand: true, tool: 'select', draft: null }, true), title: 'Boş yerde sürükleyince çizimi kaydır (orta tuş her zaman kaydırır)' },
+        { k: 'icon', label: 'Tümünü seç', icon: 'selall', onclick: () => pl.multi(p.els.map((q) => q.id)), disabled: p.els.length < 2, title: 'Tüm öğeleri seç (Ctrl+A)' },
         { k: 'sep' },
         { k: 'btn', label: 'Sığdır', icon: 'expand', onclick: () => c.planFit(), disabled: !p.els.length, title: 'Çizimi pafta ortasına ve uygun ölçeğe getir' },
         { k: 'sep' },

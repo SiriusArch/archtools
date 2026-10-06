@@ -89,7 +89,7 @@
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
         site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, etut: App.etutDefaults ? App.etutDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, tpl: App.tplDefaults ? App.tplDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
-        busy: null, hintDismissed: false, style: App.theme.name, boardWide: readWide(),
+        busy: null, hintDismissed: false, ms: [], mq: null, style: App.theme.name, boardWide: readWide(),
       },
     };
   }

@@ -47,6 +47,8 @@
   };
   ctl.colCropReset = function (id) { cropStart = null; ctl.colCrop(id, { l: 0, t: 0, r: 0, b: 0 }, true); };
   ctl.colDel = (id) => ctl.dispatch({ type: 'COL_DEL', id: id });
+  ctl.colMoveMany = function (moves, live) { if (live) ctl.colLiveBegin(); ctl.dispatch({ type: 'COL_MOVE_MANY', moves: moves, live: !!live }); };
+  ctl.colDelMany = function (ids) { ctl.dispatch({ type: 'COL_DEL_MANY', ids: ids }); ctl.colView({ ms: [] }, true); ctl.toast(ids.length + ' katman silindi. Geri al ile döndürebilirsiniz.', 'info'); };
   ctl.colDup = (id) => ctl.dispatch({ type: 'COL_DUP', id: id });
   ctl.colOrder = (id, o) => ctl.dispatch({ type: 'COL_ORDER', id: id, dir: o && o.dir, to: o && o.to });
   ctl.colAccentAll = function () { ctl.dispatch({ type: 'COL_ACCENT_ALL', col: doc().accent }); ctl.toast('Tüm şekiller vurgu rengine çevrildi.', 'success'); };

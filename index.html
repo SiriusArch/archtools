@@ -5074,6 +5074,52 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
+   29-lib-multisel.js — Ortak çoklu seçim (kutu seçimi) ve toplu taşıma yardımcıları
+   Kütle / öğe çizen her araç (Mekân Etüdü, Vaziyet Planı, Kolaj, Pafta Şablonu, İşlev Şeması) aynı davranışı kullanır:
+     boş alanda sürükle → kutu çizilir, kutuya değen öğeler seçilir · Shift+tık → seçime ekle / çıkar
+     seçili öğelerden birini sürükle → hepsi birlikte taşınır · ok tuşları → hepsini kaydırır · Esc → seçimi bırak
+   Bu dosya yalnızca ortak geometri ve çizimi içerir; öğe kaydı her aracın kendi durumunda tutulur.
+   Kutu kayıtları: { id, x0, y0, x1, y1 } (aracın kendi koordinat sisteminde).
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ms = (App.multi = {});
+
+  /* a: başlangıç, b: şimdiki nokta. Sağdan sola çizilen kutu (cross) değen her şeyi, soldan sağa çizilen kutu yalnızca tamamen içindekileri seçer (CAD kuralı) */
+  ms.rect = (a, b) => ({ x0: Math.min(a[0], b[0]), y0: Math.min(a[1], b[1]), x1: Math.max(a[0], b[0]), y1: Math.max(a[1], b[1]), cross: b[0] < a[0] });
+  ms.hit = (r, boxes) => boxes.filter((q) => (r.cross
+    ? q.x1 >= r.x0 && q.x0 <= r.x1 && q.y1 >= r.y0 && q.y0 <= r.y1
+    : q.x0 >= r.x0 - 0.01 && q.x1 <= r.x1 + 0.01 && q.y0 >= r.y0 - 0.01 && q.y1 <= r.y1 + 0.01)).map((q) => q.id);
+  ms.bounds = function (boxes) {
+    if (!boxes.length) return null;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    boxes.forEach((q) => { x0 = Math.min(x0, q.x0); y0 = Math.min(y0, q.y0); x1 = Math.max(x1, q.x1); y1 = Math.max(y1, q.y1); });
+    return { x0: x0, y0: y0, x1: x1, y1: y1, w: x1 - x0, h: y1 - y0 };
+  };
+  ms.toggle = (list, id) => (list.indexOf(id) >= 0 ? list.filter((x) => x !== id) : list.concat([id]));
+  ms.merge = (list, ids, add) => (add ? list.concat(ids.filter((x) => list.indexOf(x) < 0)) : ids.slice());
+  ms.has = (list, id) => list.indexOf(id) >= 0;
+  ms.DIRS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+
+  /* ekran (SVG px) koordinatında seçim kutusu */
+  ms.marquee = function (r) {
+    return h('rect', { key: 'ms-box', class: 'ms-rect', x: r.x0, y: r.y0, width: Math.max(0, r.x1 - r.x0), height: Math.max(0, r.y1 - r.y0), fill: App.PAL.ink, 'fill-opacity': r.cross ? 0.05 : 0.09, stroke: App.PAL.ink, 'stroke-width': 1.5, 'stroke-dasharray': r.cross ? '6 4' : null, 'pointer-events': 'none' });
+  };
+  /* ekran koordinatında grup çerçevesi (taşınabilir olduğunu gösterir) */
+  ms.frame = function (r, pad) {
+    pad = pad == null ? 6 : pad;
+    return h('rect', { key: 'ms-frame', class: 'ms-frame', x: r.x0 - pad, y: r.y0 - pad, width: r.x1 - r.x0 + pad * 2, height: r.y1 - r.y0 + pad * 2, fill: 'none', stroke: App.PAL.ink, 'stroke-opacity': 0.55, 'stroke-width': 1.2, 'pointer-events': 'none' });
+  };
+  /* üstteki "N öğe seçili" çipi (arayüz bileşeni) */
+  ms.HINT = 'Kutuyu soldan sağa çizerseniz yalnızca tamamen içine alınanlar, sağdan sola çizerseniz değenler seçilir';
+  ms.chip = function (n, o) {
+    return h('div', { class: 'an-chip ms-chip', role: 'status' }, h('b', {}, n + ' ' + (o.noun || 'öğe') + ' seçili'), h('span', { class: 'mono' }, 'sürükleyerek birlikte taşıyın · ok tuşları · Esc bırakır'),
+      h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: o.onclear }, App.ui.icon('close', 14)));
+  };
+})();
+
+/* ==========================================================================
    29-lib-pdf.js — bağımlılıksız çok sayfalı PDF yazıcı (JPEG sayfalar, A3 yatay)
    App.pdf.build(pages, { title, author, subject }) → Blob
    pages: [{ jpeg: Uint8Array, w, h, title? }]  (görüntü sayfaya oran korunarak oturtulur)
@@ -5784,7 +5830,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
         site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, etut: App.etutDefaults ? App.etutDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, tpl: App.tplDefaults ? App.tplDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
-        busy: null, hintDismissed: false, style: App.theme.name, boardWide: readWide(),
+        busy: null, hintDismissed: false, ms: [], mq: null, style: App.theme.name, boardWide: readWide(),
       },
     };
   }
@@ -11737,7 +11783,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
    37-state-free.js — Mekân Etüdü: eylemler (reducer eklentisi) ve JSON uzantısı
    Veri project.study.free içinde durur; geri al / ileri al, otomatik kayıt ve JSON akışı Modül 1 ile ortaktır.
    Mekân (şekil · boyut · konum · kat · donatı)
-     FREE_SET {id, patch} · FREE_SET_LIVE {id, patch} · FREE_OPTS {patch} · FREE_AUTO · FREE_RESET
+     FREE_SET {id, patch} · FREE_SET_LIVE {id, patch} · FREE_MOVE_MANY {spaces, extras, live} · FREE_OPTS {patch} · FREE_AUTO · FREE_RESET
      FREE_FIT {id} · FREE_FIT_ALL · FREE_ATTACH {id, to, away} · FREE_SPREAD {n} (katlara dağıt) · FREE_XFORM {k, ox, oy, nx, ny}
    Donatı
      FREE_FURN_ADD {id, k} · FREE_FURN_SET {id, fid, patch} · FREE_FURN_SET_LIVE · FREE_FURN_DEL {id, fid} · FREE_FURN_AUTO {id} · FREE_FURN_CLEAR {id}
@@ -11849,6 +11895,19 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     switch (a.type) {
       case 'FREE_SET': { const r = setOne(a.id, a.patch, true); return r || same(); }
       case 'FREE_SET_LIVE': { const r = setOne(a.id, a.patch, false); return r || same(); }
+      case 'FREE_MOVE_MANY': {
+        // seçili mekân ve ek öğeleri birlikte taşı (a.spaces {id: yama}, a.extras {id: yama}); a.live → geri-al noktası açmaz
+        const shapes = Object.assign({}, free.shapes);
+        let ch = false;
+        Object.keys(a.spaces || {}).forEach((id) => {
+          const cur = shapes[id];
+          if (!cur) return;
+          const nxt = st.freeClean(a.spaces[id], cur);
+          if (Object.keys(nxt).some((k) => nxt[k] !== cur[k])) { shapes[id] = nxt; ch = true; }
+        });
+        const ex2 = a.extras ? exs.map((e) => { if (!a.extras[e.id]) return e; ch = true; return st.cleanExtra(e, a.extras[e.id]); }) : exs;
+        return ch ? upd({ shapes: shapes, extras: ex2 }, !a.live) : same();
+      }
       case 'FREE_OPTS': {
         const patch = {};
         if (a.patch && [0.1, 0.5, 1].indexOf(a.patch.snap) >= 0) patch.snap = a.patch.snap;
@@ -21469,7 +21528,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
      COL_SET {patch}                      başlık, boyut, zemin, vurgu rengi
      COL_ADD {layer}  COL_ADD_MANY {layers}
      COL_SET_L {id, patch}  COL_LIVE {id, patch}   (canlı: geri alma noktası açmaz)
-     COL_DEL {id}  COL_DUP {id}  COL_ORDER {id, dir | to}
+     COL_DEL {id}  COL_DEL_MANY {ids}  COL_MOVE_MANY {moves, live}  COL_DUP {id}  COL_ORDER {id, dir | to}
      COL_ACCENT_ALL {col}                 tüm şekillerin rengini değiştir
      COL_LOAD {doc}  COL_CLEAR
    JSON uzantısı: extensions.collage (görseller dahil; otomatik kayıtta görseller atlanır)
@@ -21518,6 +21577,25 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         if (!nx) return same();
         if (Object.keys(nx).every((k) => nx[k] === l[k] || (Array.isArray(nx[k]) && JSON.stringify(nx[k]) === JSON.stringify(l[k])))) return same();
         return setLayers(c.layers.map((q) => (q.id === a.id ? nx : q)), a.type === 'COL_SET_L');
+      }
+      case 'COL_MOVE_MANY': {
+        // seçili katmanları birlikte taşı: a.moves {id: yama}; a.live → geri-al noktası açmaz
+        const mv = a.moves || {};
+        let ch = false;
+        const layers = c.layers.map((q) => {
+          if (!mv[q.id]) return q;
+          const nx = C.clean(q, mv[q.id]);
+          if (!nx || Object.keys(nx).every((k) => nx[k] === q[k] || (Array.isArray(nx[k]) && JSON.stringify(nx[k]) === JSON.stringify(q[k])))) return q;
+          ch = true; return nx;
+        });
+        return ch ? setLayers(layers, !a.live) : same();
+      }
+      case 'COL_DEL_MANY': {
+        const del = new Set(a.ids || []);
+        if (!c.layers.some((q) => del.has(q.id))) return same();
+        const r = setLayers(c.layers.filter((q) => !del.has(q.id)), true);
+        r.selectedId = null;
+        return r;
       }
       case 'COL_DEL': {
         if (!c.layers.some((q) => q.id === a.id)) return same();
@@ -21722,7 +21800,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
      PLAN_SET {patch}  PLAN_SET_LIVE {patch}     başlık, stil, gölge, ızgara, yakalama (ölçek ve görünüm: PLAN_VIEW)
      PLAN_VIEW {patch}                           ölçek, merkez (geri alma noktası açmaz)
      PLAN_EL_ADD {el}  PLAN_EL_ADD_MANY {els}  PLAN_EL_SET {id, patch}  PLAN_EL_SET_LIVE {id, patch}
-     PLAN_EL_DEL {id}  PLAN_EL_DUP {id}  PLAN_EL_ORDER {id, dir}
+     PLAN_EL_DEL {id}  PLAN_EL_DEL_MANY {ids}  PLAN_EL_MOVE_MANY {moves, live}  PLAN_EL_DUP {id}  PLAN_EL_ORDER {id, dir}
      PLAN_LOAD {els, merge, fit}                 örnek / diğer modüllerden içe alma
      PLAN_CLEAR
    JSON uzantısı: extensions.sitePlan
@@ -21783,6 +21861,25 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         if (!nx) return same();
         if (Object.keys(nx).every((k) => nx[k] === el[k])) return same();
         return setEls(p.els.map((e) => (e.id === a.id ? nx : e)), a.type === 'PLAN_EL_SET');
+      }
+      case 'PLAN_EL_MOVE_MANY': {
+        // seçili öğeleri birlikte taşı: a.moves {id: yama}; a.live → geri-al noktası açmaz
+        const mv = a.moves || {};
+        let ch = false;
+        const els = p.els.map((e) => {
+          if (!mv[e.id]) return e;
+          const nx = plan.clean(e, mv[e.id]);
+          if (!nx || Object.keys(nx).every((k) => nx[k] === e[k])) return e;
+          ch = true; return nx;
+        });
+        return ch ? setEls(els, !a.live) : same();
+      }
+      case 'PLAN_EL_DEL_MANY': {
+        const del = new Set(a.ids || []);
+        if (!p.els.some((e) => del.has(e.id))) return same();
+        const r = setEls(p.els.filter((e) => !del.has(e.id)), true);
+        r.selectedId = null;
+        return r;
       }
       case 'PLAN_EL_DEL': {
         if (!p.els.some((e) => e.id === a.id)) return same();
@@ -22096,6 +22193,25 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         if (Object.keys(nx).every((k) => nx[k] === l[k] || (typeof nx[k] === 'object' && JSON.stringify(nx[k]) === JSON.stringify(l[k])))) return same();
         return setPanels(c.panels.map((q) => (q.id === a.id ? nx : q)), a.type === 'TPL_SET_P');
       }
+      case 'TPL_MOVE_MANY': {
+        // seçili panelleri birlikte taşı: a.moves {id: yama}; a.live → geri-al noktası açmaz
+        const mv = a.moves || {};
+        let ch = false;
+        const panels = c.panels.map((q) => {
+          if (!mv[q.id]) return q;
+          const nx = T.clean(q, mv[q.id]);
+          if (!nx || Object.keys(nx).every((k) => nx[k] === q[k] || (typeof nx[k] === 'object' && JSON.stringify(nx[k]) === JSON.stringify(q[k])))) return q;
+          ch = true; return nx;
+        });
+        return ch ? setPanels(panels, !a.live) : same();
+      }
+      case 'TPL_DEL_MANY': {
+        const del = new Set(a.ids || []);
+        if (!c.panels.some((q) => del.has(q.id))) return same();
+        const r = setPanels(c.panels.filter((q) => !del.has(q.id)), true);
+        r.selectedId = null;
+        return r;
+      }
       case 'TPL_DEL': {
         if (!c.panels.some((q) => q.id === a.id)) return same();
         const r = setPanels(c.panels.filter((q) => q.id !== a.id), true);
@@ -22224,6 +22340,9 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     copy: ['M8 8h11v12H8z', 'M5 16V4h11'],
     compare: ['M4 6h7v12H4z', 'M13 9h7v9h-7z'],
     download: ['M12 4v11m0 0l-4-4m4 4l4-4', 'M4 20h16'],
+    marquee: ['M4 4h3M10 4h4M17 4h3', 'M20 4v3M20 10v4M20 17v3', 'M4 20h3M10 20h4M17 20h3', 'M4 4v3M4 10v4M4 17v3'],
+    hand: ['M8 13V6.5a1.5 1.5 0 013 0V12', 'M11 11V4.5a1.5 1.5 0 013 0V11', 'M14 11V6a1.5 1.5 0 013 0v7.5c0 4-2.2 7-6 7-3 0-4.2-1.8-6-4.8l-1.6-2.6a1.5 1.5 0 012.6-1.5L8 14'],
+    selall: ['M4 4h16v16H4z', 'M8 12.5l3 3 5-6.5'],
   };
 
   ui.icon = function (name, size) {
@@ -22341,6 +22460,15 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const geo = App.geo;
 
   let drag = null;
+  const ms = App.multi;
+  /* çoklu seçim: kutu çizerek ya da Shift + tıkla birkaç mekân seç, birini sürükleyince hepsi birlikte taşınır */
+  const activeMs = (S) => { const have = new Set(S.project.spaces.map((s) => s.id)); const r = (S.ui.ms || []).filter((id) => have.has(id)); return !S.selectedId && r.length >= 2 ? r : []; };
+  const boxes = (S) => { const k = geo.scale(S.project.spaces); return S.project.spaces.map((s) => { const r = geo.radius(s.area, k); return { id: s.id, x0: s.x - r, y0: s.y - r, x1: s.x + r, y1: s.y + r, r: r }; }); };
+  ui.multi = function (list) {
+    if (list.length === 1) { App.ctl.dispatch({ type: 'UI', patch: { ms: [] } }); App.ctl.dispatch({ type: 'SELECT', id: list[0] }); return; }
+    App.ctl.dispatch({ type: 'SELECT', id: null });
+    App.ctl.dispatch({ type: 'UI', patch: { ms: list } });
+  };
 
   function toWorld(e) {
     const svg = ui.svgEl;
@@ -22354,12 +22482,47 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     e.stopPropagation();
     e.preventDefault();
     const w = toWorld(e);
+    const S0 = App.store.get();
+    if (e.shiftKey) {
+      // Shift + tık: seçime ekle / çıkar · Shift + sürükle: dairenin üstünden de kutu seçimi başlar
+      drag = { marq: true, add: true, tog: s.id, wx: w.x, wy: w.y, sx: e.clientX, sy: e.clientY, moved: false };
+      try { ui.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+      return;
+    }
+    const list = activeMs(S0);
+    if (list.length >= 2 && ms.has(list, s.id)) {
+      const orig = {}, rad = {};
+      boxes(S0).forEach((q) => { if (ms.has(list, q.id)) rad[q.id] = q.r; });
+      S0.project.spaces.forEach((q) => { if (ms.has(list, q.id)) orig[q.id] = { x: q.x, y: q.y }; });
+      drag = { group: true, id: s.id, ids: list, orig: orig, rad: rad, gx: w.x, gy: w.y, sx: e.clientX, sy: e.clientY, moved: false };
+      try { ui.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+      return;
+    }
     drag = { id: s.id, dx: s.x - w.x, dy: s.y - w.y, sx: e.clientX, sy: e.clientY, moved: false, r: r };
     try { ui.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+    if ((S0.ui.ms || []).length) App.ctl.dispatch({ type: 'UI', patch: { ms: [] } });
     App.ctl.dispatch({ type: 'SELECT', id: s.id });
+  }
+  function bgDown(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const S = App.store.get();
+    if (!e.shiftKey && S.selectedId) App.ctl.dispatch({ type: 'SELECT', id: null });
+    const w = toWorld(e);
+    // yakalama (pointer capture) sürükleme başlayınca alınır; böylece çizgiye tıklayıp ilişkiyi değiştirme bozulmaz
+    drag = { marq: true, add: e.shiftKey, wx: w.x, wy: w.y, sx: e.clientX, sy: e.clientY, moved: false, pid: e.pointerId };
   }
   function svgMove(e) {
     if (!drag) return;
+    if (drag.marq) {
+      if (!drag.moved) {
+        if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
+        drag.moved = true;
+        try { ui.svgEl.setPointerCapture(drag.pid != null ? drag.pid : e.pointerId); } catch (err) {}
+      }
+      const w1 = toWorld(e);
+      App.ctl.dispatch({ type: 'UI', patch: { mq: ms.rect([drag.wx, drag.wy], [w1.x, w1.y]) } });
+      return;
+    }
     if (!drag.moved) {
       if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
       drag.moved = true;
@@ -22367,15 +22530,71 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       ui.dragging = true;
     }
     const w = toWorld(e);
+    if (drag.group) {
+      let dx = w.x - drag.gx, dy = w.y - drag.gy;
+      // hiçbir daire pafta alanından taşmasın
+      let ax = dx, ay = dy;
+      drag.ids.forEach((id) => {
+        const o = drag.orig[id], c0 = geo.clampPos(o.x + dx, o.y + dy, drag.rad[id]);
+        ax = dx >= 0 ? Math.min(ax, c0.x - o.x) : Math.max(ax, c0.x - o.x);
+        ay = dy >= 0 ? Math.min(ay, c0.y - o.y) : Math.max(ay, c0.y - o.y);
+      });
+      const pos = {};
+      drag.ids.forEach((id) => { pos[id] = { x: drag.orig[id].x + ax, y: drag.orig[id].y + ay }; });
+      App.ctl.dispatch({ type: 'SET_POSITIONS', positions: pos });
+      return;
+    }
     const c = geo.clampPos(w.x + drag.dx, w.y + drag.dy, drag.r);
     App.ctl.dispatch({ type: 'MOVE', id: drag.id, x: c.x, y: c.y });
   }
   function svgUp(e) {
     if (!drag) return;
     try { ui.svgEl.releasePointerCapture(e.pointerId); } catch (err) {}
+    const g = drag;
     drag = null;
     ui.dragging = false;
+    if (g.marq) {
+      const S = App.store.get();
+      if (!g.moved) {
+        if (g.tog) { const base = activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : []); ui.multi(ms.toggle(base, g.tog)); }
+        else if (!g.add && (S.ui.ms || []).length) App.ctl.dispatch({ type: 'UI', patch: { ms: [], mq: null } });
+        return;
+      }
+      const ids = ms.hit(S.ui.mq || ms.rect([g.wx, g.wy], [g.wx, g.wy]), boxes(S));
+      const base = g.add ? (activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : [])) : [];
+      App.ctl.dispatch({ type: 'UI', patch: { mq: null } });
+      ui.multi(ms.merge(base, ids, g.add));
+      return;
+    }
+    if (g.group && !g.moved) ui.multi([g.id]);
   }
+  /* klavye: ok tuşları seçili grubu kaydırır, Esc bırakır, Ctrl+A hepsini seçer */
+  document.addEventListener('keydown', function (e) {
+    const S = App.store.get();
+    if (S.ui.module !== 'islev') return;
+    const tg = e.target;
+    if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT' || tg.isContentEditable)) return;
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) { if (S.project.spaces.length > 1) { e.preventDefault(); ui.multi(S.project.spaces.map((s) => s.id)); } return; }
+    const list = activeMs(S);
+    if (!list.length) return;
+    if (e.key === 'Escape') { e.preventDefault(); App.ctl.dispatch({ type: 'UI', patch: { ms: [] } }); return; }
+    if (!ms.DIRS[e.key]) return;
+    e.preventDefault();
+    const n = e.shiftKey ? 20 : 4, dv = ms.DIRS[e.key];
+    const rad = {};
+    boxes(S).forEach((q) => { rad[q.id] = q.r; });
+    let ax = dv[0] * n, ay = dv[1] * n;
+    S.project.spaces.forEach((s) => {
+      if (!ms.has(list, s.id)) return;
+      const c0 = geo.clampPos(s.x + dv[0] * n, s.y + dv[1] * n, rad[s.id]);
+      if (dv[0]) ax = dv[0] > 0 ? Math.min(ax, c0.x - s.x) : Math.max(ax, c0.x - s.x);
+      if (dv[1]) ay = dv[1] > 0 ? Math.min(ay, c0.y - s.y) : Math.max(ay, c0.y - s.y);
+    });
+    App.ctl.dispatch({ type: 'DRAG_START' });
+    const pos = {};
+    S.project.spaces.forEach((s) => { if (ms.has(list, s.id)) pos[s.id] = { x: s.x + ax, y: s.y + ay }; });
+    App.ctl.dispatch({ type: 'SET_POSITIONS', positions: pos });
+  });
 
   ui.board = function (state, d) {
     const ctl = App.ctl;
@@ -22409,9 +22628,11 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       if (s) rings.push(h('circle', { key: 'hl' + id, class: 'locate-ring', cx: s.x, cy: s.y, r: geo.radius(s.area, k) + 14, fill: 'none', stroke: App.PAL.red, 'stroke-width': 5, 'stroke-dasharray': '10 8' }));
     });
 
+    const grp = activeMs(state);
     const bubbles = P.spaces.map((s) => {
       const r = geo.radius(s.area, k);
-      const sel = state.selectedId === s.id;
+      const grpOn = grp.length > 0 && ms.has(grp, s.id);
+      const sel = state.selectedId === s.id || grpOn;
       return h('g', { key: 'b' + s.id, class: 'bubble' + (sel ? ' selected' : ''), role: 'button', tabindex: 0, 'aria-label': s.name + ', ' + App.util.fmt(s.area) + ' metrekare', onpointerdown: (e) => bubbleDown(e, s, r), onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ctl.dispatch({ type: 'SELECT', id: s.id }); } } },
         sel ? h('circle', { class: 'sel-ring', cx: s.x, cy: s.y, r: r + 10, fill: 'none', stroke: App.PAL.ink, 'stroke-width': 3, 'stroke-dasharray': '7 6' }) : null,
         App.board.bubblePrims(s, r).map((p) => App.board.primToV(p)),
@@ -22421,16 +22642,19 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const svg = h('svg', {
       id: 'pafta', class: 'board-svg', viewBox: '0 0 ' + geo.W + ' ' + geo.H, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Bubble diagram paftası',
       ref: (el) => { ui.svgEl = el; }, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp,
-      onpointerdown: () => { if (state.selectedId) ctl.dispatch({ type: 'SELECT', id: null }); },
-    }, stat, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings));
+      onpointerdown: bgDown,
+    }, stat, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings),
+    grp.length ? ms.frame(ms.bounds(boxes(state).filter((q) => ms.has(grp, q.id))), 16) : null,
+    state.ui.mq ? ms.marquee(state.ui.mq) : null);
 
     const needHelp = P.spaces.length >= 3 && d.score.percent != null && d.score.percent < 60;
     const empty = !P.spaces.length;
-    const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Daireye tıklayıp soldan ilişkilerini düzenleyin';
+    const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Daireye tıklayıp soldan ilişkilerini düzenleyin · Boşlukta kutu çizerek birkaç daireyi seçip birlikte taşıyın (Shift: ekle / çıkar)';
 
     const attn = needHelp || P.meta.example;
     const stage = h('div', { class: 'board-stage' },
       svg,
+      grp.length ? ms.chip(grp.length, { noun: 'mekân', onclear: () => ctl.dispatch({ type: 'UI', patch: { ms: [] } }) }) : null,
       empty ? h('div', { class: 'empty-card' },
         h('h2', { class: 'empty-title' }, 'Pafta boş'),
         h('p', {}, 'Soldaki formdan mekân adı ve m² girin, ya da hazır bir bina programıyla başlayın.'),
@@ -25235,6 +25459,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const fmt = U.fmt;
   const st = App.study;
   const fl = ui.floors;
+  const ms = App.multi;
   const ctl = () => App.ctl;
 
   const EX_LABEL = { green: 'Yeşil alan', void: 'Boşluk / avlu', tree: 'Ağaç', arrow: 'Ok' };
@@ -25283,11 +25508,57 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   }
   const exBox = (e) => (e.t === 'tree' ? { x: e.x - e.r, y: e.y - e.r, w: e.r * 2, h: e.r * 2 } : e.t === 'arrow' ? { x: Math.min(e.x1, e.x2), y: Math.min(e.y1, e.y2), w: Math.abs(e.x2 - e.x1), h: Math.abs(e.y2 - e.y1) } : { x: e.x, y: e.y, w: e.w, h: e.h });
 
+  /* ---------------- çoklu seçim ---------------- */
+  const keyOf = (kind, id) => (kind === 'extra' ? 'x:' : 's:') + id;
+  const activeMs = (S) => { const v = S.ui.etut; return !S.selectedId && !v.ex && v.ms && v.ms.length >= 2 ? v.ms : []; };
+  const ringBox = (ring) => { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; ring.forEach((q) => { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }); return { x0: x0, y0: y0, x1: x1, y1: y1 }; };
+  const exBox2 = (e) => { const b = exBox(e); return { x0: b.x, y0: b.y, x1: b.x + b.w, y1: b.y + b.h }; };
+  /* seçilebilir kutular: görünen mekânlar ve ek öğeler (donatı mekânla birlikte gider) */
+  function msBoxes(fd, view) {
+    const out = [];
+    fd.items.forEach((it) => { if (view.ghost && view.ghost(it)) return; out.push(Object.assign({ id: 's:' + it.id }, ringBox(it.ring))); });
+    fd.extras.forEach((e) => out.push(Object.assign({ id: 'x:' + e.id }, exBox2(e))));
+    return out;
+  }
+  const moveSets = (fd, ids, dx, dy, orig) => {
+    const sp = {}, ex = {};
+    ids.forEach((k) => {
+      const id = k.slice(2), o = orig[k];
+      if (!o) return;
+      if (k.charAt(0) === 's') sp[id] = { x: r2(o.x + dx), y: r2(o.y + dy) };
+      else if (o.t === 'arrow') ex[id] = { x1: r2(o.x1 + dx), y1: r2(o.y1 + dy), x2: r2(o.x2 + dx), y2: r2(o.y2 + dy) };
+      else ex[id] = { x: r2(o.x + dx), y: r2(o.y + dy) };
+    });
+    return { sp: sp, ex: ex };
+  };
+
   /* kind: 'space' | 'extra' | 'furn' */
   function down(e, kind, obj, view, handle, parent) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.stopPropagation(); e.preventDefault();
     const w = toWorld(e, view);
+    if ((kind === 'space' || kind === 'extra') && !handle) {
+      const S0 = App.store.get();
+      const key = keyOf(kind, obj.id);
+      const list = activeMs(S0);
+      if (e.shiftKey) {
+        // Shift + tık: seçime ekle / çıkar · Shift + sürükle: öğenin üstünden de kutu seçimi başlar
+        gest = { kind: 'marq', sx: w[0], sy: w[1], cx: e.clientX, cy: e.clientY, add: true, tog: key, moved: false, view: view };
+        try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+        return;
+      }
+      if (list.length >= 2 && ms.has(list, key)) {
+        // grup sürüklemesi: seçili her şey birlikte
+        const fd0 = st.freeDerive(S0.project);
+        const orig = {};
+        list.forEach((k) => { const id = k.slice(2); if (k.charAt(0) === 's') { const it = fd0.byId.get(id); if (it) orig[k] = { x: it.x, y: it.y }; } else { const x = fd0.extras.find((q) => q.id === id); if (x) orig[k] = Object.assign({}, x); } });
+        const boxes = msBoxes(fd0, view).filter((q) => ms.has(list, q.id));
+        frozen = view.win;
+        gest = { kind: 'group', key: key, ids: list, orig: orig, bb: ms.bounds(boxes), sx: w[0], sy: w[1], cx: e.clientX, cy: e.clientY, moved: false, view: view };
+        try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+        return;
+      }
+    }
     frozen = view.win;
     gest = { kind: kind, id: obj.id, pid: parent ? parent.id : null, handle: handle || null, sx: w[0], sy: w[1], cx: e.clientX, cy: e.clientY, orig: Object.assign({}, obj), po: parent ? { x: parent.x, y: parent.y, w: parent.w, h: parent.h } : null, moved: false, view: view };
     try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
@@ -25300,6 +25571,13 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (v.view !== 'plan') { orbitDown(e); return; }
     if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1) return;
     const q = svgPt(e);
+    if (e.button !== 1 && v.tool !== 'pan' && panView) {
+      // kutu seçimi: boş alanda sürükle (kaydırmak için orta tuş ya da "Kaydır" aracı)
+      const w0 = toWorld(e, panView);
+      gest = { kind: 'marq', sx: w0[0], sy: w0[1], cx: e.clientX, cy: e.clientY, add: e.shiftKey, moved: false, view: panView };
+      try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+      return;
+    }
     gest = { kind: 'pan', sx: q.x, sy: q.y, cx: e.clientX, cy: e.clientY, cam: Object.assign({}, v.cam), moved: false, view: null };
     try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
   }
@@ -25309,9 +25587,30 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (!gest.moved) {
       if (Math.hypot(e.clientX - gest.cx, e.clientY - gest.cy) < 3) return;
       gest.moved = true;
-      if (gest.kind !== 'pan') ctl().freeLiveBegin();
+      if (gest.kind !== 'pan' && gest.kind !== 'marq') ctl().freeLiveBegin();
     }
     const S = App.store.get();
+    if (gest.kind === 'marq') {
+      const w1 = toWorld(e, gest.view);
+      ctl().etutView({ mq: ms.rect([gest.sx, gest.sy], w1) }, true);
+      return;
+    }
+    if (gest.kind === 'group') {
+      const fd = st.freeDerive(S.project);
+      const snap = S.project.study.free.snap;
+      const w1 = toWorld(e, gest.view);
+      let dx = snapTo(w1[0] - gest.sx, snap), dy = snapTo(w1[1] - gest.sy, snap);
+      if (!e.altKey && gest.bb) {
+        const tol = Math.max(0.3, 9 / gest.view.s);
+        const others = fd.items.filter((q) => !ms.has(gest.ids, 's:' + q.id) && (!gest.view.vis || gest.view.vis(q))).map((q) => ({ x: q.x, y: q.y, w: q.w, h: q.h }))
+          .concat(fd.extras.filter((q) => !ms.has(gest.ids, 'x:' + q.id) && q.t !== 'arrow').map(exBox));
+        const m = magnetMove({ x: gest.bb.x0 + dx, y: gest.bb.y0 + dy, w: gest.bb.w, h: gest.bb.h }, others, tol);
+        dx = r2(dx + m.dx); dy = r2(dy + m.dy);
+      }
+      const sets = moveSets(fd, gest.ids, dx, dy, gest.orig);
+      ctl().freeMoveMany(sets.sp, sets.ex, true);
+      return;
+    }
     if (gest.kind === 'pan') {
       const view = panView;
       if (!view) return;
@@ -25397,6 +25696,22 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     try { fl.svgEl.releasePointerCapture(e.pointerId); } catch (err) {}
     const g = gest;
     gest = null; frozen = null;
+    if (g.kind === 'marq') {
+      const S = App.store.get();
+      const v = S.ui.etut;
+      if (!g.moved) {
+        if (g.tog) { const base = activeMs(S).length ? activeMs(S) : (S.selectedId ? ['s:' + S.selectedId] : v.ex ? ['x:' + v.ex] : []); ctl().freeMulti(ms.toggle(base, g.tog)); return; }
+        if (!g.add) { if (S.selectedId) ctl().dispatch({ type: 'SELECT', id: null }); if (v.ex || v.fu || (v.ms && v.ms.length) || v.mq) ctl().etutView({ ex: null, fu: null, ms: [], mq: null }, true); }
+        return;
+      }
+      const fd = st.freeDerive(S.project);
+      const ids = ms.hit(v.mq || ms.rect([g.sx, g.sy], [g.sx, g.sy]), msBoxes(fd, g.view));
+      let base = [];
+      if (g.add) base = activeMs(S).length ? activeMs(S) : (S.selectedId ? ['s:' + S.selectedId] : v.ex ? ['x:' + v.ex] : []);
+      ctl().etutView({ mq: null }, true);
+      ctl().freeMulti(ms.merge(base, ids, g.add));
+      return;
+    }
     if (g.kind === 'pan') {
       if (!g.moved) {
         const S = App.store.get();
@@ -25405,6 +25720,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       }
       return;
     }
+    if (g.kind === 'group' && !g.moved) { ctl().freeLiveEnd(); ctl().freeMulti([g.key]); return; }
     ctl().freeLiveEnd();
     ctl().etutView({ stick: (App.store.get().ui.etut.stick || 0) + 1 }, true);
   }
@@ -25474,11 +25790,31 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const g = App.theme.name === 'glass';
     const c = ctl();
     const hits = [];
-    const dirs = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const dirs = ms.DIRS;
+    const grp = activeMs(state);
+    const inGrp = (k) => grp.length > 0 && ms.has(grp, k);
+    // seçili grup: ok tuşları hepsini kaydırır, Delete ek öğeleri siler, Esc bırakır
+    const grpKey = (e) => {
+      const k = e.key;
+      if (dirs[k]) {
+        e.preventDefault();
+        const sn = free.snap * (e.shiftKey ? 5 : 1);
+        const orig = {};
+        grp.forEach((q) => { const id = q.slice(2); if (q.charAt(0) === 's') { const it = fd.byId.get(id); if (it) orig[q] = { x: it.x, y: it.y }; } else { const x = fd.extras.find((z) => z.id === id); if (x) orig[q] = Object.assign({}, x); } });
+        const sets = moveSets(fd, grp, dirs[k][0] * sn, dirs[k][1] * sn, orig);
+        c.freeMoveMany(sets.sp, sets.ex, false);
+        return true;
+      }
+      if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); c.freeDelMany(grp); return true; }
+      if (k === 'Escape') { e.preventDefault(); c.etutView({ ms: [] }, true); return true; }
+      return false;
+    };
 
     // 1) yeşil ve boşluk (arkada)
     const exOf = (t) => fd.extras.filter((e) => e.t === t);
     const exKey = (e, el) => {
+      if (inGrp('x:' + el.id) && grpKey(e)) return;
+      if (e.key === 'Escape') { c.freeSelEx(null); return; }
       const sn = free.snap * (e.shiftKey ? 5 : 1), k = e.key;
       if (dirs[k]) {
         e.preventDefault();
@@ -25491,7 +25827,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       else if (k === 'Enter' || k === ' ') { e.preventDefault(); c.freeSelEx(el.id); }
     };
     const exNode = (el) => {
-      const on = v.ex === el.id;
+      const on = v.ex === el.id || inGrp('x:' + el.id);
       const common = { class: 'ehit', fill: 'transparent', tabindex: 0, role: 'button', 'aria-label': EX_LABEL[el.t] + '. Ok tuşları taşır, Ctrl ile ok tuşları boyutlandırır, Delete siler.', onpointerdown: (e) => down(e, 'extra', el, view, null), onkeydown: (e) => exKey(e, el) };
       let node, ring;
       if (el.t === 'tree') {
@@ -25515,7 +25851,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const hidden = (it) => view.ghost && view.ghost(it);
     fd.items.slice().sort((a, b) => a.lv - b.lv || b.area - a.area).forEach((it) => {
       if (hidden(it)) return;
-      const on = sel === it.id;
+      const on = sel === it.id || inGrp('s:' + it.id);
       const pts = ptsOf(view, it.ring);
       hits.push(h('g', { key: 'k' + it.id, class: 'fitem' + (on ? ' sel' : '') },
         on ? h('polygon', Object.assign({ class: 'sel-ring', points: pts, stroke: App.PAL.ink }, selStroke)) : null,
@@ -25524,6 +25860,9 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
           'aria-label': it.name + ', ' + fmt(it.area) + ' metrekare. Ok tuşları taşır, Ctrl ile ok tuşları boyutlandırır, R döndürür.',
           onpointerdown: (e) => down(e, 'space', it, view, null),
           onkeydown: (e) => {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); c.freeSelectAll(view); return; }
+            if (inGrp('s:' + it.id) && grpKey(e)) return;
+            if (e.key === 'Escape') { c.freeSelect(null); return; }
             const sn = free.snap * (e.shiftKey ? 5 : 1), k = e.key;
             if (dirs[k]) {
               e.preventDefault();
@@ -25562,7 +25901,11 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     // 4) ağaç ve oklar (üstte)
     exOf('tree').concat(exOf('arrow')).forEach((el) => hits.push(exNode(el)));
 
-    // 5) tutamaçlar
+    // 5) tutamaçlar (çoklu seçimde bunun yerine grup çerçevesi)
+    if (grp.length) {
+      const bb = ms.bounds(msBoxes(fd, view).filter((q) => ms.has(grp, q.id)));
+      if (bb) hits.push(ms.frame({ x0: view.X(bb.x0), y0: view.Y(bb.y0), x1: view.X(bb.x1), y1: view.Y(bb.y1) }, 7));
+    }
     if (cur && !hidden(cur)) hits.push(handlesFor(view, 'hs-' + cur.id, cur, (e, hd) => down(e, 'space', cur, view, hd), g));
     const ex = fd.extras.find((e) => e.id === v.ex);
     if (ex && (ex.t === 'green' || ex.t === 'void')) hits.push(handlesFor(view, 'hx-' + ex.id, ex, (e, hd) => down(e, 'extra', ex, view, hd), g));
@@ -25602,11 +25945,13 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       id: 'pafta-mekan', class: 'board-svg board-svg-mekan', viewBox: '0 0 ' + App.sheet.W + ' ' + App.sheet.H, preserveAspectRatio: 'xMidYMid meet', role: 'group',
       'aria-label': 'Mekân etüdü paftası: ' + fd.items.length + ' mekân, ' + (plan ? 'plan' : v.view === 'iso' ? 'izometrik' : 'süreç afişi'),
       ref: (el) => { fl.svgEl = el; }, onpointerdown: bgDown, onpointermove: move, onpointerup: up, onpointercancel: up, onwheel: wheel,
-    }, sc.prims.map((p) => App.board.primToV(p)), plan ? h('g', { class: 'fhits' }, planHits(state, fd, sc.view)) : null);
+    }, sc.prims.map((p) => App.board.primToV(p)), plan ? h('g', { class: 'fhits' }, planHits(state, fd, sc.view)) : null,
+    plan && v.mq ? ms.marquee({ x0: sc.view.X(v.mq.x0), y0: sc.view.Y(v.mq.y0), x1: sc.view.X(v.mq.x1), y1: sc.view.Y(v.mq.y1), cross: v.mq.cross }) : null);
+    const grpN = plan ? activeMs(state).length : 0;
 
     const empty = !P.spaces.length;
     const stage = h('div', { class: 'board-stage' + (plan ? '' : ' is-orbit') }, svg,
-      cur ? h('div', { class: 'an-chip' }, h('b', {}, cur.name), h('span', { class: 'mono' }, fmt(cur.w, 1) + ' × ' + fmt(cur.h, 1) + ' m · ' + fmt(cur.area, 1) + ' m²' + (cur.nf > 1 || cur.lv > 0 ? ' · ' + st.lvLabel(cur) : '')),
+      grpN ? ms.chip(grpN, { noun: 'öğe', onclear: () => c.etutView({ ms: [] }, true) }) : cur ? h('div', { class: 'an-chip' }, h('b', {}, cur.name), h('span', { class: 'mono' }, fmt(cur.w, 1) + ' × ' + fmt(cur.h, 1) + ' m · ' + fmt(cur.area, 1) + ' m²' + (cur.nf > 1 || cur.lv > 0 ? ' · ' + st.lvLabel(cur) : '')),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.freeSelect(null) }, ui.icon('close', 14)))
         : curEx ? h('div', { class: 'an-chip' }, h('b', {}, EX_LABEL[curEx.t]),
           h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.freeSelEx(null) }, ui.icon('close', 14))) : null,
@@ -25615,7 +25960,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         ui.btn('İşlev Şeması’na git', { icon: 'chevron', onclick: () => c.go('islev') })]) : null);
 
     const hint = plan
-      ? 'Mekânı, donatıyı ya da öğeyi sürükleyin · tutamaçlarla boyutlandırın · kenarlara yapışır (Alt: kapat) · tekerlek yakınlaştırır, boşluğu sürükleyerek kaydırın · R döndürür'
+      ? 'Mekânı, donatıyı ya da öğeyi sürükleyin · boşlukta kutu çizerek birkaçını seçin (soldan sağa: tamamen içindekiler, sağdan sola: değenler; Shift: ekle / çıkar) ve birlikte taşıyın · tutamaçlarla boyutlandırın · kenarlara yapışır (Alt: kapat) · tekerlek yakınlaştırır · Kaydır aracı ya da orta tuş kaydırır · R döndürür'
       : 'Sürükleyerek döndürün' + (v.view === 'surec' ? ' · süreç afişi: kayıtlı tüm adımlar aynı ölçekte yan yana' : ' · çevre yapıları gri, mekânlar işlev rengiyle');
 
     const tools = [
@@ -25629,6 +25974,9 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     tools.push({ k: 'sep' });
     if (plan) {
       tools.push({ k: 'btn', label: 'Otomatik diz', icon: 'layout', strong: true, onclick: () => c.freeAuto(), disabled: !P.spaces.length, title: 'İlişkilere göre mekânları yeniden yerleştir' });
+      tools.push({ k: 'icon', label: 'Kutu seç', icon: 'marquee', pressed: v.tool !== 'pan', onclick: () => c.etutView({ tool: 'sel' }, true), title: 'Boşlukta sürükleyerek birkaç mekânı / öğeyi seç; seçileni birlikte taşı' });
+      tools.push({ k: 'icon', label: 'Kaydır', icon: 'hand', pressed: v.tool === 'pan', onclick: () => c.etutView({ tool: 'pan' }, true), title: 'Boşlukta sürükleyince çizimi kaydır (orta tuş her zaman kaydırır)' });
+      tools.push({ k: 'icon', label: 'Tümünü seç', icon: 'selall', onclick: () => c.freeSelectAll(sc.view), disabled: !fd.items.length, title: 'Görünen tüm mekân ve öğeleri seç (Ctrl+A)' });
       tools.push({ k: 'icon', label: 'Donatı', icon: 'rect', pressed: !!v.furn, onclick: () => c.etutView({ furn: !v.furn }), title: 'Donatıyı göster / gizle (yakınlaştırınca görünür)' });
       tools.push({ k: 'icon', label: 'İlişkiler', icon: 'link', pressed: !!v.rel, onclick: () => c.etutView({ rel: !v.rel }), title: 'İlişki çizgilerini göster / gizle' });
       tools.push({ k: 'icon', label: 'Yakınlaştır', icon: 'plus', onclick: () => zoomAt(sc.view, v.cam, 1.4), title: 'Yakınlaştır' });
@@ -26005,7 +26353,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const cur = () => get().project.study.free;
 
   /* ---------------- görünüm durumu ---------------- */
-  App.etutDefaults = () => ({ view: 'plan', lv: 'all', furn: true, rel: true, grid: true, yaw: 35, pitch: 45, zx: 1, cam: { k: 1, dx: 0, dy: 0 }, ex: null, fu: null, stick: 0 });
+  App.etutDefaults = () => ({ view: 'plan', lv: 'all', furn: true, rel: true, grid: true, yaw: 35, pitch: 45, zx: 1, cam: { k: 1, dx: 0, dy: 0 }, ex: null, fu: null, stick: 0, ms: [], mq: null, tool: 'sel' });
   const EV = ctl.makeView('etut', 'archtools.view.etut', ['view', 'furn', 'rel', 'grid', 'yaw', 'pitch', 'zx']);
   ctl.etutView = EV.set;
   ctl.loadEtutView = function () {
@@ -26030,8 +26378,31 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   };
 
   /* ---------------- seçim ---------------- */
-  ctl.freeSelect = function (id) { ctl.dispatch({ type: 'SELECT', id: id }); if (get().ui.etut.ex || get().ui.etut.fu) ctl.etutView({ ex: null, fu: null }, true); };
-  ctl.freeSelEx = function (id) { ctl.dispatch({ type: 'SELECT', id: null }); ctl.etutView({ ex: id, fu: null }, true); };
+  ctl.freeSelect = function (id) { ctl.dispatch({ type: 'SELECT', id: id }); const v = get().ui.etut; if (v.ex || v.fu || (v.ms && v.ms.length)) ctl.etutView({ ex: null, fu: null, ms: [] }, true); };
+  ctl.freeSelEx = function (id) { ctl.dispatch({ type: 'SELECT', id: null }); ctl.etutView({ ex: id, fu: null, ms: [] }, true); };
+  /* çoklu seçim: anahtarlar 's:<mekânId>' ve 'x:<öğeId>' */
+  ctl.freeMulti = function (list) {
+    list = (list || []).slice();
+    if (list.length === 1) { const k = list[0]; if (k.charAt(0) === 'x') ctl.freeSelEx(k.slice(2)); else ctl.freeSelect(k.slice(2)); return; }
+    ctl.dispatch({ type: 'SELECT', id: null });
+    ctl.etutView({ ms: list, ex: null, fu: null }, true);
+  };
+  ctl.freeSelectAll = function (view) {
+    const fd = st.freeDerive(get().project);
+    const ids = fd.items.filter((it) => !(view && view.ghost && view.ghost(it))).map((it) => 's:' + it.id).concat(fd.extras.map((e) => 'x:' + e.id));
+    ctl.freeMulti(ids);
+  };
+  ctl.freeMoveMany = function (spaces, extras, live) {
+    if (live) ctl.freeLiveBegin();
+    ctl.dispatch({ type: 'FREE_MOVE_MANY', spaces: spaces, extras: extras, live: !!live });
+  };
+  ctl.freeDelMany = function (list) {
+    const ids = (list || []).filter((k) => k.charAt(0) === 'x').map((k) => k.slice(2));
+    const nSp = (list || []).length - ids.length;
+    ids.forEach((id) => ctl.dispatch({ type: 'FREE_EX_DEL', id: id }));
+    ctl.etutView({ ms: [], ex: null }, true);
+    ctl.toast(ids.length ? ids.length + ' öğe silindi' + (nSp ? '. Mekânlar silinmedi; işlev şemasından kalkacakları için tek tek silin.' : '.') : 'Mekânlar toplu silinmez; işlev şemasından kalkacakları için tek tek silin.', ids.length ? 'info' : 'error');
+  };
   ctl.freeSelFurn = (fid) => ctl.etutView({ fu: fid }, true);
 
   /* sürükleme / kaydırıcı: ilk harekette tek bir geri-al noktası, sonrası canlı */
@@ -28265,11 +28636,11 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const pl = (ui.plan = {});
   const get = () => App.store.get();
 
-  App.planDefaults = () => ({ tab: 'cizim', tool: 'select', draft: null, floors: 4, treeR: 3, stick: 0 });
+  App.planDefaults = () => ({ tab: 'cizim', tool: 'select', draft: null, floors: 4, treeR: 3, stick: 0, ms: [], mq: null, hand: false });
 
   /* araç tanımları: poly (çokgen), line (çizgi), pt (tek tık) */
   const TOOLS = [
-    { id: 'select', label: 'Seç', icon: 'target', hint: 'Öğeyi tıklayıp sürükleyin · köşe tutamaçlarını çekin · ortadaki + köşe ekler · sağ tık köşe siler · boş yeri sürükleyerek kaydırın · tekerlek ölçeği değiştirir' },
+    { id: 'select', label: 'Seç', icon: 'target', hint: 'Öğeyi tıklayıp sürükleyin · köşe tutamaçlarını çekin · ortadaki + köşe ekler · sağ tık köşe siler · boş yerde kutu çizerek birkaç öğeyi seçin (soldan sağa: tamamen içindekiler, sağdan sola: değenler; Shift: ekle / çıkar) ve birlikte taşıyın · Kaydır aracı ya da orta tuş kaydırır · tekerlek ölçeği değiştirir' },
     { id: 'yeni', label: 'Yeni yapı', icon: 'rect', kind: 'poly', hint: 'Sürükleyerek dikdörtgen çizin ya da köşeleri tıklayın · çift tık veya Enter bitirir · Backspace son köşeyi siler · Esc iptal' },
     { id: 'mevcut', label: 'Mevcut', full: 'Mevcut yapı', icon: 'cube', kind: 'poly', hint: 'Çevredeki mevcut yapıyı çizin: sürükleyerek dikdörtgen ya da köşeleri tıklayarak · çift tık veya Enter bitirir' },
     { id: 'road', label: 'Yol', icon: 'draw', kind: 'line', hint: 'Yol eksenini noktalarla çizin · çift tık veya Enter bitirir · genişlik panelden ayarlanır' },
@@ -28526,6 +28897,19 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
   }
 
+  const ms = App.multi;
+  const activeMs = (S) => { const l = S.ui.plan.ms || []; const have = new Set(S.project.plan.els.map((q) => q.id)); const r = l.filter((id) => have.has(id)); return !S.selectedId && r.length >= 2 ? r : []; };
+  /* ekran (SVG px) koordinatında öğe kutusu */
+  function elBox(el, view) {
+    const X = view.X, Y = view.Y;
+    if (el.t === 'tree') { const r = Math.max(8, el.r * view.ppm); return { id: el.id, x0: X(el.x) - r, y0: Y(el.y) - r, x1: X(el.x) + r, y1: Y(el.y) + r }; }
+    if (el.t === 'text') { const w = Math.max(40, el.s.length * el.size * 0.64); return { id: el.id, x0: X(el.x) - w / 2, y0: Y(el.y) - el.size * 0.7, x1: X(el.x) + w / 2, y1: Y(el.y) + el.size * 0.6 }; }
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    el.pts.forEach((q) => { x0 = Math.min(x0, X(q[0])); y0 = Math.min(y0, Y(q[1])); x1 = Math.max(x1, X(q[0])); y1 = Math.max(y1, Y(q[1])); });
+    return { id: el.id, x0: x0, y0: y0, x1: x1, y1: y1 };
+  }
+  const allBoxes = (P, view) => P.els.map((el) => elBox(el, view));
+
   function selectBgDown(e) {
     const s = toSvg(e);
     const P = get().project.plan;
@@ -28539,8 +28923,11 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (e.pointerType === 'mouse' && e.button === 1) { e.preventDefault(); selectBgDown(e); return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     if (st.tool !== 'select') { drawDown(e); return; }
-    if (get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
-    selectBgDown(e);
+    if (!e.shiftKey && get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
+    if (st.hand) { if (!e.shiftKey && (st.ms || []).length) ctl().planView({ ms: [] }, true); selectBgDown(e); return; }
+    const s = toSvg(e);
+    gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: e.shiftKey, moved: false, view: viewNow() };
+    try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
   }
 
   function elDown(e, el) {
@@ -28548,10 +28935,32 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (get().ui.plan.tool !== 'select') return; // çizim araçlarında olay svg'ye düşer
     e.stopPropagation(); e.preventDefault();
     const s = toSvg(e);
+    const S0 = get();
+    const list = activeMs(S0);
+    if (e.shiftKey) {
+      // Shift + tık: seçime ekle / çıkar · Shift + sürükle: öğenin üstünden de kutu seçimi başlar
+      gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: true, tog: el.id, moved: false, view: viewNow() };
+      try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
+    if (list.length >= 2 && ms.has(list, el.id)) {
+      const orig = {};
+      S0.project.plan.els.forEach((q) => { if (ms.has(list, q.id)) orig[q.id] = q; });
+      gest = { t: 'gmove', id: el.id, ids: list, orig: orig, sx: s.x, sy: s.y, moved: false, cX: e.clientX, cY: e.clientY, view: viewNow() };
+      try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
     gest = { t: 'move', id: el.id, sx: s.x, sy: s.y, orig: el, moved: false, cX: e.clientX, cY: e.clientY, view: viewNow() };
     try { pl.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
     ctl().dispatch({ type: 'SELECT', id: el.id });
+    if ((S0.ui.plan.ms || []).length) ctl().planView({ ms: [] }, true);
   }
+  /* çoklu seçimi ayarla: tek öğe → normal seçim */
+  pl.multi = function (list) {
+    if (list.length === 1) { ctl().planView({ ms: [] }, true); ctl().dispatch({ type: 'SELECT', id: list[0] }); return; }
+    ctl().dispatch({ type: 'SELECT', id: null });
+    ctl().planView({ ms: list }, true);
+  };
 
   function vtxDown(e, el, i, insert) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
@@ -28588,6 +28997,27 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       if (!gest.moved && Math.hypot(e.clientX - gest.cX, e.clientY - gest.cY) < 3) return;
       gest.moved = true;
       ctl().planVp({ cx: gest.cx - (s.x - gest.sx) / gest.ppm, cy: gest.cy - (s.y - gest.sy) / gest.ppm });
+      return;
+    }
+    if (gest.t === 'marq') {
+      if (!gest.moved && Math.hypot(e.clientX - gest.cX, e.clientY - gest.cY) < 3) return;
+      gest.moved = true;
+      ctl().planView({ mq: ms.rect([gest.sx, gest.sy], [s.x, s.y]) }, true);
+      return;
+    }
+    if (gest.t === 'gmove') {
+      if (!gest.moved) {
+        if (Math.hypot(e.clientX - gest.cX, e.clientY - gest.cY) < 3) return;
+        gest.moved = true;
+        ctl().planLiveBegin();
+      }
+      const P = get().project.plan;
+      const ppm = gest.view.ppm;
+      let dx = (s.x - gest.sx) / ppm, dy = (s.y - gest.sy) / ppm;
+      if (!e.altKey) { dx = gridSnap(dx, P.snap); dy = gridSnap(dy, P.snap); }
+      const moves = {};
+      gest.ids.forEach((id) => { moves[id] = plan.moveEl(gest.orig[id], dx, dy); });
+      ctl().planMoveMany(moves, true);
       return;
     }
     if (gest.t === 'draw') {
@@ -28666,7 +29096,22 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     gest = null;
     try { pl.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok say */ }
     if (g.t === 'pan') { return; }
-    if (g.t === 'move' || g.t === 'vtx') { ctl().planLiveEnd(); return; }
+    if (g.t === 'marq') {
+      const S = get();
+      if (!g.moved) {
+        if (g.tog) { const base = activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : []); pl.multi(ms.toggle(base, g.tog)); }
+        else if (!g.add && (S.ui.plan.ms || []).length) ctl().planView({ ms: [], mq: null }, true);
+        return;
+      }
+      const r = S.ui.plan.mq;
+      const ids = ms.hit(r || ms.rect([g.sx, g.sy], [g.sx, g.sy]), allBoxes(S.project.plan, g.view));
+      const base = g.add ? (activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : [])) : [];
+      ctl().planView({ mq: null }, true);
+      pl.multi(ms.merge(base, ids, g.add));
+      return;
+    }
+    if (g.t === 'gmove' && !g.moved) { ctl().planLiveEnd(); pl.multi([g.id]); return; }
+    if (g.t === 'move' || g.t === 'vtx' || g.t === 'gmove') { ctl().planLiveEnd(); return; }
     if (g.t === 'draw') {
       const st = get().ui.plan;
       const t = toolOf(st.tool);
@@ -28730,6 +29175,19 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const st = S.ui.plan;
     const c = ctl();
     if (e.key === 'Enter' && st.draft) { e.preventDefault(); finishDraft(); }
+    else if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A') && st.tool === 'select') { e.preventDefault(); pl.multi(S.project.plan.els.map((q) => q.id)); }
+    else if (activeMs(S).length && st.tool === 'select' && (ms.DIRS[e.key] || e.key === 'Delete' || e.key === 'Backspace' || e.key === 'Escape')) {
+      e.preventDefault();
+      const list = activeMs(S);
+      if (e.key === 'Escape') c.planView({ ms: [] }, true);
+      else if (e.key === 'Delete' || e.key === 'Backspace') c.planDelMany(list);
+      else {
+        const sn = S.project.plan.snap * (e.shiftKey ? 5 : 1), dv = ms.DIRS[e.key];
+        const moves = {};
+        S.project.plan.els.forEach((q) => { if (ms.has(list, q.id)) moves[q.id] = plan.moveEl(q, dv[0] * sn, dv[1] * sn); });
+        c.planMoveMany(moves, false);
+      }
+    }
     else if (e.key === 'Escape') {
       if (st.draft) { c.planView({ draft: null }, true); hideAll(); }
       else if (S.selectedId) c.dispatch({ type: 'SELECT', id: null });
@@ -28764,6 +29222,17 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       else node = h('path', Object.assign(base(el), { d: el.smooth && (el.t === 'green' || el.t === 'water' || el.t === 'plaza') ? plan.smoothPath(px(el), true) : plan.linePath(px(el), true) }));
       out.push(node);
     });
+    const grp = activeMs(state);
+    if (grp.length) {
+      const ink0 = App.PAL.ink;
+      P.els.forEach((q) => {
+        if (!ms.has(grp, q.id)) return;
+        if (q.pts) out.push(h('path', { key: 'gr' + q.id, d: plan.linePath(px(q), q.t !== 'road'), fill: 'none', stroke: ink0, 'stroke-width': 2, 'stroke-dasharray': '6 5', 'stroke-linejoin': 'round', 'pointer-events': 'none' }));
+        else { const b = elBox(q, view); out.push(h('rect', { key: 'gr' + q.id, x: b.x0 - 3, y: b.y0 - 3, width: b.x1 - b.x0 + 6, height: b.y1 - b.y0 + 6, fill: 'none', stroke: ink0, 'stroke-width': 2, 'stroke-dasharray': '5 4', 'pointer-events': 'none' })); }
+      });
+      const bb = ms.bounds(allBoxes(P, view).filter((q) => ms.has(grp, q.id)));
+      if (bb) out.push(ms.frame(bb, 8));
+    }
     const el = P.els.find((e) => e.id === sel);
     if (el) {
       const ink = App.PAL.ink;
@@ -28820,13 +29289,16 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       ref: (el) => { pl.svgEl = el; }, onpointerdown: svgDown, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp, onwheel: svgWheel, ondblclick: () => { if (get().ui.plan.draft) finishDraft(); }, oncontextmenu: (e) => e.preventDefault(),
     }, sc.prims.map((q) => App.board.primToV(q)),
     h('g', { class: 'phits' }, st.tool === 'select' ? hitsLayer(state, p, sc.view) : null),
-    h('g', { class: 'pdraft' }, draftLayer(state, sc.view)));
+    h('g', { class: 'pdraft' }, draftLayer(state, sc.view)),
+    st.mq ? ms.marquee(st.mq) : null);
+    const grpN = activeMs(state).length;
     const empty = !p.els.length && !dr;
     const chipTxt = t.id === 'select' ? null : (t.full || t.label);
     const stage = h('div', { class: 'board-stage' }, svg,
       chipTxt ? h('div', { class: 'pl-chip' }, h('b', {}, chipTxt + (dr ? ' · ' + dr.pts.length + ' nokta' : '')),
         dr && dr.pts.length >= minPts(dr.tool) ? h('button', { type: 'button', class: 'btn btn-yellow pl-fin', onclick: finishDraft }, 'Bitir') : null,
         dr ? h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Çizimi iptal et', title: 'İptal (Esc)', onclick: () => { c.planView({ draft: null }, true); hideAll(); } }, ui.icon('close', 14)) : h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seç aracına dön', title: 'Seç aracına dön (Esc)', onclick: () => c.planTool('select') }, ui.icon('close', 14)))
+        : grpN ? ms.chip(grpN, { noun: 'öğe', onclear: () => c.planView({ ms: [] }, true) })
         : (sel ? h('div', { class: 'pl-chip' }, h('b', {}, nameOf(sel)),
           sel.t === 'bld' ? h('span', { class: 'mono' }, fmt(areaOf(sel)) + ' m² · ' + sel.floors + ' kat') : sel.t === 'road' ? h('span', { class: 'mono' }, fmt(G.polyLen(sel.pts)) + ' m · ' + fmt(sel.w, 1) + ' m') : sel.pts && sel.t !== 'road' ? h('span', { class: 'mono' }, fmt(areaOf(sel)) + ' m²') : null,
           h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null),
@@ -28841,6 +29313,10 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       foot: h('p', { class: 'board-hint' }, t.hint),
       tools: [
         { k: 'seg', label: 'Pafta ölçeği', value: p.scale, options: plan.SCALES.map((s) => ({ v: s, label: '1/' + s })), onchange: (v) => c.planScale(v) },
+        { k: 'sep' },
+        { k: 'icon', label: 'Kutu seç', icon: 'marquee', pressed: !st.hand, onclick: () => c.planView({ hand: false, tool: 'select', draft: null }, true), title: 'Boş yerde sürükleyerek birkaç öğeyi seç; seçileni birlikte taşı' },
+        { k: 'icon', label: 'Kaydır', icon: 'hand', pressed: !!st.hand, onclick: () => c.planView({ hand: true, tool: 'select', draft: null }, true), title: 'Boş yerde sürükleyince çizimi kaydır (orta tuş her zaman kaydırır)' },
+        { k: 'icon', label: 'Tümünü seç', icon: 'selall', onclick: () => pl.multi(p.els.map((q) => q.id)), disabled: p.els.length < 2, title: 'Tüm öğeleri seç (Ctrl+A)' },
         { k: 'sep' },
         { k: 'btn', label: 'Sığdır', icon: 'expand', onclick: () => c.planFit(), disabled: !p.els.length, title: 'Çizimi pafta ortasına ve uygun ölçeğe getir' },
         { k: 'sep' },
@@ -28903,6 +29379,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   ctl.planSetEl = (id, patch) => ctl.dispatch({ type: 'PLAN_EL_SET', id: id, patch: patch });
   ctl.planLive = function (id, patch) { ctl.planLiveBegin(); ctl.dispatch({ type: 'PLAN_EL_SET_LIVE', id: id, patch: patch }); };
   ctl.planDel = (id) => ctl.dispatch({ type: 'PLAN_EL_DEL', id: id });
+  ctl.planMoveMany = function (moves, live) { if (live) ctl.planLiveBegin(); ctl.dispatch({ type: 'PLAN_EL_MOVE_MANY', moves: moves, live: !!live }); };
+  ctl.planDelMany = function (ids) { ctl.dispatch({ type: 'PLAN_EL_DEL_MANY', ids: ids }); ctl.planView({ ms: [] }, true); ctl.toast(ids.length + ' öğe silindi. Geri al ile döndürebilirsiniz.', 'info'); };
   ctl.planDup = (id) => ctl.dispatch({ type: 'PLAN_EL_DUP', id: id });
   ctl.planOrder = (id, dir) => ctl.dispatch({ type: 'PLAN_EL_ORDER', id: id, dir: dir });
 
@@ -29018,10 +29496,10 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const co = (ui.col = {});
   const get = () => App.store.get();
 
-  App.collageDefaults = () => ({ tab: 'ekle', tool: 'select', draft: null, stick: 0 });
+  App.collageDefaults = () => ({ tab: 'ekle', tool: 'select', draft: null, stick: 0, ms: [], mq: null });
 
   const TOOLS = [
-    { v: 'select', label: 'Seç', hint: 'Katmanı tıklayıp sürükleyin · köşe tutamaçlarıyla boyutlandırın · üstteki yuvarlak tutamaçla döndürün · Delete siler · ok tuşları taşır' },
+    { v: 'select', label: 'Seç', hint: 'Katmanı tıklayıp sürükleyin · köşe tutamaçlarıyla boyutlandırın · üstteki yuvarlak tutamaçla döndürün · Delete siler · ok tuşları taşır · boş yerde kutu çizerek birkaç katmanı seçin (soldan sağa: tamamen içindekiler, sağdan sola: değenler; Shift: ekle / çıkar) ve birlikte taşıyın' },
     { v: 'free', label: 'Elle çiz', hint: 'Basılı tutup sürükleyerek elle çizin; çizgi serbest bırakınca yumuşatılır' },
     { v: 'line', label: 'Çizgi', hint: 'Sürükleyerek çizgi çekin (elle çizilmiş gibi hafif eğrilir; panelden kapatılabilir)' },
     { v: 'arrow', label: 'Ok', hint: 'Sürükleyerek ok çizin; ok ucu bıraktığınız noktadadır' },
@@ -29238,11 +29716,45 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const layerNow = (id) => docNow().layers.find((q) => q.id === id);
   const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
+  const ms = App.multi;
+  /* çoklu seçim: kilitli ve gizli katmanlar seçilmez */
+  const selectable = (l) => !l.hidden && !l.locked;
+  const activeMs = (S) => { const have = new Set(S.project.collage.layers.filter(selectable).map((q) => q.id)); const r = (S.ui.col.ms || []).filter((id) => have.has(id)); return !S.selectedId && r.length >= 2 ? r : []; };
+  function layerBox(l) {
+    if (l.t === 'line') { const xs = l.pts.map((p) => p[0]), ys = l.pts.map((p) => p[1]); return { id: l.id, x0: Math.min.apply(null, xs), y0: Math.min.apply(null, ys), x1: Math.max.apply(null, xs), y1: Math.max.apply(null, ys) }; }
+    const pts = hitPoly(l);
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    return { id: l.id, x0: Math.min.apply(null, xs), y0: Math.min.apply(null, ys), x1: Math.max.apply(null, xs), y1: Math.max.apply(null, ys) };
+  }
+  const allBoxes = (doc) => doc.layers.filter(selectable).map(layerBox);
+  co.multi = function (list) {
+    if (list.length === 1) { ctl().colView({ ms: [] }, true); ctl().dispatch({ type: 'SELECT', id: list[0] }); return; }
+    ctl().dispatch({ type: 'SELECT', id: null });
+    ctl().colView({ ms: list }, true);
+  };
+  const moveOf = (l, dx, dy) => (l.t === 'line' ? { pts: l.pts.map((p) => [p[0] + dx, p[1] + dy]) } : { x: l.x + dx, y: l.y + dy });
+
   function elDown(e, l) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     if (get().ui.col.tool !== 'select') return;
     e.stopPropagation(); e.preventDefault();
     const s = toSvg(e);
+    const S0 = get();
+    if (e.shiftKey && selectable(l)) {
+      // Shift + tık: seçime ekle / çıkar · Shift + sürükle: katmanın üstünden de kutu seçimi başlar
+      gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: true, tog: l.id, moved: false };
+      try { co.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
+    const list = activeMs(S0);
+    if (list.length >= 2 && ms.has(list, l.id)) {
+      const orig = {};
+      docNow().layers.forEach((q) => { if (ms.has(list, q.id)) orig[q.id] = q; });
+      gest = { t: 'gmove', id: l.id, ids: list, orig: orig, sx: s.x, sy: s.y, moved: false, cX: e.clientX, cY: e.clientY };
+      try { co.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
+    if ((S0.ui.col.ms || []).length) ctl().colView({ ms: [] }, true);
     ctl().dispatch({ type: 'SELECT', id: l.id });
     if (l.locked) return;
     gest = { t: 'move', id: l.id, sx: s.x, sy: s.y, orig: l, moved: false, cX: e.clientX, cY: e.clientY };
@@ -29258,7 +29770,12 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const st = get().ui.col;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const s = toSvg(e);
-    if (st.tool === 'select') { if (get().selectedId) ctl().dispatch({ type: 'SELECT', id: null }); return; }
+    if (st.tool === 'select') {
+      if (!e.shiftKey && get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
+      gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: e.shiftKey, moved: false };
+      try { co.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
     if (st.tool === 'text') {
       e.preventDefault();
       ctl().colAddText(Math.round(s.x), Math.round(s.y));
@@ -29298,7 +29815,21 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       }
       return;
     }
+    if (g.t === 'marq') {
+      if (!g.moved && Math.hypot(e.clientX - g.cX, e.clientY - g.cY) < 3) return;
+      g.moved = true;
+      ctl().colView({ mq: ms.rect([g.sx, g.sy], [s.x, s.y]) }, true);
+      return;
+    }
     if (!g.moved) { if (Math.hypot(e.clientX - g.cX, e.clientY - g.cY) < 3) return; g.moved = true; ctl().colLiveBegin(); }
+    if (g.t === 'gmove') {
+      let dx = s.x - g.sx, dy = s.y - g.sy;
+      if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
+      const moves = {};
+      g.ids.forEach((id) => { moves[id] = moveOf(g.orig[id], dx, dy); });
+      ctl().colMoveMany(moves, true);
+      return;
+    }
     const o = g.orig;
     if (g.t === 'move') {
       let dx = s.x - g.sx, dy = s.y - g.sy;
@@ -29364,7 +29895,21 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (!g) return;
     gest = null;
     try { co.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok say */ }
-    if (g.t === 'move' || g.t === 'handle') { ctl().colLiveEnd(); return; }
+    if (g.t === 'marq') {
+      const S = get();
+      if (!g.moved) {
+        if (g.tog) { const base = activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : []); co.multi(ms.toggle(base, g.tog)); }
+        else if (!g.add && (S.ui.col.ms || []).length) ctl().colView({ ms: [], mq: null }, true);
+        return;
+      }
+      const ids = ms.hit(S.ui.col.mq || ms.rect([g.sx, g.sy], [g.sx, g.sy]), allBoxes(S.project.collage));
+      const base = g.add ? (activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : [])) : [];
+      ctl().colView({ mq: null }, true);
+      co.multi(ms.merge(base, ids, g.add));
+      return;
+    }
+    if (g.t === 'gmove' && !g.moved) { ctl().colLiveEnd(); co.multi([g.id]); return; }
+    if (g.t === 'move' || g.t === 'handle' || g.t === 'gmove') { ctl().colLiveEnd(); return; }
     if (g.t === 'draw') {
       showPath('');
       const st = get().ui.col;
@@ -29395,6 +29940,19 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const st = S.ui.col;
     const c = ctl();
     if (e.key === 'Enter' && st.draft) { e.preventDefault(); finishPoly(); }
+    else if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A') && st.tool === 'select') { e.preventDefault(); co.multi(S.project.collage.layers.filter(selectable).map((q) => q.id)); }
+    else if (activeMs(S).length && st.tool === 'select' && (ms.DIRS[e.key] || e.key === 'Delete' || e.key === 'Backspace' || e.key === 'Escape')) {
+      e.preventDefault();
+      const list = activeMs(S);
+      if (e.key === 'Escape') c.colView({ ms: [] }, true);
+      else if (e.key === 'Delete' || e.key === 'Backspace') c.colDelMany(list);
+      else {
+        const n = e.shiftKey ? 10 : 1, dv = ms.DIRS[e.key];
+        const moves = {};
+        S.project.collage.layers.forEach((q) => { if (ms.has(list, q.id)) moves[q.id] = moveOf(q, dv[0] * n, dv[1] * n); });
+        c.colMoveMany(moves, false);
+      }
+    }
     else if (e.key === 'Escape') {
       if (st.draft) { c.colView({ draft: null }, true); showPath(''); }
       else if (S.selectedId) c.dispatch({ type: 'SELECT', id: null });
@@ -29436,6 +29994,16 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         out.push(h('path', Object.assign(base, { d: d, fill: 'none', stroke: 'transparent', 'stroke-width': Math.max(16, l.w + 10), 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })));
       } else out.push(h('polygon', Object.assign(base, { points: ptsStr(hitPoly(l)) })));
     });
+    const grp = activeMs(state);
+    if (grp.length) {
+      doc.layers.forEach((q) => {
+        if (!ms.has(grp, q.id)) return;
+        if (q.t === 'line') out.push(h('path', { key: 'gr' + q.id, d: q.kind === 'free' ? C.smoothPath(C.simplify(q.pts, 2.5)) : 'M' + q.pts[0][0] + ' ' + q.pts[0][1] + ' L' + q.pts[1][0] + ' ' + q.pts[1][1], fill: 'none', stroke: ink, 'stroke-width': Math.max(8, q.w + 6), 'stroke-opacity': 0.16, 'stroke-linecap': 'round', 'pointer-events': 'none' }));
+        else { const b0 = C.boxOf(q); out.push(h('polygon', { key: 'gr' + q.id, points: ptsStr(C.boxPts(b0.x, b0.y, b0.w, b0.h, q.rot || 0)), fill: 'none', stroke: ink, 'stroke-width': 2, 'stroke-dasharray': '7 5', 'pointer-events': 'none' })); }
+      });
+      const bb = ms.bounds(allBoxes(doc).filter((q) => ms.has(grp, q.id)));
+      if (bb) out.push(ms.frame(bb, 10));
+    }
     const l = doc.layers.find((x) => x.id === state.selectedId);
     if (l && !l.hidden) {
       const b = C.boxOf(l);
@@ -29499,12 +30067,15 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       ref: (el) => { co.svgEl = el; }, onpointerdown: bgDown, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp, ondblclick: () => { if (get().ui.col.draft) finishPoly(); },
     }, sc.prims.map((p) => App.board.primToV(p)),
     h('g', { class: 'khits' }, st.tool === 'select' ? hitsLayer(state, doc) : null),
-    h('g', { class: 'kdraft' }, draftLayer(state)));
+    h('g', { class: 'kdraft' }, draftLayer(state)),
+    st.mq ? ms.marquee(st.mq) : null);
+    const grpN = activeMs(state).length;
     const chipTxt = st.tool === 'select' ? null : t.label;
     const stage = h('div', { class: 'board-stage kstage', ondragover: (e) => { e.preventDefault(); }, ondrop: (e) => { e.preventDefault(); const f = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []); if (f.length) c.colFiles(f); } }, svg,
       chipTxt ? h('div', { class: 'pl-chip' }, h('b', {}, chipTxt + (st.draft ? ' · ' + st.draft.length + ' nokta' : '')),
         st.draft && st.draft.length >= 3 ? h('button', { type: 'button', class: 'btn btn-yellow pl-fin', onclick: finishPoly }, 'Bitir') : null,
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seç aracına dön', title: 'Seç aracına dön (Esc)', onclick: () => { c.colView({ draft: null }, true); c.colTool('select'); } }, ui.icon('close', 14)))
+        : grpN ? ms.chip(grpN, { noun: 'katman', onclear: () => c.colView({ ms: [] }, true) })
         : (sel ? h('div', { class: 'pl-chip' }, h('b', {}, C.LAYER_LABEL[sel.t]), h('span', { class: 'mono' }, C.layerName(sel)),
           h('button', { type: 'button', class: 'btn pl-fin', onclick: () => c.colView({ tab: sel ? 'katman' : 'ekle' }, true) }, 'Düzenle'),
           h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null),
@@ -29519,6 +30090,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       foot: h('p', { class: 'board-hint' }, t.hint),
       tools: [
         { k: 'seg', label: 'Araç', value: st.tool, options: TOOLS.map((x) => ({ v: x.v, label: x.label })), onchange: (v) => c.colTool(v) },
+        { k: 'icon', label: 'Tümünü seç', icon: 'selall', onclick: () => co.multi(doc.layers.filter(selectable).map((q) => q.id)), disabled: doc.layers.filter(selectable).length < 2, title: 'Tüm katmanları seç (Ctrl+A)' },
         { k: 'sep' },
         { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => c.dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
         { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => c.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },
@@ -29576,6 +30148,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   };
   ctl.colCropReset = function (id) { cropStart = null; ctl.colCrop(id, { l: 0, t: 0, r: 0, b: 0 }, true); };
   ctl.colDel = (id) => ctl.dispatch({ type: 'COL_DEL', id: id });
+  ctl.colMoveMany = function (moves, live) { if (live) ctl.colLiveBegin(); ctl.dispatch({ type: 'COL_MOVE_MANY', moves: moves, live: !!live }); };
+  ctl.colDelMany = function (ids) { ctl.dispatch({ type: 'COL_DEL_MANY', ids: ids }); ctl.colView({ ms: [] }, true); ctl.toast(ids.length + ' katman silindi. Geri al ile döndürebilirsiniz.', 'info'); };
   ctl.colDup = (id) => ctl.dispatch({ type: 'COL_DUP', id: id });
   ctl.colOrder = (id, o) => ctl.dispatch({ type: 'COL_ORDER', id: id, dir: o && o.dir, to: o && o.to });
   ctl.colAccentAll = function () { ctl.dispatch({ type: 'COL_ACCENT_ALL', col: doc().accent }); ctl.toast('Tüm şekiller vurgu rengine çevrildi.', 'success'); };
@@ -29684,7 +30258,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const tp = (ui.tpl = {});
   const get = () => App.store.get();
 
-  App.tplDefaults = () => ({ tab: 'sablon', guides: true, tplSize: 'auto', stick: 0 });
+  App.tplDefaults = () => ({ tab: 'sablon', guides: true, tplSize: 'auto', stick: 0, ms: [], mq: null });
 
   /* ---------------- küçük bileşenler ---------------- */
   function swatches(cur, onpick) {
@@ -29962,10 +30536,38 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const panelNow = (id) => docNow().panels.find((q) => q.id === id);
   const q = (id) => document.getElementById(id);
 
+  const ms = App.multi;
+  /* çoklu seçim: kilitli ve gizli paneller seçilmez */
+  const selectable = (p) => !p.hidden && !p.locked;
+  const activeMs = (S) => { const have = new Set(S.project.tpl.panels.filter(selectable).map((x) => x.id)); const r = (S.ui.tpl.ms || []).filter((id) => have.has(id)); return !S.selectedId && r.length >= 2 ? r : []; };
+  const boxOfP = (p) => ({ id: p.id, x0: p.x, y0: p.y, x1: p.x + p.w, y1: p.y + p.h });
+  const allBoxes = (doc) => doc.panels.filter(selectable).map(boxOfP);
+  tp.multi = function (list) {
+    if (list.length === 1) { ctl().tplView({ ms: [] }, true); ctl().dispatch({ type: 'SELECT', id: list[0] }); return; }
+    ctl().dispatch({ type: 'SELECT', id: null });
+    ctl().tplView({ ms: list }, true);
+  };
+
   function elDown(e, p) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.stopPropagation(); e.preventDefault();
     const s = toSvg(e);
+    const S0 = get();
+    if (e.shiftKey && selectable(p)) {
+      // Shift + tık: seçime ekle / çıkar · Shift + sürükle: panelin üstünden de kutu seçimi başlar
+      gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: true, tog: p.id, moved: false };
+      try { tp.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
+    const list = activeMs(S0);
+    if (list.length >= 2 && ms.has(list, p.id)) {
+      const orig = {};
+      docNow().panels.forEach((x) => { if (ms.has(list, x.id)) orig[x.id] = x; });
+      gest = { t: 'gmove', id: p.id, ids: list, orig: orig, bb: ms.bounds(list.map((id) => boxOfP(orig[id]))), sx: s.x, sy: s.y, moved: false, cX: e.clientX, cY: e.clientY };
+      try { tp.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
+    if ((S0.ui.tpl.ms || []).length) ctl().tplView({ ms: [] }, true);
     ctl().dispatch({ type: 'SELECT', id: p.id });
     if (p.locked) return;
     gest = { t: 'move', id: p.id, sx: s.x, sy: s.y, orig: p, moved: false, cX: e.clientX, cY: e.clientY };
@@ -29979,7 +30581,10 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   }
   function bgDown(e) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    if (get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
+    if (!e.shiftKey && get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
+    const s = toSvg(e);
+    gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: e.shiftKey, moved: false };
+    try { tp.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
   }
 
   /* yaslama: sayfa kenarı/ortası, kenar boşluğu ve diğer panellerin kenar-orta çizgileri */
@@ -29997,7 +30602,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   function guide(id, a, b, c2, d2) {
     const el = q(id);
     if (!el) return;
-    if (a == null) { el.setAttribute('visibility', 'hidden'); return; }
+    if (a == null || b == null || c2 == null || d2 == null) { el.setAttribute('visibility', 'hidden'); return; }
     el.setAttribute('x1', a); el.setAttribute('y1', b); el.setAttribute('x2', c2); el.setAttribute('y2', d2); el.setAttribute('visibility', 'visible');
   }
   const threshold = () => { const r = tp.svgEl.getBoundingClientRect(); const s = T.sizeOf(docNow()); return 8 * (s.w / Math.max(1, r.width)); };
@@ -30007,7 +30612,35 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (!gest) return;
     const g = gest;
     const s = toSvg(e);
+    if (g.t === 'marq') {
+      if (!g.moved && Math.hypot(e.clientX - g.cX, e.clientY - g.cY) < 3) return;
+      g.moved = true;
+      ctl().tplView({ mq: ms.rect([g.sx, g.sy], [s.x, s.y]) }, true);
+      return;
+    }
     if (!g.moved) { if (Math.hypot(e.clientX - g.cX, e.clientY - g.cY) < 3) return; g.moved = true; ctl().tplLiveBegin(); }
+    if (g.t === 'gmove') {
+      const d0 = docNow(), S1 = T.sizeOf(d0);
+      let dx = s.x - g.sx, dy = s.y - g.sy;
+      if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
+      let gx = null, gy = null;
+      if (d0.snap && !e.altKey) {
+        // grubun kenar / orta çizgileri sayfa ve seçilmeyen panellerle yaslanır
+        const m0 = d0.margin;
+        const xs = [0, m0, S1.w / 2, S1.w - m0, S1.w], ys = [0, m0, S1.h / 2, S1.h - m0, S1.h];
+        d0.panels.forEach((p) => { if (ms.has(g.ids, p.id) || p.hidden) return; xs.push(p.x, p.x + p.w / 2, p.x + p.w); ys.push(p.y, p.y + p.h / 2, p.y + p.h); });
+        const thr0 = threshold(), bb = g.bb;
+        const bx = best([bb.x0 + dx, bb.x0 + dx + bb.w / 2, bb.x1 + dx], xs, thr0), by = best([bb.y0 + dy, bb.y0 + dy + bb.h / 2, bb.y1 + dy], ys, thr0);
+        if (bx) { dx += bx.d; gx = bx.at; }
+        if (by) { dy += by.d; gy = by.at; }
+      }
+      guide('tpg-v', gx, 0, gx, S1.h); guide('tpg-h', 0, gy, S1.w, gy);
+      if (gx == null) guide('tpg-v'); if (gy == null) guide('tpg-h');
+      const moves = {};
+      g.ids.forEach((id) => { const o2 = g.orig[id]; moves[id] = { x: o2.x + dx, y: o2.y + dy }; });
+      ctl().tplMoveMany(moves, true);
+      return;
+    }
     const o = g.orig, d = docNow(), S = T.sizeOf(d);
     const snapOn = d.snap && !e.altKey;
     const L = snapOn ? snapLines(o.id) : null, thr = snapOn ? threshold() : 0;
@@ -30051,6 +30684,20 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     gest = null;
     try { tp.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok say */ }
     hideGuides();
+    if (g.t === 'marq') {
+      const S = get();
+      if (!g.moved) {
+        if (g.tog) { const base = activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : []); tp.multi(ms.toggle(base, g.tog)); }
+        else if (!g.add && (S.ui.tpl.ms || []).length) ctl().tplView({ ms: [], mq: null }, true);
+        return;
+      }
+      const ids = ms.hit(S.ui.tpl.mq || ms.rect([g.sx, g.sy], [g.sx, g.sy]), allBoxes(S.project.tpl));
+      const base = g.add ? (activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : [])) : [];
+      ctl().tplView({ mq: null }, true);
+      tp.multi(ms.merge(base, ids, g.add));
+      return;
+    }
+    if (g.t === 'gmove' && !g.moved) { ctl().tplLiveEnd(); tp.multi([g.id]); return; }
     ctl().tplLiveEnd();
   }
 
@@ -30060,6 +30707,20 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const tg = e.target;
     if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT' || tg.isContentEditable)) return;
     const c = ctl();
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); tp.multi(S.project.tpl.panels.filter(selectable).map((x) => x.id)); return; }
+    if (activeMs(S).length && (ms.DIRS[e.key] || e.key === 'Delete' || e.key === 'Backspace' || e.key === 'Escape')) {
+      e.preventDefault();
+      const list = activeMs(S);
+      if (e.key === 'Escape') c.tplView({ ms: [] }, true);
+      else if (e.key === 'Delete' || e.key === 'Backspace') c.tplDelMany(list);
+      else {
+        const n = e.shiftKey ? 10 : 1, dv = ms.DIRS[e.key];
+        const moves = {};
+        S.project.tpl.panels.forEach((x) => { if (ms.has(list, x.id)) moves[x.id] = { x: x.x + dv[0] * n, y: x.y + dv[1] * n }; });
+        c.tplMoveMany(moves, false);
+      }
+      return;
+    }
     if (e.key === 'Escape') { if (S.selectedId) c.dispatch({ type: 'SELECT', id: null }); }
     else if ((e.key === 'Delete' || e.key === 'Backspace') && S.selectedId) { e.preventDefault(); const p = panelNow(S.selectedId); if (p && !p.locked) c.tplDel(S.selectedId); }
     else if (S.selectedId && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].indexOf(e.key) >= 0) {
@@ -30086,6 +30747,13 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       if (p.hidden) return;
       out.push(h('rect', { key: 'h' + p.id, class: 'thit' + (p.locked ? ' locked' : ''), x: p.x, y: p.y, width: p.w, height: p.h, fill: 'transparent', onpointerdown: (e) => elDown(e, p), ondblclick: (e) => { e.stopPropagation(); ctl().tplView({ tab: 'panel' }, true); setTimeout(() => { const i = q('tpl-text') || q('tpl-tname') || q('tpl-src-sel'); if (i) i.focus(); }, 80); } }));
     });
+    const grp = activeMs(state);
+    if (grp.length) {
+      const sw0 = Math.max(2, T.sizeOf(doc).w / 700);
+      doc.panels.forEach((x) => { if (ms.has(grp, x.id)) out.push(h('rect', { key: 'gr' + x.id, x: x.x, y: x.y, width: x.w, height: x.h, fill: 'none', stroke: ink, 'stroke-width': sw0, 'stroke-dasharray': (sw0 * 4) + ' ' + (sw0 * 3), 'pointer-events': 'none' })); });
+      const bb = ms.bounds(allBoxes(doc).filter((x) => ms.has(grp, x.id)));
+      if (bb) out.push(ms.frame(bb, sw0 * 5));
+    }
     const p = doc.panels.find((x) => x.id === state.selectedId);
     if (p && !p.hidden) {
       const sw = Math.max(2, T.sizeOf(doc).w / 700);
@@ -30117,10 +30785,12 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     showG && doc.margin > 0 ? h('rect', { key: 'mg', class: 'tmargin', x: doc.margin, y: doc.margin, width: sc.W - doc.margin * 2, height: sc.H - doc.margin * 2, fill: 'none', 'pointer-events': 'none' }) : null,
     h('g', { class: 'thits' }, hitsLayer(state, doc)),
     h('line', { key: 'gv', id: 'tpg-v', class: 'tguide', x1: 0, y1: 0, x2: 0, y2: S.h, visibility: 'hidden', 'pointer-events': 'none' }),
-    h('line', { key: 'gh', id: 'tpg-h', class: 'tguide', x1: 0, y1: 0, x2: S.w, y2: 0, visibility: 'hidden', 'pointer-events': 'none' }));
+    h('line', { key: 'gh', id: 'tpg-h', class: 'tguide', x1: 0, y1: 0, x2: S.w, y2: 0, visibility: 'hidden', 'pointer-events': 'none' }),
+    state.ui.tpl.mq ? ms.marquee(state.ui.tpl.mq) : null);
+    const grpN = activeMs(state).length;
     const refsBusy = T.refsOf(doc).some((id) => { const s = T.entryState(state, id); return s === 'busy' || s === 'none'; });
     const stage = h('div', { class: 'board-stage tstage', ondragover: (e) => { e.preventDefault(); }, ondrop: (e) => { e.preventDefault(); const f = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []); if (f.length) c.tplFiles(f); } }, svg,
-      sel ? h('div', { class: 'pl-chip' }, h('b', {}, T.PANEL_LABEL[sel.t]), T.panelName(sel) !== T.PANEL_LABEL[sel.t] ? h('span', { class: 'mono' }, T.panelName(sel)) : null,
+      grpN ? ms.chip(grpN, { noun: 'panel', onclear: () => c.tplView({ ms: [] }, true) }) : sel ? h('div', { class: 'pl-chip' }, h('b', {}, T.PANEL_LABEL[sel.t]), T.panelName(sel) !== T.PANEL_LABEL[sel.t] ? h('span', { class: 'mono' }, T.panelName(sel)) : null,
         h('button', { type: 'button', class: 'btn pl-fin', onclick: () => c.tplView({ tab: 'panel' }, true) }, 'Düzenle'),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null,
       refsBusy ? h('div', { class: 'tpl-busy mono', role: 'status' }, 'Araç çıktıları hazırlanıyor…') : null,
@@ -30133,9 +30803,10 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       label: 'Pafta şablonu',
       stage: stage,
       scale: T.sizeOf(doc).label + ' · ' + sc.W + ' × ' + sc.H + ' px',
-      foot: h('p', { class: 'board-hint' }, 'Paneli tıklayıp sürükleyin · kenar tutamaçlarıyla boyutlandırın · Shift: eksen / oran korur · Alt: yaslamayı kapatır · ok tuşları taşır · Delete siler'),
+      foot: h('p', { class: 'board-hint' }, 'Paneli tıklayıp sürükleyin · kenar tutamaçlarıyla boyutlandırın · Shift: eksen / oran korur · Alt: yaslamayı kapatır · ok tuşları taşır · Delete siler · boş yerde kutu çizerek birkaç paneli seçin (soldan sağa: tamamen içindekiler, sağdan sola: değenler; Shift: ekle / çıkar) ve birlikte taşıyın · Ctrl+A tümünü seçer'),
       tools: [
         { k: 'btn', label: 'Monokrom', icon: 'sun', pressed: !!(doc.mono && doc.mono.on), onclick: () => c.tplMono({ on: !(doc.mono && doc.mono.on) }), title: 'Tüm paftayı tek rengin tonlarına çevir / özgün renklere dön' },
+        { k: 'icon', label: 'Tümünü seç', icon: 'selall', onclick: () => tp.multi(doc.panels.filter(selectable).map((x) => x.id)), disabled: doc.panels.filter(selectable).length < 2, title: 'Tüm panelleri seç (Ctrl+A)' },
         { k: 'sep' },
         { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => c.dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
         { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => c.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },
@@ -30184,6 +30855,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   ctl.tplSetP = (id, patch) => ctl.dispatch({ type: 'TPL_SET_P', id: id, patch: patch });
   ctl.tplLive = function (id, patch) { ctl.tplLiveBegin(); ctl.dispatch({ type: 'TPL_LIVE', id: id, patch: patch }); };
   ctl.tplDel = (id) => ctl.dispatch({ type: 'TPL_DEL', id: id });
+  ctl.tplMoveMany = function (moves, live) { if (live) ctl.tplLiveBegin(); ctl.dispatch({ type: 'TPL_MOVE_MANY', moves: moves, live: !!live }); };
+  ctl.tplDelMany = function (ids) { ctl.dispatch({ type: 'TPL_DEL_MANY', ids: ids }); ctl.tplView({ ms: [] }, true); ctl.toast(ids.length + ' panel silindi. Geri al ile döndürebilirsiniz.', 'info'); };
   ctl.tplDup = (id) => ctl.dispatch({ type: 'TPL_DUP', id: id });
   ctl.tplOrder = (id, o) => ctl.dispatch({ type: 'TPL_ORDER', id: id, dir: o && o.dir, to: o && o.to });
   ctl.tplAlign = (id, how) => ctl.dispatch({ type: 'TPL_ALIGN', id: id, how: how });

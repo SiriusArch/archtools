@@ -38,6 +38,8 @@
   ctl.tplSetP = (id, patch) => ctl.dispatch({ type: 'TPL_SET_P', id: id, patch: patch });
   ctl.tplLive = function (id, patch) { ctl.tplLiveBegin(); ctl.dispatch({ type: 'TPL_LIVE', id: id, patch: patch }); };
   ctl.tplDel = (id) => ctl.dispatch({ type: 'TPL_DEL', id: id });
+  ctl.tplMoveMany = function (moves, live) { if (live) ctl.tplLiveBegin(); ctl.dispatch({ type: 'TPL_MOVE_MANY', moves: moves, live: !!live }); };
+  ctl.tplDelMany = function (ids) { ctl.dispatch({ type: 'TPL_DEL_MANY', ids: ids }); ctl.tplView({ ms: [] }, true); ctl.toast(ids.length + ' panel silindi. Geri al ile döndürebilirsiniz.', 'info'); };
   ctl.tplDup = (id) => ctl.dispatch({ type: 'TPL_DUP', id: id });
   ctl.tplOrder = (id, o) => ctl.dispatch({ type: 'TPL_ORDER', id: id, dir: o && o.dir, to: o && o.to });
   ctl.tplAlign = (id, how) => ctl.dispatch({ type: 'TPL_ALIGN', id: id, how: how });

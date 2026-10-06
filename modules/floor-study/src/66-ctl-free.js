@@ -11,7 +11,7 @@
   const cur = () => get().project.study.free;
 
   /* ---------------- görünüm durumu ---------------- */
-  App.etutDefaults = () => ({ view: 'plan', lv: 'all', furn: true, rel: true, grid: true, yaw: 35, pitch: 45, zx: 1, cam: { k: 1, dx: 0, dy: 0 }, ex: null, fu: null, stick: 0 });
+  App.etutDefaults = () => ({ view: 'plan', lv: 'all', furn: true, rel: true, grid: true, yaw: 35, pitch: 45, zx: 1, cam: { k: 1, dx: 0, dy: 0 }, ex: null, fu: null, stick: 0, ms: [], mq: null, tool: 'sel' });
   const EV = ctl.makeView('etut', 'archtools.view.etut', ['view', 'furn', 'rel', 'grid', 'yaw', 'pitch', 'zx']);
   ctl.etutView = EV.set;
   ctl.loadEtutView = function () {
@@ -36,8 +36,31 @@
   };
 
   /* ---------------- seçim ---------------- */
-  ctl.freeSelect = function (id) { ctl.dispatch({ type: 'SELECT', id: id }); if (get().ui.etut.ex || get().ui.etut.fu) ctl.etutView({ ex: null, fu: null }, true); };
-  ctl.freeSelEx = function (id) { ctl.dispatch({ type: 'SELECT', id: null }); ctl.etutView({ ex: id, fu: null }, true); };
+  ctl.freeSelect = function (id) { ctl.dispatch({ type: 'SELECT', id: id }); const v = get().ui.etut; if (v.ex || v.fu || (v.ms && v.ms.length)) ctl.etutView({ ex: null, fu: null, ms: [] }, true); };
+  ctl.freeSelEx = function (id) { ctl.dispatch({ type: 'SELECT', id: null }); ctl.etutView({ ex: id, fu: null, ms: [] }, true); };
+  /* çoklu seçim: anahtarlar 's:<mekânId>' ve 'x:<öğeId>' */
+  ctl.freeMulti = function (list) {
+    list = (list || []).slice();
+    if (list.length === 1) { const k = list[0]; if (k.charAt(0) === 'x') ctl.freeSelEx(k.slice(2)); else ctl.freeSelect(k.slice(2)); return; }
+    ctl.dispatch({ type: 'SELECT', id: null });
+    ctl.etutView({ ms: list, ex: null, fu: null }, true);
+  };
+  ctl.freeSelectAll = function (view) {
+    const fd = st.freeDerive(get().project);
+    const ids = fd.items.filter((it) => !(view && view.ghost && view.ghost(it))).map((it) => 's:' + it.id).concat(fd.extras.map((e) => 'x:' + e.id));
+    ctl.freeMulti(ids);
+  };
+  ctl.freeMoveMany = function (spaces, extras, live) {
+    if (live) ctl.freeLiveBegin();
+    ctl.dispatch({ type: 'FREE_MOVE_MANY', spaces: spaces, extras: extras, live: !!live });
+  };
+  ctl.freeDelMany = function (list) {
+    const ids = (list || []).filter((k) => k.charAt(0) === 'x').map((k) => k.slice(2));
+    const nSp = (list || []).length - ids.length;
+    ids.forEach((id) => ctl.dispatch({ type: 'FREE_EX_DEL', id: id }));
+    ctl.etutView({ ms: [], ex: null }, true);
+    ctl.toast(ids.length ? ids.length + ' öğe silindi' + (nSp ? '. Mekânlar silinmedi; işlev şemasından kalkacakları için tek tek silin.' : '.') : 'Mekânlar toplu silinmez; işlev şemasından kalkacakları için tek tek silin.', ids.length ? 'info' : 'error');
+  };
   ctl.freeSelFurn = (fid) => ctl.etutView({ fu: fid }, true);
 
   /* sürükleme / kaydırıcı: ilk harekette tek bir geri-al noktası, sonrası canlı */

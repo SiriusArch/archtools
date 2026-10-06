@@ -5,7 +5,7 @@
      COL_SET {patch}                      başlık, boyut, zemin, vurgu rengi
      COL_ADD {layer}  COL_ADD_MANY {layers}
      COL_SET_L {id, patch}  COL_LIVE {id, patch}   (canlı: geri alma noktası açmaz)
-     COL_DEL {id}  COL_DUP {id}  COL_ORDER {id, dir | to}
+     COL_DEL {id}  COL_DEL_MANY {ids}  COL_MOVE_MANY {moves, live}  COL_DUP {id}  COL_ORDER {id, dir | to}
      COL_ACCENT_ALL {col}                 tüm şekillerin rengini değiştir
      COL_LOAD {doc}  COL_CLEAR
    JSON uzantısı: extensions.collage (görseller dahil; otomatik kayıtta görseller atlanır)
@@ -54,6 +54,25 @@
         if (!nx) return same();
         if (Object.keys(nx).every((k) => nx[k] === l[k] || (Array.isArray(nx[k]) && JSON.stringify(nx[k]) === JSON.stringify(l[k])))) return same();
         return setLayers(c.layers.map((q) => (q.id === a.id ? nx : q)), a.type === 'COL_SET_L');
+      }
+      case 'COL_MOVE_MANY': {
+        // seçili katmanları birlikte taşı: a.moves {id: yama}; a.live → geri-al noktası açmaz
+        const mv = a.moves || {};
+        let ch = false;
+        const layers = c.layers.map((q) => {
+          if (!mv[q.id]) return q;
+          const nx = C.clean(q, mv[q.id]);
+          if (!nx || Object.keys(nx).every((k) => nx[k] === q[k] || (Array.isArray(nx[k]) && JSON.stringify(nx[k]) === JSON.stringify(q[k])))) return q;
+          ch = true; return nx;
+        });
+        return ch ? setLayers(layers, !a.live) : same();
+      }
+      case 'COL_DEL_MANY': {
+        const del = new Set(a.ids || []);
+        if (!c.layers.some((q) => del.has(q.id))) return same();
+        const r = setLayers(c.layers.filter((q) => !del.has(q.id)), true);
+        r.selectedId = null;
+        return r;
       }
       case 'COL_DEL': {
         if (!c.layers.some((q) => q.id === a.id)) return same();

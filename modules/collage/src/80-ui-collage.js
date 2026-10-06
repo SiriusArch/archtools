@@ -14,10 +14,10 @@
   const co = (ui.col = {});
   const get = () => App.store.get();
 
-  App.collageDefaults = () => ({ tab: 'ekle', tool: 'select', draft: null, stick: 0 });
+  App.collageDefaults = () => ({ tab: 'ekle', tool: 'select', draft: null, stick: 0, ms: [], mq: null });
 
   const TOOLS = [
-    { v: 'select', label: 'Seç', hint: 'Katmanı tıklayıp sürükleyin · köşe tutamaçlarıyla boyutlandırın · üstteki yuvarlak tutamaçla döndürün · Delete siler · ok tuşları taşır' },
+    { v: 'select', label: 'Seç', hint: 'Katmanı tıklayıp sürükleyin · köşe tutamaçlarıyla boyutlandırın · üstteki yuvarlak tutamaçla döndürün · Delete siler · ok tuşları taşır · boş yerde kutu çizerek birkaç katmanı seçin (soldan sağa: tamamen içindekiler, sağdan sola: değenler; Shift: ekle / çıkar) ve birlikte taşıyın' },
     { v: 'free', label: 'Elle çiz', hint: 'Basılı tutup sürükleyerek elle çizin; çizgi serbest bırakınca yumuşatılır' },
     { v: 'line', label: 'Çizgi', hint: 'Sürükleyerek çizgi çekin (elle çizilmiş gibi hafif eğrilir; panelden kapatılabilir)' },
     { v: 'arrow', label: 'Ok', hint: 'Sürükleyerek ok çizin; ok ucu bıraktığınız noktadadır' },
@@ -234,11 +234,45 @@
   const layerNow = (id) => docNow().layers.find((q) => q.id === id);
   const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
+  const ms = App.multi;
+  /* çoklu seçim: kilitli ve gizli katmanlar seçilmez */
+  const selectable = (l) => !l.hidden && !l.locked;
+  const activeMs = (S) => { const have = new Set(S.project.collage.layers.filter(selectable).map((q) => q.id)); const r = (S.ui.col.ms || []).filter((id) => have.has(id)); return !S.selectedId && r.length >= 2 ? r : []; };
+  function layerBox(l) {
+    if (l.t === 'line') { const xs = l.pts.map((p) => p[0]), ys = l.pts.map((p) => p[1]); return { id: l.id, x0: Math.min.apply(null, xs), y0: Math.min.apply(null, ys), x1: Math.max.apply(null, xs), y1: Math.max.apply(null, ys) }; }
+    const pts = hitPoly(l);
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    return { id: l.id, x0: Math.min.apply(null, xs), y0: Math.min.apply(null, ys), x1: Math.max.apply(null, xs), y1: Math.max.apply(null, ys) };
+  }
+  const allBoxes = (doc) => doc.layers.filter(selectable).map(layerBox);
+  co.multi = function (list) {
+    if (list.length === 1) { ctl().colView({ ms: [] }, true); ctl().dispatch({ type: 'SELECT', id: list[0] }); return; }
+    ctl().dispatch({ type: 'SELECT', id: null });
+    ctl().colView({ ms: list }, true);
+  };
+  const moveOf = (l, dx, dy) => (l.t === 'line' ? { pts: l.pts.map((p) => [p[0] + dx, p[1] + dy]) } : { x: l.x + dx, y: l.y + dy });
+
   function elDown(e, l) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     if (get().ui.col.tool !== 'select') return;
     e.stopPropagation(); e.preventDefault();
     const s = toSvg(e);
+    const S0 = get();
+    if (e.shiftKey && selectable(l)) {
+      // Shift + tık: seçime ekle / çıkar · Shift + sürükle: katmanın üstünden de kutu seçimi başlar
+      gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: true, tog: l.id, moved: false };
+      try { co.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
+    const list = activeMs(S0);
+    if (list.length >= 2 && ms.has(list, l.id)) {
+      const orig = {};
+      docNow().layers.forEach((q) => { if (ms.has(list, q.id)) orig[q.id] = q; });
+      gest = { t: 'gmove', id: l.id, ids: list, orig: orig, sx: s.x, sy: s.y, moved: false, cX: e.clientX, cY: e.clientY };
+      try { co.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
+    if ((S0.ui.col.ms || []).length) ctl().colView({ ms: [] }, true);
     ctl().dispatch({ type: 'SELECT', id: l.id });
     if (l.locked) return;
     gest = { t: 'move', id: l.id, sx: s.x, sy: s.y, orig: l, moved: false, cX: e.clientX, cY: e.clientY };
@@ -254,7 +288,12 @@
     const st = get().ui.col;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const s = toSvg(e);
-    if (st.tool === 'select') { if (get().selectedId) ctl().dispatch({ type: 'SELECT', id: null }); return; }
+    if (st.tool === 'select') {
+      if (!e.shiftKey && get().selectedId) ctl().dispatch({ type: 'SELECT', id: null });
+      gest = { t: 'marq', sx: s.x, sy: s.y, cX: e.clientX, cY: e.clientY, add: e.shiftKey, moved: false };
+      try { co.svgEl.setPointerCapture(e.pointerId); } catch (err) { /* yok say */ }
+      return;
+    }
     if (st.tool === 'text') {
       e.preventDefault();
       ctl().colAddText(Math.round(s.x), Math.round(s.y));
@@ -294,7 +333,21 @@
       }
       return;
     }
+    if (g.t === 'marq') {
+      if (!g.moved && Math.hypot(e.clientX - g.cX, e.clientY - g.cY) < 3) return;
+      g.moved = true;
+      ctl().colView({ mq: ms.rect([g.sx, g.sy], [s.x, s.y]) }, true);
+      return;
+    }
     if (!g.moved) { if (Math.hypot(e.clientX - g.cX, e.clientY - g.cY) < 3) return; g.moved = true; ctl().colLiveBegin(); }
+    if (g.t === 'gmove') {
+      let dx = s.x - g.sx, dy = s.y - g.sy;
+      if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
+      const moves = {};
+      g.ids.forEach((id) => { moves[id] = moveOf(g.orig[id], dx, dy); });
+      ctl().colMoveMany(moves, true);
+      return;
+    }
     const o = g.orig;
     if (g.t === 'move') {
       let dx = s.x - g.sx, dy = s.y - g.sy;
@@ -360,7 +413,21 @@
     if (!g) return;
     gest = null;
     try { co.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok say */ }
-    if (g.t === 'move' || g.t === 'handle') { ctl().colLiveEnd(); return; }
+    if (g.t === 'marq') {
+      const S = get();
+      if (!g.moved) {
+        if (g.tog) { const base = activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : []); co.multi(ms.toggle(base, g.tog)); }
+        else if (!g.add && (S.ui.col.ms || []).length) ctl().colView({ ms: [], mq: null }, true);
+        return;
+      }
+      const ids = ms.hit(S.ui.col.mq || ms.rect([g.sx, g.sy], [g.sx, g.sy]), allBoxes(S.project.collage));
+      const base = g.add ? (activeMs(S).length ? activeMs(S) : (S.selectedId ? [S.selectedId] : [])) : [];
+      ctl().colView({ mq: null }, true);
+      co.multi(ms.merge(base, ids, g.add));
+      return;
+    }
+    if (g.t === 'gmove' && !g.moved) { ctl().colLiveEnd(); co.multi([g.id]); return; }
+    if (g.t === 'move' || g.t === 'handle' || g.t === 'gmove') { ctl().colLiveEnd(); return; }
     if (g.t === 'draw') {
       showPath('');
       const st = get().ui.col;
@@ -391,6 +458,19 @@
     const st = S.ui.col;
     const c = ctl();
     if (e.key === 'Enter' && st.draft) { e.preventDefault(); finishPoly(); }
+    else if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A') && st.tool === 'select') { e.preventDefault(); co.multi(S.project.collage.layers.filter(selectable).map((q) => q.id)); }
+    else if (activeMs(S).length && st.tool === 'select' && (ms.DIRS[e.key] || e.key === 'Delete' || e.key === 'Backspace' || e.key === 'Escape')) {
+      e.preventDefault();
+      const list = activeMs(S);
+      if (e.key === 'Escape') c.colView({ ms: [] }, true);
+      else if (e.key === 'Delete' || e.key === 'Backspace') c.colDelMany(list);
+      else {
+        const n = e.shiftKey ? 10 : 1, dv = ms.DIRS[e.key];
+        const moves = {};
+        S.project.collage.layers.forEach((q) => { if (ms.has(list, q.id)) moves[q.id] = moveOf(q, dv[0] * n, dv[1] * n); });
+        c.colMoveMany(moves, false);
+      }
+    }
     else if (e.key === 'Escape') {
       if (st.draft) { c.colView({ draft: null }, true); showPath(''); }
       else if (S.selectedId) c.dispatch({ type: 'SELECT', id: null });
@@ -432,6 +512,16 @@
         out.push(h('path', Object.assign(base, { d: d, fill: 'none', stroke: 'transparent', 'stroke-width': Math.max(16, l.w + 10), 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })));
       } else out.push(h('polygon', Object.assign(base, { points: ptsStr(hitPoly(l)) })));
     });
+    const grp = activeMs(state);
+    if (grp.length) {
+      doc.layers.forEach((q) => {
+        if (!ms.has(grp, q.id)) return;
+        if (q.t === 'line') out.push(h('path', { key: 'gr' + q.id, d: q.kind === 'free' ? C.smoothPath(C.simplify(q.pts, 2.5)) : 'M' + q.pts[0][0] + ' ' + q.pts[0][1] + ' L' + q.pts[1][0] + ' ' + q.pts[1][1], fill: 'none', stroke: ink, 'stroke-width': Math.max(8, q.w + 6), 'stroke-opacity': 0.16, 'stroke-linecap': 'round', 'pointer-events': 'none' }));
+        else { const b0 = C.boxOf(q); out.push(h('polygon', { key: 'gr' + q.id, points: ptsStr(C.boxPts(b0.x, b0.y, b0.w, b0.h, q.rot || 0)), fill: 'none', stroke: ink, 'stroke-width': 2, 'stroke-dasharray': '7 5', 'pointer-events': 'none' })); }
+      });
+      const bb = ms.bounds(allBoxes(doc).filter((q) => ms.has(grp, q.id)));
+      if (bb) out.push(ms.frame(bb, 10));
+    }
     const l = doc.layers.find((x) => x.id === state.selectedId);
     if (l && !l.hidden) {
       const b = C.boxOf(l);
@@ -495,12 +585,15 @@
       ref: (el) => { co.svgEl = el; }, onpointerdown: bgDown, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp, ondblclick: () => { if (get().ui.col.draft) finishPoly(); },
     }, sc.prims.map((p) => App.board.primToV(p)),
     h('g', { class: 'khits' }, st.tool === 'select' ? hitsLayer(state, doc) : null),
-    h('g', { class: 'kdraft' }, draftLayer(state)));
+    h('g', { class: 'kdraft' }, draftLayer(state)),
+    st.mq ? ms.marquee(st.mq) : null);
+    const grpN = activeMs(state).length;
     const chipTxt = st.tool === 'select' ? null : t.label;
     const stage = h('div', { class: 'board-stage kstage', ondragover: (e) => { e.preventDefault(); }, ondrop: (e) => { e.preventDefault(); const f = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []); if (f.length) c.colFiles(f); } }, svg,
       chipTxt ? h('div', { class: 'pl-chip' }, h('b', {}, chipTxt + (st.draft ? ' · ' + st.draft.length + ' nokta' : '')),
         st.draft && st.draft.length >= 3 ? h('button', { type: 'button', class: 'btn btn-yellow pl-fin', onclick: finishPoly }, 'Bitir') : null,
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seç aracına dön', title: 'Seç aracına dön (Esc)', onclick: () => { c.colView({ draft: null }, true); c.colTool('select'); } }, ui.icon('close', 14)))
+        : grpN ? ms.chip(grpN, { noun: 'katman', onclear: () => c.colView({ ms: [] }, true) })
         : (sel ? h('div', { class: 'pl-chip' }, h('b', {}, C.LAYER_LABEL[sel.t]), h('span', { class: 'mono' }, C.layerName(sel)),
           h('button', { type: 'button', class: 'btn pl-fin', onclick: () => c.colView({ tab: sel ? 'katman' : 'ekle' }, true) }, 'Düzenle'),
           h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.dispatch({ type: 'SELECT', id: null }) }, ui.icon('close', 14))) : null),
@@ -515,6 +608,7 @@
       foot: h('p', { class: 'board-hint' }, t.hint),
       tools: [
         { k: 'seg', label: 'Araç', value: st.tool, options: TOOLS.map((x) => ({ v: x.v, label: x.label })), onchange: (v) => c.colTool(v) },
+        { k: 'icon', label: 'Tümünü seç', icon: 'selall', onclick: () => co.multi(doc.layers.filter(selectable).map((q) => q.id)), disabled: doc.layers.filter(selectable).length < 2, title: 'Tüm katmanları seç (Ctrl+A)' },
         { k: 'sep' },
         { k: 'icon', label: 'Geri al', icon: 'undo', onclick: () => c.dispatch({ type: 'UNDO' }), disabled: !state.past.length, title: 'Geri al (Ctrl+Z)' },
         { k: 'icon', label: 'İleri al', icon: 'redo', onclick: () => c.dispatch({ type: 'REDO' }), disabled: !state.future.length, title: 'İleri al (Ctrl+Shift+Z)' },

@@ -2,7 +2,7 @@
    37-state-free.js — Mekân Etüdü: eylemler (reducer eklentisi) ve JSON uzantısı
    Veri project.study.free içinde durur; geri al / ileri al, otomatik kayıt ve JSON akışı Modül 1 ile ortaktır.
    Mekân (şekil · boyut · konum · kat · donatı)
-     FREE_SET {id, patch} · FREE_SET_LIVE {id, patch} · FREE_OPTS {patch} · FREE_AUTO · FREE_RESET
+     FREE_SET {id, patch} · FREE_SET_LIVE {id, patch} · FREE_MOVE_MANY {spaces, extras, live} · FREE_OPTS {patch} · FREE_AUTO · FREE_RESET
      FREE_FIT {id} · FREE_FIT_ALL · FREE_ATTACH {id, to, away} · FREE_SPREAD {n} (katlara dağıt) · FREE_XFORM {k, ox, oy, nx, ny}
    Donatı
      FREE_FURN_ADD {id, k} · FREE_FURN_SET {id, fid, patch} · FREE_FURN_SET_LIVE · FREE_FURN_DEL {id, fid} · FREE_FURN_AUTO {id} · FREE_FURN_CLEAR {id}
@@ -114,6 +114,19 @@
     switch (a.type) {
       case 'FREE_SET': { const r = setOne(a.id, a.patch, true); return r || same(); }
       case 'FREE_SET_LIVE': { const r = setOne(a.id, a.patch, false); return r || same(); }
+      case 'FREE_MOVE_MANY': {
+        // seçili mekân ve ek öğeleri birlikte taşı (a.spaces {id: yama}, a.extras {id: yama}); a.live → geri-al noktası açmaz
+        const shapes = Object.assign({}, free.shapes);
+        let ch = false;
+        Object.keys(a.spaces || {}).forEach((id) => {
+          const cur = shapes[id];
+          if (!cur) return;
+          const nxt = st.freeClean(a.spaces[id], cur);
+          if (Object.keys(nxt).some((k) => nxt[k] !== cur[k])) { shapes[id] = nxt; ch = true; }
+        });
+        const ex2 = a.extras ? exs.map((e) => { if (!a.extras[e.id]) return e; ch = true; return st.cleanExtra(e, a.extras[e.id]); }) : exs;
+        return ch ? upd({ shapes: shapes, extras: ex2 }, !a.live) : same();
+      }
       case 'FREE_OPTS': {
         const patch = {};
         if (a.patch && [0.1, 0.5, 1].indexOf(a.patch.snap) >= 0) patch.snap = a.patch.snap;

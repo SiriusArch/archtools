@@ -11,6 +11,7 @@
   const fmt = U.fmt;
   const st = App.study;
   const fl = ui.floors;
+  const ms = App.multi;
   const ctl = () => App.ctl;
 
   const EX_LABEL = { green: 'Yeşil alan', void: 'Boşluk / avlu', tree: 'Ağaç', arrow: 'Ok' };
@@ -59,11 +60,57 @@
   }
   const exBox = (e) => (e.t === 'tree' ? { x: e.x - e.r, y: e.y - e.r, w: e.r * 2, h: e.r * 2 } : e.t === 'arrow' ? { x: Math.min(e.x1, e.x2), y: Math.min(e.y1, e.y2), w: Math.abs(e.x2 - e.x1), h: Math.abs(e.y2 - e.y1) } : { x: e.x, y: e.y, w: e.w, h: e.h });
 
+  /* ---------------- çoklu seçim ---------------- */
+  const keyOf = (kind, id) => (kind === 'extra' ? 'x:' : 's:') + id;
+  const activeMs = (S) => { const v = S.ui.etut; return !S.selectedId && !v.ex && v.ms && v.ms.length >= 2 ? v.ms : []; };
+  const ringBox = (ring) => { let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; ring.forEach((q) => { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); }); return { x0: x0, y0: y0, x1: x1, y1: y1 }; };
+  const exBox2 = (e) => { const b = exBox(e); return { x0: b.x, y0: b.y, x1: b.x + b.w, y1: b.y + b.h }; };
+  /* seçilebilir kutular: görünen mekânlar ve ek öğeler (donatı mekânla birlikte gider) */
+  function msBoxes(fd, view) {
+    const out = [];
+    fd.items.forEach((it) => { if (view.ghost && view.ghost(it)) return; out.push(Object.assign({ id: 's:' + it.id }, ringBox(it.ring))); });
+    fd.extras.forEach((e) => out.push(Object.assign({ id: 'x:' + e.id }, exBox2(e))));
+    return out;
+  }
+  const moveSets = (fd, ids, dx, dy, orig) => {
+    const sp = {}, ex = {};
+    ids.forEach((k) => {
+      const id = k.slice(2), o = orig[k];
+      if (!o) return;
+      if (k.charAt(0) === 's') sp[id] = { x: r2(o.x + dx), y: r2(o.y + dy) };
+      else if (o.t === 'arrow') ex[id] = { x1: r2(o.x1 + dx), y1: r2(o.y1 + dy), x2: r2(o.x2 + dx), y2: r2(o.y2 + dy) };
+      else ex[id] = { x: r2(o.x + dx), y: r2(o.y + dy) };
+    });
+    return { sp: sp, ex: ex };
+  };
+
   /* kind: 'space' | 'extra' | 'furn' */
   function down(e, kind, obj, view, handle, parent) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.stopPropagation(); e.preventDefault();
     const w = toWorld(e, view);
+    if ((kind === 'space' || kind === 'extra') && !handle) {
+      const S0 = App.store.get();
+      const key = keyOf(kind, obj.id);
+      const list = activeMs(S0);
+      if (e.shiftKey) {
+        // Shift + tık: seçime ekle / çıkar · Shift + sürükle: öğenin üstünden de kutu seçimi başlar
+        gest = { kind: 'marq', sx: w[0], sy: w[1], cx: e.clientX, cy: e.clientY, add: true, tog: key, moved: false, view: view };
+        try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+        return;
+      }
+      if (list.length >= 2 && ms.has(list, key)) {
+        // grup sürüklemesi: seçili her şey birlikte
+        const fd0 = st.freeDerive(S0.project);
+        const orig = {};
+        list.forEach((k) => { const id = k.slice(2); if (k.charAt(0) === 's') { const it = fd0.byId.get(id); if (it) orig[k] = { x: it.x, y: it.y }; } else { const x = fd0.extras.find((q) => q.id === id); if (x) orig[k] = Object.assign({}, x); } });
+        const boxes = msBoxes(fd0, view).filter((q) => ms.has(list, q.id));
+        frozen = view.win;
+        gest = { kind: 'group', key: key, ids: list, orig: orig, bb: ms.bounds(boxes), sx: w[0], sy: w[1], cx: e.clientX, cy: e.clientY, moved: false, view: view };
+        try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+        return;
+      }
+    }
     frozen = view.win;
     gest = { kind: kind, id: obj.id, pid: parent ? parent.id : null, handle: handle || null, sx: w[0], sy: w[1], cx: e.clientX, cy: e.clientY, orig: Object.assign({}, obj), po: parent ? { x: parent.x, y: parent.y, w: parent.w, h: parent.h } : null, moved: false, view: view };
     try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
@@ -76,6 +123,13 @@
     if (v.view !== 'plan') { orbitDown(e); return; }
     if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1) return;
     const q = svgPt(e);
+    if (e.button !== 1 && v.tool !== 'pan' && panView) {
+      // kutu seçimi: boş alanda sürükle (kaydırmak için orta tuş ya da "Kaydır" aracı)
+      const w0 = toWorld(e, panView);
+      gest = { kind: 'marq', sx: w0[0], sy: w0[1], cx: e.clientX, cy: e.clientY, add: e.shiftKey, moved: false, view: panView };
+      try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+      return;
+    }
     gest = { kind: 'pan', sx: q.x, sy: q.y, cx: e.clientX, cy: e.clientY, cam: Object.assign({}, v.cam), moved: false, view: null };
     try { fl.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
   }
@@ -85,9 +139,30 @@
     if (!gest.moved) {
       if (Math.hypot(e.clientX - gest.cx, e.clientY - gest.cy) < 3) return;
       gest.moved = true;
-      if (gest.kind !== 'pan') ctl().freeLiveBegin();
+      if (gest.kind !== 'pan' && gest.kind !== 'marq') ctl().freeLiveBegin();
     }
     const S = App.store.get();
+    if (gest.kind === 'marq') {
+      const w1 = toWorld(e, gest.view);
+      ctl().etutView({ mq: ms.rect([gest.sx, gest.sy], w1) }, true);
+      return;
+    }
+    if (gest.kind === 'group') {
+      const fd = st.freeDerive(S.project);
+      const snap = S.project.study.free.snap;
+      const w1 = toWorld(e, gest.view);
+      let dx = snapTo(w1[0] - gest.sx, snap), dy = snapTo(w1[1] - gest.sy, snap);
+      if (!e.altKey && gest.bb) {
+        const tol = Math.max(0.3, 9 / gest.view.s);
+        const others = fd.items.filter((q) => !ms.has(gest.ids, 's:' + q.id) && (!gest.view.vis || gest.view.vis(q))).map((q) => ({ x: q.x, y: q.y, w: q.w, h: q.h }))
+          .concat(fd.extras.filter((q) => !ms.has(gest.ids, 'x:' + q.id) && q.t !== 'arrow').map(exBox));
+        const m = magnetMove({ x: gest.bb.x0 + dx, y: gest.bb.y0 + dy, w: gest.bb.w, h: gest.bb.h }, others, tol);
+        dx = r2(dx + m.dx); dy = r2(dy + m.dy);
+      }
+      const sets = moveSets(fd, gest.ids, dx, dy, gest.orig);
+      ctl().freeMoveMany(sets.sp, sets.ex, true);
+      return;
+    }
     if (gest.kind === 'pan') {
       const view = panView;
       if (!view) return;
@@ -173,6 +248,22 @@
     try { fl.svgEl.releasePointerCapture(e.pointerId); } catch (err) {}
     const g = gest;
     gest = null; frozen = null;
+    if (g.kind === 'marq') {
+      const S = App.store.get();
+      const v = S.ui.etut;
+      if (!g.moved) {
+        if (g.tog) { const base = activeMs(S).length ? activeMs(S) : (S.selectedId ? ['s:' + S.selectedId] : v.ex ? ['x:' + v.ex] : []); ctl().freeMulti(ms.toggle(base, g.tog)); return; }
+        if (!g.add) { if (S.selectedId) ctl().dispatch({ type: 'SELECT', id: null }); if (v.ex || v.fu || (v.ms && v.ms.length) || v.mq) ctl().etutView({ ex: null, fu: null, ms: [], mq: null }, true); }
+        return;
+      }
+      const fd = st.freeDerive(S.project);
+      const ids = ms.hit(v.mq || ms.rect([g.sx, g.sy], [g.sx, g.sy]), msBoxes(fd, g.view));
+      let base = [];
+      if (g.add) base = activeMs(S).length ? activeMs(S) : (S.selectedId ? ['s:' + S.selectedId] : v.ex ? ['x:' + v.ex] : []);
+      ctl().etutView({ mq: null }, true);
+      ctl().freeMulti(ms.merge(base, ids, g.add));
+      return;
+    }
     if (g.kind === 'pan') {
       if (!g.moved) {
         const S = App.store.get();
@@ -181,6 +272,7 @@
       }
       return;
     }
+    if (g.kind === 'group' && !g.moved) { ctl().freeLiveEnd(); ctl().freeMulti([g.key]); return; }
     ctl().freeLiveEnd();
     ctl().etutView({ stick: (App.store.get().ui.etut.stick || 0) + 1 }, true);
   }
@@ -250,11 +342,31 @@
     const g = App.theme.name === 'glass';
     const c = ctl();
     const hits = [];
-    const dirs = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    const dirs = ms.DIRS;
+    const grp = activeMs(state);
+    const inGrp = (k) => grp.length > 0 && ms.has(grp, k);
+    // seçili grup: ok tuşları hepsini kaydırır, Delete ek öğeleri siler, Esc bırakır
+    const grpKey = (e) => {
+      const k = e.key;
+      if (dirs[k]) {
+        e.preventDefault();
+        const sn = free.snap * (e.shiftKey ? 5 : 1);
+        const orig = {};
+        grp.forEach((q) => { const id = q.slice(2); if (q.charAt(0) === 's') { const it = fd.byId.get(id); if (it) orig[q] = { x: it.x, y: it.y }; } else { const x = fd.extras.find((z) => z.id === id); if (x) orig[q] = Object.assign({}, x); } });
+        const sets = moveSets(fd, grp, dirs[k][0] * sn, dirs[k][1] * sn, orig);
+        c.freeMoveMany(sets.sp, sets.ex, false);
+        return true;
+      }
+      if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); c.freeDelMany(grp); return true; }
+      if (k === 'Escape') { e.preventDefault(); c.etutView({ ms: [] }, true); return true; }
+      return false;
+    };
 
     // 1) yeşil ve boşluk (arkada)
     const exOf = (t) => fd.extras.filter((e) => e.t === t);
     const exKey = (e, el) => {
+      if (inGrp('x:' + el.id) && grpKey(e)) return;
+      if (e.key === 'Escape') { c.freeSelEx(null); return; }
       const sn = free.snap * (e.shiftKey ? 5 : 1), k = e.key;
       if (dirs[k]) {
         e.preventDefault();
@@ -267,7 +379,7 @@
       else if (k === 'Enter' || k === ' ') { e.preventDefault(); c.freeSelEx(el.id); }
     };
     const exNode = (el) => {
-      const on = v.ex === el.id;
+      const on = v.ex === el.id || inGrp('x:' + el.id);
       const common = { class: 'ehit', fill: 'transparent', tabindex: 0, role: 'button', 'aria-label': EX_LABEL[el.t] + '. Ok tuşları taşır, Ctrl ile ok tuşları boyutlandırır, Delete siler.', onpointerdown: (e) => down(e, 'extra', el, view, null), onkeydown: (e) => exKey(e, el) };
       let node, ring;
       if (el.t === 'tree') {
@@ -291,7 +403,7 @@
     const hidden = (it) => view.ghost && view.ghost(it);
     fd.items.slice().sort((a, b) => a.lv - b.lv || b.area - a.area).forEach((it) => {
       if (hidden(it)) return;
-      const on = sel === it.id;
+      const on = sel === it.id || inGrp('s:' + it.id);
       const pts = ptsOf(view, it.ring);
       hits.push(h('g', { key: 'k' + it.id, class: 'fitem' + (on ? ' sel' : '') },
         on ? h('polygon', Object.assign({ class: 'sel-ring', points: pts, stroke: App.PAL.ink }, selStroke)) : null,
@@ -300,6 +412,9 @@
           'aria-label': it.name + ', ' + fmt(it.area) + ' metrekare. Ok tuşları taşır, Ctrl ile ok tuşları boyutlandırır, R döndürür.',
           onpointerdown: (e) => down(e, 'space', it, view, null),
           onkeydown: (e) => {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); c.freeSelectAll(view); return; }
+            if (inGrp('s:' + it.id) && grpKey(e)) return;
+            if (e.key === 'Escape') { c.freeSelect(null); return; }
             const sn = free.snap * (e.shiftKey ? 5 : 1), k = e.key;
             if (dirs[k]) {
               e.preventDefault();
@@ -338,7 +453,11 @@
     // 4) ağaç ve oklar (üstte)
     exOf('tree').concat(exOf('arrow')).forEach((el) => hits.push(exNode(el)));
 
-    // 5) tutamaçlar
+    // 5) tutamaçlar (çoklu seçimde bunun yerine grup çerçevesi)
+    if (grp.length) {
+      const bb = ms.bounds(msBoxes(fd, view).filter((q) => ms.has(grp, q.id)));
+      if (bb) hits.push(ms.frame({ x0: view.X(bb.x0), y0: view.Y(bb.y0), x1: view.X(bb.x1), y1: view.Y(bb.y1) }, 7));
+    }
     if (cur && !hidden(cur)) hits.push(handlesFor(view, 'hs-' + cur.id, cur, (e, hd) => down(e, 'space', cur, view, hd), g));
     const ex = fd.extras.find((e) => e.id === v.ex);
     if (ex && (ex.t === 'green' || ex.t === 'void')) hits.push(handlesFor(view, 'hx-' + ex.id, ex, (e, hd) => down(e, 'extra', ex, view, hd), g));
@@ -378,11 +497,13 @@
       id: 'pafta-mekan', class: 'board-svg board-svg-mekan', viewBox: '0 0 ' + App.sheet.W + ' ' + App.sheet.H, preserveAspectRatio: 'xMidYMid meet', role: 'group',
       'aria-label': 'Mekân etüdü paftası: ' + fd.items.length + ' mekân, ' + (plan ? 'plan' : v.view === 'iso' ? 'izometrik' : 'süreç afişi'),
       ref: (el) => { fl.svgEl = el; }, onpointerdown: bgDown, onpointermove: move, onpointerup: up, onpointercancel: up, onwheel: wheel,
-    }, sc.prims.map((p) => App.board.primToV(p)), plan ? h('g', { class: 'fhits' }, planHits(state, fd, sc.view)) : null);
+    }, sc.prims.map((p) => App.board.primToV(p)), plan ? h('g', { class: 'fhits' }, planHits(state, fd, sc.view)) : null,
+    plan && v.mq ? ms.marquee({ x0: sc.view.X(v.mq.x0), y0: sc.view.Y(v.mq.y0), x1: sc.view.X(v.mq.x1), y1: sc.view.Y(v.mq.y1), cross: v.mq.cross }) : null);
+    const grpN = plan ? activeMs(state).length : 0;
 
     const empty = !P.spaces.length;
     const stage = h('div', { class: 'board-stage' + (plan ? '' : ' is-orbit') }, svg,
-      cur ? h('div', { class: 'an-chip' }, h('b', {}, cur.name), h('span', { class: 'mono' }, fmt(cur.w, 1) + ' × ' + fmt(cur.h, 1) + ' m · ' + fmt(cur.area, 1) + ' m²' + (cur.nf > 1 || cur.lv > 0 ? ' · ' + st.lvLabel(cur) : '')),
+      grpN ? ms.chip(grpN, { noun: 'öğe', onclear: () => c.etutView({ ms: [] }, true) }) : cur ? h('div', { class: 'an-chip' }, h('b', {}, cur.name), h('span', { class: 'mono' }, fmt(cur.w, 1) + ' × ' + fmt(cur.h, 1) + ' m · ' + fmt(cur.area, 1) + ' m²' + (cur.nf > 1 || cur.lv > 0 ? ' · ' + st.lvLabel(cur) : '')),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.freeSelect(null) }, ui.icon('close', 14)))
         : curEx ? h('div', { class: 'an-chip' }, h('b', {}, EX_LABEL[curEx.t]),
           h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Seçimi kaldır', onclick: () => c.freeSelEx(null) }, ui.icon('close', 14))) : null,
@@ -391,7 +512,7 @@
         ui.btn('İşlev Şeması’na git', { icon: 'chevron', onclick: () => c.go('islev') })]) : null);
 
     const hint = plan
-      ? 'Mekânı, donatıyı ya da öğeyi sürükleyin · tutamaçlarla boyutlandırın · kenarlara yapışır (Alt: kapat) · tekerlek yakınlaştırır, boşluğu sürükleyerek kaydırın · R döndürür'
+      ? 'Mekânı, donatıyı ya da öğeyi sürükleyin · boşlukta kutu çizerek birkaçını seçin (soldan sağa: tamamen içindekiler, sağdan sola: değenler; Shift: ekle / çıkar) ve birlikte taşıyın · tutamaçlarla boyutlandırın · kenarlara yapışır (Alt: kapat) · tekerlek yakınlaştırır · Kaydır aracı ya da orta tuş kaydırır · R döndürür'
       : 'Sürükleyerek döndürün' + (v.view === 'surec' ? ' · süreç afişi: kayıtlı tüm adımlar aynı ölçekte yan yana' : ' · çevre yapıları gri, mekânlar işlev rengiyle');
 
     const tools = [
@@ -405,6 +526,9 @@
     tools.push({ k: 'sep' });
     if (plan) {
       tools.push({ k: 'btn', label: 'Otomatik diz', icon: 'layout', strong: true, onclick: () => c.freeAuto(), disabled: !P.spaces.length, title: 'İlişkilere göre mekânları yeniden yerleştir' });
+      tools.push({ k: 'icon', label: 'Kutu seç', icon: 'marquee', pressed: v.tool !== 'pan', onclick: () => c.etutView({ tool: 'sel' }, true), title: 'Boşlukta sürükleyerek birkaç mekânı / öğeyi seç; seçileni birlikte taşı' });
+      tools.push({ k: 'icon', label: 'Kaydır', icon: 'hand', pressed: v.tool === 'pan', onclick: () => c.etutView({ tool: 'pan' }, true), title: 'Boşlukta sürükleyince çizimi kaydır (orta tuş her zaman kaydırır)' });
+      tools.push({ k: 'icon', label: 'Tümünü seç', icon: 'selall', onclick: () => c.freeSelectAll(sc.view), disabled: !fd.items.length, title: 'Görünen tüm mekân ve öğeleri seç (Ctrl+A)' });
       tools.push({ k: 'icon', label: 'Donatı', icon: 'rect', pressed: !!v.furn, onclick: () => c.etutView({ furn: !v.furn }), title: 'Donatıyı göster / gizle (yakınlaştırınca görünür)' });
       tools.push({ k: 'icon', label: 'İlişkiler', icon: 'link', pressed: !!v.rel, onclick: () => c.etutView({ rel: !v.rel }), title: 'İlişki çizgilerini göster / gizle' });
       tools.push({ k: 'icon', label: 'Yakınlaştır', icon: 'plus', onclick: () => zoomAt(sc.view, v.cam, 1.4), title: 'Yakınlaştır' });

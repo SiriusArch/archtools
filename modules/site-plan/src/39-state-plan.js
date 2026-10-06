@@ -5,7 +5,7 @@
      PLAN_SET {patch}  PLAN_SET_LIVE {patch}     başlık, stil, gölge, ızgara, yakalama (ölçek ve görünüm: PLAN_VIEW)
      PLAN_VIEW {patch}                           ölçek, merkez (geri alma noktası açmaz)
      PLAN_EL_ADD {el}  PLAN_EL_ADD_MANY {els}  PLAN_EL_SET {id, patch}  PLAN_EL_SET_LIVE {id, patch}
-     PLAN_EL_DEL {id}  PLAN_EL_DUP {id}  PLAN_EL_ORDER {id, dir}
+     PLAN_EL_DEL {id}  PLAN_EL_DEL_MANY {ids}  PLAN_EL_MOVE_MANY {moves, live}  PLAN_EL_DUP {id}  PLAN_EL_ORDER {id, dir}
      PLAN_LOAD {els, merge, fit}                 örnek / diğer modüllerden içe alma
      PLAN_CLEAR
    JSON uzantısı: extensions.sitePlan
@@ -66,6 +66,25 @@
         if (!nx) return same();
         if (Object.keys(nx).every((k) => nx[k] === el[k])) return same();
         return setEls(p.els.map((e) => (e.id === a.id ? nx : e)), a.type === 'PLAN_EL_SET');
+      }
+      case 'PLAN_EL_MOVE_MANY': {
+        // seçili öğeleri birlikte taşı: a.moves {id: yama}; a.live → geri-al noktası açmaz
+        const mv = a.moves || {};
+        let ch = false;
+        const els = p.els.map((e) => {
+          if (!mv[e.id]) return e;
+          const nx = plan.clean(e, mv[e.id]);
+          if (!nx || Object.keys(nx).every((k) => nx[k] === e[k])) return e;
+          ch = true; return nx;
+        });
+        return ch ? setEls(els, !a.live) : same();
+      }
+      case 'PLAN_EL_DEL_MANY': {
+        const del = new Set(a.ids || []);
+        if (!p.els.some((e) => del.has(e.id))) return same();
+        const r = setEls(p.els.filter((e) => !del.has(e.id)), true);
+        r.selectedId = null;
+        return r;
       }
       case 'PLAN_EL_DEL': {
         if (!p.els.some((e) => e.id === a.id)) return same();
