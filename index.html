@@ -8749,8 +8749,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const App = window.App;
   App.study.modeOf = function (state) {
     const m = state.ui && state.ui.stMode;
-    if (m === 'katlar' || m === 'mekanlar' || m === 'plan') return m;
-    try { const ls = window.localStorage.getItem('archtools.study.mode'); if (ls === 'katlar' || ls === 'plan') return ls; } catch (e) {}
+    if (m === 'mekanlar' || m === 'plan') return m;
+    try { const ls = window.localStorage.getItem('archtools.study.mode'); if (ls === 'plan') return ls; } catch (e) {}
     return 'mekanlar';
   };
 })();
@@ -22176,7 +22176,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   function createRenderer(canvas) {
     let gl = null;
     try { gl = canvas.getContext('webgl', { antialias: true, stencil: true, preserveDrawingBuffer: true, alpha: false }) || canvas.getContext('experimental-webgl'); } catch (e) { gl = null; }
-    if (!gl) return null;
+    if (!gl || (gl.isContextLost && gl.isContextLost())) return null;
     const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
     const prog = gl.createProgram();
     gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
@@ -22253,7 +22253,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       draw: frame,
       invalidate: () => { cache.key = null; },
       capture: () => canvas.toDataURL('image/png'),
-      dispose: () => { try { const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); } catch (e) { /* yok */ } },
+      dispose: () => { /* bağlamı kaybettirme: aynı tuval yeniden bağlanırsa getContext kayıp bağlamı döndürür (beyaz ekran) */ },
     };
   }
 
@@ -26356,7 +26356,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   fl.modeSection = function (state) {
     const m = st.modeOf(state);
     return ui.section('Çalışma kipi', h('div', { class: 'sec-box' },
-      ui.segmented({ label: 'Çalışma kipi', wide: true, value: m, options: [{ v: 'mekanlar', label: 'Mekânlar', title: 'Her mekân serbest şekil, boyut, kat ve donatıyla' }, { v: 'plan', label: 'Plan editörü', title: 'Duvar, kapı, pencere, donatı ve 3B görünümle ölçülü plan çizimi' }, { v: 'katlar', label: 'Kat blokları', title: 'Mekânların kat atamasından türetilen blok planı' }], onchange: (v) => ctl().stMode(v) }),
+      ui.segmented({ label: 'Çalışma kipi', wide: true, value: m, options: [{ v: 'mekanlar', label: 'Mekânlar', title: 'Her mekân serbest şekil, boyut, kat ve donatıyla' }, { v: 'plan', label: 'Plan editörü', title: 'Duvar, kapı, pencere, donatı ve 3B görünümle ölçülü plan çizimi' }], onchange: (v) => ctl().stMode(v) }),
       h('p', { class: 'note' }, m === 'mekanlar'
         ? 'Mekânlar ağırlıklıdır: her mekân ayrı bir birimdir; şeklini, yerini, isterseniz katını ve donatısını değiştirin.'
         : m === 'plan' ? 'Plan editörü: mekânları duvar, kapı, pencere ve donatıyla ölçülü çizin; 2B ve 3B (izometrik, yürüyüş, kütle) görünümde inceleyin.'
@@ -28585,30 +28585,26 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   function styleTab(state, dd) {
     const E = dd.E, v = state.ui.pe, fid = ctl().peFid(state);
     const key = selOf(state), f = key && find(E, key);
-    const room = f && f.kind === 'rooms' ? f.o : null;
-    const scope = v.scope === 'room' && room ? 'room' : v.scope === 'floor' ? 'floor' : 'all';
-    const target = scope === 'room' ? room : scope === 'floor' ? E.floors.find((q) => q.id === fid) : E;
-    const scId = scope === 'room' ? room.id : fid;
-    const curStyle = scope === 'room' ? room.style || E.floors.find((q) => q.id === room.f).style || E.style : scope === 'floor' ? target.style || E.style : E.style;
-    const scopeSeg = ui.segmented({ label: 'Uygulama kapsamı', wide: true, value: scope, options: [{ v: 'all', label: 'Tüm proje' }, { v: 'floor', label: 'Bu kat' }, { v: 'room', label: room ? room.name : 'Seçili oda', title: room ? '' : 'Önce planda bir oda seçin' }].filter((o) => o.v !== 'room' || room), onchange: (x) => ctl().peUi({ scope: x }, true) });
-    const curMat = (slot) => {
-      if (target.fin && target.fin[slot]) return target.fin[slot];
-      if (scope === 'room') return pe.finOf(E, E.floors.find((q) => q.id === room.f), room, slot);
-      if (scope === 'floor') return pe.finOf(E, target, null, slot);
-      return pe.finOf(E, null, null, slot);
-    };
+    // seçili oda; nesne / kapı seçiliyse içinde bulunduğu oda
+    let room = f && f.kind === 'rooms' ? f.o : null;
+    if (!room && f && f.kind === 'objs') {
+      const od = dd.by[fid] && dd.by[fid].objs.find((q) => q.id === f.o.id);
+      room = od && od.room ? E.rooms.find((r) => r.id === od.room) || null : null;
+    }
+    if (!room) return [ui.section('Stil ve kaplama', h('div', { class: 'sec-box' }, h('p', { class: 'note' }, 'Stil ve kaplama seçili odaya uygulanır. Önce planda bir oda (ya da odadaki bir nesne) seçin.')), null, 'pescope')];
+    const flr = E.floors.find((q) => q.id === room.f);
+    const curStyle = room.style || (flr && flr.style) || E.style;
+    const curMat = (slot) => (room.fin && room.fin[slot]) || pe.finOf(E, flr, room, slot);
     return [
-      ui.section('Uygulama kapsamı', h('div', { class: 'sec-box' }, scopeSeg, h('p', { class: 'note' }, 'Önceliği oda > kat > proje sırası belirler. Seçtiğiniz stil ve kaplamalar bu kapsama uygulanır.')), null, 'pescope'),
-      ui.section('Stil', h('div', { class: 'pe-styles' }, pe.STYLES.map((s) => h('button', { key: s.k, type: 'button', class: 'pe-style' + (curStyle === s.k ? ' on' : ''), 'aria-pressed': String(curStyle === s.k), onclick: () => { ctl().peStyleApply(s.k, scope, scId); }, title: s.note },
+      ui.section('Seçili oda', h('div', { class: 'sec-box' }, h('p', { class: 'note' }, room.name + ' · stil ve kaplama yalnızca bu odaya uygulanır.')), null, 'pescope'),
+      ui.section('Stil', h('div', { class: 'pe-styles' }, pe.STYLES.map((s) => h('button', { key: s.k, type: 'button', class: 'pe-style' + (curStyle === s.k ? ' on' : ''), 'aria-pressed': String(curStyle === s.k), onclick: () => { ctl().peStyleApply(s.k, 'room', room.id); }, title: s.note },
         h('span', { class: 'pe-style-sw' }, ['zemin', 'duvar', 'kapi', 'pencere'].map((sl) => h('i', { key: sl, style: { background: (pe.MAT_BY[s.fin[sl]] || { c: '#ccc' }).c } })), h('i', { class: 'pe-style-tint', style: { background: s.tint } })),
         h('b', {}, s.label), h('small', {}, s.note)))), pe.STYLES.length + ' stil', 'pestyles'),
       pe.SLOTS.map((slot) => ui.section(slot.label, h('div', { class: 'sec-box' },
         h('div', { class: 'pe-swgrid' }, pe.matsOf(slot.k).map((m) => swatch(m, curMat(slot.k) === m.k, () => {
-          if (scope === 'room') ctl().peFin('room', room.id, slot.k, m.k);
-          else if (scope === 'floor') ctl().peFin('floor', fid, slot.k, m.k);
-          else ctl().peFin('all', null, slot.k, m.k);
+          ctl().peFin('room', room.id, slot.k, m.k);
         }))),
-        h('div', { class: 'btn-row' }, ui.btn('Stile dön', { icon: 'reset', onclick: () => ctl().peFin(scope === 'room' ? 'room' : scope === 'floor' ? 'floor' : 'all', scId, slot.k, null) }))), null, 'pef-' + slot.k)),
+        h('div', { class: 'btn-row' }, ui.btn('Stile dön', { icon: 'reset', onclick: () => ctl().peFin('room', room.id, slot.k, null) }))), null, 'pef-' + slot.k)),
     ];
   }
 
@@ -29158,9 +29154,14 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const dark = document.documentElement.getAttribute('data-theme') === 'dark' || (document.documentElement.getAttribute('data-theme') !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
     const bg = dark ? (gl ? '#1B1D22' : '#1C1710') : gl ? '#ECEEF2' : '#F1E6CB';
     const wk = v.walk || { x: 0, y: 0, yaw: 0, pitch: 0 };
+    const fin = (n, d) => (typeof n === 'number' && isFinite(n) ? n : d);
     try {
-      lastInfo = rend.draw(S.project, { mode: v.v3, fid: ctl().peFid(S), yaw: v.yaw, pitch: v.pitch, zoom: v.zoom, tx: v.tx, tz: v.tz, cam: wk, bg: bg, ground: bg });
-    } catch (err) { if (window.console) window.console.error(err); }
+      lastInfo = rend.draw(S.project, { mode: v.v3, fid: ctl().peFid(S), yaw: fin(v.yaw, 0.6), pitch: fin(v.pitch, 0.62), zoom: fin(v.zoom, 1), tx: fin(v.tx, 0), tz: fin(v.tz, 0), cam: wk, bg: bg, ground: bg });
+    } catch (err) {
+      if (window.console) window.console.error(err);
+      // çizici bozulduysa bir kez yeniden kur
+      if (cv && cv.__mk && !cv.__retry) { cv.__retry = true; cv.__mk(); sched3(); } else if (cv) cv.__retry = false;
+    }
   }
   const sched3 = () => { if (!raf3) raf3 = requestAnimationFrame(draw3); };
   function drop3() {
@@ -29173,7 +29174,11 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (el !== cv) {
       drop3();
       cv = el;
-      try { rend = pe.gl.create(el); } catch (err) { rend = null; if (window.console) window.console.error(err); }
+      const mk = () => { try { if (rend) rend.dispose(); } catch (err) { /* yok */ } try { rend = pe.gl.create(el); } catch (err) { rend = null; if (window.console) window.console.error(err); } pe.cur3d = rend ? { capture: () => { draw3(); return rend.capture(); } } : null; };
+      mk();
+      el.addEventListener('webglcontextlost', (ev) => { ev.preventDefault(); });
+      el.addEventListener('webglcontextrestored', () => { mk(); sched3(); });
+      cv.__mk = mk;
       pe.cur3d = rend ? { capture: () => { draw3(); return rend.capture(); } } : null;
       if (window.ResizeObserver) { ro = new ResizeObserver(sched3); ro.observe(el); }
     }
@@ -31376,7 +31381,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const mods = v.mode === 'modules';
     const mfd = mods ? App.study.freeDerive(P) : null;
     const body = tab === 'gorunum'
-      ? (mods ? [viewSection(state), modulesSection(state), modStatsSection(state)] : [viewSection(state), v.mode === 'floors' ? floorsSection(state, sd, A) : layersSection(state, sd), statsSection(A)])
+      ? (mods ? [viewSection(state), modulesSection(state), modStatsSection(state)] : [viewSection(state), v.mode === 'floors' ? null : layersSection(state, sd), statsSection(A)])
       : [mods ? ui.findingList(mfd.findings, 'Mekânların birbirine göre konumu, çakışma, alan uyumu ve oran kontrolü (Mekân Etüdü serbest düzeni).') : ui.findingList({ items: A.items, counts: A.counts }, 'Düşey düzen, cephe teması, gürültü ve dolaşım kontrolleri. Bilgi tabanı: işlev şeması bina tipi.')];
     return ui.sideShell('sb-analiz', 'Mekân analizi paneli', tabs, body);
   };

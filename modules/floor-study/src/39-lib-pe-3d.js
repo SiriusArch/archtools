@@ -301,7 +301,7 @@
   function createRenderer(canvas) {
     let gl = null;
     try { gl = canvas.getContext('webgl', { antialias: true, stencil: true, preserveDrawingBuffer: true, alpha: false }) || canvas.getContext('experimental-webgl'); } catch (e) { gl = null; }
-    if (!gl) return null;
+    if (!gl || (gl.isContextLost && gl.isContextLost())) return null;
     const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
     const prog = gl.createProgram();
     gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(prog);
@@ -378,7 +378,7 @@
       draw: frame,
       invalidate: () => { cache.key = null; },
       capture: () => canvas.toDataURL('image/png'),
-      dispose: () => { try { const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); } catch (e) { /* yok */ } },
+      dispose: () => { /* bağlamı kaybettirme: aynı tuval yeniden bağlanırsa getContext kayıp bağlamı döndürür (beyaz ekran) */ },
     };
   }
 

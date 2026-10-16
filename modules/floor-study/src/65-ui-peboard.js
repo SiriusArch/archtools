@@ -497,9 +497,14 @@
     const dark = document.documentElement.getAttribute('data-theme') === 'dark' || (document.documentElement.getAttribute('data-theme') !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
     const bg = dark ? (gl ? '#1B1D22' : '#1C1710') : gl ? '#ECEEF2' : '#F1E6CB';
     const wk = v.walk || { x: 0, y: 0, yaw: 0, pitch: 0 };
+    const fin = (n, d) => (typeof n === 'number' && isFinite(n) ? n : d);
     try {
-      lastInfo = rend.draw(S.project, { mode: v.v3, fid: ctl().peFid(S), yaw: v.yaw, pitch: v.pitch, zoom: v.zoom, tx: v.tx, tz: v.tz, cam: wk, bg: bg, ground: bg });
-    } catch (err) { if (window.console) window.console.error(err); }
+      lastInfo = rend.draw(S.project, { mode: v.v3, fid: ctl().peFid(S), yaw: fin(v.yaw, 0.6), pitch: fin(v.pitch, 0.62), zoom: fin(v.zoom, 1), tx: fin(v.tx, 0), tz: fin(v.tz, 0), cam: wk, bg: bg, ground: bg });
+    } catch (err) {
+      if (window.console) window.console.error(err);
+      // çizici bozulduysa bir kez yeniden kur
+      if (cv && cv.__mk && !cv.__retry) { cv.__retry = true; cv.__mk(); sched3(); } else if (cv) cv.__retry = false;
+    }
   }
   const sched3 = () => { if (!raf3) raf3 = requestAnimationFrame(draw3); };
   function drop3() {
@@ -512,7 +517,11 @@
     if (el !== cv) {
       drop3();
       cv = el;
-      try { rend = pe.gl.create(el); } catch (err) { rend = null; if (window.console) window.console.error(err); }
+      const mk = () => { try { if (rend) rend.dispose(); } catch (err) { /* yok */ } try { rend = pe.gl.create(el); } catch (err) { rend = null; if (window.console) window.console.error(err); } pe.cur3d = rend ? { capture: () => { draw3(); return rend.capture(); } } : null; };
+      mk();
+      el.addEventListener('webglcontextlost', (ev) => { ev.preventDefault(); });
+      el.addEventListener('webglcontextrestored', () => { mk(); sched3(); });
+      cv.__mk = mk;
       pe.cur3d = rend ? { capture: () => { draw3(); return rend.capture(); } } : null;
       if (window.ResizeObserver) { ro = new ResizeObserver(sched3); ro.observe(el); }
     }

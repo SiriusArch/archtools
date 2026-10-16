@@ -239,30 +239,26 @@
   function styleTab(state, dd) {
     const E = dd.E, v = state.ui.pe, fid = ctl().peFid(state);
     const key = selOf(state), f = key && find(E, key);
-    const room = f && f.kind === 'rooms' ? f.o : null;
-    const scope = v.scope === 'room' && room ? 'room' : v.scope === 'floor' ? 'floor' : 'all';
-    const target = scope === 'room' ? room : scope === 'floor' ? E.floors.find((q) => q.id === fid) : E;
-    const scId = scope === 'room' ? room.id : fid;
-    const curStyle = scope === 'room' ? room.style || E.floors.find((q) => q.id === room.f).style || E.style : scope === 'floor' ? target.style || E.style : E.style;
-    const scopeSeg = ui.segmented({ label: 'Uygulama kapsamı', wide: true, value: scope, options: [{ v: 'all', label: 'Tüm proje' }, { v: 'floor', label: 'Bu kat' }, { v: 'room', label: room ? room.name : 'Seçili oda', title: room ? '' : 'Önce planda bir oda seçin' }].filter((o) => o.v !== 'room' || room), onchange: (x) => ctl().peUi({ scope: x }, true) });
-    const curMat = (slot) => {
-      if (target.fin && target.fin[slot]) return target.fin[slot];
-      if (scope === 'room') return pe.finOf(E, E.floors.find((q) => q.id === room.f), room, slot);
-      if (scope === 'floor') return pe.finOf(E, target, null, slot);
-      return pe.finOf(E, null, null, slot);
-    };
+    // seçili oda; nesne / kapı seçiliyse içinde bulunduğu oda
+    let room = f && f.kind === 'rooms' ? f.o : null;
+    if (!room && f && f.kind === 'objs') {
+      const od = dd.by[fid] && dd.by[fid].objs.find((q) => q.id === f.o.id);
+      room = od && od.room ? E.rooms.find((r) => r.id === od.room) || null : null;
+    }
+    if (!room) return [ui.section('Stil ve kaplama', h('div', { class: 'sec-box' }, h('p', { class: 'note' }, 'Stil ve kaplama seçili odaya uygulanır. Önce planda bir oda (ya da odadaki bir nesne) seçin.')), null, 'pescope')];
+    const flr = E.floors.find((q) => q.id === room.f);
+    const curStyle = room.style || (flr && flr.style) || E.style;
+    const curMat = (slot) => (room.fin && room.fin[slot]) || pe.finOf(E, flr, room, slot);
     return [
-      ui.section('Uygulama kapsamı', h('div', { class: 'sec-box' }, scopeSeg, h('p', { class: 'note' }, 'Önceliği oda > kat > proje sırası belirler. Seçtiğiniz stil ve kaplamalar bu kapsama uygulanır.')), null, 'pescope'),
-      ui.section('Stil', h('div', { class: 'pe-styles' }, pe.STYLES.map((s) => h('button', { key: s.k, type: 'button', class: 'pe-style' + (curStyle === s.k ? ' on' : ''), 'aria-pressed': String(curStyle === s.k), onclick: () => { ctl().peStyleApply(s.k, scope, scId); }, title: s.note },
+      ui.section('Seçili oda', h('div', { class: 'sec-box' }, h('p', { class: 'note' }, room.name + ' · stil ve kaplama yalnızca bu odaya uygulanır.')), null, 'pescope'),
+      ui.section('Stil', h('div', { class: 'pe-styles' }, pe.STYLES.map((s) => h('button', { key: s.k, type: 'button', class: 'pe-style' + (curStyle === s.k ? ' on' : ''), 'aria-pressed': String(curStyle === s.k), onclick: () => { ctl().peStyleApply(s.k, 'room', room.id); }, title: s.note },
         h('span', { class: 'pe-style-sw' }, ['zemin', 'duvar', 'kapi', 'pencere'].map((sl) => h('i', { key: sl, style: { background: (pe.MAT_BY[s.fin[sl]] || { c: '#ccc' }).c } })), h('i', { class: 'pe-style-tint', style: { background: s.tint } })),
         h('b', {}, s.label), h('small', {}, s.note)))), pe.STYLES.length + ' stil', 'pestyles'),
       pe.SLOTS.map((slot) => ui.section(slot.label, h('div', { class: 'sec-box' },
         h('div', { class: 'pe-swgrid' }, pe.matsOf(slot.k).map((m) => swatch(m, curMat(slot.k) === m.k, () => {
-          if (scope === 'room') ctl().peFin('room', room.id, slot.k, m.k);
-          else if (scope === 'floor') ctl().peFin('floor', fid, slot.k, m.k);
-          else ctl().peFin('all', null, slot.k, m.k);
+          ctl().peFin('room', room.id, slot.k, m.k);
         }))),
-        h('div', { class: 'btn-row' }, ui.btn('Stile dön', { icon: 'reset', onclick: () => ctl().peFin(scope === 'room' ? 'room' : scope === 'floor' ? 'floor' : 'all', scId, slot.k, null) }))), null, 'pef-' + slot.k)),
+        h('div', { class: 'btn-row' }, ui.btn('Stile dön', { icon: 'reset', onclick: () => ctl().peFin('room', room.id, slot.k, null) }))), null, 'pef-' + slot.k)),
     ];
   }
 

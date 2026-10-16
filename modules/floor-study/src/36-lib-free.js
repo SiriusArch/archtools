@@ -706,8 +706,8 @@
   const App = window.App;
   App.study.modeOf = function (state) {
     const m = state.ui && state.ui.stMode;
-    if (m === 'katlar' || m === 'mekanlar' || m === 'plan') return m;
-    try { const ls = window.localStorage.getItem('archtools.study.mode'); if (ls === 'katlar' || ls === 'plan') return ls; } catch (e) {}
+    if (m === 'mekanlar' || m === 'plan') return m;
+    try { const ls = window.localStorage.getItem('archtools.study.mode'); if (ls === 'plan') return ls; } catch (e) {}
     return 'mekanlar';
   };
 })();

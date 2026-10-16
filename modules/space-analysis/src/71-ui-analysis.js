@@ -124,7 +124,7 @@
     const mods = v.mode === 'modules';
     const mfd = mods ? App.study.freeDerive(P) : null;
     const body = tab === 'gorunum'
-      ? (mods ? [viewSection(state), modulesSection(state), modStatsSection(state)] : [viewSection(state), v.mode === 'floors' ? floorsSection(state, sd, A) : layersSection(state, sd), statsSection(A)])
+      ? (mods ? [viewSection(state), modulesSection(state), modStatsSection(state)] : [viewSection(state), v.mode === 'floors' ? null : layersSection(state, sd), statsSection(A)])
       : [mods ? ui.findingList(mfd.findings, 'Mekânların birbirine göre konumu, çakışma, alan uyumu ve oran kontrolü (Mekân Etüdü serbest düzeni).') : ui.findingList({ items: A.items, counts: A.counts }, 'Düşey düzen, cephe teması, gürültü ve dolaşım kontrolleri. Bilgi tabanı: işlev şeması bina tipi.')];
     return ui.sideShell('sb-analiz', 'Mekân analizi paneli', tabs, body);
   };
