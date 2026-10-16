@@ -20,3 +20,8 @@
 .estep-n { border-radius: 50%; }
 .estep-desc { border-radius: 14px; }
 .frow-lv { border-radius: 99px; }
+
+/* Plan Editörü */
+.pe-stage { --pe-bg: var(--glass-2); --pe-bd: 1px solid var(--stroke); --pe-sh: var(--raise-sm); --pe-r: 18px; --pe-r2: 12px; }
+.pe-dock, .pe-pop, .pe-floors, .pe-hint-chip { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.pe-canvas { border-radius: 22px; }

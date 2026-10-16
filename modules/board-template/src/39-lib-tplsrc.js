@@ -17,7 +17,7 @@
   }
   const MAKERS = {
     islev: { ok: (c) => c.P.spaces.length > 0, make: (st) => { const d = App.state.derive(st); return App.board.toCanvas(st.project, d.k, d.score, F()); } },
-    kat: { ok: (c) => c.P.spaces.length > 0 && !!c.P.study, make: (st) => { const P = st.project; if (App.study.modeOf(st) === 'mekanlar') return etut(st, 'plan'); return sc(App.study.scene(P, App.study.derive(P), false)); } },
+    kat: { ok: (c) => (c.P.spaces.length > 0 || (!!c.P.study && !!c.P.study.pe && c.P.study.pe.rooms.length > 0)) && !!c.P.study, make: (st) => { const P = st.project; if (App.study.modeOf(st) === 'plan' && App.pe) return sc(App.pe.scene(P, { fid: (st.ui.pe || {}).fid, fin: true, live: false })); if (App.study.modeOf(st) === 'mekanlar') return etut(st, 'plan'); return sc(App.study.scene(P, App.study.derive(P), false)); } },
     'etut-iso': { ok: etutOk, make: (st) => etut(st, 'iso') },
     'etut-surec': { ok: (c) => etutOk(c) && c.P.study.free && (c.P.study.free.steps || []).length > 0, make: (st) => etut(st, 'surec') },
     analiz: { ok: (c) => c.P.spaces.length > 0 && !!c.P.study, make: (st) => { const P = st.project; return sc(App.analysis.scene(P, App.study.derive(P), Object.assign({}, st.ui.an, { sel: null }), false)); } },

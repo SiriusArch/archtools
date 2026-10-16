@@ -23,3 +23,9 @@
 .estep-n { box-shadow: inset 0 0 0 2.5px var(--ink); }
 .ekind-void { box-shadow: inset 0 0 0 2px var(--ink); }
 .shp-cap { text-transform: uppercase; }
+
+/* Plan Editörü */
+.pe-stage { --pe-bg: var(--surface); --pe-bd: 3px solid var(--line); --pe-sh: 4px 4px 0 var(--shadow); --pe-r: 0; --pe-r2: 0; }
+.pe-db { text-transform: uppercase; letter-spacing: .04em; font-family: var(--f-display); font-size: 10.5px; }
+.pe-db.on, .pe-item.on, .pe-gtab.on, .pe-fl.on, .pe-fchip.on { background: var(--blue); color: var(--on-blue); }
+.pe-canvas { border: 4px solid var(--line); }

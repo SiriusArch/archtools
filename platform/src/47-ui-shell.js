@@ -73,6 +73,23 @@
     };
   }
 
+  function planMeter(state) {
+    const P = state.project, d = App.pe.derive(P), m = d.metrics, p = m.score, c = d.findings.counts;
+    return {
+      label: 'Plan skoru', percent: p,
+      msg: !d.E.rooms.length ? 'Mekân ekleyerek ya da programdan plan oluşturarak başlayın' : level(p, ['Mekân ekleyerek planı başlatın', 'Plan erişim, ışık ve alan açısından çok iyi', 'İyi plan, birkaç ince ayar kaldı', 'Erişim, gün ışığı ya da alan uyumunu iyileştirin', 'Planda ciddi eksikler var']),
+      chips: [
+        { label: 'Erişim', value: pc(m.reach), cls: 'dot' },
+        { label: 'Gün ışığı', value: pc(m.day), cls: 'dot' },
+        { label: 'Alan uyumu', value: pc(m.areaFit), cls: 'dot' },
+        { label: 'İlişki', value: pc(m.relFit), cls: 'dot' },
+      ],
+      issues: c.hata + c.uyari,
+      issuesText: 'uyarı · bulgulara git',
+      onIssues: () => App.ctl.dispatch({ type: 'UI', patch: { peTab: 'bulgular' } }),
+    };
+  }
+
   function mekanMeter(state, tabKey) {
     const P = state.project;
     const fd = App.study.freeDerive(P), m = fd.metrics, p = m.score;
@@ -94,6 +111,7 @@
   function katMeter(state) {
     const P = state.project;
     if (!P.study) return { label: 'Düzen skoru', percent: null, msg: '', chips: [], issues: 0 };
+    if (App.study.modeOf && App.study.modeOf(state) === 'plan' && App.pe) return planMeter(state);
     if (App.study.modeOf && App.study.modeOf(state) === 'mekanlar') return mekanMeter(state);
     const sd = App.study.derive(P), m = sd.metrics, p = m.score;
     return {

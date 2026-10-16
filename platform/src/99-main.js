@@ -30,6 +30,7 @@
   App.ctl.loadDsnView();
   App.ctl.loadFizView();
   App.ctl.loadEtutView();
+  if (App.ctl.loadPeView) App.ctl.loadPeView();
   App.ctl.loadPlanView();
   App.ctl.loadColView();
   App.ctl.loadColImages();

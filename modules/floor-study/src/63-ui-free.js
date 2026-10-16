@@ -23,9 +23,10 @@
   fl.modeSection = function (state) {
     const m = st.modeOf(state);
     return ui.section('Çalışma kipi', h('div', { class: 'sec-box' },
-      ui.segmented({ label: 'Çalışma kipi', wide: true, value: m, options: [{ v: 'mekanlar', label: 'Mekânlar', title: 'Her mekân serbest şekil, boyut, kat ve donatıyla' }, { v: 'katlar', label: 'Kat blokları', title: 'Mekânların kat atamasından türetilen blok planı' }], onchange: (v) => ctl().stMode(v) }),
+      ui.segmented({ label: 'Çalışma kipi', wide: true, value: m, options: [{ v: 'mekanlar', label: 'Mekânlar', title: 'Her mekân serbest şekil, boyut, kat ve donatıyla' }, { v: 'plan', label: 'Plan editörü', title: 'Duvar, kapı, pencere, donatı ve 3B görünümle ölçülü plan çizimi' }, { v: 'katlar', label: 'Kat blokları', title: 'Mekânların kat atamasından türetilen blok planı' }], onchange: (v) => ctl().stMode(v) }),
       h('p', { class: 'note' }, m === 'mekanlar'
         ? 'Mekânlar ağırlıklıdır: her mekân ayrı bir birimdir; şeklini, yerini, isterseniz katını ve donatısını değiştirin.'
+        : m === 'plan' ? 'Plan editörü: mekânları duvar, kapı, pencere ve donatıyla ölçülü çizin; 2B ve 3B (izometrik, yürüyüş, kütle) görünümde inceleyin.'
         : 'Mekânlar, bulundukları kata göre ölçekli plan bloklarına dizilir. Katı Mekânlar kipinde ya da burada değiştirebilirsiniz.')), null, 'stmode');
   };
 

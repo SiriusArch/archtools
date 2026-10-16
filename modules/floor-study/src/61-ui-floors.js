@@ -237,7 +237,7 @@
       scale: 'Bloklar m² ile orantılı · ölçekli plan',
       foot: h('p', { class: 'board-hint' }, 'Bir mekân bloğunu başka bir kata sürükleyin · seçili blokta ▲▼ ok tuşları katı değiştirir'),
       tools: [
-        { k: 'seg', label: 'Çalışma kipi', value: 'katlar', options: [{ v: 'mekanlar', label: 'Mekânlar' }, { v: 'katlar', label: 'Katlar' }], onchange: (v) => ctl().stMode(v) },
+        { k: 'seg', label: 'Çalışma kipi', value: 'katlar', options: [{ v: 'mekanlar', label: 'Mekânlar' }, { v: 'plan', label: 'Plan' }, { v: 'katlar', label: 'Katlar' }], onchange: (v) => ctl().stMode(v) },
         { k: 'sep' },
         { k: 'btn', label: 'Otomatik dağıt', icon: 'layout', strong: true, onclick: () => ctl().studyAuto(), disabled: !P.spaces.length, title: 'Mekânları işlev bölgesine ve ilişkilere göre katlara dağıt' },
         { k: 'sep' },
