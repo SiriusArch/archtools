@@ -48,6 +48,21 @@
     quad(L, P(1, -1, y0), P(1, 1, y0), P(1, 1, y1), P(1, -1, y1), [ux, 0, uz], cs.pu, al);
     quad(L, P(-1, -1, y0), P(-1, 1, y0), P(-1, 1, y1), P(-1, -1, y1), [-ux, 0, -uz], cs.nu, al);
   }
+  /* çokgen döşeme / kütle: pts (x, z), y0..y1; c: { t, b, s } */
+  function slab(M, pts, y0, y1, c, alpha) {
+    if (!(y1 > y0) || !pts || pts.length < 3) return;
+    const L = alpha != null && alpha < 1 ? M.t : M.o, al = alpha == null ? 1 : alpha;
+    const ct = rgb(c.t), cb = rgb(c.b || c.t), cs = rgb(c.s || c.t);
+    const tris = pe.triangulate(pts);
+    const vtx = (p, y, n, col) => { L.push(p[0], y, p[1], n[0], n[1], n[2], col[0], col[1], col[2], al); };
+    tris.forEach((t) => { t.forEach((i) => vtx(pts[i], y1, [0, 1, 0], ct)); t.forEach((i) => vtx(pts[i], y0, [0, -1, 0], cb)); });
+    const ccw = pe.polyArea(pts) > 0;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1;
+      const n = ccw ? [dz / l, 0, -dx / l] : [-dz / l, 0, dx / l];
+      quad(L, [a[0], y0, a[1]], [b[0], y0, b[1]], [b[0], y1, b[1]], [a[0], y1, a[1]], n, cs, al);
+    }
+  }
   function cyl(M, cx, cz, r, y0, y1, c, seg, alpha) {
     seg = seg || 14;
     const L = alpha != null && alpha < 1 ? M.t : M.o, al = alpha == null ? 1 : alpha, col = rgb(c);
@@ -184,13 +199,19 @@
         D.rooms.forEach((r) => {
           const lum = 0.86 + 0.07 * (fi % 2);
           const body = shade('#E7E3DA', lum);
+          if (r.poly) { slab(M, r.poly, ey - 0.15, ey + fh - 0.02, { t: shade(body, 0.8), b: body, s: body }); return; }
           box(M, r.x + r.w / 2, r.y + r.d / 2, 0, (r.w + r.ins.w + r.ins.e) / 2, (r.d + r.ins.n + r.ins.s) / 2, ey - 0.15, ey + fh - 0.02, { t: shade(body, 0.8), pn: body, nn: body, pu: shade(body, 0.95), nu: shade(body, 0.95), b: body });
         });
-        if (topVisible) D.rooms.forEach((r) => box(M, r.x + r.w / 2, r.y + r.d / 2, 0, (r.w + r.ins.w + r.ins.e) / 2 + 0.05, (r.d + r.ins.n + r.ins.s) / 2 + 0.05, ey + fh - 0.02, ey + fh + 0.06, '#C9C4BA'));
+        if (topVisible) D.rooms.forEach((r) => r.poly ? slab(M, r.poly, ey + fh - 0.02, ey + fh + 0.06, { t: '#C9C4BA', s: '#C9C4BA' }) : box(M, r.x + r.w / 2, r.y + r.d / 2, 0, (r.w + r.ins.w + r.ins.e) / 2 + 0.05, (r.d + r.ins.n + r.ins.s) / 2 + 0.05, ey + fh - 0.02, ey + fh + 0.06, '#C9C4BA'));
         continue;
       }
       D.rooms.forEach((r) => {
         const zc = matC(pe.finOf(E, fl, r, 'zemin')), tc = matC(pe.finOf(E, fl, r, 'tavan'), '#FFFFFF');
+        if (r.poly) {
+          slab(M, r.poly, ey - 0.15, ey, { t: zc, b: tc, s: '#B9B6AE' });
+          if (topVisible && !cut) slab(M, r.poly, top, ey + fh, { t: '#CFCAC0', b: tc, s: '#B9B6AE' });
+          return;
+        }
         const base = { x0: r.x - r.ins.w, y0: r.y - r.ins.n, x1: r.x + r.w + r.ins.e, y1: r.y + r.d + r.ins.s };
         rectSub(base, holes).forEach((q) => { if (q.x1 - q.x0 > 0.01 && q.y1 - q.y0 > 0.01) box(M, (q.x0 + q.x1) / 2, (q.y0 + q.y1) / 2, 0, (q.x1 - q.x0) / 2, (q.y1 - q.y0) / 2, ey - 0.15, ey, { t: zc, b: tc, pn: '#B9B6AE', nn: '#B9B6AE', pu: '#B9B6AE', nu: '#B9B6AE' }); });
         if (topVisible && !cut) box(M, (base.x0 + base.x1) / 2, (base.y0 + base.y1) / 2, 0, (base.x1 - base.x0) / 2, (base.y1 - base.y0) / 2, top, ey + fh, { t: '#CFCAC0', b: tc, pn: '#B9B6AE', nn: '#B9B6AE', pu: '#B9B6AE', nu: '#B9B6AE' });
@@ -207,7 +228,8 @@
         const cols = { t: edge, b: edge, pn: cp, nn: cn, pu: edge, nu: edge };
         let low = false;
         if (cut && fi === curIdx && w.ext && w.sides && w.sides[0]) {
-          const out = { n: [0, -1], s: [0, 1], w: [-1, 0], e: [1, 0] }[w.sides[0]];
+          let out = { n: [0, -1], s: [0, 1], w: [-1, 0], e: [1, 0] }[w.sides[0]];
+          if (w.src === 'free') out = rp && !rn ? [-nx, -nz] : !rp && rn ? [nx, nz] : null;
           if (out && out[0] * cdir[0] + out[1] * cdir[1] > 0.25) low = true;
         }
         const e = w.t / 2, H = top - ey;

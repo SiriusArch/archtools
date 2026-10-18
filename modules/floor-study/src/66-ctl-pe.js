@@ -9,8 +9,8 @@
   const U = App.util;
   const pe = App.pe;
   const get = () => App.store.get();
-  const KIND = { r: 'rooms', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
-  const PFX = { rooms: 'r', ops: 'o', objs: 'n', stairs: 'm', rails: 'g', labels: 't', walls: 'w' };
+  const KIND = { r: 'rooms', z: 'zones', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
+  const PFX = { rooms: 'r', zones: 'z', ops: 'o', objs: 'n', stairs: 'm', rails: 'g', labels: 't', walls: 'w' };
 
   /* ---------------- görünüm durumu ---------------- */
   App.peDefaults = () => ({
@@ -123,10 +123,61 @@
   ctl.peLineAdd = function (kind, x1, y1, x2, y2) {
     const f = fidOf();
     if (Math.hypot(x2 - x1, y2 - y1) < 0.1) return;
-    if (kind === 'walls') ctl.dispatch({ type: 'PE_ADD', kind: 'walls', items: [{ id: pe.nid('w'), f: f, x1: x1, y1: y1, x2: x2, y2: y2, t: E().wall.int }] });
+    if (kind === 'walls') {
+      const before = (E().zones || []).length;
+      ctl.dispatch({ type: 'PE_ADD', kind: 'walls', items: [{ id: pe.nid('w'), f: f, x1: x1, y1: y1, x2: x2, y2: y2, t: E().wall.int }] });
+      ctl.peZonesNote(before);
+    }
     else ctl.dispatch({ type: 'PE_ADD', kind: 'rails', items: [{ id: pe.nid('g'), f: f, x1: x1, y1: y1, x2: x2, y2: y2, h: 1.0 }] });
   };
   ctl.peLabelAt = function (x, y, text) { const t = { id: pe.nid('t'), f: fidOf(), x: pe.r3(x), y: pe.r3(y), text: text || 'Not' }; ctl.dispatch({ type: 'PE_ADD', kind: 'labels', items: [t] }); ctl.peSel(['t:' + t.id]); };
+
+  /* kapanan bölge(ler) oluştuysa kullanıcıya haber ver ve ilkini seç */
+  ctl.peZonesNote = function (before) {
+    const zs = E().zones || [];
+    if (zs.length <= before) return;
+    const z = zs[zs.length - 1], n = zs.length - before;
+    const D = pe.derive(get().project).by[z.f], R = D && D.roomBy[z.id];
+    ctl.peSel(['z:' + z.id]);
+    ctl.peUi({ tab: 'plan' }, true);
+    ctl.toast(n > 1 ? n + ' kapalı mekân oluştu. Türlerini sağ panelden seçin.' : 'Kapalı mekân oluştu: ' + z.name + (R ? ' · ' + pe.fmtArea(R.area, E().unit) : '') + '. Türünü sağ panelden seçin, “Döşe” ya da “Donatı ekle” ile donatın.', 'success');
+  };
+  ctl.peZonesSync = function () { const before = (E().zones || []).length; ctl.dispatch({ type: 'PE_ZONES_SYNC' }); ctl.peZonesNote(before); };
+  const roomKind = (id) => ((E().zones || []).some((z) => z.id === id) ? 'zones' : 'rooms');
+  ctl.peRoomKind = roomKind;
+  /* seçili mekâna (oda ya da çizilen mekân) tek nesne ekle: boş yere, duvar dibine */
+  ctl.peObjIn = function (rid, k) {
+    const S = get(), D = pe.derive(S.project).by[fidOf(S)];
+    if (!D || !D.roomBy[rid]) return null;
+    const sp = pe.freeSpot(E(), D, rid, k);
+    if (!sp) return null;
+    const o = ctl.peObjAt(k, sp.x, sp.y, sp.rot);
+    if (!sp.fit) ctl.toast('Mekânda boş yer kalmadı; nesne merkeze kondu. Sürükleyerek yerleştirin.', 'info');
+    return o;
+  };
+  /* program (İşlev Şeması) mekânını plana yerleştir / bağla */
+  ctl.peSpacePlace = function (spaceId) {
+    const S = get(), P = S.project, sp = P.spaces.find((q) => q.id === spaceId);
+    if (!sp) return;
+    const e = E(), D = pe.derive(P).by[fidOf(S)];
+    const w = Math.max(1.6, Math.sqrt(sp.area * 1.3)), d = Math.max(1.4, sp.area / w);
+    const b = D.bounds;
+    const x = b.empty ? 0 : snapV(b.x1 + 1.2), y = b.empty ? 0 : snapV(b.y0);
+    const free = e.rooms.concat(e.zones || []).find((r) => r.space === spaceId);
+    if (free) { ctl.peSel([(e.zones || []).some((z) => z.id === free.id) ? 'z:' + free.id : 'r:' + free.id]); return; }
+    const type = pe.guessRoom(sp.name, sp.zone);
+    const r = Object.assign(pe.newRoom(e, { f: fidOf(S), type: type, x: x, y: y, w: snapV(w), d: snapV(d), name: sp.name }), { space: spaceId });
+    ctl.dispatch({ type: 'PE_ADD', kind: 'rooms', items: [r] });
+    ctl.peSel(['r:' + r.id]);
+    ctl.toast(sp.name + ' plana eklendi (' + fmt1(sp.area) + ' m²). Sürükleyip yerleştirin.', 'success');
+  };
+  const fmt1 = (v) => U.fmt(v, 1);
+  ctl.peLinkSpace = function (rid, spaceId) {
+    const e = E(), P = get().project, sp = spaceId && P.spaces.find((q) => q.id === spaceId);
+    e.rooms.concat(e.zones || []).forEach((r) => { if (r.space && r.space === spaceId && r.id !== rid) ctl.peSet(roomKind(r.id), r.id, { space: null }); });
+    if (!sp) { ctl.peSet(roomKind(rid), rid, { space: null }); return; }
+    ctl.peSet(roomKind(rid), rid, { space: spaceId, name: sp.name, type: pe.guessRoom(sp.name, sp.zone) });
+  };
 
   /* ---------------- güncelleme · silme · çoğaltma ---------------- */
   ctl.peSet = (kind, id, patch) => ctl.dispatch({ type: 'PE_SET', kind: kind, id: id, patch: patch });
@@ -137,7 +188,8 @@
     if (!sel.length) return;
     const m = split(sel);
     if (m.rooms) ctl.dispatch({ type: 'PE_DEL_ROOM', ids: m.rooms });
-    Object.keys(m).forEach((kd) => { if (kd !== 'rooms') ctl.dispatch({ type: 'PE_DEL', kind: kd, ids: m[kd] }); });
+    if (m.zones) ctl.dispatch({ type: 'PE_DEL_ZONE', ids: m.zones });
+    Object.keys(m).forEach((kd) => { if (kd !== 'rooms' && kd !== 'zones') ctl.dispatch({ type: 'PE_DEL', kind: kd, ids: m[kd] }); });
     ctl.peSel([]);
   };
   ctl.peDup = function () {
@@ -147,7 +199,7 @@
     const sh = 0.6;
     Object.keys(m).forEach((kd) => {
       const items = e[kd].filter((q) => m[kd].indexOf(q.id) >= 0);
-      if (kd === 'ops') return;
+      if (kd === 'ops' || kd === 'zones') return;
       const cp = items.map((q) => {
         const n = Object.assign({}, q, { id: pe.nid(PFX[kd]) });
         if (kd === 'walls' || kd === 'rails') { n.x1 += sh; n.x2 += sh; n.y1 += sh; n.y2 += sh; } else { n.x = pe.r3(q.x + sh); n.y = pe.r3(q.y + sh); }
@@ -197,7 +249,7 @@
   ctl.peFloorSet = (id, patch) => ctl.dispatch({ type: 'PE_FLOOR_SET', id: id, patch: patch });
   ctl.peFin = (scope, id, slot, mat) => ctl.dispatch({ type: 'PE_FLOOR_FIN', scope: scope, id: id, slot: slot, mat: mat });
   ctl.peStyleApply = function (style, scope, id) {
-    if (scope === 'room') ctl.peSet('rooms', id, { style: style, fin: {} });
+    if (scope === 'room') ctl.peSet(roomKind(id), id, { style: style, fin: {} });
     else if (scope === 'floor') ctl.dispatch({ type: 'PE_FLOOR_SET', id: id, patch: { style: style, fin: {} } });
     else ctl.dispatch({ type: 'PE_PATCH', patch: { style: style, fin: {} } });
     // genel stilde kat ve oda üstüne yazmaları temizle
@@ -262,7 +314,7 @@
     if ((e.ctrlKey || e.metaKey) && lk === 'a') {
       e.preventDefault();
       const D = pe.derive(S.project).by[fidOf(S)];
-      ctl.peSel(D.rooms.map((r) => 'r:' + r.id).concat(D.objs.map((o) => 'n:' + o.id)));
+      ctl.peSel(D.rooms.map((r) => (r.poly ? 'z:' : 'r:') + r.id).concat(D.objs.map((o) => 'n:' + o.id)));
       return;
     }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -290,7 +342,7 @@
   ctl.exporters.kat = function (kind) {
     if (App.study.modeOf(get()) !== 'plan') { baseKat(kind); return; }
     const S = get(), v = S.ui.pe;
-    if (!pe.get(S.project).rooms.length) { ctl.toast('Önce plana mekân ekleyin.', 'error'); return; }
+    if (!pe.get(S.project).rooms.length && !(pe.get(S.project).zones || []).length) { ctl.toast('Önce plana mekân ekleyin.', 'error'); return; }
     if (v.view === '3d' && kind === 'png' && pe.cur3d) {
       run('PNG', (P) => {
         const url = pe.cur3d.capture();
@@ -319,7 +371,7 @@
       const poly = (layer, pts, closed) => doc.entities.push({ layer: layer, kind: 'poly', closed: closed !== false, pts: pts.map((q) => fp(q[0], q[1])) });
       const line = (layer, a, c) => doc.entities.push({ layer: layer, kind: 'line', pts: [fp(a[0], a[1]), fp(c[0], c[1])] });
       D.rooms.forEach((r) => {
-        poly('ZEMIN', [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]]);
+        poly('ZEMIN', r.npoly || [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]]);
         const fs = Math.max(0.15, Math.min(0.3, Math.min(r.net.w, r.net.d) / 9));
         const c = fp(r.cx, r.cy);
         doc.entities.push({ layer: 'YAZI', kind: 'text', at: [c[0], c[1] + fs * 0.7], text: r.name, h: fs, align: 'center' });
@@ -362,7 +414,7 @@
   }
   ctl.peDxf = function () {
     const P = get().project;
-    if (!pe.get(P).rooms.length) { ctl.toast('Önce plana mekân ekleyin.', 'error'); return; }
+    if (!pe.get(P).rooms.length && !(pe.get(P).zones || []).length) { ctl.toast('Önce plana mekân ekleyin.', 'error'); return; }
     run('DXF', (p) => (App.dxf ? ctl.saveText(U.slug(p.meta.name) + '-plan.dxf', App.dxf.build(dxfDoc(p)), 'application/dxf') : Promise.reject(new Error('DXF yazıcısı yüklenemedi.'))));
   };
 

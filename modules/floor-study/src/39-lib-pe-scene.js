@@ -304,11 +304,11 @@
       const zn = App.ZONES[r.zone] || App.ZONES.sosyal;
       const matK = pe.finOf(E, D.f, r, 'zemin'), mat = C.MAT_BY[matK] || C.MAT_BY.mese_parke;
       const base = showFin ? mat.c : (Cc.zones ? zn.fill : Cc.floor);
-      const pts = [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.d], [r.x, r.y + r.d]].map((q) => [view.X(q[0]), view.Y(q[1])]);
+      const pts = (r.poly || [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.d], [r.x, r.y + r.d]]).map((q) => [view.X(q[0]), view.Y(q[1])]);
       items.push({ t: 'poly', pts: pts, fill: base, opacity: showFin ? 1 : (Cc.zones ? 0.9 : 1) });
       if (showFin) {
         const pat = floorPattern(r, mat, view, Cc);
-        if (pat.length) items.push({ t: 'g', clip: { id: 'pe-' + r.id, pts: [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]].map((q) => [view.X(q[0]), view.Y(q[1])]) }, items: pat });
+        if (pat.length) items.push({ t: 'g', clip: { id: 'pe-' + r.id, pts: (r.npoly || [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]]).map((q) => [view.X(q[0]), view.Y(q[1])]) }, items: pat });
       }
       if (r.overlap) items.push({ t: 'poly', pts: pts, fill: Cc.bad, opacity: 0.16 });
     });
@@ -340,7 +340,8 @@
     // mekân adı ve ölçüleri
     if (opts.names !== false) {
       sorted.forEach((r) => {
-        const x = view.X(r.net.x), y = view.Y(r.net.y), w = r.net.w * view.s, h = r.net.d * view.s;
+        const lb = r.lab || r.net;
+        const x = view.X(lb.x), y = view.Y(lb.y), w = lb.w * view.s, h = lb.d * view.s;
         const lab = sheet.fitLabel(r.name, w * 0.9, Math.min(h, 90), { withArea: true, max: 15, min: 8 });
         const objsIn = D.objs.filter((o) => o.room === r.id && !(o.cat && o.cat.flat));
         if (lab) {
@@ -363,7 +364,7 @@
           const ty = yc - bh / 2 + lab.fs * 0.84;
           lab.lines.forEach((ln, i) => items.push({ t: 'text', x: x + w / 2, y: ty + i * lh, s: ln, size: lab.fs, weight: 700, fam: 'l', fill: Cc.ink, anchor: 'middle', ls: lab.ls, opacity: objsIn.length > 1 ? 0.85 : 0.95, pe: false }));
           items.push({ t: 'text', x: x + w / 2, y: ty + lab.lines.length * lh + 1, s: pe.fmtArea(r.area, unit), size: afs, weight: 600, fam: 'm', fill: Cc.ink, anchor: 'middle', opacity: 0.7, pe: false });
-          if (showDims) items.push({ t: 'text', x: x + w / 2, y: ty + lab.lines.length * lh + 1 + afs, s: pe.fmtLen(r.net.w, unit) + ' × ' + pe.fmtLen(r.net.d, unit), size: afs - 0.5, weight: 500, fam: 'm', fill: Cc.ink, anchor: 'middle', opacity: 0.5, pe: false });
+          if (showDims) items.push({ t: 'text', x: x + w / 2, y: ty + lab.lines.length * lh + 1 + afs, s: pe.fmtLen(lb.w, unit) + ' × ' + pe.fmtLen(lb.d, unit), size: afs - 0.5, weight: 500, fam: 'm', fill: Cc.ink, anchor: 'middle', opacity: 0.5, pe: false });
         } else if (w > 22 && h > 14) items.push({ t: 'text', x: x + w / 2, y: y + h / 2 + 3.5, s: fmt(r.area, 0), size: 10, weight: 700, fam: 'b', fill: Cc.ink, anchor: 'middle', opacity: 0.85, pe: false });
       });
     }

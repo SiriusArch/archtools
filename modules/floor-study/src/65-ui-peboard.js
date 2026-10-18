@@ -15,7 +15,7 @@
   const ctl = () => App.ctl;
   const ic = (n, s) => pe.ic(n, s);
 
-  const KIND = { r: 'rooms', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
+  const KIND = { r: 'rooms', z: 'zones', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
   const r3 = pe.r3;
   const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
   function segDist(px, py, ax, ay, bx, by) {
@@ -64,7 +64,17 @@
       const cand = (cx, cy) => { const d = dist(x, y, cx, cy); if (d < 0.28 && (!best || d < best.d)) best = { d: d, x: cx, y: cy }; };
       D.rooms.forEach((r) => { cand(r.x, r.y); cand(r.x + r.w, r.y); cand(r.x, r.y + r.d); cand(r.x + r.w, r.y + r.d); });
       D.walls.forEach((w) => { if (w.src === 'free') { cand(w.x1, w.y1); cand(w.x2, w.y2); } });
-      if (best) return [best.x, best.y];
+      if (best) { const m = [best.x, best.y]; m.m = true; return m; }
+      // mevcut duvar / oda kenarı üzerine T birleşimi
+      let pj = null;
+      const proj = (ax, ay, bx, by) => {
+        const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+        if (l2 < 1e-9) return;
+        const t = U.clamp(((x - ax) * dx + (y - ay) * dy) / l2, 0, 1), px = ax + dx * t, py = ay + dy * t, d = dist(x, y, px, py);
+        if (d < 0.14 && (!pj || d < pj.d)) pj = { d: d, x: px, y: py };
+      };
+      D.walls.forEach((w) => proj(w.x1, w.y1, w.x2, w.y2));
+      if (pj) { const m = [r3(pj.x), r3(pj.y)]; m.m = true; return m; }
     }
     return [snapG(x, alt), snapG(y, alt)];
   }
@@ -129,8 +139,8 @@
     for (const r of D.rails) if (segDist(wx, wy, r.x1, r.y1, r.x2, r.y2) < Math.max(tol, 0.1)) return 'g:' + r.id;
     for (const w of D.walls) if (w.src === 'free' && segDist(wx, wy, w.x1, w.y1, w.x2, w.y2) < Math.max(tol, w.t / 2 + 0.05)) return 'w:' + w.id;
     // 5) odalar: en küçük
-    const rs = D.rooms.filter((r) => wx >= r.x - r.ins.w && wx <= r.x + r.w + r.ins.e && wy >= r.y - r.ins.n && wy <= r.y + r.d + r.ins.s).sort((p, q) => p.gross - q.gross);
-    return rs.length ? 'r:' + rs[0].id : null;
+    const rs = D.rooms.filter((r) => wx >= r.x - r.ins.w && wx <= r.x + r.w + r.ins.e && wy >= r.y - r.ins.n && wy <= r.y + r.d + r.ins.s && (!r.poly || pe.inPoly(wx, wy, r.poly))).sort((p, q) => p.gross - q.gross);
+    return rs.length ? (rs[0].poly ? 'z:' : 'r:') + rs[0].id : null;
   }
   const HANDLES = [['nw', 0, 0, 'nwse-resize'], ['n', 0.5, 0, 'ns-resize'], ['ne', 1, 0, 'nesw-resize'], ['e', 1, 0.5, 'ew-resize'], ['se', 1, 1, 'nwse-resize'], ['s', 0.5, 1, 'ns-resize'], ['sw', 0, 1, 'nesw-resize'], ['w', 0, 0.5, 'ew-resize']];
   function handleHit(D, key, wx, wy, px) {
@@ -194,10 +204,12 @@
     const tool = v.tool;
     if (tool === 'wall' || tool === 'rail') {
       const p = snapPt(D, wx, wy, alt);
-      if (!v.draft) { ctl().peUi({ draft: { k: tool, x1: p[0], y1: p[1], x2: p[0], y2: p[1] } }, true); return; }
-      const d = ortho(v.draft, p, alt);
+      if (!v.draft) { ctl().peUi({ draft: { k: tool, x1: p[0], y1: p[1], x2: p[0], y2: p[1], sx: p[0], sy: p[1] } }, true); return; }
+      const d = p.m ? p : ortho(v.draft, p, alt, e.shiftKey);
       ctl().peLineAdd(tool === 'wall' ? 'walls' : 'rails', v.draft.x1, v.draft.y1, d[0], d[1]);
-      ctl().peUi({ draft: e.detail >= 2 ? null : { k: tool, x1: d[0], y1: d[1], x2: d[0], y2: d[1] } }, true);
+      // zincir: başlangıç noktasına dönülünce çizim biter (kapalı alan)
+      const closed = v.draft.sx != null && dist(d[0], d[1], v.draft.sx, v.draft.sy) < 0.06;
+      ctl().peUi({ draft: e.detail >= 2 || closed ? null : { k: tool, x1: d[0], y1: d[1], x2: d[0], y2: d[1], sx: v.draft.sx, sy: v.draft.sy } }, true);
       return;
     }
     if (tool === 'cam') { g = { k: 'cam', x: wx, y: wy }; ctl().peUi({ walk: { x: wx, y: wy, yaw: 0, pitch: 0 } }, true); return; }
@@ -243,9 +255,12 @@
     g = { k: 'mov', kind: kd, id: id, wx: wx, wy: wy, sx: wx, sy: wy, o: Object.assign({}, obj), moved: false, cx: e.clientX, cy: e.clientY };
   }
   const handleless = (D, wx, wy) => hitTest(D, wx, wy, 7 / curView.s);
-  function ortho(d, p, alt) {
+  /* çizgi yönü: varsayılan serbest açı (0 / 90° yakınında hafif yapışma); Shift = 15° adımlar; Alt = tam serbest */
+  function ortho(d, p, alt, shift) {
     if (alt) return p;
-    const dx = p[0] - d.x1, dy = p[1] - d.y1, a = Math.atan2(dy, dx), n = Math.round(a / (Math.PI / 2)) * (Math.PI / 2);
+    const dx = p[0] - d.x1, dy = p[1] - d.y1, a = Math.atan2(dy, dx), len = Math.hypot(dx, dy);
+    if (shift) { const n = Math.round(a / (Math.PI / 12)) * (Math.PI / 12); return [snapG(d.x1 + Math.cos(n) * len, false), snapG(d.y1 + Math.sin(n) * len, false)].map((q, i) => (Math.abs(i ? Math.sin(n) : Math.cos(n)) < 1e-6 ? (i ? d.y1 : d.x1) : q)); }
+    const n = Math.round(a / (Math.PI / 2)) * (Math.PI / 2);
     if (Math.abs(a - n) < 0.09) return Math.abs(Math.cos(n)) > 0.5 ? [p[0], d.y1] : [d.x1, p[1]];
     return p;
   }
@@ -261,7 +276,7 @@
         if (v.tool === 'place' && v.place && v.place.t !== 'op') { const pa = placementAt(v, D, wx, wy, alt); setHover(pa ? pa.x : wx, pa ? pa.y : wy); }
         else if (v.tool === 'wall' || v.tool === 'rail') {
           const p = snapPt(D, wx, wy, alt);
-          if (v.draft) { const d = ortho(v.draft, p, alt); ctl().peUi({ draft: Object.assign({}, v.draft, { x2: d[0], y2: d[1] }), hover: { x: d[0], y: d[1] } }, true); }
+          if (v.draft) { const d = p.m ? p : ortho(v.draft, p, alt, e.shiftKey); ctl().peUi({ draft: Object.assign({}, v.draft, { x2: d[0], y2: d[1] }), hover: { x: d[0], y: d[1] } }, true); }
           else setHover(p[0], p[1]);
         } else setHover(wx, wy);
       }
@@ -338,6 +353,7 @@
     g = null;
     frozenWin = null;
     ctl().peLiveEnd();
+    if (gg && gg.moved && ((gg.k === 'end' && gg.kind === 'walls') || (gg.k === 'mov' && gg.kind === 'walls'))) ctl().peZonesSync();
     try { fl.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok */ }
     if (!gg) return;
     const D = curD;
@@ -363,7 +379,7 @@
       ctl().peUi({ mq: null }, true);
       if (!m || (m.x1 - m.x0 < 0.15 && m.y1 - m.y0 < 0.15)) return;
       const inside = (x, y) => x >= m.x0 && x <= m.x1 && y >= m.y0 && y <= m.y1;
-      const keys = D.rooms.filter((r) => r.x >= m.x0 && r.x + r.w <= m.x1 && r.y >= m.y0 && r.y + r.d <= m.y1).map((r) => 'r:' + r.id)
+      const keys = D.rooms.filter((r) => r.x >= m.x0 && r.x + r.w <= m.x1 && r.y >= m.y0 && r.y + r.d <= m.y1).map((r) => (r.poly ? 'z:' : 'r:') + r.id)
         .concat(D.objs.filter((o) => inside(o.x, o.y)).map((o) => 'n:' + o.id), D.stairs.filter((s) => inside(s.x, s.y)).map((s) => 'm:' + s.id), D.labels.filter((l) => inside(l.x, l.y)).map((l) => 't:' + l.id));
       ctl().peSel(gg.add ? Array.from(new Set(v.sel.concat(keys))) : keys);
       return;
@@ -375,7 +391,7 @@
     if (v.view !== '2d' || !curView || v.tool !== 'sel') return;
     const [wx, wy] = toWorld(e);
     const key = handleless(curD, wx, wy);
-    if (key && key.charAt(0) === 'r') { ctl().dispatch({ type: 'UI', patch: { peTab: 'plan' } }); const el = document.getElementById('pe-rname'); if (el) { el.focus(); el.select(); } }
+    if (key && (key.charAt(0) === 'r' || key.charAt(0) === 'z')) { ctl().dispatch({ type: 'UI', patch: { peTab: 'plan' } }); const el = document.getElementById('pe-rname'); if (el) { el.focus(); el.select(); } }
   }
   function wheel(e) {
     const v = S0().ui.pe;
@@ -406,7 +422,10 @@
       const id = k.slice(2), kd = KIND[k.charAt(0)];
       const o = E[kd] && E[kd].find((q) => q.id === id);
       if (!o) return;
-      if (kd === 'rooms') {
+      if (kd === 'zones') {
+        const zr = D.roomBy[id];
+        if (zr) { poly(zr.poly, { fill: sc, opacity: 0.1 }); poly(zr.poly); }
+      } else if (kd === 'rooms') {
         poly([[o.x, o.y], [o.x + o.w, o.y], [o.x + o.w, o.y + o.d], [o.x, o.y + o.d]]);
         if (v.sel.length === 1) HANDLES.forEach((q) => hnd(o.x + q[1] * o.w, o.y + q[2] * o.d));
         if (g && (g.k === 'rsz' || g.k === 'mov') && g.moved) tag(o.x + o.w / 2, o.y + o.d + 0.45, pe.fmtLen(o.w, u) + ' × ' + pe.fmtLen(o.d, u));
@@ -443,7 +462,8 @@
     } else if (dr && (dr.k === 'wall' || dr.k === 'rail')) {
       out.push({ t: 'line', x1: X(dr.x1), y1: Y(dr.y1), x2: X(dr.x2), y2: Y(dr.y2), stroke: sc, sw: dr.k === 'wall' ? Math.max(4, E.wall.int * view.s) : 3, opacity: 0.6, cap: 'round' });
       out.push({ t: 'circle', cx: X(dr.x1), cy: Y(dr.y1), r: 4, fill: sc });
-      if (dist(dr.x1, dr.y1, dr.x2, dr.y2) > 0.05) tag((dr.x1 + dr.x2) / 2, (dr.y1 + dr.y2) / 2 - 0.4, pe.fmtLen(dist(dr.x1, dr.y1, dr.x2, dr.y2), u));
+      if (dist(dr.x1, dr.y1, dr.x2, dr.y2) > 0.05) tag((dr.x1 + dr.x2) / 2, (dr.y1 + dr.y2) / 2 - 0.4, pe.fmtLen(dist(dr.x1, dr.y1, dr.x2, dr.y2), u) + ' · ' + Math.round(((Math.atan2(-(dr.y2 - dr.y1), dr.x2 - dr.x1) * 180) / Math.PI + 360) % 360) + '°');
+      if (dr.sx != null && dist(dr.x2, dr.y2, dr.sx, dr.sy) < 0.06 && dist(dr.x1, dr.y1, dr.sx, dr.sy) > 0.1) out.push({ t: 'circle', cx: X(dr.sx), cy: Y(dr.sy), r: 9, stroke: sc, sw: 2 });
     }
     // hayalet (yerleştirme)
     const hv = v.hover;
@@ -642,7 +662,7 @@
     const P = state.project, dd = pe.derive(P), E = dd.E, v = state.ui.pe;
     const fid = ctl().peFid(state), D = dd.by[fid], M = dd.metrics;
     const is2 = v.view === '2d';
-    const has = E.rooms.length > 0;
+    const has = E.rooms.length > 0 || (E.zones||[]).length > 0 || E.walls.length > 0;
     let stageMain, sc = null;
     curD = D;
     if (is2) {
@@ -704,7 +724,7 @@
       ui.btn('Mekân ekle', { icon: 'plus', onclick: () => ctl().peMenu('rooms') })], 'pe-empty') : null;
     const bot = Math.max(2, ((App.sheet.H - (App.sheet.tb.y - 22)) / App.sheet.H) * 100);
     const stage = h('div', { class: 'board-stage pe-stage' + (is2 ? '' : ' is-3d'), key: 'pe-stage', style: { '--pe-bot': (is2 ? bot : 0).toFixed(2) + '%' } }, stageMain, floors, viewTog, chip, empty, pop, dock,
-      is2 && (v.place || v.tool === 'wall' || v.tool === 'rail' || v.tool === 'cam') ? h('div', { class: 'pe-hint-chip', role: 'status' }, v.tool === 'wall' || v.tool === 'rail' ? 'Başlangıç noktasına tıklayın, sonra uç noktalara · çift tık / Esc bitirir · Alt: yakalama kapalı'
+      is2 && (v.place || v.tool === 'wall' || v.tool === 'rail' || v.tool === 'cam') ? h('div', { class: 'pe-hint-chip', role: 'status' }, v.tool === 'wall' || v.tool === 'rail' ? (v.tool === 'wall' ? 'Her açıda çizgi çekin; başlangıç noktasına dönünce kapalı mekân oluşur · Shift: 15° adım · Alt: yakalama kapalı · çift tık / Esc bitirir' : 'Başlangıç noktasına tıklayın, sonra uç noktalara · çift tık / Esc bitirir · Alt: yakalama kapalı')
         : v.tool === 'cam' ? 'Kameranın duracağı yere tıklayıp bakış yönüne sürükleyin'
           : v.place && v.place.t === 'room' ? 'Plana tıklayın ya da sürükleyerek boyutlandırın · Shift: art arda · Esc: vazgeç'
             : v.place && v.place.t === 'op' ? 'Duvarın üzerine tıklayın · Esc: vazgeç'
@@ -722,7 +742,7 @@
         { k: 'icon', label: 'Nesneler', icon: 'rect', pressed: !!v.objs, onclick: () => ctl().peUi({ objs: !v.objs }), title: 'Mobilya ve donatıyı göster / gizle' },
         { k: 'icon', label: 'Adlar', icon: 'draw', pressed: !!v.names, onclick: () => ctl().peUi({ names: !v.names }), title: 'Mekân adlarını göster / gizle' },
         { k: 'icon', label: 'Ölçüler', icon: 'link', pressed: !!v.dims, onclick: () => ctl().peUi({ dims: !v.dims }), title: 'Toplam ölçü çizgilerini göster / gizle' }, { k: 'sep' },
-        { k: 'icon', label: 'Hepsini seç', icon: 'selall', onclick: () => ctl().peSel(D.rooms.map((r) => 'r:' + r.id).concat(D.objs.map((o) => 'n:' + o.id))), disabled: !D.rooms.length, title: 'Ctrl+A' },
+        { k: 'icon', label: 'Hepsini seç', icon: 'selall', onclick: () => ctl().peSel(D.rooms.map((r) => (r.poly ? 'z:' : 'r:') + r.id).concat(D.objs.map((o) => 'n:' + o.id))), disabled: !D.rooms.length, title: 'Ctrl+A' },
         { k: 'icon', label: 'Sil', icon: 'trash', onclick: () => ctl().peDelSel(), disabled: !v.sel.length, title: 'Seçileni sil (Delete)' });
     } else {
       tools.push({ k: 'icon', label: 'Görünümü sıfırla', icon: 'reset', onclick: () => ctl().peUi({ yaw: 0.6, pitch: 0.62, zoom: 1, tx: 0, tz: 0 }), title: 'Kamerayı sıfırla' });

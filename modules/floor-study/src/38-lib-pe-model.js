@@ -28,7 +28,7 @@
     return {
       v: 1, snap: 0.1, unit: 'm', wall: { ext: 0.25, int: 0.1 }, style: 'modern', fin: {},
       floors: [{ id: 'k0', name: 'Zemin kat', h: 3, style: null, fin: {} }],
-      rooms: [], walls: [], ops: [], objs: [], stairs: [], rails: [], labels: [], cam: { x: 0, y: 0, yaw: 0, f: 'k0' },
+      rooms: [], zones: [], walls: [], ops: [], objs: [], stairs: [], rails: [], labels: [], cam: { x: 0, y: 0, yaw: 0, f: 'k0' },
     };
   }
   const SNAPS = [0.05, 0.1, 0.25, 0.5];
@@ -60,6 +60,11 @@
       return { id: String(r.id || nid('r')), f: fOf(r), type: t, name: String(r.name || C.ROOM_BY[t].label).slice(0, 60), x: r3(num(r.x, 0)), y: r3(num(r.y, 0)), w: U.clamp(r3(num(r.w, 3)), MIN, 80), d: U.clamp(r3(num(r.d, 3)), MIN, 80),
         style: C.STYLE_BY[r.style] ? r.style : null, fin: cleanFin(r.fin), space: r.space ? String(r.space) : null };
     });
+    e.zones = list(raw.zones, LIM.rooms).filter((z) => z && isFinite(Number(z.sx)) && isFinite(Number(z.sy))).map((z) => {
+      const t = C.ROOM_BY[z.type] ? z.type : 'salon';
+      return { id: String(z.id || nid('z')), f: fOf(z), type: t, name: String(z.name || C.ROOM_BY[t].label).slice(0, 60), sx: r3(Number(z.sx)), sy: r3(Number(z.sy)),
+        style: C.STYLE_BY[z.style] ? z.style : null, fin: cleanFin(z.fin), space: z.space ? String(z.space) : null, off: !!z.off };
+    });
     e.walls = list(raw.walls, LIM.walls).filter((w) => w && [w.x1, w.y1, w.x2, w.y2].every((v) => isFinite(Number(v)))).map((w) => ({ id: String(w.id || nid('w')), f: fOf(w), x1: r3(Number(w.x1)), y1: r3(Number(w.y1)), x2: r3(Number(w.x2)), y2: r3(Number(w.y2)), t: U.clamp(num(w.t, e.wall.int), 0.05, 0.6) })).filter((w) => Math.hypot(w.x2 - w.x1, w.y2 - w.y1) > 0.05);
     e.ops = list(raw.ops, LIM.ops).filter((o) => o && (o.k === 'kapi' || o.k === 'pencere') && isFinite(Number(o.x)) && isFinite(Number(o.y))).map((o) => {
       const def = C.OP_BY[o.k + ':' + o.sub] || C.OP_BY[o.k + ':' + (o.k === 'kapi' ? 'tek' : 'tek')];
@@ -80,7 +85,15 @@
   }
 
   let DEF = null;
-  const get = (P) => (P && P.study && P.study.pe) || DEF || (DEF = defaults());
+  const zMemo = new WeakMap();
+  const get = (P) => {
+    const e = P && P.study && P.study.pe;
+    if (!e) return DEF || (DEF = defaults());
+    if (e.zones) return e;
+    let n = zMemo.get(e);
+    if (!n) { n = Object.assign({}, e, { zones: [] }); zMemo.set(e, n); }
+    return n;
+  };
 
   /* ---------------- biçimlendirme (m / ft) ---------------- */
   function fmtLen(m, unit) {
@@ -154,6 +167,60 @@
   }
 
   /* bir katın tüm türetilmiş verisi */
+  const C0inPoly = (x, y, p, t) => (t ? (pe.inPoly(x, y, p) || p.some((q, i) => { const b = p[(i + 1) % p.length]; const dx = b[0] - q[0], dy = b[1] - q[1], l2 = dx * dx + dy * dy || 1, u = Math.max(0, Math.min(1, ((x - q[0]) * dx + (y - q[1]) * dy) / l2)); return Math.hypot(x - q[0] - dx * u, y - q[1] - dy * u) <= t; })) : pe.inPoly(x, y, p));
+  /* kapalı bölgeler: serbest duvarlar + oda kenarları; odanın kendisi olan bölge atılır */
+  const fcMemo = new WeakMap();
+  function faceList(E, fid) {
+    let m = fcMemo.get(E);
+    if (!m) { m = {}; fcMemo.set(E, m); }
+    if (m[fid]) return m[fid];
+    const segs = [];
+    const rs = E.rooms.filter((r) => r.f === fid);
+    rs.forEach((r) => {
+      const t = E.wall.int;
+      [[r.x, r.y, r.x + r.w, r.y], [r.x + r.w, r.y, r.x + r.w, r.y + r.d], [r.x + r.w, r.y + r.d, r.x, r.y + r.d], [r.x, r.y + r.d, r.x, r.y]].forEach((q) => segs.push({ x1: q[0], y1: q[1], x2: q[2], y2: q[3], t: t, free: false }));
+    });
+    E.walls.filter((w) => w.f === fid).forEach((w) => segs.push({ x1: w.x1, y1: w.y1, x2: w.x2, y2: w.y2, t: w.t, free: true }));
+    const fcs = segs.some((q) => q.free) ? pe.faces(segs, 0.06).filter((f) => {
+      if (!f.free) return false;
+      return !rs.some((r) => Math.abs(f.area - r.w * r.d) < 0.04 + 0.01 * r.w * r.d && Math.abs(f.cx - (r.x + r.w / 2)) < 0.15 && Math.abs(f.cy - (r.y + r.d / 2)) < 0.15);
+    }) : [];
+    m[fid] = fcs;
+    return fcs;
+  }
+  function zonesOf(E, fl) {
+    const recs = (E.zones || []).filter((z) => z.f === fl.id && !z.off);
+    if (!recs.length) return [];
+    const fcs = faceList(E, fl.id);
+    const used = new Set(), out = [];
+    recs.forEach((z) => {
+      let best = null;
+      fcs.forEach((f, i) => { if (!used.has(i) && pe.inPoly(z.sx, z.sy, f.pts) && (!best || f.area < best.f.area)) best = { f: f, i: i }; });
+      if (!best) return;
+      used.add(best.i);
+      const f = best.f, np = pe.offsetPoly(f.pts, f.ts), b = pe.polyBox(f.pts), nb = pe.polyBox(np), lr = pe.labelRect(np);
+      const rt = C.ROOM_BY[z.type] || C.ROOM_BY.salon;
+      out.push(Object.assign({}, z, { kind: 'zone', poly: f.pts, npoly: np, x: b.x, y: b.y, w: b.w, d: b.d, net: nb, lab: lr,
+        area: Math.abs(pe.polyArea(np)), gross: f.area, cx: lr.x + lr.w / 2, cy: lr.y + lr.d / 2, zone: rt.zone, rt: rt, ins: { n: 0.05, s: 0.05, w: 0.05, e: 0.05 } }));
+    });
+    return out;
+  }
+  const ZAUTO = [[1.8, 'dolap'], [3.2, 'wc'], [5.5, 'banyo'], [9, 'calisma'], [14, 'yatak'], [1e9, 'salon']];
+  /* yeni kapalı bölgelere otomatik mekân tanımı ekler (tür alana göre tahmin edilir; kullanıcı değiştirebilir) */
+  function autoZones(E) {
+    const add = [];
+    E.floors.forEach((fl) => {
+      const recs = (E.zones || []).filter((z) => z.f === fl.id);
+      faceList(E, fl.id).forEach((f) => {
+        if (f.area < 1.0 || recs.some((z) => pe.inPoly(z.sx, z.sy, f.pts)) || add.some((z) => z.f === fl.id && pe.inPoly(z.sx, z.sy, f.pts))) return;
+        const np = pe.offsetPoly(f.pts, f.ts), lr = pe.labelRect(np);
+        const type = ZAUTO.find((q) => Math.abs(pe.polyArea(np)) < q[0])[1];
+        const same = recs.concat(add.filter((z) => z.f === fl.id), E.rooms.filter((r) => r.f === fl.id)).filter((r) => r.type === type).length;
+        add.push({ id: nid('z'), f: fl.id, type: type, name: C.ROOM_BY[type].label + (same ? ' ' + (same + 1) : ''), sx: r3(lr.x + lr.w / 2), sy: r3(lr.y + lr.d / 2), style: null, fin: {}, space: null, off: false });
+      });
+    });
+    return add.length ? Object.assign({}, E, { zones: (E.zones || []).concat(add) }) : E;
+  }
   function deriveFloor(E, fl) {
     const rooms0 = E.rooms.filter((r) => r.f === fl.id);
     const walls = wallsOfRooms(rooms0, E.wall);
@@ -172,13 +239,27 @@
       const rt = C.ROOM_BY[r.type] || C.ROOM_BY.salon;
       return Object.assign({}, r, { net: net, area: net.w * net.d, gross: r.w * r.d, cx: r.x + r.w / 2, cy: r.y + r.d / 2, zone: rt.zone, rt: rt, ins: { n: n, s: s, w: w, e: e } });
     });
+    // çizilen mekânlar: serbest duvarlardan (ve oda kenarlarından) oluşan kapalı bölgeler
+    const zs = zonesOf(E, fl);
+    zs.forEach((z) => rooms.push(z));
     const roomBy = {};
     rooms.forEach((r) => { roomBy[r.id] = r; });
     const containing = (x, y, tol) => {
       let best = null;
-      rooms.forEach((r) => { const t = tol || 0; if (x >= r.x - t && x <= r.x + r.w + t && y >= r.y - t && y <= r.y + r.d + t && (!best || r.gross < best.gross)) best = r; });
+      rooms.forEach((r) => {
+        const t = tol || 0;
+        if (x >= r.x - t && x <= r.x + r.w + t && y >= r.y - t && y <= r.y + r.d + t && (!best || r.gross < best.gross) && (!r.poly || C0inPoly(x, y, r.poly, t))) best = r;
+      });
       return best;
     };
+    // serbest duvarların iki yanındaki çizilen mekânlar: bitişiklik, dış duvar, açıklık tarafı
+    if (zs.length) walls.forEach((w) => {
+      if (w.src !== 'free') return;
+      const nx = -w.uy, ny = w.ux, off = w.t / 2 + 0.15, mx = (w.x1 + w.x2) / 2, my = (w.y1 + w.y2) / 2;
+      const a = containing(mx + nx * off, my + ny * off), b = containing(mx - nx * off, my - ny * off);
+      [a, b].forEach((q) => { if (q && q.poly && w.rooms.indexOf(q.id) < 0) { w.rooms.push(q.id); w.sides.push('z'); } });
+      w.ext = [a, b].filter((q) => q && q.poly).length === 1 && !(a && b);
+    });
     // açıklıkları duvara oturt
     const ops = E.ops.filter((o) => o.f === fl.id).map((o) => {
       const ang = (o.rot * Math.PI) / 180;
@@ -325,7 +406,7 @@
       for (let i = 0; i < D.rooms.length; i++) for (let j = i + 1; j < D.rooms.length; j++) {
         const a = D.rooms[i], b = D.rooms[j];
         const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x), oy = Math.min(a.y + a.d, b.y + b.d) - Math.max(a.y, b.y);
-        if (ox > 0.05 && oy > 0.05) { M.overlap++; a.overlap = b.overlap = true; F('hata', 'ovl:' + a.id + ':' + b.id, a.name + ' ile ' + b.name + ' çakışıyor.', { k: 'room', id: a.id, f: D.f.id }); }
+        if (ox > 0.05 && oy > 0.05 && !a.poly && !b.poly) { M.overlap++; a.overlap = b.overlap = true; F('hata', 'ovl:' + a.id + ':' + b.id, a.name + ' ile ' + b.name + ' çakışıyor.', { k: 'room', id: a.id, f: D.f.id }); }
       }
       // bağlantı grafiği (kapı / geçiş / balkon kapısı)
       const adj = {};
@@ -410,11 +491,11 @@
     let missing = 0;
     (P.spaces || []).forEach((s) => { if (!linked[s.id]) missing++; });
     M.programTotal = (P.spaces || []).length; M.programMissing = missing;
-    if (E.rooms.length && missing && E.rooms.some((r) => r.space)) F('oneri', 'prog', missing + ' program mekânı plana yerleştirilmedi.', null);
+    if ((E.rooms.length || E.zones.length) && missing && E.rooms.concat(E.zones).some((r) => r.space)) F('oneri', 'prog', missing + ' program mekânı plana yerleştirilmedi.', null);
     // skor
     const parts = [[M.reachTot ? M.reachOk / M.reachTot : null, 0.3], [M.dayTot ? M.dayOk / M.dayTot : null, 0.25], [M.areaTot ? M.areaOk / M.areaTot : null, 0.25], [M.relTot ? M.relOk / M.relTot : null, 0.2]].filter((p) => p[0] != null);
     const wsum = parts.reduce((t, p) => t + p[1], 0);
-    M.score = E.rooms.length && wsum ? Math.round((100 * parts.reduce((t, p) => t + p[0] * p[1], 0)) / wsum - Math.min(25, M.overlap * 8 + M.orphan * 4)) : null;
+    M.score = (E.rooms.length || (E.zones || []).length) && wsum ? Math.round((100 * parts.reduce((t, p) => t + p[0] * p[1], 0)) / wsum - Math.min(25, M.overlap * 8 + M.orphan * 4)) : null;
     if (M.score != null) M.score = U.clamp(M.score, 0, 100);
     M.reach = M.reachTot ? M.reachOk / M.reachTot : null; M.day = M.dayTot ? M.dayOk / M.dayTot : null; M.areaFit = M.areaTot ? M.areaOk / M.areaTot : null; M.relFit = M.relTot ? M.relOk / M.relTot : null;
     const order = { hata: 0, uyari: 1, oneri: 2 };
@@ -510,18 +591,7 @@
 
   /* ---------------- otomatik döşeme (Odayı döşe) ----------------
      Mevcut donatı tarifini (App.study.autoFurnish) oda net alanına uygular; kapı salınım alanına düşenler atılır. */
-  function furnishRoom(E, D, rid) {
-    const r = D.roomBy[rid];
-    if (!r || !App.study || !App.study.autoFurnish) return [];
-    const ring = [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]];
-    const it = { id: r.id, name: r.rt.label + (r.type === 'giris' ? ' giriş' : ''), zone: r.zone, area: r.area, x: r.net.x, y: r.net.y, w: r.net.w, h: r.net.d, shape: 'rect', rot: 0, cut: 0.5, ring: ring, furn: [] };
-    const nm = U.norm(r.name + ' ' + r.rt.label);
-    if (/ebeveyn.*banyo|dus wc|^wc|\bwc\b/.test(nm) && r.type !== 'banyo') it.name = r.type === 'wc' ? 'WC' : 'Banyo';
-    if (r.type === 'acik_mutfak') it.name = 'Mutfak';
-    if (r.type === 'ebeveyn') it.name = 'Ebeveyn yatak odası';
-    if (r.type === 'giris') it.name = 'Giriş';
-    const raw = App.study.autoFurnish(it);
-    // kapı / pencere kaçış alanları
+  function doorZones(D, rid) {
     const zones = [];
     D.ops.forEach((o) => {
       if (o.orphan || (o.rp !== rid && o.rn !== rid)) return;
@@ -538,6 +608,48 @@
         zones.push([x0, y0, x1, y1]);
       }
     });
+    return zones;
+  }
+  /* odaya eklenen tek nesne için boş yer: duvar dibi tercih edilir; sığmazsa oda merkezi */
+  function freeSpot(E, D, rid, k) {
+    const r = D.roomBy[rid], c = C.FURN_BY[k];
+    if (!r || !c) return null;
+    const ring = r.npoly || [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]];
+    const bb = r.net, dz = c.flat ? [] : doorZones(D, rid);
+    const others = D.objs.filter((o) => !(o.cat && o.cat.flat) && !c.flat);
+    const edgeD = (x, y) => { let best = null; ring.forEach((a, i) => { const b = ring[(i + 1) % ring.length], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1, u = U.clamp(((x - a[0]) * dx + (y - a[1]) * dy) / l2, 0, 1), px = a[0] + dx * u, py = a[1] + dy * u, d = Math.hypot(x - px, y - py); if (!best || d < best.d) best = { d: d, nx: (x - px) / (d || 1), ny: (y - py) / (d || 1) }; }); return best; };
+    let best = null;
+    [0, 90].forEach((rot) => {
+      const w = rot ? c.d : c.w, d = rot ? c.w : c.d;
+      for (let y = bb.y + d / 2; y <= bb.y + bb.d - d / 2 + 1e-6; y += 0.1) for (let x = bb.x + w / 2; x <= bb.x + bb.w - w / 2 + 1e-6; x += 0.1) {
+        const fp = [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2]].map((q) => [x + q[0], y + q[1]]);
+        if (!fp.every((q) => pe.inPoly(q[0], q[1], ring))) continue;
+        if (dz.some((z) => x - w / 2 < z[2] && x + w / 2 > z[0] && y - d / 2 < z[3] && y + d / 2 > z[1])) continue;
+        if (others.some((o) => satOverlap(fp, o.fp, 0.05))) continue;
+        const e = edgeD(x, y), gap = e.d - Math.min(w, d) / 2;
+        const sc = Math.abs(gap) + 0.02 * Math.hypot(x - r.cx, y - r.cy);
+        if (!best || sc < best.sc) best = { sc: sc, x: x, y: y, rot: rot, e: e, gap: gap };
+      }
+    });
+    if (!best) { const lr = r.lab || { x: bb.x, y: bb.y, w: bb.w, d: bb.d }; return { x: r3(lr.x + lr.w / 2), y: r3(lr.y + lr.d / 2), rot: 0, fit: false }; }
+    let rot = best.rot;
+    if (!c.flat && c.g !== 'dis' && best.gap < 0.2 && best.e) rot = Math.round(((Math.atan2(-best.e.nx, best.e.ny) * 180) / Math.PI + 360) % 360 / 90) * 90 % 360;
+    return { x: r3(best.x), y: r3(best.y), rot: rot, fit: true };
+  }
+
+  function furnishRoom(E, D, rid) {
+    const r = D.roomBy[rid];
+    if (!r || !App.study || !App.study.autoFurnish) return [];
+    const ring = r.npoly || [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]];
+    const it = { id: r.id, name: r.rt.label + (r.type === 'giris' ? ' giriş' : ''), zone: r.zone, area: r.area, x: r.net.x, y: r.net.y, w: r.net.w, h: r.net.d, shape: r.npoly ? 'poly' : 'rect', rot: 0, cut: 0.5, ring: ring, furn: [] };
+    const nm = U.norm(r.name + ' ' + r.rt.label);
+    if (/ebeveyn.*banyo|dus wc|^wc|\bwc\b/.test(nm) && r.type !== 'banyo') it.name = r.type === 'wc' ? 'WC' : 'Banyo';
+    if (r.type === 'acik_mutfak') it.name = 'Mutfak';
+    if (r.type === 'ebeveyn') it.name = 'Ebeveyn yatak odası';
+    if (r.type === 'giris') it.name = 'Giriş';
+    const raw = App.study.autoFurnish(it);
+    // kapı / pencere kaçış alanları
+    const zones = doorZones(D, rid);
     const out = [];
     raw.forEach((f) => {
       const c = C.FURN_BY[f.k];
@@ -591,7 +703,7 @@
         rooms.push({ id: nid('r'), f: 'k' + lv, type: type, name: q.s.name, x: snapV(q.x, sn), y: snapV(q.y, sn), w: Math.max(MIN, snapV(q.w, sn)), d: Math.max(MIN, snapV(q.d, sn)), style: null, fin: {}, space: q.s.id });
       });
     });
-    return clean(Object.assign({}, E0, { floors: floors, rooms: rooms, walls: [], ops: [], objs: [], stairs: [], rails: [], labels: [], cam: { x: 0, y: 0, yaw: 0, f: 'k0' }, unit: E0.unit, snap: E0.snap, style: opts.style || E0.style }));
+    return clean(Object.assign({}, E0, { floors: floors, rooms: rooms, zones: [], walls: [], ops: [], objs: [], stairs: [], rails: [], labels: [], cam: { x: 0, y: 0, yaw: 0, f: 'k0' }, unit: E0.unit, snap: E0.snap, style: opts.style || E0.style }));
   }
 
   /* ---------------- kapı ve pencereleri otomatik yerleştir ---------------- */
@@ -617,7 +729,7 @@
       return s;
     };
     const sharedWalls = (a, b) => D.walls.filter((w) => w.rooms.indexOf(a.id) >= 0 && w.rooms.indexOf(b.id) >= 0 && w.len >= 1.1).sort((p, q) => q.len - p.len);
-    const rooms = D.rooms.filter((r) => !r.rt.out || true);
+    const rooms = D.rooms.filter((r) => !r.poly);
     // 1) dış kapı
     const ent = rooms.find((r) => r.type === 'giris') || rooms.find((r) => r.type === 'hol') || rooms.slice().sort((a, b) => b.cy - a.cy)[0];
     const hasEntry = D.ops.some((o) => !o.orphan && o.k === 'kapi' && (o.rp ? !o.rn : !!o.rn) && o.ext);
@@ -692,7 +804,7 @@
   Object.assign(pe, {
     defaults: defaults, clean: clean, get: get, derive: derive, deriveFloor: deriveFloor, takeoff: takeoff, nid: nid, r3: r3, r2: r2, SNAPS: SNAPS, MIN: MIN, LIM: LIM,
     fmtLen: fmtLen, fmtArea: fmtArea, floorIndex: floorIndex, elevOf: elevOf, styleOf: styleOf, finOf: finOf,
-    newRoom: newRoom, moveRoom: moveRoom, resizeRoom: resizeRoom, furnishRoom: furnishRoom, fromProgram: fromProgram, autoOpenings: autoOpenings, nearestWall: nearestWall,
+    autoZones: autoZones, faceList: faceList, newRoom: newRoom, moveRoom: moveRoom, resizeRoom: resizeRoom, furnishRoom: furnishRoom, freeSpot: freeSpot, fromProgram: fromProgram, autoOpenings: autoOpenings, nearestWall: nearestWall,
     stairSteps: stairSteps, stairAabb: stairAabb, rotPt: rotPt, satOverlap: satOverlap, sharedLen: sharedLen, snapV: snapV, inRect: inRect, TREAD: TREAD,
   });
 })();

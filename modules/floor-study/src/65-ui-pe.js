@@ -55,7 +55,7 @@
   const sel = (id, value, opts, onchange, label) => h('select', { id: id, class: 'inp', value: value, 'aria-label': label || null, onchange: (e) => onchange(e.target.value) }, opts);
   const opt = (v, t) => h('option', { key: v, value: v }, t);
   const selOf = (state) => { const s = state.ui.pe.sel; return s.length === 1 ? s[0] : null; };
-  const KIND = { r: 'rooms', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
+  const KIND = { r: 'rooms', z: 'zones', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
   const find = (E, key) => { const kd = KIND[key.charAt(0)]; const o = E[kd] && E[kd].find((q) => q.id === key.slice(2)); return o ? { kind: kd, o: o } : null; };
   const matOpts = (slot, inherit) => [opt('', inherit || 'Stile göre')].concat(pe.matsOf(slot).map((m) => opt(m.k, m.label)));
   const swatch = (m, on, onclick) => h('button', { key: m.k, type: 'button', class: 'pe-sw' + (on ? ' on' : ''), title: m.label, 'aria-label': m.label, 'aria-pressed': String(!!on), onclick: onclick },
@@ -64,26 +64,27 @@
   /* ---------------- başlangıç ---------------- */
   function startSection(state, dd) {
     const P = state.project, E = dd.E;
-    const empty = !E.rooms.length;
+    const nr = E.rooms.length + (E.zones || []).length, empty = !nr;
     return ui.section('Başlangıç', h('div', { class: 'sec-box' },
       empty ? h('p', { class: 'note' }, P.spaces.length ? 'İşlev Şeması’ndaki ' + P.spaces.length + ' mekân, ilişkilerine göre ölçülü bir plana dönüştürülebilir; ya da pafta altındaki araç çubuğundan mekân ekleyerek sıfırdan çizin.' : 'Pafta altındaki “Mekânlar” menüsünden bir mekân seçip çizime tıklayın. İşlev Şeması’nda mekân tanımlarsanız buradan plana dönüştürebilirsiniz.')
-        : h('p', { class: 'note' }, E.rooms.length + ' mekân · ' + E.floors.length + ' kat · ' + dd.metrics.doors + ' kapı · ' + dd.metrics.windows + ' pencere'),
+        : h('p', { class: 'note' }, nr + ' mekân · ' + E.floors.length + ' kat · ' + dd.metrics.doors + ' kapı · ' + dd.metrics.windows + ' pencere'),
       h('div', { class: 'btn-row' },
         ui.btn(empty ? 'Programdan plan oluştur' : 'Programdan yeniden oluştur', { icon: 'layout', cls: 'btn-yellow', onclick: () => ctl().peFromProgram(), disabled: !P.spaces.length, title: 'İşlev Şeması mekânlarını ve serbest düzenini ölçülü plana dönüştürür; kapı ve pencereleri yerleştirir (geri alınabilir)' })),
       h('div', { class: 'btn-row' },
-        ui.btn('Kapı ve pencere yerleştir', { icon: 'sun', onclick: () => ctl().peAutoOps(), disabled: !E.rooms.length, title: 'Bu katta giriş, iç kapılar, balkon kapıları ve pencereleri ilişkilere göre yerleştirir' }),
-        ui.btn('Tüm odaları döşe', { icon: 'spark', onclick: () => ctl().peFurnish(null), disabled: !E.rooms.length, title: 'Bu katta mekân türüne uygun nesneleri yerleştirir; elle eklenenler korunur' })),
+        ui.btn('Kapı ve pencere yerleştir', { icon: 'sun', onclick: () => ctl().peAutoOps(), disabled: !nr, title: 'Bu katta giriş, iç kapılar, balkon kapıları ve pencereleri ilişkilere göre yerleştirir' }),
+        ui.btn('Tüm odaları döşe', { icon: 'spark', onclick: () => ctl().peFurnish(null), disabled: !nr, title: 'Bu katta mekân türüne uygun nesneleri yerleştirir; elle eklenenler korunur' })),
       h('div', { class: 'btn-row' },
-        ui.btn('Katı temizle', { icon: 'trash', onclick: () => ctl().peClear(true), disabled: !E.rooms.length }),
-        ui.btn('Hepsini temizle', { icon: 'trash', onclick: () => ctl().peClear(false), disabled: !E.rooms.length }))), null, 'pestart');
+        ui.btn('Katı temizle', { icon: 'trash', onclick: () => ctl().peClear(true), disabled: !nr }),
+        ui.btn('Hepsini temizle', { icon: 'trash', onclick: () => ctl().peClear(false), disabled: !nr }))), null, 'pestart');
   }
 
   /* ---------------- seçili öğe ---------------- */
   function roomInspector(state, dd, r) {
     const E = dd.E, D = dd.floors.find((x) => x.f.id === r.f), R = D && D.roomBy[r.id];
+    const isZ = (E.zones || []).some((z) => z.id === r.id);
     const snap = E.snap, u = E.unit;
     const rt = pe.ROOM_BY[r.type];
-    const setR = (patch) => ctl().peSet('rooms', r.id, patch);
+    const setR = (patch) => ctl().peSet(isZ ? 'zones' : 'rooms', r.id, patch);
     const resize = (nr) => ctl().dispatch({ type: 'PE_ROOM_RESIZE', id: r.id, nr: Object.assign({ x: r.x, y: r.y, w: r.w, d: r.d }, nr) });
     const typeSel = sel('pe-rtype', r.type, pe.ROOM_GROUPS.map((g) => h('optgroup', { key: g.g, label: g.label }, pe.ROOMS.filter((q) => q.g === g.g).map((q) => opt(q.k, q.label)))), (v) => {
       const old = pe.ROOM_BY[r.type], nu = pe.ROOM_BY[v];
@@ -93,23 +94,22 @@
     return [
       ui.fld2('Ad', h('input', { id: 'pe-rname', class: 'inp', type: 'text', maxlength: 60, value: r.name, keep: true, onchange: (e) => { if (e.target.value.trim()) setR({ name: e.target.value.trim() }); }, onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } })),
       ui.fld2('Tür', typeSel),
-      h('div', { class: 'nfld-grid' },
+      isZ ? h('p', { class: 'note' }, 'Çizdiğiniz çizgilerin kapattığı bölge. Çizgileri (duvarları) seçip uçlarından sürükleyerek şeklini değiştirin; mekân buna göre güncellenir.') : h('div', { class: 'nfld-grid' },
         numField('Genişlik', 'pe-rw', r.w, { min: pe.MIN, max: 80, step: snap, onchange: (v) => resize({ w: v }), unit: 'm' }),
         numField('Derinlik', 'pe-rd', r.d, { min: pe.MIN, max: 80, step: snap, onchange: (v) => resize({ d: v }), unit: 'm' }),
         numField('X', 'pe-rx', r.x, { step: snap, onchange: (v) => ctl().dispatch({ type: 'PE_ROOM_MOVE', id: r.id, dx: v - r.x, dy: 0 }) }),
         numField('Y', 'pe-ry', r.y, { step: snap, onchange: (v) => ctl().dispatch({ type: 'PE_ROOM_MOVE', id: r.id, dx: 0, dy: v - r.y }) })),
-      R ? h('p', { class: 'note mono' }, 'Net ' + pe.fmtArea(R.area, u) + ' · ' + pe.fmtLen(R.net.w, u) + ' × ' + pe.fmtLen(R.net.d, u) + ' · öneri ≥ ' + pe.fmtArea(rt.min, u)
+      R ? h('p', { class: 'note mono' }, 'Net ' + pe.fmtArea(R.area, u) + (isZ ? ' · brüt ' + pe.fmtArea(R.gross, u) : ' · ' + pe.fmtLen(R.net.w, u) + ' × ' + pe.fmtLen(R.net.d, u)) + ' · öneri ≥ ' + pe.fmtArea(rt.min, u)
         + (R.area < rt.min * 0.85 ? ' (altında)' : '')) : null,
-      sp ? h('p', { class: 'note' }, 'İşlev Şeması mekânı: ', h('b', {}, sp.name), ' · hedef ' + fmt(sp.area, 1) + ' m²') : null,
+      state.project.spaces.length ? ui.fld2('Program mekânı', sel('pe-rspace', r.space || '', [opt('', 'Bağlı değil')].concat(state.project.spaces.map((q) => opt(q.id, q.name + ' · ' + fmt(q.area, 1) + ' m²'))), (v) => ctl().peLinkSpace(r.id, v || null), 'İşlev Şeması mekânı'), sp ? 'Hedef ' + fmt(sp.area, 1) + ' m² · plandaki net ' + (R ? fmt(R.area, 1) : '—') + ' m²' : 'Mekânlar kipindeki program mekânına bağlar; ad ve tür ondan gelir.') : null,
       ui.fld2('Stil', sel('pe-rstyle', r.style || '', [opt('', 'Kata / projeye göre')].concat(pe.STYLES.map((s) => opt(s.k, s.label))), (v) => setR({ style: v || null }), 'Oda stili')),
       ['zemin', 'duvar', 'tavan'].map((slot) => ui.fld2(pe.SLOTS.find((q) => q.k === slot).label, sel('pe-rf-' + slot, (r.fin && r.fin[slot]) || '', matOpts(slot), (v) => ctl().peFin('room', r.id, slot, v || null), slot))),
-      h('div', { class: 'btn-row' },
-        ui.btn('Odayı döşe', { icon: 'spark', onclick: () => ctl().peFurnish(r.id) }),
-        ui.btn('Nesneleri kaldır', { icon: 'close', onclick: () => ctl().peUnfurnish(r.id) })),
-      h('div', { class: 'btn-row' },
-        ui.btn('90° çevir', { icon: 'rotate', onclick: () => ctl().peRotate(), title: 'Genişlik ve derinliği değiştir (R)' }),
-        ui.btn('Çoğalt', { icon: 'copy', onclick: () => ctl().peDup(), title: 'Ctrl+D' }),
-        ui.btn('Sil', { icon: 'trash', onclick: () => ctl().peDelSel(), title: 'Delete' })),
+      isZ
+        ? h('div', { class: 'btn-row' }, ui.btn('Mekânı sil', { icon: 'trash', onclick: () => ctl().peDelSel(), title: 'Tanımı, içindeki nesneleri ve yalnız bu mekâna ait çizgileri siler (Delete)' }))
+        : h('div', { class: 'btn-row' },
+          ui.btn('90° çevir', { icon: 'rotate', onclick: () => ctl().peRotate(), title: 'Genişlik ve derinliği değiştir (R)' }),
+          ui.btn('Çoğalt', { icon: 'copy', onclick: () => ctl().peDup(), title: 'Ctrl+D' }),
+          ui.btn('Sil', { icon: 'trash', onclick: () => ctl().peDelSel(), title: 'Delete' })),
     ];
   }
   function objInspector(state, dd, o) {
@@ -165,7 +165,7 @@
     if (kind === 'walls') return [h('div', { class: 'nfld-grid' }, numField('Kalınlık', 'pe-wt', o.t, { min: 0.05, max: 0.6, step: 0.01, onchange: (v) => ctl().peSet('walls', o.id, { t: v }) })), h('div', { class: 'btn-row' }, ui.btn('Sil', { icon: 'trash', onclick: () => ctl().peDelSel() }))];
     return [ui.fld2('Metin', h('input', { id: 'pe-tt', class: 'inp', type: 'text', maxlength: 80, value: o.text, keep: true, onchange: (e) => ctl().peSet('labels', o.id, { text: e.target.value.trim() || 'Not' }) })), h('div', { class: 'btn-row' }, ui.btn('Sil', { icon: 'trash', onclick: () => ctl().peDelSel() }))];
   }
-  const TITLE = { rooms: 'Seçili mekân', ops: 'Seçili açıklık', objs: 'Seçili nesne', stairs: 'Seçili merdiven', rails: 'Seçili korkuluk', labels: 'Seçili etiket', walls: 'Seçili duvar' };
+  const TITLE = { rooms: 'Seçili mekân', zones: 'Çizilen mekân', ops: 'Seçili açıklık', objs: 'Seçili nesne', stairs: 'Seçili merdiven', rails: 'Seçili korkuluk', labels: 'Seçili etiket', walls: 'Seçili duvar' };
   function selectedSection(state, dd) {
     const v = state.ui.pe, E = dd.E;
     if (v.sel.length > 1) {
@@ -176,7 +176,7 @@
     const key = selOf(state), f = key && find(E, key);
     if (!f) return null;
     let body;
-    if (f.kind === 'rooms') body = roomInspector(state, dd, f.o);
+    if (f.kind === 'rooms' || f.kind === 'zones') body = roomInspector(state, dd, f.o);
     else if (f.kind === 'objs') body = objInspector(state, dd, f.o);
     else if (f.kind === 'ops') body = opInspector(state, dd, f.o);
     else if (f.kind === 'stairs') body = stairInspector(state, dd, f.o);
@@ -203,16 +203,70 @@
     void idx;
   }
 
+  /* ---------------- donatı: seçili mekâna (oda / çizilen mekân) nesne ekle ---------------- */
+  function roomOfSel(state, dd) {
+    const key = selOf(state);
+    if (!key) return null;
+    const E = dd.E, f = find(E, key);
+    if (!f) return null;
+    const fid = ctl().peFid(state), D = dd.by[fid];
+    if (f.kind === 'rooms' || f.kind === 'zones') return D && D.roomBy[f.o.id] ? { D: D, R: D.roomBy[f.o.id] } : null;
+    if (f.kind === 'objs') { const od = D && D.objs.find((q) => q.id === f.o.id); return od && od.room && D.roomBy[od.room] ? { D: D, R: D.roomBy[od.room] } : null; }
+    return null;
+  }
+  function furnSection(state, dd) {
+    const t = roomOfSel(state, dd);
+    if (!t) return null;
+    const D = t.D, R = t.R, v = state.ui.pe;
+    const list = D.objs.filter((o) => o.room === R.id);
+    const opts = pe.FURN_GROUPS.map((g) => h('optgroup', { key: g.g, label: g.label }, pe.FURN.filter((q) => q.g === g.g && !q.hidden).map((q) => h('option', { key: q.k, value: q.k }, q.label + ' · ' + q.w + '×' + q.d))));
+    const add = () => { const el = document.getElementById('pe-fu-k'); if (el && el.value) ctl().peObjIn(R.id, el.value); };
+    const rows = list.map((o) => {
+      const c = pe.FURN_BY[o.k] || { label: o.k };
+      const on = v.sel.indexOf('n:' + o.id) >= 0;
+      return h('li', { key: o.id, class: 'row frow' + (on ? ' sel' : '') },
+        h('div', { class: 'row-main', onclick: () => ctl().peSel(['n:' + o.id]) }, h('span', { class: 'row-name' }, o.k === 'ozel' ? (o.name || 'Özel nesne') : c.label), h('span', { class: 'frow-area mono' }, fmt(o.w, 2) + '×' + fmt(o.d, 2))),
+        h('div', { class: 'frel-act' },
+          h('button', { type: 'button', class: 'icon-btn', title: 'Döndür', 'aria-label': c.label + ' döndür', onclick: () => ctl().peSet('objs', o.id, { rot: (o.rot + 90) % 360 }) }, ui.icon('rotate', 16)),
+          h('button', { type: 'button', class: 'icon-btn', title: 'Sil', 'aria-label': c.label + ' sil', onclick: () => { ctl().dispatch({ type: 'PE_DEL', kind: 'objs', ids: [o.id] }); ctl().peSel(['' + (R.poly ? 'z' : 'r') + ':' + R.id]); } }, ui.icon('trash', 16))));
+    });
+    return ui.section('Donatı · ' + R.name, h('div', { class: 'sec-box' },
+      h('div', { class: 'btn-row' },
+        ui.btn('Otomatik döşe', { icon: 'spark', cls: 'btn-yellow', onclick: () => ctl().peFurnish(R.id), title: 'Mekânın türüne göre uygun donatıyı yerleştirir; elle eklenenler korunur' }),
+        ui.btn('Temizle', { icon: 'trash', onclick: () => ctl().peUnfurnish(R.id), disabled: !list.length })),
+      ui.fld2('Donatı ekle', h('div', { class: 'fr-add' }, h('select', { id: 'pe-fu-k', class: 'inp', 'aria-label': 'Donatı türü' }, opts), ui.btn('', { icon: 'plus', cls: 'btn-icon', onclick: add, title: 'Seçili mekânda boş bir yere ekle' }))),
+      list.length ? h('ul', { class: 'rows' }, rows) : h('p', { class: 'note' }, 'Bu mekânda donatı yok. “Otomatik döşe” türe göre yerleştirir; “Donatı ekle” seçtiğiniz parçayı boş bir yere koyar. Sonra planda sürükleyerek düzeltin.')), list.length + ' parça', 'pefurn');
+  }
+
+  /* ---------------- program mekânları (Mekânlar kipindeki liste) ---------------- */
+  function programSection(state, dd) {
+    const P = state.project;
+    if (!P.spaces.length) return null;
+    const E = dd.E, v = state.ui.pe;
+    const linked = {};
+    dd.floors.forEach((D) => D.rooms.forEach((r) => { if (r.space) linked[r.space] = { r: r, D: D }; }));
+    const placed = P.spaces.filter((s) => linked[s.id]).length;
+    return ui.section('Program mekânları', h('ul', { class: 'rows pe-rows' }, P.spaces.map((sp) => {
+      const q = linked[sp.id];
+      const key = q ? (q.r.poly ? 'z:' : 'r:') + q.r.id : null;
+      const on = key && v.sel.indexOf(key) >= 0;
+      return h('li', { key: sp.id, class: 'mrow' + (on ? ' on' : '') },
+        h('button', { type: 'button', class: 'mrow-b', onclick: () => (q ? (ctl().peSetFid(q.D.f.id), ctl().peSel([key])) : ctl().peSpacePlace(sp.id)), 'aria-pressed': String(!!on), title: q ? 'Planda seç ve donat' : 'Plana ekle' },
+          h('span', { class: 'dot', style: { background: q ? (App.ZONES[q.r.zone] || App.ZONES.sosyal).fill : 'transparent', border: q ? 'none' : '1.5px dashed currentColor' } }), h('span', { class: 'mrow-n' }, sp.name),
+          h('span', { class: 'mrow-a mono' + (q && q.r.area < sp.area * 0.8 ? ' warn' : '') }, q ? pe.fmtArea(q.r.area, E.unit) + ' / ' + fmt(sp.area, 0) : 'Ekle · ' + fmt(sp.area, 0) + ' m²')));
+    })), placed + '/' + P.spaces.length + ' yerleşti', 'peprog');
+  }
+
   /* ---------------- mekân listesi ---------------- */
   function listSection(state, dd) {
     const fid = ctl().peFid(state), D = dd.by[fid], v = state.ui.pe, u = dd.E.unit;
     if (!D.rooms.length) return null;
     return ui.section('Mekânlar', h('ul', { class: 'rows pe-rows' }, D.rooms.map((r) => {
-      const on = v.sel.indexOf('r:' + r.id) >= 0;
+      const key = (r.poly ? 'z:' : 'r:') + r.id, on = v.sel.indexOf(key) >= 0;
       const zn = App.ZONES[r.zone] || App.ZONES.sosyal;
       const bad = r.area < r.rt.min * 0.85;
       return h('li', { key: r.id, class: 'mrow' + (on ? ' on' : '') },
-        h('button', { type: 'button', class: 'mrow-b', onclick: () => ctl().peSel(['r:' + r.id]), 'aria-pressed': String(on) },
+        h('button', { type: 'button', class: 'mrow-b', onclick: () => ctl().peSel([key]), 'aria-pressed': String(on) },
           h('span', { class: 'dot', style: { background: zn.fill } }), h('span', { class: 'mrow-n' }, r.name),
           h('span', { class: 'mrow-a mono' + (bad ? ' warn' : '') }, pe.fmtArea(r.area, u))));
     })), D.rooms.length + ' mekân', 'pelist');
@@ -232,7 +286,7 @@
 
   /* ---------------- Plan sekmesi ---------------- */
   function planTab(state, dd) {
-    return [fl.modeSection(state), startSection(state, dd), selectedSection(state, dd), floorSection(state, dd), listSection(state, dd), settingsSection(state, dd)];
+    return [fl.modeSection(state), startSection(state, dd), selectedSection(state, dd), furnSection(state, dd), programSection(state, dd), floorSection(state, dd), listSection(state, dd), settingsSection(state, dd)];
   }
 
   /* ---------------- Stil ve kaplama sekmesi ---------------- */
@@ -240,10 +294,10 @@
     const E = dd.E, v = state.ui.pe, fid = ctl().peFid(state);
     const key = selOf(state), f = key && find(E, key);
     // seçili oda; nesne / kapı seçiliyse içinde bulunduğu oda
-    let room = f && f.kind === 'rooms' ? f.o : null;
+    let room = f && (f.kind === 'rooms' || f.kind === 'zones') ? f.o : null;
     if (!room && f && f.kind === 'objs') {
       const od = dd.by[fid] && dd.by[fid].objs.find((q) => q.id === f.o.id);
-      room = od && od.room ? E.rooms.find((r) => r.id === od.room) || null : null;
+      room = od && od.room ? E.rooms.find((r) => r.id === od.room) || (E.zones || []).find((r) => r.id === od.room) || null : null;
     }
     if (!room) return [ui.section('Stil ve kaplama', h('div', { class: 'sec-box' }, h('p', { class: 'note' }, 'Stil ve kaplama seçili odaya uygulanır. Önce planda bir oda (ya da odadaki bir nesne) seçin.')), null, 'pescope')];
     const flr = E.floors.find((q) => q.id === room.f);

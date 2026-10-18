@@ -18,7 +18,7 @@
   const pe = App.pe;
 
   const withPe = (P, E) => Object.assign({}, P, { study: Object.assign({}, P.study, { pe: E }) });
-  const KINDS = ['rooms', 'walls', 'ops', 'objs', 'stairs', 'rails', 'labels'];
+  const KINDS = ['rooms', 'zones', 'walls', 'ops', 'objs', 'stairs', 'rails', 'labels'];
 
   S.hooks.push(function (next, a) {
     if (!/^PE_/.test(a.type)) return undefined;
@@ -42,7 +42,9 @@
       }
       case 'PE_ADD': {
         const items = (a.items || []).filter(Boolean);
-        const E2 = mapKind(a.kind, (arr) => arr.concat(items));
+        let E2 = mapKind(a.kind, (arr) => arr.concat(items));
+        // serbest duvar eklenince kapanan bölgeler otomatik mekân olur
+        if (E2 && a.kind === 'walls') E2 = pe.autoZones(E2);
         return E2 ? out(E2, true) : next;
       }
       case 'PE_SET': case 'PE_SET_LIVE': {
@@ -63,6 +65,27 @@
           E2 = Object.assign({}, E2);
         }
         return out(E2, true);
+      }
+      case 'PE_ZONES_SYNC': {
+        const E2 = pe.autoZones(E);
+        return E2 === E ? next : out(E2, true);
+      }
+      case 'PE_DEL_ZONE': {
+        // çizilen mekânı sil: tanım, içindeki nesneler ve yalnız bu mekâna komşu serbest duvarlar (ve üstündeki açıklıklar)
+        const ids = new Set(a.ids || []);
+        const zs = (E.zones || []).filter((z) => ids.has(z.id));
+        if (!zs.length) return next;
+        const d = pe.derive(P);
+        const dropW = new Set(), dropObjs = new Set(), dropOps = new Set();
+        d.floors.forEach((D) => {
+          D.walls.forEach((w) => { if (w.src === 'free' && w.rooms.length && w.rooms.every((id) => ids.has(id))) dropW.add(w.id); });
+          D.ops.forEach((o) => { if (!o.orphan && dropW.has(o.wall)) dropOps.add(o.id); });
+          D.objs.forEach((o) => { if (o.room && ids.has(o.room)) dropObjs.add(o.id); });
+        });
+        return out(Object.assign({}, E, {
+          zones: E.zones.map((z) => (ids.has(z.id) ? Object.assign({}, z, { off: true }) : z)),
+          walls: E.walls.filter((w) => !dropW.has(w.id)), ops: E.ops.filter((o) => !dropOps.has(o.id)), objs: E.objs.filter((o) => !dropObjs.has(o.id)),
+        }), true);
       }
       case 'PE_DEL_ROOM': {
         // odayı sil: içindeki nesne / merdiven / etiket ve yalnız bu odaya ait duvarlardaki açıklıklar da gider
@@ -93,7 +116,7 @@
         if (a.copy && base) {
           const dup = (arr) => arr.filter((q) => q.f === base.id).map((q) => Object.assign({}, q, { id: pe.nid(q.id.charAt(0)), f: id }));
           const rooms = dup(E.rooms).map((r) => Object.assign(r, { space: null }));
-          E2 = Object.assign(E2, { rooms: E.rooms.concat(rooms), walls: E.walls.concat(dup(E.walls)), ops: E.ops.concat(dup(E.ops).filter((o) => o.k === 'pencere')), objs: E.objs });
+          E2 = Object.assign(E2, { rooms: E.rooms.concat(rooms), zones: (E.zones || []).concat(dup(E.zones || []).map((z) => Object.assign(z, { space: null }))), walls: E.walls.concat(dup(E.walls)), ops: E.ops.concat(dup(E.ops).filter((o) => o.k === 'pencere')), objs: E.objs });
         }
         const res = out(E2, true);
         return res === next ? next : Object.assign({}, res, { ui: Object.assign({}, res.ui, { pe: Object.assign({}, res.ui.pe, { fid: id, sel: [] }) }) });
@@ -102,17 +125,17 @@
       case 'PE_FLOOR_DEL': {
         if (E.floors.length < 2) return next;
         const keep = (arr) => arr.filter((q) => q.f !== a.id);
-        return out(Object.assign({}, E, { floors: E.floors.filter((f) => f.id !== a.id), rooms: keep(E.rooms), walls: keep(E.walls), ops: keep(E.ops), objs: keep(E.objs), stairs: keep(E.stairs), rails: keep(E.rails), labels: keep(E.labels) }), true);
+        return out(Object.assign({}, E, { floors: E.floors.filter((f) => f.id !== a.id), rooms: keep(E.rooms), zones: keep(E.zones || []), walls: keep(E.walls), ops: keep(E.ops), objs: keep(E.objs), stairs: keep(E.stairs), rails: keep(E.rails), labels: keep(E.labels) }), true);
       }
       case 'PE_FLOOR_FIN': {
         const fin = (o) => { const f = Object.assign({}, o.fin); if (a.mat) f[a.slot] = a.mat; else delete f[a.slot]; return f; };
-        if (a.scope === 'room') return out(Object.assign({}, E, { rooms: E.rooms.map((r) => (r.id === a.id ? Object.assign({}, r, { fin: fin(r) }) : r)) }), true);
+        if (a.scope === 'room') return out(Object.assign({}, E, { rooms: E.rooms.map((r) => (r.id === a.id ? Object.assign({}, r, { fin: fin(r) }) : r)), zones: (E.zones || []).map((r) => (r.id === a.id ? Object.assign({}, r, { fin: fin(r) }) : r)) }), true);
         if (a.scope === 'all') return out(Object.assign({}, E, { fin: fin(E) }), true);
         return out(Object.assign({}, E, { floors: E.floors.map((f) => (f.id === a.id ? Object.assign({}, f, { fin: fin(f) }) : f)) }), true);
       }
 
       case 'PE_FURNISH': {
-        const fid = a.fid || (E.rooms.find((r) => r.id === a.rid) || {}).f || E.floors[0].id;
+        const fid = a.fid || (E.rooms.find((r) => r.id === a.rid) || (E.zones || []).find((r) => r.id === a.rid) || {}).f || E.floors[0].id;
         const D = pe.derive(P).by[fid];
         if (!D) return next;
         const ids = a.rid ? [a.rid] : D.rooms.filter((r) => !r.rt.corridor || true).map((r) => r.id);
@@ -141,7 +164,7 @@
       case 'PE_CLEAR': {
         const fid = a.fid;
         const keep = (arr) => (fid ? arr.filter((q) => q.f !== fid) : []);
-        return out(Object.assign({}, E, { rooms: keep(E.rooms), walls: keep(E.walls), ops: keep(E.ops), objs: keep(E.objs), stairs: keep(E.stairs), rails: keep(E.rails), labels: keep(E.labels) }), true);
+        return out(Object.assign({}, E, { rooms: keep(E.rooms), zones: keep(E.zones || []), walls: keep(E.walls), ops: keep(E.ops), objs: keep(E.objs), stairs: keep(E.stairs), rails: keep(E.rails), labels: keep(E.labels) }), true);
       }
       case 'PE_CAM': return out(Object.assign({}, E, { cam: Object.assign({}, E.cam, a.patch) }), false);
       default: return next;
@@ -152,7 +175,7 @@
   const r2 = pe.r2;
   App.extProviders.push(function (project) {
     const E = project.study && project.study.pe;
-    if (!E || !E.rooms || !E.rooms.length) return {};
+    if (!E || !E.rooms || (!E.rooms.length && !(E.zones || []).length)) return {};
     const d = pe.derive(project), M = d.metrics;
     const FD = pe.takeoff(project);
     const s2 = (o, keys) => { const out = {}; keys.forEach((k) => { out[k] = o[k]; }); return out; };
@@ -167,6 +190,7 @@
         finishes: E.fin,
         floors: E.floors.map((f) => ({ id: f.id, name: f.name, height: f.h, style: f.style, finishes: f.fin, elevation: r2(pe.elevOf(E, f.id)) })),
         rooms: E.rooms.map((r) => ({ id: r.id, floorId: r.f, type: r.type, name: r.name, x: r.x, y: r.y, width: r.w, depth: r.d, style: r.style, finishes: r.fin, spaceId: r.space })),
+        zones: (E.zones || []).filter((z) => !z.off).map((z) => ({ id: z.id, floorId: z.f, type: z.type, name: z.name, seed: [z.sx, z.sy], style: z.style, finishes: z.fin, spaceId: z.space })),
         walls: E.walls.map((w) => ({ id: w.id, floorId: w.f, x1: w.x1, y1: w.y1, x2: w.x2, y2: w.y2, thickness: w.t })),
         openings: E.ops.map((o) => ({ id: o.id, floorId: o.f, kind: o.k === 'kapi' ? 'door' : 'window', subtype: o.sub, x: o.x, y: o.y, rotation: o.rot, width: o.w, height: o.h, sill: o.sill, flip: o.flip, mirror: o.mir, finish: o.fin })),
         objects: E.objs.map((o) => ({ id: o.id, floorId: o.f, type: o.k, x: o.x, y: o.y, rotation: o.rot, width: o.w, depth: o.d, height: o.h, finish: o.fin, auto: o.auto, name: o.name, shape: o.rd, color: o.col })),
@@ -189,6 +213,7 @@
       snap: x.grid, unit: x.displayUnit, wall: x.wallThickness, style: x.style, fin: x.finishes,
       floors: (x.floors || []).map((f) => ({ id: f.id, name: f.name, h: f.height, style: f.style, fin: f.finishes })),
       rooms: x.rooms.map((r) => ({ id: r.id, f: r.floorId, type: r.type, name: r.name, x: r.x, y: r.y, w: r.width, d: r.depth, style: r.style, fin: r.finishes, space: r.spaceId })),
+      zones: (x.zones || []).map((z) => ({ id: z.id, f: z.floorId, type: z.type, name: z.name, sx: z.seed && z.seed[0], sy: z.seed && z.seed[1], style: z.style, fin: z.finishes, space: z.spaceId })),
       walls: (x.walls || []).map((w) => ({ id: w.id, f: w.floorId, x1: w.x1, y1: w.y1, x2: w.x2, y2: w.y2, t: w.thickness })),
       ops: (x.openings || []).map((o) => ({ id: o.id, f: o.floorId, k: o.kind === 'window' ? 'pencere' : 'kapi', sub: o.subtype, x: o.x, y: o.y, rot: o.rotation, w: o.width, h: o.height, sill: o.sill, flip: o.flip, mir: o.mirror, fin: o.finish })),
       objs: (x.objects || []).map((o) => ({ id: o.id, f: o.floorId, k: o.type, x: o.x, y: o.y, rot: o.rotation, w: o.width, d: o.depth, h: o.height, fin: o.finish, auto: o.auto, name: o.name, rd: o.shape, col: o.color })),

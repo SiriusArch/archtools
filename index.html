@@ -16148,6 +16148,227 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
+   38-lib-pe-faces.js — Plan Editörü: çokgen geometri (serbest çizgilerden kapalı alan / "çizilen mekân" bulma)
+   pe.faces(segs)       → kapalı bölgeler [{pts, ts, area, free, cx, cy}] (iç taraf solda, pts saat yönünün tersine)
+   pe.offsetPoly        → duvar yarı kalınlığı kadar içe öteleme (net alan)
+   pe.labelRect         → çokgenin içine sığan en büyük eksen hizalı dikdörtgen (etiket / donatı için)
+   pe.triangulate       → kulak kesme ile üçgenleme (3B döşeme için)
+   Hepsi metre cinsinden, DOM'dan bağımsız ve saf fonksiyondur.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const pe = App.pe;
+
+  const area = (p) => { let a = 0; for (let i = 0, n = p.length; i < n; i++) { const q = p[(i + 1) % n]; a += p[i][0] * q[1] - q[0] * p[i][1]; } return a / 2; };
+  function inPoly(x, y, p) {
+    let c = false;
+    for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+      const a = p[i], b = p[j];
+      if ((a[1] > y) !== (b[1] > y) && x < ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1]) + a[0]) c = !c;
+    }
+    return c;
+  }
+  function bboxOf(p) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    p.forEach((q) => { x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); });
+    return { x: x0, y: y0, w: x1 - x0, d: y1 - y0 };
+  }
+  function centroid(p) {
+    let a = 0, cx = 0, cy = 0;
+    for (let i = 0, n = p.length; i < n; i++) { const q = p[(i + 1) % n], f = p[i][0] * q[1] - q[0] * p[i][1]; a += f; cx += (p[i][0] + q[0]) * f; cy += (p[i][1] + q[1]) * f; }
+    if (Math.abs(a) < 1e-9) return [p[0][0], p[0][1]];
+    return [cx / (3 * a), cy / (3 * a)];
+  }
+
+  /* ---------------- planar bölgeler ----------------
+     segs: [{x1,y1,x2,y2,t,free}] — kesişen / T birleşen çizgiler kesilir, ardından yarım-kenar dolaşımıyla bölgeler çıkarılır. */
+  function faces(segs, tol) {
+    tol = tol || 0.03;
+    const nodes = [], grid = {};
+    const cell = tol * 2;
+    const gk = (i, j) => i + ',' + j;
+    function nodeAt(x, y) {
+      const ci = Math.floor(x / cell), cj = Math.floor(y / cell);
+      for (let i = ci - 1; i <= ci + 1; i++) for (let j = cj - 1; j <= cj + 1; j++) {
+        const l = grid[gk(i, j)];
+        if (l) for (let k = 0; k < l.length; k++) { const n = nodes[l[k]]; if (Math.abs(n.x - x) <= tol && Math.abs(n.y - y) <= tol) return l[k]; }
+      }
+      const id = nodes.length;
+      nodes.push({ x: x, y: y, out: [] });
+      (grid[gk(ci, cj)] = grid[gk(ci, cj)] || []).push(id);
+      return id;
+    }
+    const edges = {};
+    const S = segs.filter((s) => Math.hypot(s.x2 - s.x1, s.y2 - s.y1) > tol);
+    S.forEach((a, i) => {
+      const rx = a.x2 - a.x1, ry = a.y2 - a.y1, L = Math.hypot(rx, ry);
+      const ts = [0, 1];
+      S.forEach((b, j) => {
+        if (i === j) return;
+        // b'nin uçları a üzerinde mi (T birleşim)
+        [[b.x1, b.y1], [b.x2, b.y2]].forEach((e) => {
+          const t = ((e[0] - a.x1) * rx + (e[1] - a.y1) * ry) / (L * L);
+          if (t <= 0 || t >= 1) return;
+          const dx = a.x1 + rx * t - e[0], dy = a.y1 + ry * t - e[1];
+          if (Math.hypot(dx, dy) <= tol) ts.push(t);
+        });
+        // gerçek kesişim
+        const sx = b.x2 - b.x1, sy = b.y2 - b.y1, den = rx * sy - ry * sx;
+        if (Math.abs(den) < 1e-9) return;
+        const qx = b.x1 - a.x1, qy = b.y1 - a.y1;
+        const t = (qx * sy - qy * sx) / den, u = (qx * ry - qy * rx) / den;
+        const eT = tol / L, eU = tol / Math.hypot(sx, sy);
+        if (t > eT && t < 1 - eT && u > -eU && u < 1 + eU) ts.push(t);
+      });
+      ts.sort((p, q) => p - q);
+      let prev = nodeAt(a.x1, a.y1);
+      for (let k = 1; k < ts.length; k++) {
+        const t = ts[k];
+        const cur = k === ts.length - 1 ? nodeAt(a.x2, a.y2) : nodeAt(a.x1 + rx * t, a.y1 + ry * t);
+        if (cur !== prev) {
+          const key = prev < cur ? prev + '_' + cur : cur + '_' + prev;
+          const e = edges[key];
+          if (e) { e.t = Math.max(e.t, a.t || 0.1); e.free = e.free || !!a.free; } else edges[key] = { u: prev < cur ? prev : cur, v: prev < cur ? cur : prev, t: a.t || 0.1, free: !!a.free };
+        }
+        prev = cur;
+      }
+    });
+    const hes = [];
+    Object.keys(edges).forEach((k) => {
+      const e = edges[k];
+      const A = nodes[e.u], B = nodes[e.v];
+      const h1 = { from: e.u, to: e.v, ang: Math.atan2(B.y - A.y, B.x - A.x), e: e, seen: false };
+      const h2 = { from: e.v, to: e.u, ang: Math.atan2(A.y - B.y, A.x - B.x), e: e, seen: false };
+      h1.twin = h2; h2.twin = h1;
+      A.out.push(h1); B.out.push(h2); hes.push(h1, h2);
+    });
+    nodes.forEach((n) => n.out.sort((p, q) => p.ang - q.ang));
+    const out = [];
+    hes.forEach((h0) => {
+      if (h0.seen) return;
+      const loop = [];
+      let cur = h0, guard = 0;
+      while (!cur.seen && guard++ < 5000) {
+        cur.seen = true; loop.push(cur);
+        const v = nodes[cur.to], idx = v.out.indexOf(cur.twin), nxt = v.out[(idx - 1 + v.out.length) % v.out.length];
+        cur = nxt;
+      }
+      if (cur !== h0 || loop.length < 3) return;
+      // sivri uçları (aynı kenardan gidip dönen) ayıkla
+      let ids = loop.map((h) => h.from), ets = loop.map((h) => h.e);
+      let changed = true;
+      while (changed && ids.length >= 3) {
+        changed = false;
+        for (let i = 0; i < ids.length; i++) {
+          const n = ids.length, a = ids[(i - 1 + n) % n], c = ids[(i + 1) % n];
+          if (a === c) { ids.splice(i, 1); ets.splice(i, 1); const j = i % ids.length; ids.splice(j, 1); ets.splice(j, 1); changed = true; break; }
+        }
+      }
+      if (ids.length < 3) return;
+      let pts = ids.map((i) => [nodes[i].x, nodes[i].y]);
+      let ts = ets.map((e) => e.t), fr = ets.map((e) => e.free);
+      // doğrusal köşeleri sadeleştir
+      for (let i = 0; i < pts.length && pts.length > 3;) {
+        const n = pts.length, a = pts[(i - 1 + n) % n], b = pts[i], c = pts[(i + 1) % n];
+        const ux = b[0] - a[0], uy = b[1] - a[1], vx = c[0] - b[0], vy = c[1] - b[1];
+        const cr = ux * vy - uy * vx, ul = Math.hypot(ux, uy), vl = Math.hypot(vx, vy);
+        if (Math.abs(cr) / (ul * vl || 1) < 0.002 && ux * vx + uy * vy > 0) {
+          const pi = (i - 1 + n) % n;
+          ts[pi] = Math.max(ts[pi], ts[i]); fr[pi] = fr[pi] || fr[i];
+          pts.splice(i, 1); ts.splice(i, 1); fr.splice(i, 1);
+        } else i++;
+      }
+      const ar = area(pts);
+      if (ar <= 0.05 || pts.length < 3) return;
+      const c = centroid(pts);
+      out.push({ pts: pts, ts: ts, area: ar, free: fr.some(Boolean), cx: c[0], cy: c[1] });
+    });
+    return out;
+  }
+
+  /* ---------------- içe öteleme (kenar başına kalınlık / 2) ---------------- */
+  function offsetPoly(pts, ts) {
+    const n = pts.length;
+    if (n < 3) return pts;
+    const L = [];
+    for (let i = 0; i < n; i++) {
+      const a = pts[i], b = pts[(i + 1) % n];
+      const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+      const d = (ts[i] || 0.1) / 2;
+      L.push({ x: a[0] - (dy / l) * d, y: a[1] + (dx / l) * d, dx: dx / l, dy: dy / l });
+    }
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const A = L[(i - 1 + n) % n], B = L[i];
+      const den = A.dx * B.dy - A.dy * B.dx;
+      if (Math.abs(den) < 1e-6) { out.push([B.x, B.y]); continue; }
+      const s = ((B.x - A.x) * B.dy - (B.y - A.y) * B.dx) / den;
+      let x = A.x + A.dx * s, y = A.y + A.dy * s;
+      const md = Math.hypot(x - pts[i][0], y - pts[i][1]);
+      if (md > 1.5) { const f = 1.5 / md; x = pts[i][0] + (x - pts[i][0]) * f; y = pts[i][1] + (y - pts[i][1]) * f; }
+      out.push([x, y]);
+    }
+    const a0 = area(pts), a1 = area(out);
+    return a1 > 0.02 && a1 <= a0 + 1e-6 ? out : pts;
+  }
+
+  /* ---------------- içe sığan en büyük eksen hizalı dikdörtgen ---------------- */
+  function labelRect(poly) {
+    const b = bboxOf(poly);
+    const s = Math.max(0.06, Math.max(b.w, b.d) / 70);
+    const nx = Math.max(1, Math.ceil(b.w / s)), ny = Math.max(1, Math.ceil(b.d / s));
+    const hgt = new Array(nx).fill(0);
+    let best = { a: 0, x0: 0, y0: 0, x1: 0, y1: 0 };
+    for (let j = 0; j < ny; j++) {
+      for (let i = 0; i < nx; i++) hgt[i] = inPoly(b.x + (i + 0.5) * s, b.y + (j + 0.5) * s, poly) ? hgt[i] + 1 : 0;
+      const st = [];
+      for (let i = 0; i <= nx; i++) {
+        const cur = i === nx ? 0 : hgt[i];
+        let start = i;
+        while (st.length && st[st.length - 1].h >= cur) {
+          const t = st.pop(), a = t.h * (i - t.i);
+          if (a > best.a) best = { a: a, x0: t.i, x1: i, y0: j - t.h + 1, y1: j + 1 };
+          start = t.i;
+        }
+        st.push({ i: start, h: cur });
+      }
+    }
+    if (!best.a) return { x: b.x + b.w * 0.35, y: b.y + b.d * 0.35, w: Math.max(0.2, b.w * 0.3), d: Math.max(0.2, b.d * 0.3) };
+    return { x: b.x + best.x0 * s, y: b.y + best.y0 * s, w: (best.x1 - best.x0) * s, d: (best.y1 - best.y0) * s };
+  }
+
+  /* ---------------- üçgenleme (kulak kesme; pts saat yönünün tersine) ---------------- */
+  function triangulate(pts) {
+    const n = pts.length;
+    if (n < 3) return [];
+    const idx = [];
+    for (let i = 0; i < n; i++) idx.push(i);
+    if (area(pts) < 0) idx.reverse();
+    const tris = [];
+    const cross = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+    const inTri = (p, a, b, c) => cross(a, b, p) >= -1e-9 && cross(b, c, p) >= -1e-9 && cross(c, a, p) >= -1e-9;
+    let guard = 0;
+    while (idx.length > 3 && guard++ < 4000) {
+      let cut = false;
+      for (let k = 0; k < idx.length; k++) {
+        const ia = idx[(k - 1 + idx.length) % idx.length], ib = idx[k], ic = idx[(k + 1) % idx.length];
+        const a = pts[ia], b = pts[ib], c = pts[ic];
+        if (cross(a, b, c) <= 1e-9) continue;
+        let ok = true;
+        for (let m = 0; m < idx.length; m++) { const q = idx[m]; if (q === ia || q === ib || q === ic) continue; if (inTri(pts[q], a, b, c)) { ok = false; break; } }
+        if (!ok) continue;
+        tris.push([ia, ib, ic]); idx.splice(k, 1); cut = true; break;
+      }
+      if (!cut) { tris.push([idx[0], idx[1], idx[2]]); idx.splice(1, 1); }
+    }
+    if (idx.length === 3) tris.push([idx[0], idx[1], idx[2]]);
+    return tris;
+  }
+
+  Object.assign(pe, { faces: faces, offsetPoly: offsetPoly, labelRect: labelRect, triangulate: triangulate, polyArea: area, inPoly: inPoly, polyBox: bboxOf, polyCentroid: centroid });
+})();
+
+/* ==========================================================================
    38-lib-pe-model.js — Mekân Etüdü · Plan Editörü: veri modeli, türetme ve düzenleme mantığı (saf, arayüzden bağımsız)
    Veri project.study.pe içinde durur (geri al / ileri al, otomatik kayıt ve JSON akışı ortaktır). Tüm ölçüler METREdir.
    Model (merkez çizgisi esaslı): oda = merkez çizgileri x, y, w, d olan dikdörtgen; duvarlar oda kenarlarından TÜRETİLİR
@@ -16177,7 +16398,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     return {
       v: 1, snap: 0.1, unit: 'm', wall: { ext: 0.25, int: 0.1 }, style: 'modern', fin: {},
       floors: [{ id: 'k0', name: 'Zemin kat', h: 3, style: null, fin: {} }],
-      rooms: [], walls: [], ops: [], objs: [], stairs: [], rails: [], labels: [], cam: { x: 0, y: 0, yaw: 0, f: 'k0' },
+      rooms: [], zones: [], walls: [], ops: [], objs: [], stairs: [], rails: [], labels: [], cam: { x: 0, y: 0, yaw: 0, f: 'k0' },
     };
   }
   const SNAPS = [0.05, 0.1, 0.25, 0.5];
@@ -16209,6 +16430,11 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       return { id: String(r.id || nid('r')), f: fOf(r), type: t, name: String(r.name || C.ROOM_BY[t].label).slice(0, 60), x: r3(num(r.x, 0)), y: r3(num(r.y, 0)), w: U.clamp(r3(num(r.w, 3)), MIN, 80), d: U.clamp(r3(num(r.d, 3)), MIN, 80),
         style: C.STYLE_BY[r.style] ? r.style : null, fin: cleanFin(r.fin), space: r.space ? String(r.space) : null };
     });
+    e.zones = list(raw.zones, LIM.rooms).filter((z) => z && isFinite(Number(z.sx)) && isFinite(Number(z.sy))).map((z) => {
+      const t = C.ROOM_BY[z.type] ? z.type : 'salon';
+      return { id: String(z.id || nid('z')), f: fOf(z), type: t, name: String(z.name || C.ROOM_BY[t].label).slice(0, 60), sx: r3(Number(z.sx)), sy: r3(Number(z.sy)),
+        style: C.STYLE_BY[z.style] ? z.style : null, fin: cleanFin(z.fin), space: z.space ? String(z.space) : null, off: !!z.off };
+    });
     e.walls = list(raw.walls, LIM.walls).filter((w) => w && [w.x1, w.y1, w.x2, w.y2].every((v) => isFinite(Number(v)))).map((w) => ({ id: String(w.id || nid('w')), f: fOf(w), x1: r3(Number(w.x1)), y1: r3(Number(w.y1)), x2: r3(Number(w.x2)), y2: r3(Number(w.y2)), t: U.clamp(num(w.t, e.wall.int), 0.05, 0.6) })).filter((w) => Math.hypot(w.x2 - w.x1, w.y2 - w.y1) > 0.05);
     e.ops = list(raw.ops, LIM.ops).filter((o) => o && (o.k === 'kapi' || o.k === 'pencere') && isFinite(Number(o.x)) && isFinite(Number(o.y))).map((o) => {
       const def = C.OP_BY[o.k + ':' + o.sub] || C.OP_BY[o.k + ':' + (o.k === 'kapi' ? 'tek' : 'tek')];
@@ -16229,7 +16455,15 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   }
 
   let DEF = null;
-  const get = (P) => (P && P.study && P.study.pe) || DEF || (DEF = defaults());
+  const zMemo = new WeakMap();
+  const get = (P) => {
+    const e = P && P.study && P.study.pe;
+    if (!e) return DEF || (DEF = defaults());
+    if (e.zones) return e;
+    let n = zMemo.get(e);
+    if (!n) { n = Object.assign({}, e, { zones: [] }); zMemo.set(e, n); }
+    return n;
+  };
 
   /* ---------------- biçimlendirme (m / ft) ---------------- */
   function fmtLen(m, unit) {
@@ -16303,6 +16537,60 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   }
 
   /* bir katın tüm türetilmiş verisi */
+  const C0inPoly = (x, y, p, t) => (t ? (pe.inPoly(x, y, p) || p.some((q, i) => { const b = p[(i + 1) % p.length]; const dx = b[0] - q[0], dy = b[1] - q[1], l2 = dx * dx + dy * dy || 1, u = Math.max(0, Math.min(1, ((x - q[0]) * dx + (y - q[1]) * dy) / l2)); return Math.hypot(x - q[0] - dx * u, y - q[1] - dy * u) <= t; })) : pe.inPoly(x, y, p));
+  /* kapalı bölgeler: serbest duvarlar + oda kenarları; odanın kendisi olan bölge atılır */
+  const fcMemo = new WeakMap();
+  function faceList(E, fid) {
+    let m = fcMemo.get(E);
+    if (!m) { m = {}; fcMemo.set(E, m); }
+    if (m[fid]) return m[fid];
+    const segs = [];
+    const rs = E.rooms.filter((r) => r.f === fid);
+    rs.forEach((r) => {
+      const t = E.wall.int;
+      [[r.x, r.y, r.x + r.w, r.y], [r.x + r.w, r.y, r.x + r.w, r.y + r.d], [r.x + r.w, r.y + r.d, r.x, r.y + r.d], [r.x, r.y + r.d, r.x, r.y]].forEach((q) => segs.push({ x1: q[0], y1: q[1], x2: q[2], y2: q[3], t: t, free: false }));
+    });
+    E.walls.filter((w) => w.f === fid).forEach((w) => segs.push({ x1: w.x1, y1: w.y1, x2: w.x2, y2: w.y2, t: w.t, free: true }));
+    const fcs = segs.some((q) => q.free) ? pe.faces(segs, 0.06).filter((f) => {
+      if (!f.free) return false;
+      return !rs.some((r) => Math.abs(f.area - r.w * r.d) < 0.04 + 0.01 * r.w * r.d && Math.abs(f.cx - (r.x + r.w / 2)) < 0.15 && Math.abs(f.cy - (r.y + r.d / 2)) < 0.15);
+    }) : [];
+    m[fid] = fcs;
+    return fcs;
+  }
+  function zonesOf(E, fl) {
+    const recs = (E.zones || []).filter((z) => z.f === fl.id && !z.off);
+    if (!recs.length) return [];
+    const fcs = faceList(E, fl.id);
+    const used = new Set(), out = [];
+    recs.forEach((z) => {
+      let best = null;
+      fcs.forEach((f, i) => { if (!used.has(i) && pe.inPoly(z.sx, z.sy, f.pts) && (!best || f.area < best.f.area)) best = { f: f, i: i }; });
+      if (!best) return;
+      used.add(best.i);
+      const f = best.f, np = pe.offsetPoly(f.pts, f.ts), b = pe.polyBox(f.pts), nb = pe.polyBox(np), lr = pe.labelRect(np);
+      const rt = C.ROOM_BY[z.type] || C.ROOM_BY.salon;
+      out.push(Object.assign({}, z, { kind: 'zone', poly: f.pts, npoly: np, x: b.x, y: b.y, w: b.w, d: b.d, net: nb, lab: lr,
+        area: Math.abs(pe.polyArea(np)), gross: f.area, cx: lr.x + lr.w / 2, cy: lr.y + lr.d / 2, zone: rt.zone, rt: rt, ins: { n: 0.05, s: 0.05, w: 0.05, e: 0.05 } }));
+    });
+    return out;
+  }
+  const ZAUTO = [[1.8, 'dolap'], [3.2, 'wc'], [5.5, 'banyo'], [9, 'calisma'], [14, 'yatak'], [1e9, 'salon']];
+  /* yeni kapalı bölgelere otomatik mekân tanımı ekler (tür alana göre tahmin edilir; kullanıcı değiştirebilir) */
+  function autoZones(E) {
+    const add = [];
+    E.floors.forEach((fl) => {
+      const recs = (E.zones || []).filter((z) => z.f === fl.id);
+      faceList(E, fl.id).forEach((f) => {
+        if (f.area < 1.0 || recs.some((z) => pe.inPoly(z.sx, z.sy, f.pts)) || add.some((z) => z.f === fl.id && pe.inPoly(z.sx, z.sy, f.pts))) return;
+        const np = pe.offsetPoly(f.pts, f.ts), lr = pe.labelRect(np);
+        const type = ZAUTO.find((q) => Math.abs(pe.polyArea(np)) < q[0])[1];
+        const same = recs.concat(add.filter((z) => z.f === fl.id), E.rooms.filter((r) => r.f === fl.id)).filter((r) => r.type === type).length;
+        add.push({ id: nid('z'), f: fl.id, type: type, name: C.ROOM_BY[type].label + (same ? ' ' + (same + 1) : ''), sx: r3(lr.x + lr.w / 2), sy: r3(lr.y + lr.d / 2), style: null, fin: {}, space: null, off: false });
+      });
+    });
+    return add.length ? Object.assign({}, E, { zones: (E.zones || []).concat(add) }) : E;
+  }
   function deriveFloor(E, fl) {
     const rooms0 = E.rooms.filter((r) => r.f === fl.id);
     const walls = wallsOfRooms(rooms0, E.wall);
@@ -16321,13 +16609,27 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       const rt = C.ROOM_BY[r.type] || C.ROOM_BY.salon;
       return Object.assign({}, r, { net: net, area: net.w * net.d, gross: r.w * r.d, cx: r.x + r.w / 2, cy: r.y + r.d / 2, zone: rt.zone, rt: rt, ins: { n: n, s: s, w: w, e: e } });
     });
+    // çizilen mekânlar: serbest duvarlardan (ve oda kenarlarından) oluşan kapalı bölgeler
+    const zs = zonesOf(E, fl);
+    zs.forEach((z) => rooms.push(z));
     const roomBy = {};
     rooms.forEach((r) => { roomBy[r.id] = r; });
     const containing = (x, y, tol) => {
       let best = null;
-      rooms.forEach((r) => { const t = tol || 0; if (x >= r.x - t && x <= r.x + r.w + t && y >= r.y - t && y <= r.y + r.d + t && (!best || r.gross < best.gross)) best = r; });
+      rooms.forEach((r) => {
+        const t = tol || 0;
+        if (x >= r.x - t && x <= r.x + r.w + t && y >= r.y - t && y <= r.y + r.d + t && (!best || r.gross < best.gross) && (!r.poly || C0inPoly(x, y, r.poly, t))) best = r;
+      });
       return best;
     };
+    // serbest duvarların iki yanındaki çizilen mekânlar: bitişiklik, dış duvar, açıklık tarafı
+    if (zs.length) walls.forEach((w) => {
+      if (w.src !== 'free') return;
+      const nx = -w.uy, ny = w.ux, off = w.t / 2 + 0.15, mx = (w.x1 + w.x2) / 2, my = (w.y1 + w.y2) / 2;
+      const a = containing(mx + nx * off, my + ny * off), b = containing(mx - nx * off, my - ny * off);
+      [a, b].forEach((q) => { if (q && q.poly && w.rooms.indexOf(q.id) < 0) { w.rooms.push(q.id); w.sides.push('z'); } });
+      w.ext = [a, b].filter((q) => q && q.poly).length === 1 && !(a && b);
+    });
     // açıklıkları duvara oturt
     const ops = E.ops.filter((o) => o.f === fl.id).map((o) => {
       const ang = (o.rot * Math.PI) / 180;
@@ -16474,7 +16776,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       for (let i = 0; i < D.rooms.length; i++) for (let j = i + 1; j < D.rooms.length; j++) {
         const a = D.rooms[i], b = D.rooms[j];
         const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x), oy = Math.min(a.y + a.d, b.y + b.d) - Math.max(a.y, b.y);
-        if (ox > 0.05 && oy > 0.05) { M.overlap++; a.overlap = b.overlap = true; F('hata', 'ovl:' + a.id + ':' + b.id, a.name + ' ile ' + b.name + ' çakışıyor.', { k: 'room', id: a.id, f: D.f.id }); }
+        if (ox > 0.05 && oy > 0.05 && !a.poly && !b.poly) { M.overlap++; a.overlap = b.overlap = true; F('hata', 'ovl:' + a.id + ':' + b.id, a.name + ' ile ' + b.name + ' çakışıyor.', { k: 'room', id: a.id, f: D.f.id }); }
       }
       // bağlantı grafiği (kapı / geçiş / balkon kapısı)
       const adj = {};
@@ -16559,11 +16861,11 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     let missing = 0;
     (P.spaces || []).forEach((s) => { if (!linked[s.id]) missing++; });
     M.programTotal = (P.spaces || []).length; M.programMissing = missing;
-    if (E.rooms.length && missing && E.rooms.some((r) => r.space)) F('oneri', 'prog', missing + ' program mekânı plana yerleştirilmedi.', null);
+    if ((E.rooms.length || E.zones.length) && missing && E.rooms.concat(E.zones).some((r) => r.space)) F('oneri', 'prog', missing + ' program mekânı plana yerleştirilmedi.', null);
     // skor
     const parts = [[M.reachTot ? M.reachOk / M.reachTot : null, 0.3], [M.dayTot ? M.dayOk / M.dayTot : null, 0.25], [M.areaTot ? M.areaOk / M.areaTot : null, 0.25], [M.relTot ? M.relOk / M.relTot : null, 0.2]].filter((p) => p[0] != null);
     const wsum = parts.reduce((t, p) => t + p[1], 0);
-    M.score = E.rooms.length && wsum ? Math.round((100 * parts.reduce((t, p) => t + p[0] * p[1], 0)) / wsum - Math.min(25, M.overlap * 8 + M.orphan * 4)) : null;
+    M.score = (E.rooms.length || (E.zones || []).length) && wsum ? Math.round((100 * parts.reduce((t, p) => t + p[0] * p[1], 0)) / wsum - Math.min(25, M.overlap * 8 + M.orphan * 4)) : null;
     if (M.score != null) M.score = U.clamp(M.score, 0, 100);
     M.reach = M.reachTot ? M.reachOk / M.reachTot : null; M.day = M.dayTot ? M.dayOk / M.dayTot : null; M.areaFit = M.areaTot ? M.areaOk / M.areaTot : null; M.relFit = M.relTot ? M.relOk / M.relTot : null;
     const order = { hata: 0, uyari: 1, oneri: 2 };
@@ -16659,18 +16961,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 
   /* ---------------- otomatik döşeme (Odayı döşe) ----------------
      Mevcut donatı tarifini (App.study.autoFurnish) oda net alanına uygular; kapı salınım alanına düşenler atılır. */
-  function furnishRoom(E, D, rid) {
-    const r = D.roomBy[rid];
-    if (!r || !App.study || !App.study.autoFurnish) return [];
-    const ring = [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]];
-    const it = { id: r.id, name: r.rt.label + (r.type === 'giris' ? ' giriş' : ''), zone: r.zone, area: r.area, x: r.net.x, y: r.net.y, w: r.net.w, h: r.net.d, shape: 'rect', rot: 0, cut: 0.5, ring: ring, furn: [] };
-    const nm = U.norm(r.name + ' ' + r.rt.label);
-    if (/ebeveyn.*banyo|dus wc|^wc|\bwc\b/.test(nm) && r.type !== 'banyo') it.name = r.type === 'wc' ? 'WC' : 'Banyo';
-    if (r.type === 'acik_mutfak') it.name = 'Mutfak';
-    if (r.type === 'ebeveyn') it.name = 'Ebeveyn yatak odası';
-    if (r.type === 'giris') it.name = 'Giriş';
-    const raw = App.study.autoFurnish(it);
-    // kapı / pencere kaçış alanları
+  function doorZones(D, rid) {
     const zones = [];
     D.ops.forEach((o) => {
       if (o.orphan || (o.rp !== rid && o.rn !== rid)) return;
@@ -16687,6 +16978,48 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         zones.push([x0, y0, x1, y1]);
       }
     });
+    return zones;
+  }
+  /* odaya eklenen tek nesne için boş yer: duvar dibi tercih edilir; sığmazsa oda merkezi */
+  function freeSpot(E, D, rid, k) {
+    const r = D.roomBy[rid], c = C.FURN_BY[k];
+    if (!r || !c) return null;
+    const ring = r.npoly || [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]];
+    const bb = r.net, dz = c.flat ? [] : doorZones(D, rid);
+    const others = D.objs.filter((o) => !(o.cat && o.cat.flat) && !c.flat);
+    const edgeD = (x, y) => { let best = null; ring.forEach((a, i) => { const b = ring[(i + 1) % ring.length], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1, u = U.clamp(((x - a[0]) * dx + (y - a[1]) * dy) / l2, 0, 1), px = a[0] + dx * u, py = a[1] + dy * u, d = Math.hypot(x - px, y - py); if (!best || d < best.d) best = { d: d, nx: (x - px) / (d || 1), ny: (y - py) / (d || 1) }; }); return best; };
+    let best = null;
+    [0, 90].forEach((rot) => {
+      const w = rot ? c.d : c.w, d = rot ? c.w : c.d;
+      for (let y = bb.y + d / 2; y <= bb.y + bb.d - d / 2 + 1e-6; y += 0.1) for (let x = bb.x + w / 2; x <= bb.x + bb.w - w / 2 + 1e-6; x += 0.1) {
+        const fp = [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2]].map((q) => [x + q[0], y + q[1]]);
+        if (!fp.every((q) => pe.inPoly(q[0], q[1], ring))) continue;
+        if (dz.some((z) => x - w / 2 < z[2] && x + w / 2 > z[0] && y - d / 2 < z[3] && y + d / 2 > z[1])) continue;
+        if (others.some((o) => satOverlap(fp, o.fp, 0.05))) continue;
+        const e = edgeD(x, y), gap = e.d - Math.min(w, d) / 2;
+        const sc = Math.abs(gap) + 0.02 * Math.hypot(x - r.cx, y - r.cy);
+        if (!best || sc < best.sc) best = { sc: sc, x: x, y: y, rot: rot, e: e, gap: gap };
+      }
+    });
+    if (!best) { const lr = r.lab || { x: bb.x, y: bb.y, w: bb.w, d: bb.d }; return { x: r3(lr.x + lr.w / 2), y: r3(lr.y + lr.d / 2), rot: 0, fit: false }; }
+    let rot = best.rot;
+    if (!c.flat && c.g !== 'dis' && best.gap < 0.2 && best.e) rot = Math.round(((Math.atan2(-best.e.nx, best.e.ny) * 180) / Math.PI + 360) % 360 / 90) * 90 % 360;
+    return { x: r3(best.x), y: r3(best.y), rot: rot, fit: true };
+  }
+
+  function furnishRoom(E, D, rid) {
+    const r = D.roomBy[rid];
+    if (!r || !App.study || !App.study.autoFurnish) return [];
+    const ring = r.npoly || [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]];
+    const it = { id: r.id, name: r.rt.label + (r.type === 'giris' ? ' giriş' : ''), zone: r.zone, area: r.area, x: r.net.x, y: r.net.y, w: r.net.w, h: r.net.d, shape: r.npoly ? 'poly' : 'rect', rot: 0, cut: 0.5, ring: ring, furn: [] };
+    const nm = U.norm(r.name + ' ' + r.rt.label);
+    if (/ebeveyn.*banyo|dus wc|^wc|\bwc\b/.test(nm) && r.type !== 'banyo') it.name = r.type === 'wc' ? 'WC' : 'Banyo';
+    if (r.type === 'acik_mutfak') it.name = 'Mutfak';
+    if (r.type === 'ebeveyn') it.name = 'Ebeveyn yatak odası';
+    if (r.type === 'giris') it.name = 'Giriş';
+    const raw = App.study.autoFurnish(it);
+    // kapı / pencere kaçış alanları
+    const zones = doorZones(D, rid);
     const out = [];
     raw.forEach((f) => {
       const c = C.FURN_BY[f.k];
@@ -16740,7 +17073,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         rooms.push({ id: nid('r'), f: 'k' + lv, type: type, name: q.s.name, x: snapV(q.x, sn), y: snapV(q.y, sn), w: Math.max(MIN, snapV(q.w, sn)), d: Math.max(MIN, snapV(q.d, sn)), style: null, fin: {}, space: q.s.id });
       });
     });
-    return clean(Object.assign({}, E0, { floors: floors, rooms: rooms, walls: [], ops: [], objs: [], stairs: [], rails: [], labels: [], cam: { x: 0, y: 0, yaw: 0, f: 'k0' }, unit: E0.unit, snap: E0.snap, style: opts.style || E0.style }));
+    return clean(Object.assign({}, E0, { floors: floors, rooms: rooms, zones: [], walls: [], ops: [], objs: [], stairs: [], rails: [], labels: [], cam: { x: 0, y: 0, yaw: 0, f: 'k0' }, unit: E0.unit, snap: E0.snap, style: opts.style || E0.style }));
   }
 
   /* ---------------- kapı ve pencereleri otomatik yerleştir ---------------- */
@@ -16766,7 +17099,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       return s;
     };
     const sharedWalls = (a, b) => D.walls.filter((w) => w.rooms.indexOf(a.id) >= 0 && w.rooms.indexOf(b.id) >= 0 && w.len >= 1.1).sort((p, q) => q.len - p.len);
-    const rooms = D.rooms.filter((r) => !r.rt.out || true);
+    const rooms = D.rooms.filter((r) => !r.poly);
     // 1) dış kapı
     const ent = rooms.find((r) => r.type === 'giris') || rooms.find((r) => r.type === 'hol') || rooms.slice().sort((a, b) => b.cy - a.cy)[0];
     const hasEntry = D.ops.some((o) => !o.orphan && o.k === 'kapi' && (o.rp ? !o.rn : !!o.rn) && o.ext);
@@ -16841,7 +17174,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   Object.assign(pe, {
     defaults: defaults, clean: clean, get: get, derive: derive, deriveFloor: deriveFloor, takeoff: takeoff, nid: nid, r3: r3, r2: r2, SNAPS: SNAPS, MIN: MIN, LIM: LIM,
     fmtLen: fmtLen, fmtArea: fmtArea, floorIndex: floorIndex, elevOf: elevOf, styleOf: styleOf, finOf: finOf,
-    newRoom: newRoom, moveRoom: moveRoom, resizeRoom: resizeRoom, furnishRoom: furnishRoom, fromProgram: fromProgram, autoOpenings: autoOpenings, nearestWall: nearestWall,
+    autoZones: autoZones, faceList: faceList, newRoom: newRoom, moveRoom: moveRoom, resizeRoom: resizeRoom, furnishRoom: furnishRoom, freeSpot: freeSpot, fromProgram: fromProgram, autoOpenings: autoOpenings, nearestWall: nearestWall,
     stairSteps: stairSteps, stairAabb: stairAabb, rotPt: rotPt, satOverlap: satOverlap, sharedLen: sharedLen, snapV: snapV, inRect: inRect, TREAD: TREAD,
   });
 })();
@@ -22173,6 +22506,21 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     quad(L, P(1, -1, y0), P(1, 1, y0), P(1, 1, y1), P(1, -1, y1), [ux, 0, uz], cs.pu, al);
     quad(L, P(-1, -1, y0), P(-1, 1, y0), P(-1, 1, y1), P(-1, -1, y1), [-ux, 0, -uz], cs.nu, al);
   }
+  /* çokgen döşeme / kütle: pts (x, z), y0..y1; c: { t, b, s } */
+  function slab(M, pts, y0, y1, c, alpha) {
+    if (!(y1 > y0) || !pts || pts.length < 3) return;
+    const L = alpha != null && alpha < 1 ? M.t : M.o, al = alpha == null ? 1 : alpha;
+    const ct = rgb(c.t), cb = rgb(c.b || c.t), cs = rgb(c.s || c.t);
+    const tris = pe.triangulate(pts);
+    const vtx = (p, y, n, col) => { L.push(p[0], y, p[1], n[0], n[1], n[2], col[0], col[1], col[2], al); };
+    tris.forEach((t) => { t.forEach((i) => vtx(pts[i], y1, [0, 1, 0], ct)); t.forEach((i) => vtx(pts[i], y0, [0, -1, 0], cb)); });
+    const ccw = pe.polyArea(pts) > 0;
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1;
+      const n = ccw ? [dz / l, 0, -dx / l] : [-dz / l, 0, dx / l];
+      quad(L, [a[0], y0, a[1]], [b[0], y0, b[1]], [b[0], y1, b[1]], [a[0], y1, a[1]], n, cs, al);
+    }
+  }
   function cyl(M, cx, cz, r, y0, y1, c, seg, alpha) {
     seg = seg || 14;
     const L = alpha != null && alpha < 1 ? M.t : M.o, al = alpha == null ? 1 : alpha, col = rgb(c);
@@ -22309,13 +22657,19 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         D.rooms.forEach((r) => {
           const lum = 0.86 + 0.07 * (fi % 2);
           const body = shade('#E7E3DA', lum);
+          if (r.poly) { slab(M, r.poly, ey - 0.15, ey + fh - 0.02, { t: shade(body, 0.8), b: body, s: body }); return; }
           box(M, r.x + r.w / 2, r.y + r.d / 2, 0, (r.w + r.ins.w + r.ins.e) / 2, (r.d + r.ins.n + r.ins.s) / 2, ey - 0.15, ey + fh - 0.02, { t: shade(body, 0.8), pn: body, nn: body, pu: shade(body, 0.95), nu: shade(body, 0.95), b: body });
         });
-        if (topVisible) D.rooms.forEach((r) => box(M, r.x + r.w / 2, r.y + r.d / 2, 0, (r.w + r.ins.w + r.ins.e) / 2 + 0.05, (r.d + r.ins.n + r.ins.s) / 2 + 0.05, ey + fh - 0.02, ey + fh + 0.06, '#C9C4BA'));
+        if (topVisible) D.rooms.forEach((r) => r.poly ? slab(M, r.poly, ey + fh - 0.02, ey + fh + 0.06, { t: '#C9C4BA', s: '#C9C4BA' }) : box(M, r.x + r.w / 2, r.y + r.d / 2, 0, (r.w + r.ins.w + r.ins.e) / 2 + 0.05, (r.d + r.ins.n + r.ins.s) / 2 + 0.05, ey + fh - 0.02, ey + fh + 0.06, '#C9C4BA'));
         continue;
       }
       D.rooms.forEach((r) => {
         const zc = matC(pe.finOf(E, fl, r, 'zemin')), tc = matC(pe.finOf(E, fl, r, 'tavan'), '#FFFFFF');
+        if (r.poly) {
+          slab(M, r.poly, ey - 0.15, ey, { t: zc, b: tc, s: '#B9B6AE' });
+          if (topVisible && !cut) slab(M, r.poly, top, ey + fh, { t: '#CFCAC0', b: tc, s: '#B9B6AE' });
+          return;
+        }
         const base = { x0: r.x - r.ins.w, y0: r.y - r.ins.n, x1: r.x + r.w + r.ins.e, y1: r.y + r.d + r.ins.s };
         rectSub(base, holes).forEach((q) => { if (q.x1 - q.x0 > 0.01 && q.y1 - q.y0 > 0.01) box(M, (q.x0 + q.x1) / 2, (q.y0 + q.y1) / 2, 0, (q.x1 - q.x0) / 2, (q.y1 - q.y0) / 2, ey - 0.15, ey, { t: zc, b: tc, pn: '#B9B6AE', nn: '#B9B6AE', pu: '#B9B6AE', nu: '#B9B6AE' }); });
         if (topVisible && !cut) box(M, (base.x0 + base.x1) / 2, (base.y0 + base.y1) / 2, 0, (base.x1 - base.x0) / 2, (base.y1 - base.y0) / 2, top, ey + fh, { t: '#CFCAC0', b: tc, pn: '#B9B6AE', nn: '#B9B6AE', pu: '#B9B6AE', nu: '#B9B6AE' });
@@ -22332,7 +22686,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         const cols = { t: edge, b: edge, pn: cp, nn: cn, pu: edge, nu: edge };
         let low = false;
         if (cut && fi === curIdx && w.ext && w.sides && w.sides[0]) {
-          const out = { n: [0, -1], s: [0, 1], w: [-1, 0], e: [1, 0] }[w.sides[0]];
+          let out = { n: [0, -1], s: [0, 1], w: [-1, 0], e: [1, 0] }[w.sides[0]];
+          if (w.src === 'free') out = rp && !rn ? [-nx, -nz] : !rp && rn ? [nx, nz] : null;
           if (out && out[0] * cdir[0] + out[1] * cdir[1] > 0.25) low = true;
         }
         const e = w.t / 2, H = top - ey;
@@ -22816,11 +23171,11 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       const zn = App.ZONES[r.zone] || App.ZONES.sosyal;
       const matK = pe.finOf(E, D.f, r, 'zemin'), mat = C.MAT_BY[matK] || C.MAT_BY.mese_parke;
       const base = showFin ? mat.c : (Cc.zones ? zn.fill : Cc.floor);
-      const pts = [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.d], [r.x, r.y + r.d]].map((q) => [view.X(q[0]), view.Y(q[1])]);
+      const pts = (r.poly || [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.d], [r.x, r.y + r.d]]).map((q) => [view.X(q[0]), view.Y(q[1])]);
       items.push({ t: 'poly', pts: pts, fill: base, opacity: showFin ? 1 : (Cc.zones ? 0.9 : 1) });
       if (showFin) {
         const pat = floorPattern(r, mat, view, Cc);
-        if (pat.length) items.push({ t: 'g', clip: { id: 'pe-' + r.id, pts: [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]].map((q) => [view.X(q[0]), view.Y(q[1])]) }, items: pat });
+        if (pat.length) items.push({ t: 'g', clip: { id: 'pe-' + r.id, pts: (r.npoly || [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]]).map((q) => [view.X(q[0]), view.Y(q[1])]) }, items: pat });
       }
       if (r.overlap) items.push({ t: 'poly', pts: pts, fill: Cc.bad, opacity: 0.16 });
     });
@@ -22852,7 +23207,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     // mekân adı ve ölçüleri
     if (opts.names !== false) {
       sorted.forEach((r) => {
-        const x = view.X(r.net.x), y = view.Y(r.net.y), w = r.net.w * view.s, h = r.net.d * view.s;
+        const lb = r.lab || r.net;
+        const x = view.X(lb.x), y = view.Y(lb.y), w = lb.w * view.s, h = lb.d * view.s;
         const lab = sheet.fitLabel(r.name, w * 0.9, Math.min(h, 90), { withArea: true, max: 15, min: 8 });
         const objsIn = D.objs.filter((o) => o.room === r.id && !(o.cat && o.cat.flat));
         if (lab) {
@@ -22875,7 +23231,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
           const ty = yc - bh / 2 + lab.fs * 0.84;
           lab.lines.forEach((ln, i) => items.push({ t: 'text', x: x + w / 2, y: ty + i * lh, s: ln, size: lab.fs, weight: 700, fam: 'l', fill: Cc.ink, anchor: 'middle', ls: lab.ls, opacity: objsIn.length > 1 ? 0.85 : 0.95, pe: false }));
           items.push({ t: 'text', x: x + w / 2, y: ty + lab.lines.length * lh + 1, s: pe.fmtArea(r.area, unit), size: afs, weight: 600, fam: 'm', fill: Cc.ink, anchor: 'middle', opacity: 0.7, pe: false });
-          if (showDims) items.push({ t: 'text', x: x + w / 2, y: ty + lab.lines.length * lh + 1 + afs, s: pe.fmtLen(r.net.w, unit) + ' × ' + pe.fmtLen(r.net.d, unit), size: afs - 0.5, weight: 500, fam: 'm', fill: Cc.ink, anchor: 'middle', opacity: 0.5, pe: false });
+          if (showDims) items.push({ t: 'text', x: x + w / 2, y: ty + lab.lines.length * lh + 1 + afs, s: pe.fmtLen(lb.w, unit) + ' × ' + pe.fmtLen(lb.d, unit), size: afs - 0.5, weight: 500, fam: 'm', fill: Cc.ink, anchor: 'middle', opacity: 0.5, pe: false });
         } else if (w > 22 && h > 14) items.push({ t: 'text', x: x + w / 2, y: y + h / 2 + 3.5, s: fmt(r.area, 0), size: 10, weight: 700, fam: 'b', fill: Cc.ink, anchor: 'middle', opacity: 0.85, pe: false });
       });
     }
@@ -23848,7 +24204,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const pe = App.pe;
 
   const withPe = (P, E) => Object.assign({}, P, { study: Object.assign({}, P.study, { pe: E }) });
-  const KINDS = ['rooms', 'walls', 'ops', 'objs', 'stairs', 'rails', 'labels'];
+  const KINDS = ['rooms', 'zones', 'walls', 'ops', 'objs', 'stairs', 'rails', 'labels'];
 
   S.hooks.push(function (next, a) {
     if (!/^PE_/.test(a.type)) return undefined;
@@ -23872,7 +24228,9 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       }
       case 'PE_ADD': {
         const items = (a.items || []).filter(Boolean);
-        const E2 = mapKind(a.kind, (arr) => arr.concat(items));
+        let E2 = mapKind(a.kind, (arr) => arr.concat(items));
+        // serbest duvar eklenince kapanan bölgeler otomatik mekân olur
+        if (E2 && a.kind === 'walls') E2 = pe.autoZones(E2);
         return E2 ? out(E2, true) : next;
       }
       case 'PE_SET': case 'PE_SET_LIVE': {
@@ -23893,6 +24251,27 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
           E2 = Object.assign({}, E2);
         }
         return out(E2, true);
+      }
+      case 'PE_ZONES_SYNC': {
+        const E2 = pe.autoZones(E);
+        return E2 === E ? next : out(E2, true);
+      }
+      case 'PE_DEL_ZONE': {
+        // çizilen mekânı sil: tanım, içindeki nesneler ve yalnız bu mekâna komşu serbest duvarlar (ve üstündeki açıklıklar)
+        const ids = new Set(a.ids || []);
+        const zs = (E.zones || []).filter((z) => ids.has(z.id));
+        if (!zs.length) return next;
+        const d = pe.derive(P);
+        const dropW = new Set(), dropObjs = new Set(), dropOps = new Set();
+        d.floors.forEach((D) => {
+          D.walls.forEach((w) => { if (w.src === 'free' && w.rooms.length && w.rooms.every((id) => ids.has(id))) dropW.add(w.id); });
+          D.ops.forEach((o) => { if (!o.orphan && dropW.has(o.wall)) dropOps.add(o.id); });
+          D.objs.forEach((o) => { if (o.room && ids.has(o.room)) dropObjs.add(o.id); });
+        });
+        return out(Object.assign({}, E, {
+          zones: E.zones.map((z) => (ids.has(z.id) ? Object.assign({}, z, { off: true }) : z)),
+          walls: E.walls.filter((w) => !dropW.has(w.id)), ops: E.ops.filter((o) => !dropOps.has(o.id)), objs: E.objs.filter((o) => !dropObjs.has(o.id)),
+        }), true);
       }
       case 'PE_DEL_ROOM': {
         // odayı sil: içindeki nesne / merdiven / etiket ve yalnız bu odaya ait duvarlardaki açıklıklar da gider
@@ -23923,7 +24302,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         if (a.copy && base) {
           const dup = (arr) => arr.filter((q) => q.f === base.id).map((q) => Object.assign({}, q, { id: pe.nid(q.id.charAt(0)), f: id }));
           const rooms = dup(E.rooms).map((r) => Object.assign(r, { space: null }));
-          E2 = Object.assign(E2, { rooms: E.rooms.concat(rooms), walls: E.walls.concat(dup(E.walls)), ops: E.ops.concat(dup(E.ops).filter((o) => o.k === 'pencere')), objs: E.objs });
+          E2 = Object.assign(E2, { rooms: E.rooms.concat(rooms), zones: (E.zones || []).concat(dup(E.zones || []).map((z) => Object.assign(z, { space: null }))), walls: E.walls.concat(dup(E.walls)), ops: E.ops.concat(dup(E.ops).filter((o) => o.k === 'pencere')), objs: E.objs });
         }
         const res = out(E2, true);
         return res === next ? next : Object.assign({}, res, { ui: Object.assign({}, res.ui, { pe: Object.assign({}, res.ui.pe, { fid: id, sel: [] }) }) });
@@ -23932,17 +24311,17 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       case 'PE_FLOOR_DEL': {
         if (E.floors.length < 2) return next;
         const keep = (arr) => arr.filter((q) => q.f !== a.id);
-        return out(Object.assign({}, E, { floors: E.floors.filter((f) => f.id !== a.id), rooms: keep(E.rooms), walls: keep(E.walls), ops: keep(E.ops), objs: keep(E.objs), stairs: keep(E.stairs), rails: keep(E.rails), labels: keep(E.labels) }), true);
+        return out(Object.assign({}, E, { floors: E.floors.filter((f) => f.id !== a.id), rooms: keep(E.rooms), zones: keep(E.zones || []), walls: keep(E.walls), ops: keep(E.ops), objs: keep(E.objs), stairs: keep(E.stairs), rails: keep(E.rails), labels: keep(E.labels) }), true);
       }
       case 'PE_FLOOR_FIN': {
         const fin = (o) => { const f = Object.assign({}, o.fin); if (a.mat) f[a.slot] = a.mat; else delete f[a.slot]; return f; };
-        if (a.scope === 'room') return out(Object.assign({}, E, { rooms: E.rooms.map((r) => (r.id === a.id ? Object.assign({}, r, { fin: fin(r) }) : r)) }), true);
+        if (a.scope === 'room') return out(Object.assign({}, E, { rooms: E.rooms.map((r) => (r.id === a.id ? Object.assign({}, r, { fin: fin(r) }) : r)), zones: (E.zones || []).map((r) => (r.id === a.id ? Object.assign({}, r, { fin: fin(r) }) : r)) }), true);
         if (a.scope === 'all') return out(Object.assign({}, E, { fin: fin(E) }), true);
         return out(Object.assign({}, E, { floors: E.floors.map((f) => (f.id === a.id ? Object.assign({}, f, { fin: fin(f) }) : f)) }), true);
       }
 
       case 'PE_FURNISH': {
-        const fid = a.fid || (E.rooms.find((r) => r.id === a.rid) || {}).f || E.floors[0].id;
+        const fid = a.fid || (E.rooms.find((r) => r.id === a.rid) || (E.zones || []).find((r) => r.id === a.rid) || {}).f || E.floors[0].id;
         const D = pe.derive(P).by[fid];
         if (!D) return next;
         const ids = a.rid ? [a.rid] : D.rooms.filter((r) => !r.rt.corridor || true).map((r) => r.id);
@@ -23971,7 +24350,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       case 'PE_CLEAR': {
         const fid = a.fid;
         const keep = (arr) => (fid ? arr.filter((q) => q.f !== fid) : []);
-        return out(Object.assign({}, E, { rooms: keep(E.rooms), walls: keep(E.walls), ops: keep(E.ops), objs: keep(E.objs), stairs: keep(E.stairs), rails: keep(E.rails), labels: keep(E.labels) }), true);
+        return out(Object.assign({}, E, { rooms: keep(E.rooms), zones: keep(E.zones || []), walls: keep(E.walls), ops: keep(E.ops), objs: keep(E.objs), stairs: keep(E.stairs), rails: keep(E.rails), labels: keep(E.labels) }), true);
       }
       case 'PE_CAM': return out(Object.assign({}, E, { cam: Object.assign({}, E.cam, a.patch) }), false);
       default: return next;
@@ -23982,7 +24361,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const r2 = pe.r2;
   App.extProviders.push(function (project) {
     const E = project.study && project.study.pe;
-    if (!E || !E.rooms || !E.rooms.length) return {};
+    if (!E || !E.rooms || (!E.rooms.length && !(E.zones || []).length)) return {};
     const d = pe.derive(project), M = d.metrics;
     const FD = pe.takeoff(project);
     const s2 = (o, keys) => { const out = {}; keys.forEach((k) => { out[k] = o[k]; }); return out; };
@@ -23997,6 +24376,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         finishes: E.fin,
         floors: E.floors.map((f) => ({ id: f.id, name: f.name, height: f.h, style: f.style, finishes: f.fin, elevation: r2(pe.elevOf(E, f.id)) })),
         rooms: E.rooms.map((r) => ({ id: r.id, floorId: r.f, type: r.type, name: r.name, x: r.x, y: r.y, width: r.w, depth: r.d, style: r.style, finishes: r.fin, spaceId: r.space })),
+        zones: (E.zones || []).filter((z) => !z.off).map((z) => ({ id: z.id, floorId: z.f, type: z.type, name: z.name, seed: [z.sx, z.sy], style: z.style, finishes: z.fin, spaceId: z.space })),
         walls: E.walls.map((w) => ({ id: w.id, floorId: w.f, x1: w.x1, y1: w.y1, x2: w.x2, y2: w.y2, thickness: w.t })),
         openings: E.ops.map((o) => ({ id: o.id, floorId: o.f, kind: o.k === 'kapi' ? 'door' : 'window', subtype: o.sub, x: o.x, y: o.y, rotation: o.rot, width: o.w, height: o.h, sill: o.sill, flip: o.flip, mirror: o.mir, finish: o.fin })),
         objects: E.objs.map((o) => ({ id: o.id, floorId: o.f, type: o.k, x: o.x, y: o.y, rotation: o.rot, width: o.w, depth: o.d, height: o.h, finish: o.fin, auto: o.auto, name: o.name, shape: o.rd, color: o.col })),
@@ -24019,6 +24399,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       snap: x.grid, unit: x.displayUnit, wall: x.wallThickness, style: x.style, fin: x.finishes,
       floors: (x.floors || []).map((f) => ({ id: f.id, name: f.name, h: f.height, style: f.style, fin: f.finishes })),
       rooms: x.rooms.map((r) => ({ id: r.id, f: r.floorId, type: r.type, name: r.name, x: r.x, y: r.y, w: r.width, d: r.depth, style: r.style, fin: r.finishes, space: r.spaceId })),
+      zones: (x.zones || []).map((z) => ({ id: z.id, f: z.floorId, type: z.type, name: z.name, sx: z.seed && z.seed[0], sy: z.seed && z.seed[1], style: z.style, fin: z.finishes, space: z.spaceId })),
       walls: (x.walls || []).map((w) => ({ id: w.id, f: w.floorId, x1: w.x1, y1: w.y1, x2: w.x2, y2: w.y2, t: w.thickness })),
       ops: (x.openings || []).map((o) => ({ id: o.id, f: o.floorId, k: o.kind === 'window' ? 'pencere' : 'kapi', sub: o.subtype, x: o.x, y: o.y, rot: o.rotation, w: o.width, h: o.height, sill: o.sill, flip: o.flip, mir: o.mirror, fin: o.finish })),
       objs: (x.objects || []).map((o) => ({ id: o.id, f: o.floorId, k: o.type, x: o.x, y: o.y, rot: o.rotation, w: o.width, d: o.depth, h: o.height, fin: o.finish, auto: o.auto, name: o.name, rd: o.shape, col: o.color })),
@@ -28777,7 +29158,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const sel = (id, value, opts, onchange, label) => h('select', { id: id, class: 'inp', value: value, 'aria-label': label || null, onchange: (e) => onchange(e.target.value) }, opts);
   const opt = (v, t) => h('option', { key: v, value: v }, t);
   const selOf = (state) => { const s = state.ui.pe.sel; return s.length === 1 ? s[0] : null; };
-  const KIND = { r: 'rooms', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
+  const KIND = { r: 'rooms', z: 'zones', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
   const find = (E, key) => { const kd = KIND[key.charAt(0)]; const o = E[kd] && E[kd].find((q) => q.id === key.slice(2)); return o ? { kind: kd, o: o } : null; };
   const matOpts = (slot, inherit) => [opt('', inherit || 'Stile göre')].concat(pe.matsOf(slot).map((m) => opt(m.k, m.label)));
   const swatch = (m, on, onclick) => h('button', { key: m.k, type: 'button', class: 'pe-sw' + (on ? ' on' : ''), title: m.label, 'aria-label': m.label, 'aria-pressed': String(!!on), onclick: onclick },
@@ -28786,26 +29167,27 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   /* ---------------- başlangıç ---------------- */
   function startSection(state, dd) {
     const P = state.project, E = dd.E;
-    const empty = !E.rooms.length;
+    const nr = E.rooms.length + (E.zones || []).length, empty = !nr;
     return ui.section('Başlangıç', h('div', { class: 'sec-box' },
       empty ? h('p', { class: 'note' }, P.spaces.length ? 'İşlev Şeması’ndaki ' + P.spaces.length + ' mekân, ilişkilerine göre ölçülü bir plana dönüştürülebilir; ya da pafta altındaki araç çubuğundan mekân ekleyerek sıfırdan çizin.' : 'Pafta altındaki “Mekânlar” menüsünden bir mekân seçip çizime tıklayın. İşlev Şeması’nda mekân tanımlarsanız buradan plana dönüştürebilirsiniz.')
-        : h('p', { class: 'note' }, E.rooms.length + ' mekân · ' + E.floors.length + ' kat · ' + dd.metrics.doors + ' kapı · ' + dd.metrics.windows + ' pencere'),
+        : h('p', { class: 'note' }, nr + ' mekân · ' + E.floors.length + ' kat · ' + dd.metrics.doors + ' kapı · ' + dd.metrics.windows + ' pencere'),
       h('div', { class: 'btn-row' },
         ui.btn(empty ? 'Programdan plan oluştur' : 'Programdan yeniden oluştur', { icon: 'layout', cls: 'btn-yellow', onclick: () => ctl().peFromProgram(), disabled: !P.spaces.length, title: 'İşlev Şeması mekânlarını ve serbest düzenini ölçülü plana dönüştürür; kapı ve pencereleri yerleştirir (geri alınabilir)' })),
       h('div', { class: 'btn-row' },
-        ui.btn('Kapı ve pencere yerleştir', { icon: 'sun', onclick: () => ctl().peAutoOps(), disabled: !E.rooms.length, title: 'Bu katta giriş, iç kapılar, balkon kapıları ve pencereleri ilişkilere göre yerleştirir' }),
-        ui.btn('Tüm odaları döşe', { icon: 'spark', onclick: () => ctl().peFurnish(null), disabled: !E.rooms.length, title: 'Bu katta mekân türüne uygun nesneleri yerleştirir; elle eklenenler korunur' })),
+        ui.btn('Kapı ve pencere yerleştir', { icon: 'sun', onclick: () => ctl().peAutoOps(), disabled: !nr, title: 'Bu katta giriş, iç kapılar, balkon kapıları ve pencereleri ilişkilere göre yerleştirir' }),
+        ui.btn('Tüm odaları döşe', { icon: 'spark', onclick: () => ctl().peFurnish(null), disabled: !nr, title: 'Bu katta mekân türüne uygun nesneleri yerleştirir; elle eklenenler korunur' })),
       h('div', { class: 'btn-row' },
-        ui.btn('Katı temizle', { icon: 'trash', onclick: () => ctl().peClear(true), disabled: !E.rooms.length }),
-        ui.btn('Hepsini temizle', { icon: 'trash', onclick: () => ctl().peClear(false), disabled: !E.rooms.length }))), null, 'pestart');
+        ui.btn('Katı temizle', { icon: 'trash', onclick: () => ctl().peClear(true), disabled: !nr }),
+        ui.btn('Hepsini temizle', { icon: 'trash', onclick: () => ctl().peClear(false), disabled: !nr }))), null, 'pestart');
   }
 
   /* ---------------- seçili öğe ---------------- */
   function roomInspector(state, dd, r) {
     const E = dd.E, D = dd.floors.find((x) => x.f.id === r.f), R = D && D.roomBy[r.id];
+    const isZ = (E.zones || []).some((z) => z.id === r.id);
     const snap = E.snap, u = E.unit;
     const rt = pe.ROOM_BY[r.type];
-    const setR = (patch) => ctl().peSet('rooms', r.id, patch);
+    const setR = (patch) => ctl().peSet(isZ ? 'zones' : 'rooms', r.id, patch);
     const resize = (nr) => ctl().dispatch({ type: 'PE_ROOM_RESIZE', id: r.id, nr: Object.assign({ x: r.x, y: r.y, w: r.w, d: r.d }, nr) });
     const typeSel = sel('pe-rtype', r.type, pe.ROOM_GROUPS.map((g) => h('optgroup', { key: g.g, label: g.label }, pe.ROOMS.filter((q) => q.g === g.g).map((q) => opt(q.k, q.label)))), (v) => {
       const old = pe.ROOM_BY[r.type], nu = pe.ROOM_BY[v];
@@ -28815,23 +29197,22 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     return [
       ui.fld2('Ad', h('input', { id: 'pe-rname', class: 'inp', type: 'text', maxlength: 60, value: r.name, keep: true, onchange: (e) => { if (e.target.value.trim()) setR({ name: e.target.value.trim() }); }, onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); } })),
       ui.fld2('Tür', typeSel),
-      h('div', { class: 'nfld-grid' },
+      isZ ? h('p', { class: 'note' }, 'Çizdiğiniz çizgilerin kapattığı bölge. Çizgileri (duvarları) seçip uçlarından sürükleyerek şeklini değiştirin; mekân buna göre güncellenir.') : h('div', { class: 'nfld-grid' },
         numField('Genişlik', 'pe-rw', r.w, { min: pe.MIN, max: 80, step: snap, onchange: (v) => resize({ w: v }), unit: 'm' }),
         numField('Derinlik', 'pe-rd', r.d, { min: pe.MIN, max: 80, step: snap, onchange: (v) => resize({ d: v }), unit: 'm' }),
         numField('X', 'pe-rx', r.x, { step: snap, onchange: (v) => ctl().dispatch({ type: 'PE_ROOM_MOVE', id: r.id, dx: v - r.x, dy: 0 }) }),
         numField('Y', 'pe-ry', r.y, { step: snap, onchange: (v) => ctl().dispatch({ type: 'PE_ROOM_MOVE', id: r.id, dx: 0, dy: v - r.y }) })),
-      R ? h('p', { class: 'note mono' }, 'Net ' + pe.fmtArea(R.area, u) + ' · ' + pe.fmtLen(R.net.w, u) + ' × ' + pe.fmtLen(R.net.d, u) + ' · öneri ≥ ' + pe.fmtArea(rt.min, u)
+      R ? h('p', { class: 'note mono' }, 'Net ' + pe.fmtArea(R.area, u) + (isZ ? ' · brüt ' + pe.fmtArea(R.gross, u) : ' · ' + pe.fmtLen(R.net.w, u) + ' × ' + pe.fmtLen(R.net.d, u)) + ' · öneri ≥ ' + pe.fmtArea(rt.min, u)
         + (R.area < rt.min * 0.85 ? ' (altında)' : '')) : null,
-      sp ? h('p', { class: 'note' }, 'İşlev Şeması mekânı: ', h('b', {}, sp.name), ' · hedef ' + fmt(sp.area, 1) + ' m²') : null,
+      state.project.spaces.length ? ui.fld2('Program mekânı', sel('pe-rspace', r.space || '', [opt('', 'Bağlı değil')].concat(state.project.spaces.map((q) => opt(q.id, q.name + ' · ' + fmt(q.area, 1) + ' m²'))), (v) => ctl().peLinkSpace(r.id, v || null), 'İşlev Şeması mekânı'), sp ? 'Hedef ' + fmt(sp.area, 1) + ' m² · plandaki net ' + (R ? fmt(R.area, 1) : '—') + ' m²' : 'Mekânlar kipindeki program mekânına bağlar; ad ve tür ondan gelir.') : null,
       ui.fld2('Stil', sel('pe-rstyle', r.style || '', [opt('', 'Kata / projeye göre')].concat(pe.STYLES.map((s) => opt(s.k, s.label))), (v) => setR({ style: v || null }), 'Oda stili')),
       ['zemin', 'duvar', 'tavan'].map((slot) => ui.fld2(pe.SLOTS.find((q) => q.k === slot).label, sel('pe-rf-' + slot, (r.fin && r.fin[slot]) || '', matOpts(slot), (v) => ctl().peFin('room', r.id, slot, v || null), slot))),
-      h('div', { class: 'btn-row' },
-        ui.btn('Odayı döşe', { icon: 'spark', onclick: () => ctl().peFurnish(r.id) }),
-        ui.btn('Nesneleri kaldır', { icon: 'close', onclick: () => ctl().peUnfurnish(r.id) })),
-      h('div', { class: 'btn-row' },
-        ui.btn('90° çevir', { icon: 'rotate', onclick: () => ctl().peRotate(), title: 'Genişlik ve derinliği değiştir (R)' }),
-        ui.btn('Çoğalt', { icon: 'copy', onclick: () => ctl().peDup(), title: 'Ctrl+D' }),
-        ui.btn('Sil', { icon: 'trash', onclick: () => ctl().peDelSel(), title: 'Delete' })),
+      isZ
+        ? h('div', { class: 'btn-row' }, ui.btn('Mekânı sil', { icon: 'trash', onclick: () => ctl().peDelSel(), title: 'Tanımı, içindeki nesneleri ve yalnız bu mekâna ait çizgileri siler (Delete)' }))
+        : h('div', { class: 'btn-row' },
+          ui.btn('90° çevir', { icon: 'rotate', onclick: () => ctl().peRotate(), title: 'Genişlik ve derinliği değiştir (R)' }),
+          ui.btn('Çoğalt', { icon: 'copy', onclick: () => ctl().peDup(), title: 'Ctrl+D' }),
+          ui.btn('Sil', { icon: 'trash', onclick: () => ctl().peDelSel(), title: 'Delete' })),
     ];
   }
   function objInspector(state, dd, o) {
@@ -28887,7 +29268,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (kind === 'walls') return [h('div', { class: 'nfld-grid' }, numField('Kalınlık', 'pe-wt', o.t, { min: 0.05, max: 0.6, step: 0.01, onchange: (v) => ctl().peSet('walls', o.id, { t: v }) })), h('div', { class: 'btn-row' }, ui.btn('Sil', { icon: 'trash', onclick: () => ctl().peDelSel() }))];
     return [ui.fld2('Metin', h('input', { id: 'pe-tt', class: 'inp', type: 'text', maxlength: 80, value: o.text, keep: true, onchange: (e) => ctl().peSet('labels', o.id, { text: e.target.value.trim() || 'Not' }) })), h('div', { class: 'btn-row' }, ui.btn('Sil', { icon: 'trash', onclick: () => ctl().peDelSel() }))];
   }
-  const TITLE = { rooms: 'Seçili mekân', ops: 'Seçili açıklık', objs: 'Seçili nesne', stairs: 'Seçili merdiven', rails: 'Seçili korkuluk', labels: 'Seçili etiket', walls: 'Seçili duvar' };
+  const TITLE = { rooms: 'Seçili mekân', zones: 'Çizilen mekân', ops: 'Seçili açıklık', objs: 'Seçili nesne', stairs: 'Seçili merdiven', rails: 'Seçili korkuluk', labels: 'Seçili etiket', walls: 'Seçili duvar' };
   function selectedSection(state, dd) {
     const v = state.ui.pe, E = dd.E;
     if (v.sel.length > 1) {
@@ -28898,7 +29279,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const key = selOf(state), f = key && find(E, key);
     if (!f) return null;
     let body;
-    if (f.kind === 'rooms') body = roomInspector(state, dd, f.o);
+    if (f.kind === 'rooms' || f.kind === 'zones') body = roomInspector(state, dd, f.o);
     else if (f.kind === 'objs') body = objInspector(state, dd, f.o);
     else if (f.kind === 'ops') body = opInspector(state, dd, f.o);
     else if (f.kind === 'stairs') body = stairInspector(state, dd, f.o);
@@ -28925,16 +29306,70 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     void idx;
   }
 
+  /* ---------------- donatı: seçili mekâna (oda / çizilen mekân) nesne ekle ---------------- */
+  function roomOfSel(state, dd) {
+    const key = selOf(state);
+    if (!key) return null;
+    const E = dd.E, f = find(E, key);
+    if (!f) return null;
+    const fid = ctl().peFid(state), D = dd.by[fid];
+    if (f.kind === 'rooms' || f.kind === 'zones') return D && D.roomBy[f.o.id] ? { D: D, R: D.roomBy[f.o.id] } : null;
+    if (f.kind === 'objs') { const od = D && D.objs.find((q) => q.id === f.o.id); return od && od.room && D.roomBy[od.room] ? { D: D, R: D.roomBy[od.room] } : null; }
+    return null;
+  }
+  function furnSection(state, dd) {
+    const t = roomOfSel(state, dd);
+    if (!t) return null;
+    const D = t.D, R = t.R, v = state.ui.pe;
+    const list = D.objs.filter((o) => o.room === R.id);
+    const opts = pe.FURN_GROUPS.map((g) => h('optgroup', { key: g.g, label: g.label }, pe.FURN.filter((q) => q.g === g.g && !q.hidden).map((q) => h('option', { key: q.k, value: q.k }, q.label + ' · ' + q.w + '×' + q.d))));
+    const add = () => { const el = document.getElementById('pe-fu-k'); if (el && el.value) ctl().peObjIn(R.id, el.value); };
+    const rows = list.map((o) => {
+      const c = pe.FURN_BY[o.k] || { label: o.k };
+      const on = v.sel.indexOf('n:' + o.id) >= 0;
+      return h('li', { key: o.id, class: 'row frow' + (on ? ' sel' : '') },
+        h('div', { class: 'row-main', onclick: () => ctl().peSel(['n:' + o.id]) }, h('span', { class: 'row-name' }, o.k === 'ozel' ? (o.name || 'Özel nesne') : c.label), h('span', { class: 'frow-area mono' }, fmt(o.w, 2) + '×' + fmt(o.d, 2))),
+        h('div', { class: 'frel-act' },
+          h('button', { type: 'button', class: 'icon-btn', title: 'Döndür', 'aria-label': c.label + ' döndür', onclick: () => ctl().peSet('objs', o.id, { rot: (o.rot + 90) % 360 }) }, ui.icon('rotate', 16)),
+          h('button', { type: 'button', class: 'icon-btn', title: 'Sil', 'aria-label': c.label + ' sil', onclick: () => { ctl().dispatch({ type: 'PE_DEL', kind: 'objs', ids: [o.id] }); ctl().peSel(['' + (R.poly ? 'z' : 'r') + ':' + R.id]); } }, ui.icon('trash', 16))));
+    });
+    return ui.section('Donatı · ' + R.name, h('div', { class: 'sec-box' },
+      h('div', { class: 'btn-row' },
+        ui.btn('Otomatik döşe', { icon: 'spark', cls: 'btn-yellow', onclick: () => ctl().peFurnish(R.id), title: 'Mekânın türüne göre uygun donatıyı yerleştirir; elle eklenenler korunur' }),
+        ui.btn('Temizle', { icon: 'trash', onclick: () => ctl().peUnfurnish(R.id), disabled: !list.length })),
+      ui.fld2('Donatı ekle', h('div', { class: 'fr-add' }, h('select', { id: 'pe-fu-k', class: 'inp', 'aria-label': 'Donatı türü' }, opts), ui.btn('', { icon: 'plus', cls: 'btn-icon', onclick: add, title: 'Seçili mekânda boş bir yere ekle' }))),
+      list.length ? h('ul', { class: 'rows' }, rows) : h('p', { class: 'note' }, 'Bu mekânda donatı yok. “Otomatik döşe” türe göre yerleştirir; “Donatı ekle” seçtiğiniz parçayı boş bir yere koyar. Sonra planda sürükleyerek düzeltin.')), list.length + ' parça', 'pefurn');
+  }
+
+  /* ---------------- program mekânları (Mekânlar kipindeki liste) ---------------- */
+  function programSection(state, dd) {
+    const P = state.project;
+    if (!P.spaces.length) return null;
+    const E = dd.E, v = state.ui.pe;
+    const linked = {};
+    dd.floors.forEach((D) => D.rooms.forEach((r) => { if (r.space) linked[r.space] = { r: r, D: D }; }));
+    const placed = P.spaces.filter((s) => linked[s.id]).length;
+    return ui.section('Program mekânları', h('ul', { class: 'rows pe-rows' }, P.spaces.map((sp) => {
+      const q = linked[sp.id];
+      const key = q ? (q.r.poly ? 'z:' : 'r:') + q.r.id : null;
+      const on = key && v.sel.indexOf(key) >= 0;
+      return h('li', { key: sp.id, class: 'mrow' + (on ? ' on' : '') },
+        h('button', { type: 'button', class: 'mrow-b', onclick: () => (q ? (ctl().peSetFid(q.D.f.id), ctl().peSel([key])) : ctl().peSpacePlace(sp.id)), 'aria-pressed': String(!!on), title: q ? 'Planda seç ve donat' : 'Plana ekle' },
+          h('span', { class: 'dot', style: { background: q ? (App.ZONES[q.r.zone] || App.ZONES.sosyal).fill : 'transparent', border: q ? 'none' : '1.5px dashed currentColor' } }), h('span', { class: 'mrow-n' }, sp.name),
+          h('span', { class: 'mrow-a mono' + (q && q.r.area < sp.area * 0.8 ? ' warn' : '') }, q ? pe.fmtArea(q.r.area, E.unit) + ' / ' + fmt(sp.area, 0) : 'Ekle · ' + fmt(sp.area, 0) + ' m²')));
+    })), placed + '/' + P.spaces.length + ' yerleşti', 'peprog');
+  }
+
   /* ---------------- mekân listesi ---------------- */
   function listSection(state, dd) {
     const fid = ctl().peFid(state), D = dd.by[fid], v = state.ui.pe, u = dd.E.unit;
     if (!D.rooms.length) return null;
     return ui.section('Mekânlar', h('ul', { class: 'rows pe-rows' }, D.rooms.map((r) => {
-      const on = v.sel.indexOf('r:' + r.id) >= 0;
+      const key = (r.poly ? 'z:' : 'r:') + r.id, on = v.sel.indexOf(key) >= 0;
       const zn = App.ZONES[r.zone] || App.ZONES.sosyal;
       const bad = r.area < r.rt.min * 0.85;
       return h('li', { key: r.id, class: 'mrow' + (on ? ' on' : '') },
-        h('button', { type: 'button', class: 'mrow-b', onclick: () => ctl().peSel(['r:' + r.id]), 'aria-pressed': String(on) },
+        h('button', { type: 'button', class: 'mrow-b', onclick: () => ctl().peSel([key]), 'aria-pressed': String(on) },
           h('span', { class: 'dot', style: { background: zn.fill } }), h('span', { class: 'mrow-n' }, r.name),
           h('span', { class: 'mrow-a mono' + (bad ? ' warn' : '') }, pe.fmtArea(r.area, u))));
     })), D.rooms.length + ' mekân', 'pelist');
@@ -28954,7 +29389,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 
   /* ---------------- Plan sekmesi ---------------- */
   function planTab(state, dd) {
-    return [fl.modeSection(state), startSection(state, dd), selectedSection(state, dd), floorSection(state, dd), listSection(state, dd), settingsSection(state, dd)];
+    return [fl.modeSection(state), startSection(state, dd), selectedSection(state, dd), furnSection(state, dd), programSection(state, dd), floorSection(state, dd), listSection(state, dd), settingsSection(state, dd)];
   }
 
   /* ---------------- Stil ve kaplama sekmesi ---------------- */
@@ -28962,10 +29397,10 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const E = dd.E, v = state.ui.pe, fid = ctl().peFid(state);
     const key = selOf(state), f = key && find(E, key);
     // seçili oda; nesne / kapı seçiliyse içinde bulunduğu oda
-    let room = f && f.kind === 'rooms' ? f.o : null;
+    let room = f && (f.kind === 'rooms' || f.kind === 'zones') ? f.o : null;
     if (!room && f && f.kind === 'objs') {
       const od = dd.by[fid] && dd.by[fid].objs.find((q) => q.id === f.o.id);
-      room = od && od.room ? E.rooms.find((r) => r.id === od.room) || null : null;
+      room = od && od.room ? E.rooms.find((r) => r.id === od.room) || (E.zones || []).find((r) => r.id === od.room) || null : null;
     }
     if (!room) return [ui.section('Stil ve kaplama', h('div', { class: 'sec-box' }, h('p', { class: 'note' }, 'Stil ve kaplama seçili odaya uygulanır. Önce planda bir oda (ya da odadaki bir nesne) seçin.')), null, 'pescope')];
     const flr = E.floors.find((q) => q.id === room.f);
@@ -29048,7 +29483,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const ctl = () => App.ctl;
   const ic = (n, s) => pe.ic(n, s);
 
-  const KIND = { r: 'rooms', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
+  const KIND = { r: 'rooms', z: 'zones', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
   const r3 = pe.r3;
   const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
   function segDist(px, py, ax, ay, bx, by) {
@@ -29097,7 +29532,17 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       const cand = (cx, cy) => { const d = dist(x, y, cx, cy); if (d < 0.28 && (!best || d < best.d)) best = { d: d, x: cx, y: cy }; };
       D.rooms.forEach((r) => { cand(r.x, r.y); cand(r.x + r.w, r.y); cand(r.x, r.y + r.d); cand(r.x + r.w, r.y + r.d); });
       D.walls.forEach((w) => { if (w.src === 'free') { cand(w.x1, w.y1); cand(w.x2, w.y2); } });
-      if (best) return [best.x, best.y];
+      if (best) { const m = [best.x, best.y]; m.m = true; return m; }
+      // mevcut duvar / oda kenarı üzerine T birleşimi
+      let pj = null;
+      const proj = (ax, ay, bx, by) => {
+        const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+        if (l2 < 1e-9) return;
+        const t = U.clamp(((x - ax) * dx + (y - ay) * dy) / l2, 0, 1), px = ax + dx * t, py = ay + dy * t, d = dist(x, y, px, py);
+        if (d < 0.14 && (!pj || d < pj.d)) pj = { d: d, x: px, y: py };
+      };
+      D.walls.forEach((w) => proj(w.x1, w.y1, w.x2, w.y2));
+      if (pj) { const m = [r3(pj.x), r3(pj.y)]; m.m = true; return m; }
     }
     return [snapG(x, alt), snapG(y, alt)];
   }
@@ -29162,8 +29607,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     for (const r of D.rails) if (segDist(wx, wy, r.x1, r.y1, r.x2, r.y2) < Math.max(tol, 0.1)) return 'g:' + r.id;
     for (const w of D.walls) if (w.src === 'free' && segDist(wx, wy, w.x1, w.y1, w.x2, w.y2) < Math.max(tol, w.t / 2 + 0.05)) return 'w:' + w.id;
     // 5) odalar: en küçük
-    const rs = D.rooms.filter((r) => wx >= r.x - r.ins.w && wx <= r.x + r.w + r.ins.e && wy >= r.y - r.ins.n && wy <= r.y + r.d + r.ins.s).sort((p, q) => p.gross - q.gross);
-    return rs.length ? 'r:' + rs[0].id : null;
+    const rs = D.rooms.filter((r) => wx >= r.x - r.ins.w && wx <= r.x + r.w + r.ins.e && wy >= r.y - r.ins.n && wy <= r.y + r.d + r.ins.s && (!r.poly || pe.inPoly(wx, wy, r.poly))).sort((p, q) => p.gross - q.gross);
+    return rs.length ? (rs[0].poly ? 'z:' : 'r:') + rs[0].id : null;
   }
   const HANDLES = [['nw', 0, 0, 'nwse-resize'], ['n', 0.5, 0, 'ns-resize'], ['ne', 1, 0, 'nesw-resize'], ['e', 1, 0.5, 'ew-resize'], ['se', 1, 1, 'nwse-resize'], ['s', 0.5, 1, 'ns-resize'], ['sw', 0, 1, 'nesw-resize'], ['w', 0, 0.5, 'ew-resize']];
   function handleHit(D, key, wx, wy, px) {
@@ -29227,10 +29672,12 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const tool = v.tool;
     if (tool === 'wall' || tool === 'rail') {
       const p = snapPt(D, wx, wy, alt);
-      if (!v.draft) { ctl().peUi({ draft: { k: tool, x1: p[0], y1: p[1], x2: p[0], y2: p[1] } }, true); return; }
-      const d = ortho(v.draft, p, alt);
+      if (!v.draft) { ctl().peUi({ draft: { k: tool, x1: p[0], y1: p[1], x2: p[0], y2: p[1], sx: p[0], sy: p[1] } }, true); return; }
+      const d = p.m ? p : ortho(v.draft, p, alt, e.shiftKey);
       ctl().peLineAdd(tool === 'wall' ? 'walls' : 'rails', v.draft.x1, v.draft.y1, d[0], d[1]);
-      ctl().peUi({ draft: e.detail >= 2 ? null : { k: tool, x1: d[0], y1: d[1], x2: d[0], y2: d[1] } }, true);
+      // zincir: başlangıç noktasına dönülünce çizim biter (kapalı alan)
+      const closed = v.draft.sx != null && dist(d[0], d[1], v.draft.sx, v.draft.sy) < 0.06;
+      ctl().peUi({ draft: e.detail >= 2 || closed ? null : { k: tool, x1: d[0], y1: d[1], x2: d[0], y2: d[1], sx: v.draft.sx, sy: v.draft.sy } }, true);
       return;
     }
     if (tool === 'cam') { g = { k: 'cam', x: wx, y: wy }; ctl().peUi({ walk: { x: wx, y: wy, yaw: 0, pitch: 0 } }, true); return; }
@@ -29276,9 +29723,12 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     g = { k: 'mov', kind: kd, id: id, wx: wx, wy: wy, sx: wx, sy: wy, o: Object.assign({}, obj), moved: false, cx: e.clientX, cy: e.clientY };
   }
   const handleless = (D, wx, wy) => hitTest(D, wx, wy, 7 / curView.s);
-  function ortho(d, p, alt) {
+  /* çizgi yönü: varsayılan serbest açı (0 / 90° yakınında hafif yapışma); Shift = 15° adımlar; Alt = tam serbest */
+  function ortho(d, p, alt, shift) {
     if (alt) return p;
-    const dx = p[0] - d.x1, dy = p[1] - d.y1, a = Math.atan2(dy, dx), n = Math.round(a / (Math.PI / 2)) * (Math.PI / 2);
+    const dx = p[0] - d.x1, dy = p[1] - d.y1, a = Math.atan2(dy, dx), len = Math.hypot(dx, dy);
+    if (shift) { const n = Math.round(a / (Math.PI / 12)) * (Math.PI / 12); return [snapG(d.x1 + Math.cos(n) * len, false), snapG(d.y1 + Math.sin(n) * len, false)].map((q, i) => (Math.abs(i ? Math.sin(n) : Math.cos(n)) < 1e-6 ? (i ? d.y1 : d.x1) : q)); }
+    const n = Math.round(a / (Math.PI / 2)) * (Math.PI / 2);
     if (Math.abs(a - n) < 0.09) return Math.abs(Math.cos(n)) > 0.5 ? [p[0], d.y1] : [d.x1, p[1]];
     return p;
   }
@@ -29294,7 +29744,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         if (v.tool === 'place' && v.place && v.place.t !== 'op') { const pa = placementAt(v, D, wx, wy, alt); setHover(pa ? pa.x : wx, pa ? pa.y : wy); }
         else if (v.tool === 'wall' || v.tool === 'rail') {
           const p = snapPt(D, wx, wy, alt);
-          if (v.draft) { const d = ortho(v.draft, p, alt); ctl().peUi({ draft: Object.assign({}, v.draft, { x2: d[0], y2: d[1] }), hover: { x: d[0], y: d[1] } }, true); }
+          if (v.draft) { const d = p.m ? p : ortho(v.draft, p, alt, e.shiftKey); ctl().peUi({ draft: Object.assign({}, v.draft, { x2: d[0], y2: d[1] }), hover: { x: d[0], y: d[1] } }, true); }
           else setHover(p[0], p[1]);
         } else setHover(wx, wy);
       }
@@ -29371,6 +29821,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     g = null;
     frozenWin = null;
     ctl().peLiveEnd();
+    if (gg && gg.moved && ((gg.k === 'end' && gg.kind === 'walls') || (gg.k === 'mov' && gg.kind === 'walls'))) ctl().peZonesSync();
     try { fl.svgEl.releasePointerCapture(e.pointerId); } catch (err) { /* yok */ }
     if (!gg) return;
     const D = curD;
@@ -29396,7 +29847,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       ctl().peUi({ mq: null }, true);
       if (!m || (m.x1 - m.x0 < 0.15 && m.y1 - m.y0 < 0.15)) return;
       const inside = (x, y) => x >= m.x0 && x <= m.x1 && y >= m.y0 && y <= m.y1;
-      const keys = D.rooms.filter((r) => r.x >= m.x0 && r.x + r.w <= m.x1 && r.y >= m.y0 && r.y + r.d <= m.y1).map((r) => 'r:' + r.id)
+      const keys = D.rooms.filter((r) => r.x >= m.x0 && r.x + r.w <= m.x1 && r.y >= m.y0 && r.y + r.d <= m.y1).map((r) => (r.poly ? 'z:' : 'r:') + r.id)
         .concat(D.objs.filter((o) => inside(o.x, o.y)).map((o) => 'n:' + o.id), D.stairs.filter((s) => inside(s.x, s.y)).map((s) => 'm:' + s.id), D.labels.filter((l) => inside(l.x, l.y)).map((l) => 't:' + l.id));
       ctl().peSel(gg.add ? Array.from(new Set(v.sel.concat(keys))) : keys);
       return;
@@ -29408,7 +29859,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (v.view !== '2d' || !curView || v.tool !== 'sel') return;
     const [wx, wy] = toWorld(e);
     const key = handleless(curD, wx, wy);
-    if (key && key.charAt(0) === 'r') { ctl().dispatch({ type: 'UI', patch: { peTab: 'plan' } }); const el = document.getElementById('pe-rname'); if (el) { el.focus(); el.select(); } }
+    if (key && (key.charAt(0) === 'r' || key.charAt(0) === 'z')) { ctl().dispatch({ type: 'UI', patch: { peTab: 'plan' } }); const el = document.getElementById('pe-rname'); if (el) { el.focus(); el.select(); } }
   }
   function wheel(e) {
     const v = S0().ui.pe;
@@ -29439,7 +29890,10 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       const id = k.slice(2), kd = KIND[k.charAt(0)];
       const o = E[kd] && E[kd].find((q) => q.id === id);
       if (!o) return;
-      if (kd === 'rooms') {
+      if (kd === 'zones') {
+        const zr = D.roomBy[id];
+        if (zr) { poly(zr.poly, { fill: sc, opacity: 0.1 }); poly(zr.poly); }
+      } else if (kd === 'rooms') {
         poly([[o.x, o.y], [o.x + o.w, o.y], [o.x + o.w, o.y + o.d], [o.x, o.y + o.d]]);
         if (v.sel.length === 1) HANDLES.forEach((q) => hnd(o.x + q[1] * o.w, o.y + q[2] * o.d));
         if (g && (g.k === 'rsz' || g.k === 'mov') && g.moved) tag(o.x + o.w / 2, o.y + o.d + 0.45, pe.fmtLen(o.w, u) + ' × ' + pe.fmtLen(o.d, u));
@@ -29476,7 +29930,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     } else if (dr && (dr.k === 'wall' || dr.k === 'rail')) {
       out.push({ t: 'line', x1: X(dr.x1), y1: Y(dr.y1), x2: X(dr.x2), y2: Y(dr.y2), stroke: sc, sw: dr.k === 'wall' ? Math.max(4, E.wall.int * view.s) : 3, opacity: 0.6, cap: 'round' });
       out.push({ t: 'circle', cx: X(dr.x1), cy: Y(dr.y1), r: 4, fill: sc });
-      if (dist(dr.x1, dr.y1, dr.x2, dr.y2) > 0.05) tag((dr.x1 + dr.x2) / 2, (dr.y1 + dr.y2) / 2 - 0.4, pe.fmtLen(dist(dr.x1, dr.y1, dr.x2, dr.y2), u));
+      if (dist(dr.x1, dr.y1, dr.x2, dr.y2) > 0.05) tag((dr.x1 + dr.x2) / 2, (dr.y1 + dr.y2) / 2 - 0.4, pe.fmtLen(dist(dr.x1, dr.y1, dr.x2, dr.y2), u) + ' · ' + Math.round(((Math.atan2(-(dr.y2 - dr.y1), dr.x2 - dr.x1) * 180) / Math.PI + 360) % 360) + '°');
+      if (dr.sx != null && dist(dr.x2, dr.y2, dr.sx, dr.sy) < 0.06 && dist(dr.x1, dr.y1, dr.sx, dr.sy) > 0.1) out.push({ t: 'circle', cx: X(dr.sx), cy: Y(dr.sy), r: 9, stroke: sc, sw: 2 });
     }
     // hayalet (yerleştirme)
     const hv = v.hover;
@@ -29675,7 +30130,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const P = state.project, dd = pe.derive(P), E = dd.E, v = state.ui.pe;
     const fid = ctl().peFid(state), D = dd.by[fid], M = dd.metrics;
     const is2 = v.view === '2d';
-    const has = E.rooms.length > 0;
+    const has = E.rooms.length > 0 || (E.zones||[]).length > 0 || E.walls.length > 0;
     let stageMain, sc = null;
     curD = D;
     if (is2) {
@@ -29737,7 +30192,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       ui.btn('Mekân ekle', { icon: 'plus', onclick: () => ctl().peMenu('rooms') })], 'pe-empty') : null;
     const bot = Math.max(2, ((App.sheet.H - (App.sheet.tb.y - 22)) / App.sheet.H) * 100);
     const stage = h('div', { class: 'board-stage pe-stage' + (is2 ? '' : ' is-3d'), key: 'pe-stage', style: { '--pe-bot': (is2 ? bot : 0).toFixed(2) + '%' } }, stageMain, floors, viewTog, chip, empty, pop, dock,
-      is2 && (v.place || v.tool === 'wall' || v.tool === 'rail' || v.tool === 'cam') ? h('div', { class: 'pe-hint-chip', role: 'status' }, v.tool === 'wall' || v.tool === 'rail' ? 'Başlangıç noktasına tıklayın, sonra uç noktalara · çift tık / Esc bitirir · Alt: yakalama kapalı'
+      is2 && (v.place || v.tool === 'wall' || v.tool === 'rail' || v.tool === 'cam') ? h('div', { class: 'pe-hint-chip', role: 'status' }, v.tool === 'wall' || v.tool === 'rail' ? (v.tool === 'wall' ? 'Her açıda çizgi çekin; başlangıç noktasına dönünce kapalı mekân oluşur · Shift: 15° adım · Alt: yakalama kapalı · çift tık / Esc bitirir' : 'Başlangıç noktasına tıklayın, sonra uç noktalara · çift tık / Esc bitirir · Alt: yakalama kapalı')
         : v.tool === 'cam' ? 'Kameranın duracağı yere tıklayıp bakış yönüne sürükleyin'
           : v.place && v.place.t === 'room' ? 'Plana tıklayın ya da sürükleyerek boyutlandırın · Shift: art arda · Esc: vazgeç'
             : v.place && v.place.t === 'op' ? 'Duvarın üzerine tıklayın · Esc: vazgeç'
@@ -29755,7 +30210,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         { k: 'icon', label: 'Nesneler', icon: 'rect', pressed: !!v.objs, onclick: () => ctl().peUi({ objs: !v.objs }), title: 'Mobilya ve donatıyı göster / gizle' },
         { k: 'icon', label: 'Adlar', icon: 'draw', pressed: !!v.names, onclick: () => ctl().peUi({ names: !v.names }), title: 'Mekân adlarını göster / gizle' },
         { k: 'icon', label: 'Ölçüler', icon: 'link', pressed: !!v.dims, onclick: () => ctl().peUi({ dims: !v.dims }), title: 'Toplam ölçü çizgilerini göster / gizle' }, { k: 'sep' },
-        { k: 'icon', label: 'Hepsini seç', icon: 'selall', onclick: () => ctl().peSel(D.rooms.map((r) => 'r:' + r.id).concat(D.objs.map((o) => 'n:' + o.id))), disabled: !D.rooms.length, title: 'Ctrl+A' },
+        { k: 'icon', label: 'Hepsini seç', icon: 'selall', onclick: () => ctl().peSel(D.rooms.map((r) => (r.poly ? 'z:' : 'r:') + r.id).concat(D.objs.map((o) => 'n:' + o.id))), disabled: !D.rooms.length, title: 'Ctrl+A' },
         { k: 'icon', label: 'Sil', icon: 'trash', onclick: () => ctl().peDelSel(), disabled: !v.sel.length, title: 'Seçileni sil (Delete)' });
     } else {
       tools.push({ k: 'icon', label: 'Görünümü sıfırla', icon: 'reset', onclick: () => ctl().peUi({ yaw: 0.6, pitch: 0.62, zoom: 1, tx: 0, tz: 0 }), title: 'Kamerayı sıfırla' });
@@ -30291,8 +30746,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const U = App.util;
   const pe = App.pe;
   const get = () => App.store.get();
-  const KIND = { r: 'rooms', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
-  const PFX = { rooms: 'r', ops: 'o', objs: 'n', stairs: 'm', rails: 'g', labels: 't', walls: 'w' };
+  const KIND = { r: 'rooms', z: 'zones', o: 'ops', n: 'objs', m: 'stairs', g: 'rails', t: 'labels', w: 'walls' };
+  const PFX = { rooms: 'r', zones: 'z', ops: 'o', objs: 'n', stairs: 'm', rails: 'g', labels: 't', walls: 'w' };
 
   /* ---------------- görünüm durumu ---------------- */
   App.peDefaults = () => ({
@@ -30405,10 +30860,61 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   ctl.peLineAdd = function (kind, x1, y1, x2, y2) {
     const f = fidOf();
     if (Math.hypot(x2 - x1, y2 - y1) < 0.1) return;
-    if (kind === 'walls') ctl.dispatch({ type: 'PE_ADD', kind: 'walls', items: [{ id: pe.nid('w'), f: f, x1: x1, y1: y1, x2: x2, y2: y2, t: E().wall.int }] });
+    if (kind === 'walls') {
+      const before = (E().zones || []).length;
+      ctl.dispatch({ type: 'PE_ADD', kind: 'walls', items: [{ id: pe.nid('w'), f: f, x1: x1, y1: y1, x2: x2, y2: y2, t: E().wall.int }] });
+      ctl.peZonesNote(before);
+    }
     else ctl.dispatch({ type: 'PE_ADD', kind: 'rails', items: [{ id: pe.nid('g'), f: f, x1: x1, y1: y1, x2: x2, y2: y2, h: 1.0 }] });
   };
   ctl.peLabelAt = function (x, y, text) { const t = { id: pe.nid('t'), f: fidOf(), x: pe.r3(x), y: pe.r3(y), text: text || 'Not' }; ctl.dispatch({ type: 'PE_ADD', kind: 'labels', items: [t] }); ctl.peSel(['t:' + t.id]); };
+
+  /* kapanan bölge(ler) oluştuysa kullanıcıya haber ver ve ilkini seç */
+  ctl.peZonesNote = function (before) {
+    const zs = E().zones || [];
+    if (zs.length <= before) return;
+    const z = zs[zs.length - 1], n = zs.length - before;
+    const D = pe.derive(get().project).by[z.f], R = D && D.roomBy[z.id];
+    ctl.peSel(['z:' + z.id]);
+    ctl.peUi({ tab: 'plan' }, true);
+    ctl.toast(n > 1 ? n + ' kapalı mekân oluştu. Türlerini sağ panelden seçin.' : 'Kapalı mekân oluştu: ' + z.name + (R ? ' · ' + pe.fmtArea(R.area, E().unit) : '') + '. Türünü sağ panelden seçin, “Döşe” ya da “Donatı ekle” ile donatın.', 'success');
+  };
+  ctl.peZonesSync = function () { const before = (E().zones || []).length; ctl.dispatch({ type: 'PE_ZONES_SYNC' }); ctl.peZonesNote(before); };
+  const roomKind = (id) => ((E().zones || []).some((z) => z.id === id) ? 'zones' : 'rooms');
+  ctl.peRoomKind = roomKind;
+  /* seçili mekâna (oda ya da çizilen mekân) tek nesne ekle: boş yere, duvar dibine */
+  ctl.peObjIn = function (rid, k) {
+    const S = get(), D = pe.derive(S.project).by[fidOf(S)];
+    if (!D || !D.roomBy[rid]) return null;
+    const sp = pe.freeSpot(E(), D, rid, k);
+    if (!sp) return null;
+    const o = ctl.peObjAt(k, sp.x, sp.y, sp.rot);
+    if (!sp.fit) ctl.toast('Mekânda boş yer kalmadı; nesne merkeze kondu. Sürükleyerek yerleştirin.', 'info');
+    return o;
+  };
+  /* program (İşlev Şeması) mekânını plana yerleştir / bağla */
+  ctl.peSpacePlace = function (spaceId) {
+    const S = get(), P = S.project, sp = P.spaces.find((q) => q.id === spaceId);
+    if (!sp) return;
+    const e = E(), D = pe.derive(P).by[fidOf(S)];
+    const w = Math.max(1.6, Math.sqrt(sp.area * 1.3)), d = Math.max(1.4, sp.area / w);
+    const b = D.bounds;
+    const x = b.empty ? 0 : snapV(b.x1 + 1.2), y = b.empty ? 0 : snapV(b.y0);
+    const free = e.rooms.concat(e.zones || []).find((r) => r.space === spaceId);
+    if (free) { ctl.peSel([(e.zones || []).some((z) => z.id === free.id) ? 'z:' + free.id : 'r:' + free.id]); return; }
+    const type = pe.guessRoom(sp.name, sp.zone);
+    const r = Object.assign(pe.newRoom(e, { f: fidOf(S), type: type, x: x, y: y, w: snapV(w), d: snapV(d), name: sp.name }), { space: spaceId });
+    ctl.dispatch({ type: 'PE_ADD', kind: 'rooms', items: [r] });
+    ctl.peSel(['r:' + r.id]);
+    ctl.toast(sp.name + ' plana eklendi (' + fmt1(sp.area) + ' m²). Sürükleyip yerleştirin.', 'success');
+  };
+  const fmt1 = (v) => U.fmt(v, 1);
+  ctl.peLinkSpace = function (rid, spaceId) {
+    const e = E(), P = get().project, sp = spaceId && P.spaces.find((q) => q.id === spaceId);
+    e.rooms.concat(e.zones || []).forEach((r) => { if (r.space && r.space === spaceId && r.id !== rid) ctl.peSet(roomKind(r.id), r.id, { space: null }); });
+    if (!sp) { ctl.peSet(roomKind(rid), rid, { space: null }); return; }
+    ctl.peSet(roomKind(rid), rid, { space: spaceId, name: sp.name, type: pe.guessRoom(sp.name, sp.zone) });
+  };
 
   /* ---------------- güncelleme · silme · çoğaltma ---------------- */
   ctl.peSet = (kind, id, patch) => ctl.dispatch({ type: 'PE_SET', kind: kind, id: id, patch: patch });
@@ -30419,7 +30925,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (!sel.length) return;
     const m = split(sel);
     if (m.rooms) ctl.dispatch({ type: 'PE_DEL_ROOM', ids: m.rooms });
-    Object.keys(m).forEach((kd) => { if (kd !== 'rooms') ctl.dispatch({ type: 'PE_DEL', kind: kd, ids: m[kd] }); });
+    if (m.zones) ctl.dispatch({ type: 'PE_DEL_ZONE', ids: m.zones });
+    Object.keys(m).forEach((kd) => { if (kd !== 'rooms' && kd !== 'zones') ctl.dispatch({ type: 'PE_DEL', kind: kd, ids: m[kd] }); });
     ctl.peSel([]);
   };
   ctl.peDup = function () {
@@ -30429,7 +30936,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const sh = 0.6;
     Object.keys(m).forEach((kd) => {
       const items = e[kd].filter((q) => m[kd].indexOf(q.id) >= 0);
-      if (kd === 'ops') return;
+      if (kd === 'ops' || kd === 'zones') return;
       const cp = items.map((q) => {
         const n = Object.assign({}, q, { id: pe.nid(PFX[kd]) });
         if (kd === 'walls' || kd === 'rails') { n.x1 += sh; n.x2 += sh; n.y1 += sh; n.y2 += sh; } else { n.x = pe.r3(q.x + sh); n.y = pe.r3(q.y + sh); }
@@ -30479,7 +30986,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   ctl.peFloorSet = (id, patch) => ctl.dispatch({ type: 'PE_FLOOR_SET', id: id, patch: patch });
   ctl.peFin = (scope, id, slot, mat) => ctl.dispatch({ type: 'PE_FLOOR_FIN', scope: scope, id: id, slot: slot, mat: mat });
   ctl.peStyleApply = function (style, scope, id) {
-    if (scope === 'room') ctl.peSet('rooms', id, { style: style, fin: {} });
+    if (scope === 'room') ctl.peSet(roomKind(id), id, { style: style, fin: {} });
     else if (scope === 'floor') ctl.dispatch({ type: 'PE_FLOOR_SET', id: id, patch: { style: style, fin: {} } });
     else ctl.dispatch({ type: 'PE_PATCH', patch: { style: style, fin: {} } });
     // genel stilde kat ve oda üstüne yazmaları temizle
@@ -30544,7 +31051,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if ((e.ctrlKey || e.metaKey) && lk === 'a') {
       e.preventDefault();
       const D = pe.derive(S.project).by[fidOf(S)];
-      ctl.peSel(D.rooms.map((r) => 'r:' + r.id).concat(D.objs.map((o) => 'n:' + o.id)));
+      ctl.peSel(D.rooms.map((r) => (r.poly ? 'z:' : 'r:') + r.id).concat(D.objs.map((o) => 'n:' + o.id)));
       return;
     }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -30572,7 +31079,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   ctl.exporters.kat = function (kind) {
     if (App.study.modeOf(get()) !== 'plan') { baseKat(kind); return; }
     const S = get(), v = S.ui.pe;
-    if (!pe.get(S.project).rooms.length) { ctl.toast('Önce plana mekân ekleyin.', 'error'); return; }
+    if (!pe.get(S.project).rooms.length && !(pe.get(S.project).zones || []).length) { ctl.toast('Önce plana mekân ekleyin.', 'error'); return; }
     if (v.view === '3d' && kind === 'png' && pe.cur3d) {
       run('PNG', (P) => {
         const url = pe.cur3d.capture();
@@ -30601,7 +31108,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       const poly = (layer, pts, closed) => doc.entities.push({ layer: layer, kind: 'poly', closed: closed !== false, pts: pts.map((q) => fp(q[0], q[1])) });
       const line = (layer, a, c) => doc.entities.push({ layer: layer, kind: 'line', pts: [fp(a[0], a[1]), fp(c[0], c[1])] });
       D.rooms.forEach((r) => {
-        poly('ZEMIN', [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]]);
+        poly('ZEMIN', r.npoly || [[r.net.x, r.net.y], [r.net.x + r.net.w, r.net.y], [r.net.x + r.net.w, r.net.y + r.net.d], [r.net.x, r.net.y + r.net.d]]);
         const fs = Math.max(0.15, Math.min(0.3, Math.min(r.net.w, r.net.d) / 9));
         const c = fp(r.cx, r.cy);
         doc.entities.push({ layer: 'YAZI', kind: 'text', at: [c[0], c[1] + fs * 0.7], text: r.name, h: fs, align: 'center' });
@@ -30644,7 +31151,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   }
   ctl.peDxf = function () {
     const P = get().project;
-    if (!pe.get(P).rooms.length) { ctl.toast('Önce plana mekân ekleyin.', 'error'); return; }
+    if (!pe.get(P).rooms.length && !(pe.get(P).zones || []).length) { ctl.toast('Önce plana mekân ekleyin.', 'error'); return; }
     run('DXF', (p) => (App.dxf ? ctl.saveText(U.slug(p.meta.name) + '-plan.dxf', App.dxf.build(dxfDoc(p)), 'application/dxf') : Promise.reject(new Error('DXF yazıcısı yüklenemedi.'))));
   };
 
