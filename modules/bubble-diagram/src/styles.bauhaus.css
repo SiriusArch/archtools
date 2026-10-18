@@ -347,3 +347,37 @@ select.inp { appearance: none; padding-right: 28px; background-image: linear-gra
 .theme-dots i:nth-child(3) { background: #333; }
 
 @media (max-width: 1599px) and (min-width: 1024px) { .hdr-actions .lbl-hide { display: none; } .hdr-name { max-width: 300px; } }
+
+/* ----------------------------- renk paleti paneli (Renkler sekmesi) ----------------------------- */
+.colors-tab { display: flex; flex-direction: column; gap: 12px; }
+.pal-grid { list-style: none; margin: 0 0 8px; padding: 2px; display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; max-height: 236px; overflow-y: auto; }
+.pal-card { width: 100%; display: flex; flex-direction: column; gap: 4px; padding: 4px; background: var(--surface); border: 2px solid var(--line); cursor: pointer; text-align: left; }
+.pal-card:hover { background: var(--surface-2); }
+.pal-card.on { box-shadow: 3px 3px 0 var(--shadow); transform: translate(-1px, -1px); background: var(--yellow); }
+.pal-strip { display: flex; height: 26px; border: 2px solid var(--line); }
+.pal-strip i { flex: 1 1 0; }
+.pal-name { font-size: 11px; letter-spacing: .06em; color: var(--ink); }
+.pal-card.on .pal-name { color: var(--on-yellow); font-weight: 700; }
+.pal-src { margin-bottom: 8px; }
+.pal-src a { color: var(--blue); font-weight: 600; }
+.pal-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.zrows { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.zrow.zempty .zrow-name { opacity: .55; }
+.zrow-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.zrow-name { flex: 1 1 auto; min-width: 0; font: 600 13px var(--f-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zrow-n { flex: none; font-size: 11px; color: var(--ink-2); }
+.tones { display: flex; gap: 0; border: 2px solid var(--line); }
+.tone { position: relative; flex: 1 1 0; min-width: 0; height: 34px; padding: 0; border: 0; border-right: 2px solid var(--line); cursor: pointer; display: grid; place-items: end center; }
+.tone:last-child { border-right: 0; }
+.tone-hex { font-size: 9px; letter-spacing: .02em; padding-bottom: 2px; opacity: 0; transition: opacity .12s ease; }
+.tone:hover .tone-hex, .tone:focus-visible .tone-hex { opacity: .95; }
+.tone.on { outline: 3px solid var(--ink); outline-offset: -5px; }
+.tone.on::after { content: ''; position: absolute; top: 4px; left: 50%; width: 8px; height: 8px; margin-left: -4px; background: currentColor; border-radius: 50%; }
+.tone-x { width: 26px; height: 26px; }
+.tone-x:disabled { opacity: .3; cursor: default; pointer-events: none; }
+.tcard .note { margin-top: 6px; }
+.dot-multi { background: conic-gradient(var(--blue) 0 33%, var(--yellow) 0 66%, var(--red) 0) !important; }
+.fld-color { margin-top: 8px; }
+.fld-color-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.fld-color-head .lbl { margin: 0; flex: 1 1 auto; }
+.linkbtn { background: none; border: 0; padding: 0; font: 600 11px var(--f-display); letter-spacing: .06em; color: var(--blue); cursor: pointer; text-decoration: underline; }

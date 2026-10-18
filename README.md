@@ -24,6 +24,8 @@ Siteye girişte marka simgesi ve "archtools" adının yumuşakça belirdiği kı
 
 İlk açılışta kısa bir karşılama sorar (çalışma alanı ve ilk hedef); yanıt yalnızca tarayıcıda saklanır, varsayılan programı ve açılan modülü seçer. Başlıktaki **Rehber** düğmesiyle yeniden açılır; `?welcome=0` kapatır, `?welcome=1` zorlar.
 
+**Renk paleti (Bauhaus teması):** İşlev Şeması'nın sol panelindeki **Renkler** sekmesi, [colorpalettes.net](https://colorpalettes.net/)'ten alınan 39 hazır paleti (her biri 5 renk) sunar. Bir palet seçin, sonra tonlarını **kategoriye** (ıslak/servis, sosyal/kamusal, teknik/depo… tüm daireleri boyar) ya da **tek bir daireye** (veya kutuyla seçilen birkaç daireye) uygulayın; tek daire rengi kategori renginin önüne geçer. **Kategorilere dağıt** paletin renklerini sırayla kategorilere atar, yazı rengi otomatik okunaklı seçilir. Renkler pafta PNG/PDF çıktısına, Pafta Şablonu'na ve JSON'a (`extensions.colorPalette`, kullanılan paletlerin hex listesiyle) işlenir; sade temada veri korunur ama gösterilmez. Veri: `modules/bubble-diagram/src/12-data-palettes.js` (`App.palettes`) · mantık: `31-state-colors.js` (`App.colors`) · arayüz: `45-ui-colors.js`.
+
 Varsayılan görünüm minimal, buzlu cam ve tek renksiz. **Beni renklendir!** düğmesi tüm modülleri Retro-Bauhaus temasına geçirir (**Sadeleştir** geri döner). Tercih tarayıcıda saklanır, `?style=bauhaus` ile de açılabilir.
 
 ## Derleme

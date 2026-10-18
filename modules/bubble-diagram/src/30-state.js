@@ -79,6 +79,7 @@
     if (App.plan && !project.plan) project = Object.assign({}, project, { plan: App.plan.defaults() });
     if (App.collage && !project.collage) project = Object.assign({}, project, { collage: App.collage.defaults() });
     if (App.tpl && !project.tpl) project = Object.assign({}, project, { tpl: App.tpl.defaults() });
+    if (App.colors && !project.colors) project = Object.assign({}, project, { colors: App.colors.defaults() });
     return {
       project: project,
       past: [], future: [],
@@ -89,7 +90,7 @@
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
         site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, etut: App.etutDefaults ? App.etutDefaults() : {}, pe: App.peDefaults ? App.peDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, tpl: App.tplDefaults ? App.tplDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
-        busy: null, hintDismissed: false, ms: [], mq: null, style: App.theme.name, boardWide: readWide(),
+        busy: null, hintDismissed: false, ms: [], mq: null, pal: App.palettes.list[0].id, style: App.theme.name, boardWide: readWide(),
       },
     };
   }
@@ -99,7 +100,7 @@
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
   // geri al/ileri al: kat etüdü (study), arsa / imar (site) ve aday konumlar (cand) da projeyle birlikte geri alınır
-  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, plan: project.plan, collage: project.collage, tpl: project.tpl }; }
+  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, plan: project.plan, collage: project.collage, tpl: project.tpl, colors: project.colors }; }
   function withHistory(state, project) {
     const meta = project.meta.example ? Object.assign({}, project.meta, { example: false }) : project.meta;
     return Object.assign({}, state, {

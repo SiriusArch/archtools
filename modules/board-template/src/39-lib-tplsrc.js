@@ -77,7 +77,7 @@
   T.stamp = function (st) {
     const P = st.project;
     const u = st.ui;
-    return [P.meta, P.spaces, P.relations, P.study, P.site, P.cand, P.design, P.fiz, P.plan, P.collage, u.etut, u.an, u.site, u.imar, u.dsn, u.fiz, App.collage ? App.collage.version : 0, App.theme.name].map(idOf).join('.');
+    return [P.meta, P.spaces, P.relations, P.study, P.site, P.cand, P.design, P.fiz, P.plan, P.collage, P.colors, u.etut, u.an, u.site, u.imar, u.dsn, u.fiz, App.collage ? App.collage.version : 0, App.theme.name].map(idOf).join('.');
   };
 
   /* ---------- tuvale çizim ve önbellek ---------- */

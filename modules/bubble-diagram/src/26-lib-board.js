@@ -54,8 +54,8 @@
     return P;
   }
 
-  function bubbleBauhaus(s, r) {
-    const z = App.ZONES[s.zone] || App.ZONES.sosyal;
+  function bubbleBauhaus(s, r, col) {
+    const z = col || App.ZONES[s.zone] || App.ZONES.sosyal; // col: renk paleti (App.colors.space) — { fill, text }
     const P = [];
     P.push({ t: 'circle', cx: s.x, cy: s.y, r: r, fill: z.fill, stroke: PAL.ink, sw: 5 });
     if (r >= 60) P.push({ t: 'circle', cx: s.x, cy: s.y, r: r - 11, stroke: z.text, sw: 1.5, opacity: 0.35 });
@@ -130,7 +130,8 @@
   const isGlass = () => App.theme.name === 'glass';
   const staticPrims = (info, opts) => (isGlass() ? staticGlass(info, opts) : staticBauhaus(info, opts));
   const relLinePrims = (a, b, type, ra, rb) => (isGlass() ? relGlass(a, b, type, ra, rb) : relBauhaus(a, b, type, ra, rb));
-  const bubblePrims = (s, r) => (isGlass() ? bubbleGlass(s, r) : bubbleBauhaus(s, r));
+  // project verilirse Bauhaus temasında palet renkleri (tek daire > kategori) uygulanır
+  const bubblePrims = (s, r, project) => (isGlass() ? bubbleGlass(s, r) : bubbleBauhaus(s, r, project && App.colors ? App.colors.space(project, s) : null));
 
   function infoOf(project, score) {
     const type = App.kb.type(project.meta.buildingType);
@@ -155,7 +156,7 @@
       if (!a || !b) return;
       relLinePrims(a, b, project.relations[key], geo.radius(a.area, k), geo.radius(b.area, k)).forEach((x) => P.push(x));
     });
-    project.spaces.forEach((s) => bubblePrims(s, geo.radius(s.area, k)).forEach((x) => P.push(x)));
+    project.spaces.forEach((s) => bubblePrims(s, geo.radius(s.area, k), project).forEach((x) => P.push(x)));
     return P;
   }
 

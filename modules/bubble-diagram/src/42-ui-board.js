@@ -11,6 +11,7 @@
   const ms = App.multi;
   /* çoklu seçim: kutu çizerek ya da Shift + tıkla birkaç mekân seç, birini sürükleyince hepsi birlikte taşınır */
   const activeMs = (S) => { const have = new Set(S.project.spaces.map((s) => s.id)); const r = (S.ui.ms || []).filter((id) => have.has(id)); return !S.selectedId && r.length >= 2 ? r : []; };
+  ui.activeGroup = activeMs;
   const boxes = (S) => { const k = geo.scale(S.project.spaces); return S.project.spaces.map((s) => { const r = geo.radius(s.area, k); return { id: s.id, x0: s.x - r, y0: s.y - r, x1: s.x + r, y1: s.y + r, r: r }; }); };
   ui.multi = function (list) {
     if (list.length === 1) { App.ctl.dispatch({ type: 'UI', patch: { ms: [] } }); App.ctl.dispatch({ type: 'SELECT', id: list[0] }); return; }
@@ -183,7 +184,7 @@
       const sel = state.selectedId === s.id || grpOn;
       return h('g', { key: 'b' + s.id, class: 'bubble' + (sel ? ' selected' : ''), role: 'button', tabindex: 0, 'aria-label': s.name + ', ' + App.util.fmt(s.area) + ' metrekare', onpointerdown: (e) => bubbleDown(e, s, r), onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ctl.dispatch({ type: 'SELECT', id: s.id }); } } },
         sel ? h('circle', { class: 'sel-ring', cx: s.x, cy: s.y, r: r + 10, fill: 'none', stroke: App.PAL.ink, 'stroke-width': 3, 'stroke-dasharray': '7 6' }) : null,
-        App.board.bubblePrims(s, r).map((p) => App.board.primToV(p)),
+        App.board.bubblePrims(s, r, P).map((p) => App.board.primToV(p)),
         h('title', {}, s.name + ' — ' + App.util.fmt(s.area) + ' m²'));
     });
 

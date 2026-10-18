@@ -62,7 +62,7 @@
       others.map((o) => {
         const cur = state.project.relations[U.pairKey(s.id, o.id)] || 'none';
         return h('div', { class: 'rel-row', key: o.id },
-          h('span', { class: 'rel-name' }, ui.zoneDot(o.zone), h('span', {}, o.name)),
+          h('span', { class: 'rel-name' }, ui.spaceDot(o), h('span', {}, o.name)),
           h('div', { class: 'seg', role: 'group', 'aria-label': s.name + ' ile ' + o.name + ' ilişkisi' },
             REL_BTN.map((b) => h('button', { key: b[0], type: 'button', class: 'seg-btn seg-' + b[0] + (cur === b[0] ? ' on' : ''), title: b[2], 'aria-pressed': String(cur === b[0]), 'aria-label': b[2], onclick: () => ctl.dispatch({ type: 'SET_RELATION', a: s.id, b: o.id, rel: b[0] }) }, b[1]))));
       }));
@@ -74,7 +74,7 @@
     const st = statusOf(d, s);
     return h('li', { key: s.id, class: 'row' + (sel ? ' sel' : ''), id: 'row-' + s.id },
       h('div', { class: 'row-main', onclick: () => ctl.dispatch({ type: 'SELECT', id: sel ? null : s.id }) },
-        ui.zoneDot(s.zone),
+        ui.spaceDot(s),
         h('span', { class: 'row-name' }, s.name),
         st ? h('span', { class: 'pill pill-' + st.lvl, title: st.tip }, st.label) : null,
         h('label', { class: 'area-wrap', onclick: (e) => e.stopPropagation() },
@@ -89,6 +89,7 @@
           h('div', { class: 'fld' }, h('label', { class: 'lbl', for: 'ed-zone' }, 'Bölge'),
             h('select', { id: 'ed-zone', class: 'inp', value: s.zone, onchange: (e) => ctl.dispatch({ type: 'UPDATE_SPACE', id: s.id, patch: { zone: e.target.value } }) },
               App.ZONE_ORDER.map((z) => h('option', { key: z, value: z }, App.ZONES[z].label))))),
+        ui.spaceColorField(state, s),
         h('h3', { class: 'sub-title' }, 'Diğer mekânlarla ilişkisi'),
         relEditor(state, s)) : null);
   }
@@ -119,7 +120,7 @@
         h('table', { class: 'matrix' },
           h('thead', {}, h('tr', {}, h('th', { class: 'corner' }, ''), sp.slice(0, -1).map((c) => h('th', { key: c.id, class: 'mh' + (sel === c.id ? ' on' : ''), scope: 'col' }, h('button', { type: 'button', class: 'mh-btn', onclick: () => ctl.dispatch({ type: 'SELECT', id: c.id }), title: c.name }, h('span', { class: 'vert' }, c.name)))))),
           h('tbody', {}, sp.slice(1).map((r, ri) => h('tr', { key: r.id },
-            h('th', { class: 'rh' + (sel === r.id ? ' on' : ''), scope: 'row' }, h('button', { type: 'button', class: 'rh-btn', onclick: () => ctl.dispatch({ type: 'SELECT', id: r.id }), title: r.name }, ui.zoneDot(r.zone), h('span', {}, r.name))),
+            h('th', { class: 'rh' + (sel === r.id ? ' on' : ''), scope: 'row' }, h('button', { type: 'button', class: 'rh-btn', onclick: () => ctl.dispatch({ type: 'SELECT', id: r.id }), title: r.name }, ui.spaceDot(r), h('span', {}, r.name))),
             sp.slice(0, -1).map((c, ci) => {
               if (ci > ri) return h('td', { key: c.id, class: 'mc-empty' });
               const rel = P.relations[U.pairKey(r.id, c.id)] || 'none';
@@ -132,12 +133,16 @@
 
   ui.sidebar = function (state, d) {
     const ctl = App.ctl;
-    const tab = state.ui.tab;
+    const colorsOn = App.colors.active();
+    const tab = state.ui.tab === 'renk' && !colorsOn ? 'spaces' : state.ui.tab; // sade temada Renkler sekmesi yoktur
+    const cc = state.project.colors;
+    const nCustom = cc ? Object.keys(cc.zones).length + Object.keys(cc.spaces).length : 0;
     return h('aside', { class: 'sidebar', 'aria-label': 'Proje paneli' },
       h('div', { class: 'tabs', role: 'tablist' },
         h('button', { type: 'button', role: 'tab', id: 'tab-spaces', 'aria-selected': String(tab === 'spaces'), class: 'tab' + (tab === 'spaces' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'spaces' } }) }, 'Mekanlar', h('span', { class: 'tab-n' }, String(state.project.spaces.length))),
-        h('button', { type: 'button', role: 'tab', id: 'tab-matrix', 'aria-selected': String(tab === 'matrix'), class: 'tab' + (tab === 'matrix' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'matrix' } }) }, 'İlişki matrisi', h('span', { class: 'tab-n' }, String(Object.keys(state.project.relations).length)))),
+        h('button', { type: 'button', role: 'tab', id: 'tab-matrix', 'aria-selected': String(tab === 'matrix'), class: 'tab' + (tab === 'matrix' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'matrix' } }) }, 'İlişki matrisi', h('span', { class: 'tab-n' }, String(Object.keys(state.project.relations).length))),
+        colorsOn ? h('button', { type: 'button', role: 'tab', id: 'tab-renk', 'aria-selected': String(tab === 'renk'), class: 'tab' + (tab === 'renk' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'renk' } }) }, 'Renkler', nCustom ? h('span', { class: 'tab-n' }, String(nCustom)) : null) : null),
       h('div', { class: 'side-body', role: 'tabpanel' },
-        tab === 'spaces' ? [formView(state), listView(state, d), templateView(state)] : matrixView(state, d)));
+        tab === 'spaces' ? [formView(state), listView(state, d), templateView(state)] : tab === 'renk' ? ui.colorsPanel(state) : matrixView(state, d)));
   };
 })();

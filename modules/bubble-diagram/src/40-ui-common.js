@@ -50,6 +50,7 @@
     marquee: ['M4 4h3M10 4h4M17 4h3', 'M20 4v3M20 10v4M20 17v3', 'M4 20h3M10 20h4M17 20h3', 'M4 4v3M4 10v4M4 17v3'],
     hand: ['M8 13V6.5a1.5 1.5 0 013 0V12', 'M11 11V4.5a1.5 1.5 0 013 0V11', 'M14 11V6a1.5 1.5 0 013 0v7.5c0 4-2.2 7-6 7-3 0-4.2-1.8-6-4.8l-1.6-2.6a1.5 1.5 0 012.6-1.5L8 14'],
     selall: ['M4 4h16v16H4z', 'M8 12.5l3 3 5-6.5'],
+    palette: ['M12 3a9 9 0 100 18c1.4 0 2-1 2-2 0-1.6-1.6-1.9-1.6-3.2 0-1 .8-1.8 1.9-1.8H17a4 4 0 004-4c0-3.9-4-7-9-7z', { c: [7.5, 11, 1.1] }, { c: [10, 7, 1.1] }, { c: [14.5, 7, 1.1] }],
   };
 
   ui.icon = function (name, size) {
@@ -79,8 +80,16 @@
 
   ui.levelLabel = { hata: 'Hata', uyari: 'Uyarı', oneri: 'Öneri', ok: 'Tamam' };
 
+  // kategori noktası: kategori paleti rengini de gösterir (Bauhaus)
   ui.zoneDot = function (zone) {
     const z = App.ZONES[zone] || App.ZONES.sosyal;
-    return h('span', { class: 'dot', style: { background: z.fill }, title: z.label });
+    const c = App.colors && App.store ? App.colors.zone(App.store.get().project, zone) : z;
+    return h('span', { class: 'dot', style: { background: c.fill }, title: z.label });
+  };
+  // mekân noktası: tek daire rengi > kategori rengi
+  ui.spaceDot = function (s) {
+    const z = App.ZONES[s.zone] || App.ZONES.sosyal;
+    const c = App.colors && App.store ? App.colors.space(App.store.get().project, s) : z;
+    return h('span', { class: 'dot', style: { background: c.fill }, title: z.label });
   };
 })();

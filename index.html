@@ -1545,6 +1545,38 @@ html[data-style="bauhaus"] .theme-dots i:nth-child(3) { background: #333; }
 html[data-style="bauhaus"] .hdr-actions .lbl-hide { display: none; }
 html[data-style="bauhaus"] .hdr-name { max-width: 300px; }
 }
+html[data-style="bauhaus"] .colors-tab { display: flex; flex-direction: column; gap: 12px; }
+html[data-style="bauhaus"] .pal-grid { list-style: none; margin: 0 0 8px; padding: 2px; display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; max-height: 236px; overflow-y: auto; }
+html[data-style="bauhaus"] .pal-card { width: 100%; display: flex; flex-direction: column; gap: 4px; padding: 4px; background: var(--surface); border: 2px solid var(--line); cursor: pointer; text-align: left; }
+html[data-style="bauhaus"] .pal-card:hover { background: var(--surface-2); }
+html[data-style="bauhaus"] .pal-card.on { box-shadow: 3px 3px 0 var(--shadow); transform: translate(-1px, -1px); background: var(--yellow); }
+html[data-style="bauhaus"] .pal-strip { display: flex; height: 26px; border: 2px solid var(--line); }
+html[data-style="bauhaus"] .pal-strip i { flex: 1 1 0; }
+html[data-style="bauhaus"] .pal-name { font-size: 11px; letter-spacing: .06em; color: var(--ink); }
+html[data-style="bauhaus"] .pal-card.on .pal-name { color: var(--on-yellow); font-weight: 700; }
+html[data-style="bauhaus"] .pal-src { margin-bottom: 8px; }
+html[data-style="bauhaus"] .pal-src a { color: var(--blue); font-weight: 600; }
+html[data-style="bauhaus"] .pal-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+html[data-style="bauhaus"] .zrows { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+html[data-style="bauhaus"] .zrow.zempty .zrow-name { opacity: .55; }
+html[data-style="bauhaus"] .zrow-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+html[data-style="bauhaus"] .zrow-name { flex: 1 1 auto; min-width: 0; font: 600 13px var(--f-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html[data-style="bauhaus"] .zrow-n { flex: none; font-size: 11px; color: var(--ink-2); }
+html[data-style="bauhaus"] .tones { display: flex; gap: 0; border: 2px solid var(--line); }
+html[data-style="bauhaus"] .tone { position: relative; flex: 1 1 0; min-width: 0; height: 34px; padding: 0; border: 0; border-right: 2px solid var(--line); cursor: pointer; display: grid; place-items: end center; }
+html[data-style="bauhaus"] .tone:last-child { border-right: 0; }
+html[data-style="bauhaus"] .tone-hex { font-size: 9px; letter-spacing: .02em; padding-bottom: 2px; opacity: 0; transition: opacity .12s ease; }
+html[data-style="bauhaus"] .tone:hover .tone-hex, html[data-style="bauhaus"] .tone:focus-visible .tone-hex { opacity: .95; }
+html[data-style="bauhaus"] .tone.on { outline: 3px solid var(--ink); outline-offset: -5px; }
+html[data-style="bauhaus"] .tone.on::after { content: ''; position: absolute; top: 4px; left: 50%; width: 8px; height: 8px; margin-left: -4px; background: currentColor; border-radius: 50%; }
+html[data-style="bauhaus"] .tone-x { width: 26px; height: 26px; }
+html[data-style="bauhaus"] .tone-x:disabled { opacity: .3; cursor: default; pointer-events: none; }
+html[data-style="bauhaus"] .tcard .note { margin-top: 6px; }
+html[data-style="bauhaus"] .dot-multi { background: conic-gradient(var(--blue) 0 33%, var(--yellow) 0 66%, var(--red) 0) !important; }
+html[data-style="bauhaus"] .fld-color { margin-top: 8px; }
+html[data-style="bauhaus"] .fld-color-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+html[data-style="bauhaus"] .fld-color-head .lbl { margin: 0; flex: 1 1 auto; }
+html[data-style="bauhaus"] .linkbtn { background: none; border: 0; padding: 0; font: 600 11px var(--f-display); letter-spacing: .06em; color: var(--blue); cursor: pointer; text-decoration: underline; }
 html[data-style="bauhaus"] .flr-name { padding: 5px 8px; font: 700 13px var(--f-display); letter-spacing: .08em; text-transform: uppercase; background: var(--surface-2); }
 html[data-style="bauhaus"] .flr-head { padding-bottom: 4px; border-bottom: 3px solid var(--line); }
 html[data-style="bauhaus"] .frow .row-main { padding: 4px 4px 4px 8px; }
@@ -2495,6 +2527,84 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 })();
 
 /* ==========================================================================
+   12-data-palettes.js — hazır renk paletleri (colorpalettes.net) · ortak veri
+   Her palet 5 renktir: [numara, [hex ×5]]. Kaynak: https://colorpalettes.net/color-palette-<numara>/
+   Palet kimliği 'cp<numara>' (örn. 'cp4816'). JSON'a (extensions.colorPalette) kimlik + hex birlikte yazılır;
+   böylece dosya bu listeden bağımsız olarak da açılır. Tailwind'e taşırken: theme.extend.colors.palette = App.palettes.byId
+   ========================================================================== */
+(function () {
+  const App = window.App;
+
+  const RAW = [
+    [4816, ['#2E3604', '#4E5E07', '#E19D29', '#D8D2CF', '#8D8179']],
+    [4815, ['#223125', '#729969', '#A1C0C2', '#E6E7EB', '#F6F6F6']],
+    [4814, ['#0B161E', '#51625C', '#A6B9BE', '#D8D2C6', '#4F6734']],
+    [4813, ['#2D3939', '#5B6972', '#CFD8DF', '#9DADA3', '#273E20']],
+    [4811, ['#624621', '#9F6D2D', '#F8DAB2', '#EEEBE4', '#D2D2D2']],
+    [4810, ['#2B3034', '#627C8C', '#989398', '#B9C7D2', '#E93C35']],
+    [4809, ['#738488', '#A6B6BA', '#D0D8DA', '#E1DDD7', '#EFECE7']],
+    [4808, ['#353C52', '#554A53', '#726364', '#9A686B', '#BA897A']],
+    [4807, ['#D1ECE7', '#FEE16C', '#BD7F01', '#A23D01', '#22352C']],
+    [4806, ['#E0E5E8', '#DD8607', '#C25006', '#943A02', '#401600']],
+    [4805, ['#102020', '#2D4C4F', '#78B4B7', '#D9E9E9', '#83241E']],
+    [4804, ['#6F5B42', '#B5A892', '#D2D2D1', '#BEBBB4', '#15160A']],
+    [4803, ['#020608', '#1C252B', '#486B85', '#93B4BC', '#CAD2CB']],
+    [4802, ['#010A13', '#497683', '#8AB0A5', '#F5E9D4', '#82797A']],
+    [4801, ['#031725', '#022E5B', '#499BED', '#A1C6F6', '#DAEAFF']],
+    [4800, ['#232E20', '#D2A16E', '#B55E28', '#4F4B40', '#3F2512']],
+    [4798, ['#E8E8E8', '#C1C6C9', '#AC2724', '#583E24', '#3E4524']],
+    [4797, ['#D1D2D4', '#909483', '#616657', '#C19386', '#B25C40']],
+    [4796, ['#FAFAFA', '#D0D2CF', '#575C55', '#86612F', '#52311B']],
+    [4794, ['#E3DBD2', '#7F888D', '#324E59', '#011F28', '#000201']],
+    [4793, ['#5D6474', '#A7A6B0', '#ECEDE6', '#8CA9BD', '#6498AF']],
+    [4792, ['#0B4E65', '#3F7F9E', '#E2C9CA', '#D8A996', '#B47C50']],
+    [4791, ['#120223', '#430357', '#6E022F', '#8C0286', '#C40361']],
+    [4790, ['#CDB08E', '#BFB6A6', '#AAAAA4', '#4A4944', '#11100B']],
+    [4789, ['#8A889E', '#EDD600', '#956B00', '#1A4208', '#051107']],
+    [4788, ['#FDFEE8', '#90B1E6', '#4C6794', '#234485', '#000000']],
+    [4787, ['#E8EDF0', '#E1E4E3', '#8FA8AE', '#425363', '#A90101']],
+    [4783, ['#F7E1D3', '#AFA0A0', '#576071', '#AC6646', '#151A1E']],
+    [4780, ['#C3DECE', '#91C2A6', '#165225', '#B62D4F', '#6A1823']],
+    [4779, ['#E26858', '#A9A8AD', '#8B4252', '#56334B', '#272C49']],
+    [4778, ['#363233', '#613708', '#895C20', '#A38976', '#CABCAC']],
+    [4776, ['#54332B', '#943636', '#B26B2F', '#CEA05A', '#5F5949']],
+    [4774, ['#242423', '#854D34', '#BB794C', '#DEB308', '#A59257']],
+    [4773, ['#191A1E', '#61353B', '#82625A', '#85858F', '#E88538']],
+    [4751, ['#4B3831', '#CA4213', '#F98C45', '#CBCBCB', '#C5E4E7']],
+    [4750, ['#372E19', '#3F4321', '#93631F', '#F4C579', '#B4B4B4']],
+    [4748, ['#5E0208', '#AE3433', '#C9983C', '#888C94', '#D7CCBD']],
+    [4746, ['#183716', '#D52217', '#DB5559', '#F3B9CF', '#F2BD03']],
+    [4742, ['#120F0A', '#3B200B', '#D76F02', '#FAA718', '#FCCF46']]
+  ];
+
+  const list = RAW.map(function (r) {
+    return { id: 'cp' + r[0], n: r[0], name: 'Palet #' + r[0], url: 'https://colorpalettes.net/color-palette-' + r[0] + '/', colors: r[1].slice() };
+  });
+  const byId = {};
+  list.forEach(function (p) { byId[p.id] = p; });
+
+  const HEX = /^#[0-9a-f]{6}$/i;
+  const rgb = function (hex) { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+  // WCAG göreli parlaklık
+  const lum = function (hex) {
+    const c = rgb(hex).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const contrast = function (a, b) { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+
+  App.palettes = {
+    source: 'colorpalettes.net',
+    list: list,
+    byId: byId,
+    get: function (id) { return byId[id] || null; },
+    isHex: function (v) { return typeof v === 'string' && HEX.test(v); },
+    contrast: contrast,
+    // zemin renginin üstünde okunaklı yazı rengi: iki aday arasından kontrastı yüksek olan
+    textOn: function (fill, dark, light) { return contrast(fill, dark) >= contrast(fill, light) ? dark : light; },
+  };
+})();
+
+/* ==========================================================================
    20-lib-geometry.js — pafta geometrisi, ölçek, daire yarıçapı, etiket sığdırma
    Dünya koordinatları: 1400 × 990 birim (A3 yatay oranı 1,414).
    ========================================================================== */
@@ -3375,8 +3485,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     return P;
   }
 
-  function bubbleBauhaus(s, r) {
-    const z = App.ZONES[s.zone] || App.ZONES.sosyal;
+  function bubbleBauhaus(s, r, col) {
+    const z = col || App.ZONES[s.zone] || App.ZONES.sosyal; // col: renk paleti (App.colors.space) — { fill, text }
     const P = [];
     P.push({ t: 'circle', cx: s.x, cy: s.y, r: r, fill: z.fill, stroke: PAL.ink, sw: 5 });
     if (r >= 60) P.push({ t: 'circle', cx: s.x, cy: s.y, r: r - 11, stroke: z.text, sw: 1.5, opacity: 0.35 });
@@ -3451,7 +3561,8 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const isGlass = () => App.theme.name === 'glass';
   const staticPrims = (info, opts) => (isGlass() ? staticGlass(info, opts) : staticBauhaus(info, opts));
   const relLinePrims = (a, b, type, ra, rb) => (isGlass() ? relGlass(a, b, type, ra, rb) : relBauhaus(a, b, type, ra, rb));
-  const bubblePrims = (s, r) => (isGlass() ? bubbleGlass(s, r) : bubbleBauhaus(s, r));
+  // project verilirse Bauhaus temasında palet renkleri (tek daire > kategori) uygulanır
+  const bubblePrims = (s, r, project) => (isGlass() ? bubbleGlass(s, r) : bubbleBauhaus(s, r, project && App.colors ? App.colors.space(project, s) : null));
 
   function infoOf(project, score) {
     const type = App.kb.type(project.meta.buildingType);
@@ -3476,7 +3587,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       if (!a || !b) return;
       relLinePrims(a, b, project.relations[key], geo.radius(a.area, k), geo.radius(b.area, k)).forEach((x) => P.push(x));
     });
-    project.spaces.forEach((s) => bubblePrims(s, geo.radius(s.area, k)).forEach((x) => P.push(x)));
+    project.spaces.forEach((s) => bubblePrims(s, geo.radius(s.area, k), project).forEach((x) => P.push(x)));
     return P;
   }
 
@@ -5906,6 +6017,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     if (App.plan && !project.plan) project = Object.assign({}, project, { plan: App.plan.defaults() });
     if (App.collage && !project.collage) project = Object.assign({}, project, { collage: App.collage.defaults() });
     if (App.tpl && !project.tpl) project = Object.assign({}, project, { tpl: App.tpl.defaults() });
+    if (App.colors && !project.colors) project = Object.assign({}, project, { colors: App.colors.defaults() });
     return {
       project: project,
       past: [], future: [],
@@ -5916,7 +6028,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
         site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, etut: App.etutDefaults ? App.etutDefaults() : {}, pe: App.peDefaults ? App.peDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, tpl: App.tplDefaults ? App.tplDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
-        busy: null, hintDismissed: false, ms: [], mq: null, style: App.theme.name, boardWide: readWide(),
+        busy: null, hintDismissed: false, ms: [], mq: null, pal: App.palettes.list[0].id, style: App.theme.name, boardWide: readWide(),
       },
     };
   }
@@ -5926,7 +6038,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
   // geri al/ileri al: kat etüdü (study), arsa / imar (site) ve aday konumlar (cand) da projeyle birlikte geri alınır
-  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, plan: project.plan, collage: project.collage, tpl: project.tpl }; }
+  function snap(project) { return { meta: project.meta, spaces: project.spaces, relations: project.relations, study: project.study, site: project.site, cand: project.cand, design: project.design, fiz: project.fiz, plan: project.plan, collage: project.collage, tpl: project.tpl, colors: project.colors }; }
   function withHistory(state, project) {
     const meta = project.meta.example ? Object.assign({}, project.meta, { example: false }) : project.meta;
     return Object.assign({}, state, {
@@ -6432,6 +6544,144 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     init: init, isCore: isCore, floorName: floorName, makeFloors: makeFloors, autoAssign: autoAssign, suggestCount: suggestCount,
     layout: layout, metrics: metricsOf, findings: findings, derive: derive, touching: touching, rectGap: rectGap, overlapArea: overlapArea, MIN_CORE: MIN_CORE, CORRIDOR_W: CORRIDOR_W,
   });
+})();
+
+/* ==========================================================================
+   31-state-colors.js — renk paleti: kategori (bölge) ve tek daire rengi
+   Model:  project.colors = { v: 1, zones: { <bölge>: ref }, spaces: { <mekânId>: ref } }
+           ref = { p: 'cp4816', i: 2, hex: '#E19D29' }   (p/i palet kaynağını gösterir; hex her zaman geçerli renktir)
+   Öncelik: tek daire > kategori > tema varsayılanı. Özel renkler yalnızca Bauhaus ("Beni renklendir!") temasında çizilir;
+   sade temada (glass) veri korunur ama gösterilmez.
+   JSON uzantısı: extensions.colorPalette  (kullanılan paletlerin hex listesi dahil → dosya tek başına açılır)
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const PL = App.palettes;
+
+  const defaults = () => ({ v: 1, zones: {}, spaces: {} });
+  const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+  // geçerli bir başvuru üretir; palet bilinmiyorsa yalnızca hex kalır
+  function makeRef(p, i, hex) {
+    const pal = PL.get(p);
+    const idx = Number(i);
+    let h = PL.isHex(hex) ? hex.toUpperCase() : null;
+    if (pal && idx >= 0 && idx < pal.colors.length && Math.floor(idx) === idx) h = h || pal.colors[idx];
+    if (!h) return null;
+    const ref = { hex: h };
+    if (pal && idx >= 0 && idx < pal.colors.length && pal.colors[idx].toUpperCase() === h) { ref.p = pal.id; ref.i = idx; }
+    return ref;
+  }
+
+  const on = () => App.theme.name === 'bauhaus';
+  const readable = (fill) => PL.textOn(fill, App.PAL.ink, App.PAL.paper);
+
+  /* ---------- çözümleme ---------- */
+  function zoneRef(project, zone) { const c = project && project.colors; return c && c.zones && own(c.zones, zone) ? c.zones[zone] : null; }
+  function spaceRef(project, id) { const c = project && project.colors; return c && c.spaces && own(c.spaces, id) ? c.spaces[id] : null; }
+  const pack = (ref) => ({ fill: ref.hex, text: readable(ref.hex), custom: true, ref: ref });
+
+  function zoneColor(project, zone) {
+    const z = App.ZONES[zone] || App.ZONES.sosyal;
+    const r = on() ? zoneRef(project, zone) : null;
+    return r ? pack(r) : { fill: z.fill, text: z.text, custom: false, ref: null };
+  }
+  function spaceColor(project, s) {
+    const r = on() ? spaceRef(project, s.id) : null;
+    return r ? pack(r) : zoneColor(project, s.zone);
+  }
+  // 'space' | 'zone' | null — rengin nereden geldiği (arayüzde "özel" rozeti için)
+  function sourceOf(project, s) { return spaceRef(project, s.id) ? 'space' : zoneRef(project, s.zone) ? 'zone' : null; }
+
+  /* ---------- eylemler (reducer eklentisi) ---------- */
+  function applyRefs(P, scope, keys, ref) {
+    const c = P.colors || defaults();
+    const bag = Object.assign({}, scope === 'zone' ? c.zones : c.spaces);
+    keys.forEach((k) => { if (ref) bag[k] = ref; else delete bag[k]; });
+    return Object.assign({}, c, scope === 'zone' ? { zones: bag } : { spaces: bag });
+  }
+
+  App.state.hooks.push(function (next, a) {
+    const P = next.project;
+    switch (a.type) {
+      case 'COLOR_SET': {
+        // { scope:'zone'|'space', keys:[…], ref:{p,i,hex}|null }
+        const ref = a.ref ? makeRef(a.ref.p, a.ref.i, a.ref.hex) : null;
+        if (a.ref && !ref) return next;
+        const keys = (a.keys || []).filter((k) => (a.scope === 'zone' ? App.ZONES[k] : P.spaces.some((s) => s.id === k)));
+        if (!keys.length) return next;
+        const before = P.colors || defaults();
+        const bag = a.scope === 'zone' ? before.zones : before.spaces;
+        if (keys.every((k) => (ref ? bag[k] && bag[k].hex === ref.hex : !bag[k]))) return next; // değişiklik yok
+        return App.state.withHistory(next, Object.assign({}, P, { colors: applyRefs(P, a.scope, keys, ref) }));
+      }
+      case 'COLOR_DISTRIBUTE': {
+        // seçilen paletin renklerini projede kullanılan kategorilere sırayla dağıtır
+        const pal = PL.get(a.palette);
+        if (!pal) return next;
+        const used = App.ZONE_ORDER.filter((z) => P.spaces.some((s) => s.zone === z));
+        const zones = {};
+        (used.length ? used : App.ZONE_ORDER).forEach((z, n) => { zones[z] = makeRef(pal.id, n % pal.colors.length); });
+        return App.state.withHistory(next, Object.assign({}, P, { colors: Object.assign({}, P.colors || defaults(), { zones: zones, spaces: {} }) }));
+      }
+      case 'COLOR_RESET': {
+        // 'all' | 'zones' | 'spaces'
+        const c = P.colors || defaults();
+        const nz = a.what === 'spaces' ? c.zones : {};
+        const ns = a.what === 'zones' ? c.spaces : {};
+        if (!Object.keys(c.zones).length && !Object.keys(c.spaces).length) return next;
+        return App.state.withHistory(next, Object.assign({}, P, { colors: Object.assign({}, c, { zones: nz, spaces: ns }) }));
+      }
+      case 'REMOVE_SPACE': {
+        if (!P.colors || !P.colors.spaces || !own(P.colors.spaces, a.id)) return next;
+        const sp = Object.assign({}, P.colors.spaces); delete sp[a.id];
+        return Object.assign({}, next, { project: Object.assign({}, P, { colors: Object.assign({}, P.colors, { spaces: sp }) }) });
+      }
+    }
+    return next;
+  });
+
+  /* ---------- JSON: extensions.colorPalette ---------- */
+  const refOut = (r) => ({ palette: r.p || null, index: r.p ? r.i : null, hex: r.hex });
+  function toExt(project) {
+    const c = project.colors;
+    if (!c) return {};
+    const ids = new Set(project.spaces.map((s) => s.id));
+    const zones = {}, spaces = {}, used = new Set();
+    Object.keys(c.zones || {}).forEach((z) => { if (App.ZONES[z]) { zones[z] = refOut(c.zones[z]); if (c.zones[z].p) used.add(c.zones[z].p); } });
+    Object.keys(c.spaces || {}).forEach((id) => { if (ids.has(id)) { spaces[id] = refOut(c.spaces[id]); if (c.spaces[id].p) used.add(c.spaces[id].p); } });
+    if (!Object.keys(zones).length && !Object.keys(spaces).length) return {};
+    return {
+      colorPalette: {
+        version: 1, source: PL.source, appliesTo: 'bauhaus',
+        palettes: Array.from(used).sort().map((id) => ({ id: id, name: PL.get(id).name, url: PL.get(id).url, colors: PL.get(id).colors.slice() })),
+        zones: zones, spaces: spaces,
+      },
+    };
+  }
+  function fromExt(x, project) {
+    if (!x || typeof x !== 'object') return null;
+    const embedded = {};
+    (Array.isArray(x.palettes) ? x.palettes : []).forEach((p) => { if (p && Array.isArray(p.colors)) embedded[p.id] = p.colors; });
+    const read = (r) => {
+      if (!r || typeof r !== 'object') return null;
+      const col = embedded[r.palette];
+      // dosyada gömülü palet varsa onun, yoksa yerleşik listenin renkleri; her durumda hex önceliklidir
+      const hex = PL.isHex(r.hex) ? r.hex : col && PL.isHex(col[r.index]) ? col[r.index] : null;
+      return makeRef(r.palette, r.index, hex);
+    };
+    const c = defaults();
+    Object.keys(x.zones || {}).forEach((z) => { const r = App.ZONES[z] ? read(x.zones[z]) : null; if (r) c.zones[z] = r; });
+    const ids = new Set(project.spaces.map((s) => s.id));
+    Object.keys(x.spaces || {}).forEach((id) => { const r = ids.has(id) ? read(x.spaces[id]) : null; if (r) c.spaces[id] = r; });
+    return c;
+  }
+  App.extProviders = App.extProviders || [];
+  App.extProviders.push(toExt);
+  App.extImporters = App.extImporters || [];
+  App.extImporters.push(function (ext, project) { const c = fromExt(ext && ext.colorPalette, project); return c ? { colors: c } : {}; });
+
+  App.colors = { defaults: defaults, makeRef: makeRef, zone: zoneColor, space: spaceColor, sourceOf: sourceOf, active: on, toExt: toExt, fromExt: fromExt };
 })();
 
 /* ==========================================================================
@@ -23224,7 +23474,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   T.stamp = function (st) {
     const P = st.project;
     const u = st.ui;
-    return [P.meta, P.spaces, P.relations, P.study, P.site, P.cand, P.design, P.fiz, P.plan, P.collage, u.etut, u.an, u.site, u.imar, u.dsn, u.fiz, App.collage ? App.collage.version : 0, App.theme.name].map(idOf).join('.');
+    return [P.meta, P.spaces, P.relations, P.study, P.site, P.cand, P.design, P.fiz, P.plan, P.collage, P.colors, u.etut, u.an, u.site, u.imar, u.dsn, u.fiz, App.collage ? App.collage.version : 0, App.theme.name].map(idOf).join('.');
   };
 
   /* ---------- tuvale çizim ve önbellek ---------- */
@@ -24328,6 +24578,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     marquee: ['M4 4h3M10 4h4M17 4h3', 'M20 4v3M20 10v4M20 17v3', 'M4 20h3M10 20h4M17 20h3', 'M4 4v3M4 10v4M4 17v3'],
     hand: ['M8 13V6.5a1.5 1.5 0 013 0V12', 'M11 11V4.5a1.5 1.5 0 013 0V11', 'M14 11V6a1.5 1.5 0 013 0v7.5c0 4-2.2 7-6 7-3 0-4.2-1.8-6-4.8l-1.6-2.6a1.5 1.5 0 012.6-1.5L8 14'],
     selall: ['M4 4h16v16H4z', 'M8 12.5l3 3 5-6.5'],
+    palette: ['M12 3a9 9 0 100 18c1.4 0 2-1 2-2 0-1.6-1.6-1.9-1.6-3.2 0-1 .8-1.8 1.9-1.8H17a4 4 0 004-4c0-3.9-4-7-9-7z', { c: [7.5, 11, 1.1] }, { c: [10, 7, 1.1] }, { c: [14.5, 7, 1.1] }],
   };
 
   ui.icon = function (name, size) {
@@ -24357,9 +24608,17 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 
   ui.levelLabel = { hata: 'Hata', uyari: 'Uyarı', oneri: 'Öneri', ok: 'Tamam' };
 
+  // kategori noktası: kategori paleti rengini de gösterir (Bauhaus)
   ui.zoneDot = function (zone) {
     const z = App.ZONES[zone] || App.ZONES.sosyal;
-    return h('span', { class: 'dot', style: { background: z.fill }, title: z.label });
+    const c = App.colors && App.store ? App.colors.zone(App.store.get().project, zone) : z;
+    return h('span', { class: 'dot', style: { background: c.fill }, title: z.label });
+  };
+  // mekân noktası: tek daire rengi > kategori rengi
+  ui.spaceDot = function (s) {
+    const z = App.ZONES[s.zone] || App.ZONES.sosyal;
+    const c = App.colors && App.store ? App.colors.space(App.store.get().project, s) : z;
+    return h('span', { class: 'dot', style: { background: c.fill }, title: z.label });
   };
 })();
 
@@ -24448,6 +24707,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
   const ms = App.multi;
   /* çoklu seçim: kutu çizerek ya da Shift + tıkla birkaç mekân seç, birini sürükleyince hepsi birlikte taşınır */
   const activeMs = (S) => { const have = new Set(S.project.spaces.map((s) => s.id)); const r = (S.ui.ms || []).filter((id) => have.has(id)); return !S.selectedId && r.length >= 2 ? r : []; };
+  ui.activeGroup = activeMs;
   const boxes = (S) => { const k = geo.scale(S.project.spaces); return S.project.spaces.map((s) => { const r = geo.radius(s.area, k); return { id: s.id, x0: s.x - r, y0: s.y - r, x1: s.x + r, y1: s.y + r, r: r }; }); };
   ui.multi = function (list) {
     if (list.length === 1) { App.ctl.dispatch({ type: 'UI', patch: { ms: [] } }); App.ctl.dispatch({ type: 'SELECT', id: list[0] }); return; }
@@ -24620,7 +24880,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       const sel = state.selectedId === s.id || grpOn;
       return h('g', { key: 'b' + s.id, class: 'bubble' + (sel ? ' selected' : ''), role: 'button', tabindex: 0, 'aria-label': s.name + ', ' + App.util.fmt(s.area) + ' metrekare', onpointerdown: (e) => bubbleDown(e, s, r), onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ctl.dispatch({ type: 'SELECT', id: s.id }); } } },
         sel ? h('circle', { class: 'sel-ring', cx: s.x, cy: s.y, r: r + 10, fill: 'none', stroke: App.PAL.ink, 'stroke-width': 3, 'stroke-dasharray': '7 6' }) : null,
-        App.board.bubblePrims(s, r).map((p) => App.board.primToV(p)),
+        App.board.bubblePrims(s, r, P).map((p) => App.board.primToV(p)),
         h('title', {}, s.name + ' — ' + App.util.fmt(s.area) + ' m²'));
     });
 
@@ -24730,7 +24990,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
       others.map((o) => {
         const cur = state.project.relations[U.pairKey(s.id, o.id)] || 'none';
         return h('div', { class: 'rel-row', key: o.id },
-          h('span', { class: 'rel-name' }, ui.zoneDot(o.zone), h('span', {}, o.name)),
+          h('span', { class: 'rel-name' }, ui.spaceDot(o), h('span', {}, o.name)),
           h('div', { class: 'seg', role: 'group', 'aria-label': s.name + ' ile ' + o.name + ' ilişkisi' },
             REL_BTN.map((b) => h('button', { key: b[0], type: 'button', class: 'seg-btn seg-' + b[0] + (cur === b[0] ? ' on' : ''), title: b[2], 'aria-pressed': String(cur === b[0]), 'aria-label': b[2], onclick: () => ctl.dispatch({ type: 'SET_RELATION', a: s.id, b: o.id, rel: b[0] }) }, b[1]))));
       }));
@@ -24742,7 +25002,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
     const st = statusOf(d, s);
     return h('li', { key: s.id, class: 'row' + (sel ? ' sel' : ''), id: 'row-' + s.id },
       h('div', { class: 'row-main', onclick: () => ctl.dispatch({ type: 'SELECT', id: sel ? null : s.id }) },
-        ui.zoneDot(s.zone),
+        ui.spaceDot(s),
         h('span', { class: 'row-name' }, s.name),
         st ? h('span', { class: 'pill pill-' + st.lvl, title: st.tip }, st.label) : null,
         h('label', { class: 'area-wrap', onclick: (e) => e.stopPropagation() },
@@ -24757,6 +25017,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
           h('div', { class: 'fld' }, h('label', { class: 'lbl', for: 'ed-zone' }, 'Bölge'),
             h('select', { id: 'ed-zone', class: 'inp', value: s.zone, onchange: (e) => ctl.dispatch({ type: 'UPDATE_SPACE', id: s.id, patch: { zone: e.target.value } }) },
               App.ZONE_ORDER.map((z) => h('option', { key: z, value: z }, App.ZONES[z].label))))),
+        ui.spaceColorField(state, s),
         h('h3', { class: 'sub-title' }, 'Diğer mekânlarla ilişkisi'),
         relEditor(state, s)) : null);
   }
@@ -24787,7 +25048,7 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
         h('table', { class: 'matrix' },
           h('thead', {}, h('tr', {}, h('th', { class: 'corner' }, ''), sp.slice(0, -1).map((c) => h('th', { key: c.id, class: 'mh' + (sel === c.id ? ' on' : ''), scope: 'col' }, h('button', { type: 'button', class: 'mh-btn', onclick: () => ctl.dispatch({ type: 'SELECT', id: c.id }), title: c.name }, h('span', { class: 'vert' }, c.name)))))),
           h('tbody', {}, sp.slice(1).map((r, ri) => h('tr', { key: r.id },
-            h('th', { class: 'rh' + (sel === r.id ? ' on' : ''), scope: 'row' }, h('button', { type: 'button', class: 'rh-btn', onclick: () => ctl.dispatch({ type: 'SELECT', id: r.id }), title: r.name }, ui.zoneDot(r.zone), h('span', {}, r.name))),
+            h('th', { class: 'rh' + (sel === r.id ? ' on' : ''), scope: 'row' }, h('button', { type: 'button', class: 'rh-btn', onclick: () => ctl.dispatch({ type: 'SELECT', id: r.id }), title: r.name }, ui.spaceDot(r), h('span', {}, r.name))),
             sp.slice(0, -1).map((c, ci) => {
               if (ci > ri) return h('td', { key: c.id, class: 'mc-empty' });
               const rel = P.relations[U.pairKey(r.id, c.id)] || 'none';
@@ -24800,13 +25061,17 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
 
   ui.sidebar = function (state, d) {
     const ctl = App.ctl;
-    const tab = state.ui.tab;
+    const colorsOn = App.colors.active();
+    const tab = state.ui.tab === 'renk' && !colorsOn ? 'spaces' : state.ui.tab; // sade temada Renkler sekmesi yoktur
+    const cc = state.project.colors;
+    const nCustom = cc ? Object.keys(cc.zones).length + Object.keys(cc.spaces).length : 0;
     return h('aside', { class: 'sidebar', 'aria-label': 'Proje paneli' },
       h('div', { class: 'tabs', role: 'tablist' },
         h('button', { type: 'button', role: 'tab', id: 'tab-spaces', 'aria-selected': String(tab === 'spaces'), class: 'tab' + (tab === 'spaces' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'spaces' } }) }, 'Mekanlar', h('span', { class: 'tab-n' }, String(state.project.spaces.length))),
-        h('button', { type: 'button', role: 'tab', id: 'tab-matrix', 'aria-selected': String(tab === 'matrix'), class: 'tab' + (tab === 'matrix' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'matrix' } }) }, 'İlişki matrisi', h('span', { class: 'tab-n' }, String(Object.keys(state.project.relations).length)))),
+        h('button', { type: 'button', role: 'tab', id: 'tab-matrix', 'aria-selected': String(tab === 'matrix'), class: 'tab' + (tab === 'matrix' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'matrix' } }) }, 'İlişki matrisi', h('span', { class: 'tab-n' }, String(Object.keys(state.project.relations).length))),
+        colorsOn ? h('button', { type: 'button', role: 'tab', id: 'tab-renk', 'aria-selected': String(tab === 'renk'), class: 'tab' + (tab === 'renk' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'renk' } }) }, 'Renkler', nCustom ? h('span', { class: 'tab-n' }, String(nCustom)) : null) : null),
       h('div', { class: 'side-body', role: 'tabpanel' },
-        tab === 'spaces' ? [formView(state), listView(state, d), templateView(state)] : matrixView(state, d)));
+        tab === 'spaces' ? [formView(state), listView(state, d), templateView(state)] : tab === 'renk' ? ui.colorsPanel(state) : matrixView(state, d)));
   };
 })();
 
@@ -24892,6 +25157,117 @@ html[data-style="bauhaus"] .sgm { max-width: 100%; overflow-x: auto; scrollbar-w
           h('button', { type: 'button', role: 'tab', 'aria-selected': String(tab === 'analysis'), class: 'tab' + (tab === 'analysis' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { asTab: 'analysis' } }) }, 'Analiz', issues ? h('span', { class: 'tab-n tab-n-warn' }, String(issues)) : null),
           h('button', { type: 'button', role: 'tab', 'aria-selected': String(tab === 'ask'), class: 'tab' + (tab === 'ask' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { asTab: 'ask' } }) }, 'Soru sor')),
         tab === 'analysis' ? analysis : ask));
+  };
+})();
+
+/* ==========================================================================
+   45-ui-colors.js — "Renkler" paneli: palet seç → tonları kategoriye ya da tek daireye uygula
+   Yalnızca Bauhaus ("Beni renklendir!") temasında görünür. Veri: App.palettes · mantık: App.colors (31-state-colors.js)
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const PL = App.palettes;
+
+  const dispatch = (a) => App.store.dispatch(a);
+  const curPal = (state) => PL.get(state.ui.pal) || PL.list[0];
+
+  /* bir paletin 5 tonu: tıkla → uygula. cur: şu an uygulanan hex (ya da null) */
+  function tones(pal, cur, onpick, label) {
+    return h('div', { class: 'tones', role: 'group', 'aria-label': label },
+      pal.colors.map((hex, i) => h('button', {
+        key: i, type: 'button', class: 'tone' + (cur && cur.toUpperCase() === hex.toUpperCase() ? ' on' : ''),
+        style: { background: hex, color: PL.textOn(hex, App.PAL.ink, App.PAL.paper) },
+        title: hex + ' · ' + pal.name, 'aria-label': label + ': ' + hex, 'aria-pressed': String(!!cur && cur.toUpperCase() === hex.toUpperCase()),
+        onclick: () => onpick(i),
+      }, h('span', { class: 'tone-hex mono' }, hex.slice(1)))));
+  }
+
+  const resetBtn = (disabled, label, fn) => h('button', { type: 'button', class: 'icon-btn tone-x', title: label, 'aria-label': label, disabled: !!disabled, onclick: fn }, ui.icon('reset', 15));
+
+  function palCard(state, p) {
+    const on = state.ui.pal === p.id;
+    return h('li', { key: p.id },
+      h('button', { type: 'button', class: 'pal-card' + (on ? ' on' : ''), title: p.name + ' · ' + p.colors.join(' '), 'aria-pressed': String(on), 'aria-label': p.name, onclick: () => dispatch({ type: 'UI', patch: { pal: p.id } }) },
+        h('span', { class: 'pal-strip', 'aria-hidden': 'true' }, p.colors.map((c, i) => h('i', { key: i, style: { background: c } }))),
+        h('span', { class: 'pal-name mono' }, '#' + p.n)));
+  }
+
+  function zoneRow(state, pal, z) {
+    const P = state.project;
+    const n = P.spaces.filter((s) => s.zone === z).length;
+    const c = App.colors.zone(P, z);
+    const cur = c.custom ? c.fill : null;
+    const label = App.ZONES[z].label;
+    return h('li', { key: z, class: 'zrow' + (n ? '' : ' zempty') },
+      h('div', { class: 'zrow-head' },
+        h('span', { class: 'dot', style: { background: c.fill }, 'aria-hidden': 'true' }),
+        h('span', { class: 'zrow-name' }, label),
+        h('span', { class: 'zrow-n mono', title: n + ' mekân' }, String(n)),
+        resetBtn(!cur, label + ' rengini sıfırla', () => dispatch({ type: 'COLOR_SET', scope: 'zone', keys: [z], ref: null }))),
+      tones(pal, cur, (i) => dispatch({ type: 'COLOR_SET', scope: 'zone', keys: [z], ref: { p: pal.id, i: i } }), label + ' rengi'));
+  }
+
+  function targetCard(state, pal) {
+    const P = state.project;
+    const grp = ui.activeGroup(state);
+    const ids = grp.length >= 2 ? grp : state.selectedId ? [state.selectedId] : [];
+    if (!ids.length) return h('p', { class: 'note' }, 'Tek bir daire (ya da birkaçı) için: panoda daireye tıklayın veya kutu çizerek seçin; ardından bir ton seçin.');
+    const list = ids.map((id) => P.spaces.find((s) => s.id === id)).filter(Boolean);
+    if (!list.length) return null;
+    const first = App.colors.space(P, list[0]);
+    const same = list.every((s) => App.colors.space(P, s).fill === first.fill);
+    const cur = same && list.every((s) => App.colors.sourceOf(P, s) === 'space') ? first.fill : null;
+    const any = list.some((s) => App.colors.sourceOf(P, s) === 'space');
+    const name = list.length === 1 ? list[0].name : list.length + ' mekân seçili';
+    return h('div', { class: 'tcard' },
+      h('div', { class: 'zrow-head' },
+        list.length === 1 ? ui.spaceDot(list[0]) : h('span', { class: 'dot dot-multi', 'aria-hidden': 'true' }),
+        h('span', { class: 'zrow-name' }, name),
+        resetBtn(!any, name + ' özel rengini sıfırla', () => dispatch({ type: 'COLOR_SET', scope: 'space', keys: ids, ref: null }))),
+      tones(pal, cur, (i) => dispatch({ type: 'COLOR_SET', scope: 'space', keys: ids, ref: { p: pal.id, i: i } }), name + ' rengi'),
+      h('p', { class: 'note' }, 'Tek daire rengi, kategori renginin önüne geçer.'));
+  }
+
+  /* sol panelin "Renkler" sekmesi */
+  ui.colorsPanel = function (state) {
+    const P = state.project;
+    const pal = curPal(state);
+    const c = P.colors || { zones: {}, spaces: {} };
+    const custom = Object.keys(c.zones).length + Object.keys(c.spaces).length;
+    return h('div', { class: 'colors-tab' },
+      h('div', { class: 'panel' },
+        h('div', { class: 'panel-head' },
+          h('h2', { class: 'panel-title' }, 'Renk paleti'),
+          h('span', { class: 'count mono' }, PL.list.length + ' palet')),
+        h('ul', { class: 'pal-grid', role: 'list' }, PL.list.map((p) => palCard(state, p))),
+        h('p', { class: 'note pal-src' }, 'Seçili: ', h('b', {}, pal.name), ' · kaynak: ', h('a', { href: pal.url, target: '_blank', rel: 'noopener noreferrer' }, 'colorpalettes.net')),
+        h('div', { class: 'pal-actions' },
+          ui.btn('Kategorilere dağıt', { icon: 'palette', cls: 'btn-yellow', title: 'Seçili paletin renklerini projedeki kategorilere sırayla uygula', onclick: () => dispatch({ type: 'COLOR_DISTRIBUTE', palette: pal.id }) }),
+          ui.btn('Sıfırla', { icon: 'reset', title: 'Tüm özel renkleri kaldır', disabled: !custom, onclick: () => dispatch({ type: 'COLOR_RESET', what: 'all' }) }))),
+      h('div', { class: 'panel' },
+        h('h2', { class: 'panel-title' }, 'Kategoriler'),
+        h('p', { class: 'note' }, 'Bir kategoriye ton seçin; o kategorideki tüm daireler boyanır.'),
+        h('ul', { class: 'zrows', role: 'list' }, App.ZONE_ORDER.map((z) => zoneRow(state, pal, z)))),
+      h('div', { class: 'panel' },
+        h('h2', { class: 'panel-title' }, 'Tek daire'),
+        targetCard(state, pal)));
+  };
+
+  /* mekân satırının ayrıntısı için küçük renk seçici (Mekanlar sekmesi) */
+  ui.spaceColorField = function (state, s) {
+    if (!App.colors.active()) return null;
+    const pal = curPal(state);
+    const P = state.project;
+    const own = App.colors.sourceOf(P, s) === 'space';
+    const cur = own ? App.colors.space(P, s).fill : null;
+    return h('div', { class: 'fld fld-color' },
+      h('div', { class: 'fld-color-head' },
+        h('span', { class: 'lbl' }, 'Renk'),
+        h('button', { type: 'button', class: 'linkbtn', title: 'Palet seç', onclick: () => dispatch({ type: 'UI', patch: { tab: 'renk' } }) }, pal.name + ' ›'),
+        resetBtn(!own, s.name + ' özel rengini sıfırla', () => dispatch({ type: 'COLOR_SET', scope: 'space', keys: [s.id], ref: null }))),
+      tones(pal, cur, (i) => dispatch({ type: 'COLOR_SET', scope: 'space', keys: [s.id], ref: { p: pal.id, i: i } }), s.name + ' rengi'));
   };
 })();
 
