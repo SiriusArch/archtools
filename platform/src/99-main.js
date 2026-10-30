@@ -23,7 +23,7 @@
     const d = App.state.derive(state);
     const t = state.ui.toast;
     const mod = state.ui.module;
-    return h('div', { class: 'app s-' + App.theme.name + ' m-' + mod + (mod === 'islev' && state.ui.assistantOpen ? ' as-open' : '') + (state.ui.boardWide ? ' bw-wide' : '') },
+    return h('div', { class: 'app s-' + App.theme.name + ' m-' + mod + (mod === 'islev' && state.ui.assistantOpen ? ' as-open' : '') },
       App.ui.header(state, d),
       App.ui.scorebar(state, d),
       App.ui.pageMain(state, d),

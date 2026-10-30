@@ -9,11 +9,24 @@ Bağımlılıksız saf JS; `window.App` altında ad alanlı modüller.
 | 20–27 | saf mantık: geometri, skor, yerleşim, eşleştirme, analiz, asistan, pafta çizimi, dosya (JSON/PNG/PDF) |
 | 30 | state, reducer (modüller `App.state.hooks` ile eylem ekler), geri/ileri al |
 | 40–46 | ortak arayüz bileşenleri ve glass kabuğu |
+| 47 | sonsuz tuval: yakınlaştır / uzaklaştır / kaydır (`App.ui.zoom`) |
 | 50 | controller (ortak: dışa aktarma `ctl.exporters[modül]`, dosya, tema, klavye) |
 
 Ortak çekirdek (00–27, 30, 40–50) bu klasördedir; diğer modüller ve kabuk `platform/src` ile kardeş klasörlerde durur. Derleme kökten: `python3 build.py`.
 
 `20–27` arayüzden bağımsızdır; React'e taşınabilir.
+
+## Sonsuz tuval (yakınlaştır / kaydır)
+Pafta (A3 levha, 1400 × 990 birim) tuvalin ortasındaki bir sayfadır; kullanıcı uzaklaşıp paftanın dışındaki boş alanı keşfeder, daireleri oraya bırakabilir. Görünüm yalnızca arayüz durumudur: `state.ui.view = null | { cx, cy, k }` (`null` = pafta pencereye sığdırılmış; `k` = sığdırmaya göre çarpan, 0,12 – 6). Projeye ve JSON'a **yazılmaz**.
+
+| Eylem | Kullanım |
+|---|---|
+| yakınlaştır / uzaklaştır | tekerlek (imlecin altındaki nokta sabit kalır), Ctrl + tekerlek / dokunmatik yüzey kıstırma, `+` / `−`, araç çubuğu |
+| kaydır | orta tuş sürükle · **Boşluk** + sürükle · **El aracı** · ok tuşları (seçili grup yokken, Shift ×3) |
+| dokunmatik | iki parmakla kıstır ve sürükle |
+| paftaya dön | `0` ya da yüzde göstergesine tık; "Pafta ve tüm daireleri göster" düğmesi ikisini birlikte sığdırır |
+
+Teknik notlar: SVG `viewBox` = `geo.viewBox(view)`; daire sürükleme, kutu seçimi ve ilişki çizgisi tıklaması `svg.getScreenCTM()` ile dünya koordinatı kullandığı için yakınlaştırmada da değişmeden çalışır. Dünya sınırı pafta boyutunun −3 … +4 katıdır (`geo.WORLD`). Paftanın dışındaki daireler: PNG/PDF çıktısı bunları içerecek şekilde genişler (hepsi paftadaysa çıktı değişmez, PDF sayfa oranı uyar); JSON'daki `x`/`y` olduğu gibi korunur; **Otomatik yerleştir** düğmesi bütün daireleri paftaya toplar ve görünümü pafta konumuna döndürür; mekân eklerken toplu yerleşim paftanın dışındaki daireleri yerinde bırakır (`autoLayout` `opts.fixed`), yeni mekân görünen alanın ortasına yerleşir.
 
 ## JSON şeması
 ```json

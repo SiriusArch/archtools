@@ -15,6 +15,31 @@
     titleBlock: { x: FRAME, y: H - FRAME - TB_H, w: W - FRAME * 2, h: TB_H },
   });
 
+  /* Sonsuz tuval: pafta (levha) tuvalin ortasındaki bir sayfadır; daireler tuvalin her yerine bırakılabilir.
+     "Dünya" sınırı pafta boyutunun birkaç katıdır (sayıların makul kalması için); yakınlaştırma pafta sığdırmaya göre çarpandır (1 = pafta sığar). */
+  geo.WORLD = { x0: -3 * W, y0: -3 * H, x1: 4 * W, y1: 4 * H };
+  geo.ZOOM = { min: 0.12, max: 6 };
+  geo.clampWorld = function (x, y, r) {
+    const w = geo.WORLD, m = r || 0;
+    return { x: clamp(x, w.x0 + m, w.x1 - m), y: clamp(y, w.y0 + m, w.y1 - m) };
+  };
+  geo.clampHit = (w) => clamp(w, 8, 90); // ilişki çizgisinin tıklama genişliği
+  geo.inSheet = (x, y) => x >= geo.area.x0 && x <= geo.area.x1 && y >= geo.area.y0 && y <= geo.area.y1;
+  // görünüm: null (pafta sığdırılmış) ya da { cx, cy, k }; SVG viewBox'ı bundan üretilir (merkez + çarpan)
+  geo.viewBox = function (v) {
+    if (!v) return '0 0 ' + W + ' ' + H;
+    return (v.cx - W / (2 * v.k)) + ' ' + (v.cy - H / (2 * v.k)) + ' ' + (W / v.k) + ' ' + (H / v.k);
+  };
+  geo.normView = function (v) {
+    if (!v) return null;
+    const k = clamp(Number(v.k) || 1, geo.ZOOM.min, geo.ZOOM.max);
+    const w = geo.WORLD;
+    const cx = clamp(Number(v.cx), w.x0, w.x1), cy = clamp(Number(v.cy), w.y0, w.y1);
+    if (!isFinite(cx) || !isFinite(cy)) return null;
+    if (Math.abs(k - 1) < 0.004 && Math.abs(cx - W / 2) < 0.6 && Math.abs(cy - H / 2) < 0.6) return null; // varsayılan görünüm
+    return { cx: cx, cy: cy, k: k };
+  };
+
   // Toplam balon alanı çizim alanının ~%20'sini kaplayacak şekilde ölçek (px / √m²)
   geo.scale = function (spaces) {
     const total = spaces.reduce((t, s) => t + (s.area > 0 ? s.area : 0), 0);

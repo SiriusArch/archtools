@@ -18,8 +18,6 @@
     toastTimer = setTimeout(() => ctl.dispatch({ type: 'CLEAR_TOAST' }), 3600);
   };
 
-  // Pafta boyutu: Sığdır (görünür alana) ↔ Geniş (tam genişlik, kaydırılır); tercih tarayıcıda saklanır
-  ctl.toggleBoardWide = () => { const v = !get().ui.boardWide; try { window.localStorage.setItem('archtools.boardwide', v ? '1' : '0'); } catch (e) {} ctl.dispatch({ type: 'UI', patch: { boardWide: v } }); };
   ctl.toggleAssistant = () => ctl.dispatch({ type: 'UI', patch: { assistantOpen: !get().ui.assistantOpen } });
   ctl.openAnalysis = () => ctl.dispatch({ type: 'UI', patch: { assistantOpen: true, asTab: 'analysis' } });
 
@@ -126,6 +124,7 @@
     const from = {};
     st.project.spaces.forEach((s) => (from[s.id] = { x: s.x, y: s.y }));
     ctl.dispatch({ type: 'SNAPSHOT' });
+    if (get().ui.view && App.ui.zoom) App.ui.zoom.home(); // yerleşim paftaya yapılır: sonucu göster
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const dur = reduce ? 1 : 650;
     const t0 = performance.now();

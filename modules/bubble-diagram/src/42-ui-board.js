@@ -26,7 +26,16 @@
     return pt.matrixTransform(svg.getScreenCTM().inverse());
   }
 
+  // kıstırma / kaydırma başlayınca sürüklemeyi bırak (47-ui-zoom.js çağırır)
+  ui.cancelDrag = function () {
+    if (!drag) return;
+    drag = null; ui.dragging = false;
+    App.ctl.dispatch({ type: 'UI', patch: { mq: null } });
+  };
+  const zoomBusy = () => !!(ui.zoom && ui.zoom.busy());
+
   function bubbleDown(e, s, r) {
+    if (zoomBusy()) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.stopPropagation();
     e.preventDefault();
@@ -53,6 +62,7 @@
     App.ctl.dispatch({ type: 'SELECT', id: s.id });
   }
   function bgDown(e) {
+    if (zoomBusy()) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const S = App.store.get();
     if (!e.shiftKey && S.selectedId) App.ctl.dispatch({ type: 'SELECT', id: null });
@@ -61,7 +71,7 @@
     drag = { marq: true, add: e.shiftKey, wx: w.x, wy: w.y, sx: e.clientX, sy: e.clientY, moved: false, pid: e.pointerId };
   }
   function svgMove(e) {
-    if (!drag) return;
+    if (!drag || zoomBusy()) return;
     if (drag.marq) {
       if (!drag.moved) {
         if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
@@ -81,10 +91,10 @@
     const w = toWorld(e);
     if (drag.group) {
       let dx = w.x - drag.gx, dy = w.y - drag.gy;
-      // hiçbir daire pafta alanından taşmasın
+      // hiçbir daire tuvalin (dünya) sınırından taşmasın
       let ax = dx, ay = dy;
       drag.ids.forEach((id) => {
-        const o = drag.orig[id], c0 = geo.clampPos(o.x + dx, o.y + dy, drag.rad[id]);
+        const o = drag.orig[id], c0 = geo.clampWorld(o.x + dx, o.y + dy, drag.rad[id]);
         ax = dx >= 0 ? Math.min(ax, c0.x - o.x) : Math.max(ax, c0.x - o.x);
         ay = dy >= 0 ? Math.min(ay, c0.y - o.y) : Math.max(ay, c0.y - o.y);
       });
@@ -93,11 +103,11 @@
       App.ctl.dispatch({ type: 'SET_POSITIONS', positions: pos });
       return;
     }
-    const c = geo.clampPos(w.x + drag.dx, w.y + drag.dy, drag.r);
+    const c = geo.clampWorld(w.x + drag.dx, w.y + drag.dy, drag.r);
     App.ctl.dispatch({ type: 'MOVE', id: drag.id, x: c.x, y: c.y });
   }
   function svgUp(e) {
-    if (!drag) return;
+    if (!drag || zoomBusy()) return;
     try { ui.svgEl.releasePointerCapture(e.pointerId); } catch (err) {}
     const g = drag;
     drag = null;
@@ -135,7 +145,7 @@
     let ax = dv[0] * n, ay = dv[1] * n;
     S.project.spaces.forEach((s) => {
       if (!ms.has(list, s.id)) return;
-      const c0 = geo.clampPos(s.x + dv[0] * n, s.y + dv[1] * n, rad[s.id]);
+      const c0 = geo.clampWorld(s.x + dv[0] * n, s.y + dv[1] * n, rad[s.id]);
       if (dv[0]) ax = dv[0] > 0 ? Math.min(ax, c0.x - s.x) : Math.max(ax, c0.x - s.x);
       if (dv[1]) ay = dv[1] > 0 ? Math.min(ay, c0.y - s.y) : Math.max(ay, c0.y - s.y);
     });
@@ -155,6 +165,8 @@
     const info = App.board.infoOf(P, d.score);
 
     const stat = App.board.staticPrims(info, { live: true }).map((p) => App.board.primToV(p));
+    const view = state.ui.view;
+    const hitW = Math.round(geo.clampHit(26 / (view ? view.k : 1)));
 
     const lines = [];
     Object.keys(P.relations).forEach((key) => {
@@ -167,7 +179,7 @@
       const label = a.name + ' ↔ ' + b.name + ': ' + App.REL[type].label + ' (tıkla: değiştir)';
       lines.push(h('g', { key: 'r' + key, class: 'rel ' + cls },
         prims.map((p, i) => App.board.primToV(p, i === 0 && cls ? { class: cls } : null)),
-        h('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'rel-hit', stroke: 'transparent', 'stroke-width': 26, onclick: (e) => { e.stopPropagation(); ctl.dispatch({ type: 'CYCLE_RELATION', a: a.id, b: b.id }); } }, h('title', {}, label))));
+        h('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'rel-hit', stroke: 'transparent', 'stroke-width': hitW, onclick: (e) => { e.stopPropagation(); ctl.dispatch({ type: 'CYCLE_RELATION', a: a.id, b: b.id }); } }, h('title', {}, label))));
     });
 
     const hl = state.ui.highlight;
@@ -188,21 +200,23 @@
         h('title', {}, s.name + ' — ' + App.util.fmt(s.area) + ' m²'));
     });
 
+    const cls = 'board-svg' + (view ? ' zoomed' : '') + (state.ui.tool === 'hand' ? ' tool-hand' : '') + (state.ui.sp ? ' pan-ready' : '') + (state.ui.pn ? ' panning' : '');
     const svg = h('svg', {
-      id: 'pafta', class: 'board-svg', viewBox: '0 0 ' + geo.W + ' ' + geo.H, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Bubble diagram paftası',
-      ref: (el) => { ui.svgEl = el; }, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp,
+      id: 'pafta', class: cls, viewBox: geo.viewBox(view), preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Bubble diagram paftası (sonsuz tuval: tekerlekle yakınlaştır, Boşluk + sürükleyerek kaydır)',
+      ref: (el) => { ui.svgEl = el; if (ui.zoom) ui.zoom.wire(el); }, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp,
       onpointerdown: bgDown,
-    }, stat, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings),
+    }, ui.zoom ? ui.zoom.grid(view) : null, stat, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings),
     grp.length ? ms.frame(ms.bounds(boxes(state).filter((q) => ms.has(grp, q.id))), 16) : null,
     state.ui.mq ? ms.marquee(state.ui.mq) : null);
 
     const needHelp = P.spaces.length >= 3 && d.score.percent != null && d.score.percent < 60;
     const empty = !P.spaces.length;
-    const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Daireye tıklayıp soldan ilişkilerini düzenleyin · Boşlukta kutu çizerek birkaç daireyi seçip birlikte taşıyın (Shift: ekle / çıkar)';
+    const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Boşlukta kutu çizerek birkaç daire seçin (Shift: ekle / çıkar) · Tekerlek: yakınlaştır / uzaklaştır · Boşluk + sürükle: kaydır — paftanın dışında da boş alan var';
 
     const attn = needHelp || P.meta.example;
     const stage = h('div', { class: 'board-stage' },
       svg,
+      ui.zoom ? ui.zoom.bar(state) : null,
       grp.length ? ms.chip(grp.length, { noun: 'mekân', onclear: () => ctl.dispatch({ type: 'UI', patch: { ms: [] } }) }) : null,
       empty ? h('div', { class: 'empty-card' },
         h('h2', { class: 'empty-title' }, 'Pafta boş'),

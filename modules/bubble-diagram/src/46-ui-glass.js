@@ -61,7 +61,6 @@
         state.ui.module === 'islev' ? h('button', { type: 'button', class: 'gpill' + (state.ui.assistantOpen ? ' on' : ''), onclick: ctl.toggleAssistant, 'aria-pressed': String(!!state.ui.assistantOpen), title: 'Akıllı öneri panelini aç / kapat' },
           ui.icon('spark', 16), h('span', {}, 'Akıllı öneri'),
           issues ? h('span', { class: 'badge' + (state.ui.assistantOpen ? '' : ' pulse-badge') }, String(issues)) : null) : null),
-      gbtn(state.ui.boardWide ? 'shrink' : 'expand', state.ui.boardWide ? 'Paftayı sığdır' : 'Paftayı genişlet', { onclick: App.ctl.toggleBoardWide, pressed: !!state.ui.boardWide, title: state.ui.boardWide ? 'Paftayı pencereye sığdır' : 'Paftayı tam genişlikte göster (kaydırılır)' }),
       ui.profileBtn && App.visit && App.visit.enabled() ? gbtn('user', 'Profilim ve gizlilik', { onclick: ui.profileBtn, title: 'Profil bilgilerim, gizlilik ve verilerimi silme' }) : null,
       ui.themeToggle(state),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));

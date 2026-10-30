@@ -352,15 +352,34 @@
     return Promise.race([Promise.all(loads), new Promise((r) => setTimeout(r, 2500))]).catch(function () {});
   }
 
+  /* Çıktı alanı: pafta. Daireler paftanın dışına (sonsuz tuvalde) taşındıysa alan, hepsini kapsayacak kadar genişler;
+     hepsi paftanın içindeyse çıktı her zamanki gibi tam pafta boyutundadır. */
+  function exportBox(project, k) {
+    const W = geo.W, H = geo.H;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    project.spaces.forEach((s) => {
+      const r = geo.radius(s.area, k), lab = r < 36 ? 64 : 0; // küçük dairenin etiketi altında durur
+      x0 = Math.min(x0, s.x - r); y0 = Math.min(y0, s.y - r); x1 = Math.max(x1, s.x + r); y1 = Math.max(y1, s.y + r + lab);
+    });
+    if (!project.spaces.length || (x0 >= 0 && y0 >= 0 && x1 <= W && y1 <= H)) return { x0: 0, y0: 0, x1: W, y1: H, wide: false };
+    const m = 48; // gölge payı
+    return { x0: Math.min(0, x0 - m), y0: Math.min(0, y0 - m), x1: Math.max(W, x1 + m), y1: Math.max(H, y1 + m), wide: true };
+  }
+
   function toCanvas(project, k, score, factor) {
     return ensureFonts().then(function () {
-      const s = factor || 2;
+      const box = exportBox(project, k);
+      const bw = box.x1 - box.x0, bh = box.y1 - box.y0;
+      // çok geniş çıktılarda piksel sayısı sınırlı tutulur (tarayıcı tuval sınırı)
+      const s = Math.min(factor || 2, 5000 / Math.max(bw, bh), Math.sqrt(16e6 / (bw * bh)));
       const cv = document.createElement('canvas');
-      cv.width = Math.round(geo.W * s);
-      cv.height = Math.round(geo.H * s);
+      cv.width = Math.round(bw * s);
+      cv.height = Math.round(bh * s);
       const ctx = cv.getContext('2d');
       ctx.__k = s;
+      if (box.wide) { ctx.fillStyle = PAL.outer; ctx.fillRect(0, 0, cv.width, cv.height); }
       ctx.scale(s, s);
+      ctx.translate(-box.x0, -box.y0);
       allPrims(project, k, score).forEach((p) => paintPrim(ctx, p));
       return cv;
     });

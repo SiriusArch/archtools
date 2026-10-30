@@ -90,7 +90,7 @@
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
         site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, etut: App.etutDefaults ? App.etutDefaults() : {}, pe: App.peDefaults ? App.peDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, tpl: App.tplDefaults ? App.tplDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
-        busy: null, hintDismissed: false, ms: [], mq: null, color: readColor(), boardWide: readWide(),
+        busy: null, hintDismissed: false, ms: [], mq: null, color: readColor(), view: null, tool: 'select', sp: false,
       },
     };
   }
@@ -104,7 +104,6 @@
     } catch (e) {}
     return d;
   }
-  function readWide() { try { return window.localStorage.getItem('archtools.boardwide') === '1'; } catch (e) { return false; } }
 
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
@@ -130,14 +129,17 @@
           const area = U.clamp(Number(it.area) || 10, 0.5, 100000);
           const item = { id: U.uid(), name: String(it.name || 'Mekân').slice(0, 60), area: area, zone: App.ZONES[it.zone] ? it.zone : App.match.zoneFor(it.name, P.meta.buildingType, P.meta.variant), x: geo.W / 2, y: geo.H / 2 };
           const k = geo.scale(spaces.concat(item));
-          const pos = App.layout.freeSpot(spaces, area, k);
+          const vw = state.ui.view; // tuvalde paftanın dışına kaydırılmışsa yeni daire görünen alanın ortasına gelir
+          const pos = App.layout.freeSpot(spaces, area, k, vw ? { x: vw.cx, y: vw.cy } : null);
           item.x = pos.x; item.y = pos.y;
           spaces.push(item);
           ids.push(item.id);
         });
         if (a.list.length > 2) {
           const k = geo.scale(spaces);
-          const pos = App.layout.auto(spaces, P.relations, k, { keep: true, iter: 260 });
+          // paftanın dışına bırakılmış daireler yerinde kalır (yalnızca engel sayılır)
+          const away = spaces.filter((s) => !geo.inSheet(s.x, s.y)).map((s) => s.id);
+          const pos = App.layout.auto(spaces, P.relations, k, { keep: true, iter: 260, fixed: away });
           spaces.forEach((s) => { if (pos[s.id]) { s.x = pos[s.id].x; s.y = pos[s.id].y; } });
         }
         const next = withHistory(state, Object.assign({}, P, { spaces: spaces }));
@@ -192,7 +194,7 @@
         const next = withHistory(state, a.project);
         next.project = a.project;
         next.selectedId = null;
-        next.ui = Object.assign({}, state.ui, { tplType: a.project.meta.buildingType, tplVariant: a.project.meta.variant });
+        next.ui = Object.assign({}, state.ui, { tplType: a.project.meta.buildingType, tplVariant: a.project.meta.variant, view: null });
         return next;
       }
       case 'UNDO': {

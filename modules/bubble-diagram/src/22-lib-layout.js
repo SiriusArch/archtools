@@ -9,6 +9,7 @@
 
   function autoLayout(spaces, relations, k, opts) {
     opts = opts || {};
+    const fixed = new Set(opts.fixed || []); // opts.fixed: yerinde kalan (paftanın dışına bırakılmış) daireler; yalnızca engel olarak sayılır
     const n = spaces.length;
     const out = {};
     if (!n) return out;
@@ -73,6 +74,7 @@
       }
       for (let i = 0; i < n; i++) {
         const p = P[i];
+        if (fixed.has(p.id)) continue;
         dx[i] += (cx - p.x) * 0.006; dy[i] += (cy - p.y) * 0.006;
         p.x += dx[i] * step; p.y += dy[i] * step;
         const c = geo.clampPos(p.x, p.y, p.r);
@@ -81,9 +83,10 @@
     }
     // dizilimi çizim alanının ortasına al
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    P.forEach((p) => { minX = Math.min(minX, p.x - p.r); maxX = Math.max(maxX, p.x + p.r); minY = Math.min(minY, p.y - p.r); maxY = Math.max(maxY, p.y + p.r); });
+    const mv = P.filter((p) => !fixed.has(p.id));
+    mv.forEach((p) => { minX = Math.min(minX, p.x - p.r); maxX = Math.max(maxX, p.x + p.r); minY = Math.min(minY, p.y - p.r); maxY = Math.max(maxY, p.y + p.r); });
     const sx = cx - (minX + maxX) / 2, sy = cy - (minY + maxY) / 2;
-    P.forEach((p) => {
+    mv.forEach((p) => {
       const c = geo.clampPos(p.x + sx, p.y + sy, p.r);
       out[p.id] = { x: Math.round(c.x * 10) / 10, y: Math.round(c.y * 10) / 10 };
     });
@@ -91,15 +94,17 @@
   }
 
   // Boş bir noktaya yeni balon yerleştir (mevcutlarla çakışmayan en yakın nokta)
-  function freeSpot(spaces, area, k) {
+  // center (isteğe bağlı): aramanın başladığı nokta — kullanıcı tuvalde paftanın dışına kaydırdıysa yeni daire baktığı yere gelir
+  function freeSpot(spaces, area, k, center) {
     const a = geo.area;
     const r = geo.radius(area, k);
-    const cx = (a.x0 + a.x1) / 2, cy = (a.y0 + a.y1) / 2;
+    const cx = center ? center.x : (a.x0 + a.x1) / 2, cy = center ? center.y : (a.y0 + a.y1) / 2;
+    const clampTo = geo.inSheet(cx, cy) ? geo.clampPos : geo.clampWorld; // pafta içinde başladıysa pafta sınırı, dışındaysa tuval sınırı
     let best = { x: cx, y: cy }, bestScore = -Infinity;
     for (let i = 0; i < 260; i++) {
       const ang = i * 2.399963;
       const rr = 14 * Math.sqrt(i) * 2.2;
-      const p = geo.clampPos(cx + Math.cos(ang) * rr * 1.4, cy + Math.sin(ang) * rr, r);
+      const p = clampTo(cx + Math.cos(ang) * rr * 1.4, cy + Math.sin(ang) * rr, r);
       let minGap = Infinity;
       spaces.forEach((s) => {
         const g = Math.hypot(s.x - p.x, s.y - p.y) - geo.radius(s.area, k) - r;

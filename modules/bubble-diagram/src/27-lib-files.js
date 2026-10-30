@@ -76,7 +76,10 @@
       const area = Number(s.area);
       if (!(area > 0)) throw new Error('“' + (s.name || i + 1) + '” için geçersiz alan.');
       const zone = App.ZONES[s.zone] ? s.zone : App.match.zoneFor(String(s.name || ''), o.meta && o.meta.buildingType, o.meta && o.meta.variant);
-      return { id: id, name: String(s.name || 'Mekân ' + (i + 1)).slice(0, 60), area: area, zone: zone, x: Number(s.x) || geo.W / 2, y: Number(s.y) || geo.H / 2 };
+      // konum: pafta dışındaki (sonsuz tuval) konumlar korunur; yalnızca tuval sınırına çekilir
+      const num = (v, d) => (v === null || v === '' || v === undefined || !isFinite(Number(v)) ? d : Number(v));
+      const pos = geo.clampWorld(num(s.x, geo.W / 2), num(s.y, geo.H / 2), 0);
+      return { id: id, name: String(s.name || 'Mekân ' + (i + 1)).slice(0, 60), area: area, zone: zone, x: pos.x, y: pos.y };
     });
     const relations = {};
     (o.relations || []).forEach((r) => {
@@ -104,7 +107,11 @@
     let len = 0;
     const offs = [];
     const push = (x) => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
-    const pw = 1190.55, ph = 841.89; // A3 yatay (pt)
+    // A3 yatay (pt); paftanın dışına taşan daireler için çıktı genişlemişse sayfa, görüntünün oranına uyar (en çok A3 kutusu)
+    const A3W = 1190.55, A3H = 841.89;
+    const ar = iw / ih;
+    let pw = A3W, ph = A3H;
+    if (Math.abs(ar - A3W / A3H) > 0.002) { if (ar > A3W / A3H) ph = A3W / ar; else pw = A3H * ar; }
     push('%PDF-1.4\n');
     push(new Uint8Array([0x25, 0xe2, 0xe3, 0xcf, 0xd3, 0x0a]));
     offs[1] = len; push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');

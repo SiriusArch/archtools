@@ -923,6 +923,31 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     titleBlock: { x: FRAME, y: H - FRAME - TB_H, w: W - FRAME * 2, h: TB_H },
   });
 
+  /* Sonsuz tuval: pafta (levha) tuvalin ortasındaki bir sayfadır; daireler tuvalin her yerine bırakılabilir.
+     "Dünya" sınırı pafta boyutunun birkaç katıdır (sayıların makul kalması için); yakınlaştırma pafta sığdırmaya göre çarpandır (1 = pafta sığar). */
+  geo.WORLD = { x0: -3 * W, y0: -3 * H, x1: 4 * W, y1: 4 * H };
+  geo.ZOOM = { min: 0.12, max: 6 };
+  geo.clampWorld = function (x, y, r) {
+    const w = geo.WORLD, m = r || 0;
+    return { x: clamp(x, w.x0 + m, w.x1 - m), y: clamp(y, w.y0 + m, w.y1 - m) };
+  };
+  geo.clampHit = (w) => clamp(w, 8, 90); // ilişki çizgisinin tıklama genişliği
+  geo.inSheet = (x, y) => x >= geo.area.x0 && x <= geo.area.x1 && y >= geo.area.y0 && y <= geo.area.y1;
+  // görünüm: null (pafta sığdırılmış) ya da { cx, cy, k }; SVG viewBox'ı bundan üretilir (merkez + çarpan)
+  geo.viewBox = function (v) {
+    if (!v) return '0 0 ' + W + ' ' + H;
+    return (v.cx - W / (2 * v.k)) + ' ' + (v.cy - H / (2 * v.k)) + ' ' + (W / v.k) + ' ' + (H / v.k);
+  };
+  geo.normView = function (v) {
+    if (!v) return null;
+    const k = clamp(Number(v.k) || 1, geo.ZOOM.min, geo.ZOOM.max);
+    const w = geo.WORLD;
+    const cx = clamp(Number(v.cx), w.x0, w.x1), cy = clamp(Number(v.cy), w.y0, w.y1);
+    if (!isFinite(cx) || !isFinite(cy)) return null;
+    if (Math.abs(k - 1) < 0.004 && Math.abs(cx - W / 2) < 0.6 && Math.abs(cy - H / 2) < 0.6) return null; // varsayılan görünüm
+    return { cx: cx, cy: cy, k: k };
+  };
+
   // Toplam balon alanı çizim alanının ~%20'sini kaplayacak şekilde ölçek (px / √m²)
   geo.scale = function (spaces) {
     const total = spaces.reduce((t, s) => t + (s.area > 0 ? s.area : 0), 0);
@@ -1063,6 +1088,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
 
   function autoLayout(spaces, relations, k, opts) {
     opts = opts || {};
+    const fixed = new Set(opts.fixed || []); // opts.fixed: yerinde kalan (paftanın dışına bırakılmış) daireler; yalnızca engel olarak sayılır
     const n = spaces.length;
     const out = {};
     if (!n) return out;
@@ -1127,6 +1153,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
       }
       for (let i = 0; i < n; i++) {
         const p = P[i];
+        if (fixed.has(p.id)) continue;
         dx[i] += (cx - p.x) * 0.006; dy[i] += (cy - p.y) * 0.006;
         p.x += dx[i] * step; p.y += dy[i] * step;
         const c = geo.clampPos(p.x, p.y, p.r);
@@ -1135,9 +1162,10 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     }
     // dizilimi çizim alanının ortasına al
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    P.forEach((p) => { minX = Math.min(minX, p.x - p.r); maxX = Math.max(maxX, p.x + p.r); minY = Math.min(minY, p.y - p.r); maxY = Math.max(maxY, p.y + p.r); });
+    const mv = P.filter((p) => !fixed.has(p.id));
+    mv.forEach((p) => { minX = Math.min(minX, p.x - p.r); maxX = Math.max(maxX, p.x + p.r); minY = Math.min(minY, p.y - p.r); maxY = Math.max(maxY, p.y + p.r); });
     const sx = cx - (minX + maxX) / 2, sy = cy - (minY + maxY) / 2;
-    P.forEach((p) => {
+    mv.forEach((p) => {
       const c = geo.clampPos(p.x + sx, p.y + sy, p.r);
       out[p.id] = { x: Math.round(c.x * 10) / 10, y: Math.round(c.y * 10) / 10 };
     });
@@ -1145,15 +1173,17 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
   }
 
   // Boş bir noktaya yeni balon yerleştir (mevcutlarla çakışmayan en yakın nokta)
-  function freeSpot(spaces, area, k) {
+  // center (isteğe bağlı): aramanın başladığı nokta — kullanıcı tuvalde paftanın dışına kaydırdıysa yeni daire baktığı yere gelir
+  function freeSpot(spaces, area, k, center) {
     const a = geo.area;
     const r = geo.radius(area, k);
-    const cx = (a.x0 + a.x1) / 2, cy = (a.y0 + a.y1) / 2;
+    const cx = center ? center.x : (a.x0 + a.x1) / 2, cy = center ? center.y : (a.y0 + a.y1) / 2;
+    const clampTo = geo.inSheet(cx, cy) ? geo.clampPos : geo.clampWorld; // pafta içinde başladıysa pafta sınırı, dışındaysa tuval sınırı
     let best = { x: cx, y: cy }, bestScore = -Infinity;
     for (let i = 0; i < 260; i++) {
       const ang = i * 2.399963;
       const rr = 14 * Math.sqrt(i) * 2.2;
-      const p = geo.clampPos(cx + Math.cos(ang) * rr * 1.4, cy + Math.sin(ang) * rr, r);
+      const p = clampTo(cx + Math.cos(ang) * rr * 1.4, cy + Math.sin(ang) * rr, r);
       let minGap = Infinity;
       spaces.forEach((s) => {
         const g = Math.hypot(s.x - p.x, s.y - p.y) - geo.radius(s.area, k) - r;
@@ -2085,15 +2115,34 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     return Promise.race([Promise.all(loads), new Promise((r) => setTimeout(r, 2500))]).catch(function () {});
   }
 
+  /* Çıktı alanı: pafta. Daireler paftanın dışına (sonsuz tuvalde) taşındıysa alan, hepsini kapsayacak kadar genişler;
+     hepsi paftanın içindeyse çıktı her zamanki gibi tam pafta boyutundadır. */
+  function exportBox(project, k) {
+    const W = geo.W, H = geo.H;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    project.spaces.forEach((s) => {
+      const r = geo.radius(s.area, k), lab = r < 36 ? 64 : 0; // küçük dairenin etiketi altında durur
+      x0 = Math.min(x0, s.x - r); y0 = Math.min(y0, s.y - r); x1 = Math.max(x1, s.x + r); y1 = Math.max(y1, s.y + r + lab);
+    });
+    if (!project.spaces.length || (x0 >= 0 && y0 >= 0 && x1 <= W && y1 <= H)) return { x0: 0, y0: 0, x1: W, y1: H, wide: false };
+    const m = 48; // gölge payı
+    return { x0: Math.min(0, x0 - m), y0: Math.min(0, y0 - m), x1: Math.max(W, x1 + m), y1: Math.max(H, y1 + m), wide: true };
+  }
+
   function toCanvas(project, k, score, factor) {
     return ensureFonts().then(function () {
-      const s = factor || 2;
+      const box = exportBox(project, k);
+      const bw = box.x1 - box.x0, bh = box.y1 - box.y0;
+      // çok geniş çıktılarda piksel sayısı sınırlı tutulur (tarayıcı tuval sınırı)
+      const s = Math.min(factor || 2, 5000 / Math.max(bw, bh), Math.sqrt(16e6 / (bw * bh)));
       const cv = document.createElement('canvas');
-      cv.width = Math.round(geo.W * s);
-      cv.height = Math.round(geo.H * s);
+      cv.width = Math.round(bw * s);
+      cv.height = Math.round(bh * s);
       const ctx = cv.getContext('2d');
       ctx.__k = s;
+      if (box.wide) { ctx.fillStyle = PAL.outer; ctx.fillRect(0, 0, cv.width, cv.height); }
       ctx.scale(s, s);
+      ctx.translate(-box.x0, -box.y0);
       allPrims(project, k, score).forEach((p) => paintPrim(ctx, p));
       return cv;
     });
@@ -2198,7 +2247,10 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
       const area = Number(s.area);
       if (!(area > 0)) throw new Error('“' + (s.name || i + 1) + '” için geçersiz alan.');
       const zone = App.ZONES[s.zone] ? s.zone : App.match.zoneFor(String(s.name || ''), o.meta && o.meta.buildingType, o.meta && o.meta.variant);
-      return { id: id, name: String(s.name || 'Mekân ' + (i + 1)).slice(0, 60), area: area, zone: zone, x: Number(s.x) || geo.W / 2, y: Number(s.y) || geo.H / 2 };
+      // konum: pafta dışındaki (sonsuz tuval) konumlar korunur; yalnızca tuval sınırına çekilir
+      const num = (v, d) => (v === null || v === '' || v === undefined || !isFinite(Number(v)) ? d : Number(v));
+      const pos = geo.clampWorld(num(s.x, geo.W / 2), num(s.y, geo.H / 2), 0);
+      return { id: id, name: String(s.name || 'Mekân ' + (i + 1)).slice(0, 60), area: area, zone: zone, x: pos.x, y: pos.y };
     });
     const relations = {};
     (o.relations || []).forEach((r) => {
@@ -2226,7 +2278,11 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     let len = 0;
     const offs = [];
     const push = (x) => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
-    const pw = 1190.55, ph = 841.89; // A3 yatay (pt)
+    // A3 yatay (pt); paftanın dışına taşan daireler için çıktı genişlemişse sayfa, görüntünün oranına uyar (en çok A3 kutusu)
+    const A3W = 1190.55, A3H = 841.89;
+    const ar = iw / ih;
+    let pw = A3W, ph = A3H;
+    if (Math.abs(ar - A3W / A3H) > 0.002) { if (ar > A3W / A3H) ph = A3W / ar; else pw = A3H * ar; }
     push('%PDF-1.4\n');
     push(new Uint8Array([0x25, 0xe2, 0xe3, 0xcf, 0xd3, 0x0a]));
     offs[1] = len; push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
@@ -2679,7 +2735,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
         site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, etut: App.etutDefaults ? App.etutDefaults() : {}, pe: App.peDefaults ? App.peDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, tpl: App.tplDefaults ? App.tplDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
-        busy: null, hintDismissed: false, ms: [], mq: null, color: readColor(), boardWide: readWide(),
+        busy: null, hintDismissed: false, ms: [], mq: null, color: readColor(), view: null, tool: 'select', sp: false,
       },
     };
   }
@@ -2693,7 +2749,6 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     } catch (e) {}
     return d;
   }
-  function readWide() { try { return window.localStorage.getItem('archtools.boardwide') === '1'; } catch (e) { return false; } }
 
   /* ---------------- reducer ---------------- */
   const HISTORY = 60;
@@ -2719,14 +2774,17 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
           const area = U.clamp(Number(it.area) || 10, 0.5, 100000);
           const item = { id: U.uid(), name: String(it.name || 'Mekân').slice(0, 60), area: area, zone: App.ZONES[it.zone] ? it.zone : App.match.zoneFor(it.name, P.meta.buildingType, P.meta.variant), x: geo.W / 2, y: geo.H / 2 };
           const k = geo.scale(spaces.concat(item));
-          const pos = App.layout.freeSpot(spaces, area, k);
+          const vw = state.ui.view; // tuvalde paftanın dışına kaydırılmışsa yeni daire görünen alanın ortasına gelir
+          const pos = App.layout.freeSpot(spaces, area, k, vw ? { x: vw.cx, y: vw.cy } : null);
           item.x = pos.x; item.y = pos.y;
           spaces.push(item);
           ids.push(item.id);
         });
         if (a.list.length > 2) {
           const k = geo.scale(spaces);
-          const pos = App.layout.auto(spaces, P.relations, k, { keep: true, iter: 260 });
+          // paftanın dışına bırakılmış daireler yerinde kalır (yalnızca engel sayılır)
+          const away = spaces.filter((s) => !geo.inSheet(s.x, s.y)).map((s) => s.id);
+          const pos = App.layout.auto(spaces, P.relations, k, { keep: true, iter: 260, fixed: away });
           spaces.forEach((s) => { if (pos[s.id]) { s.x = pos[s.id].x; s.y = pos[s.id].y; } });
         }
         const next = withHistory(state, Object.assign({}, P, { spaces: spaces }));
@@ -2781,7 +2839,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
         const next = withHistory(state, a.project);
         next.project = a.project;
         next.selectedId = null;
-        next.ui = Object.assign({}, state.ui, { tplType: a.project.meta.buildingType, tplVariant: a.project.meta.variant });
+        next.ui = Object.assign({}, state.ui, { tplType: a.project.meta.buildingType, tplVariant: a.project.meta.variant, view: null });
         return next;
       }
       case 'UNDO': {
@@ -2997,6 +3055,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     redo: ['M15 14l5-5-5-5', 'M20 9H10a6 6 0 000 12h4'],
     layout: ['M3 12a9 9 0 0115-6.7L21 8', 'M21 3v5h-5', 'M21 12a9 9 0 01-15 6.7L3 16', 'M3 21v-5h5'],
     plus: ['M12 5v14M5 12h14'],
+    minus: ['M5 12h14'],
     trash: ['M4 7h16', 'M9 7V4h6v3', 'M6 7l1 13h10l1-13'],
     close: ['M6 6l12 12M18 6L6 18'],
     chevron: ['M9 6l6 6-6 6'],
@@ -3109,7 +3168,16 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     return pt.matrixTransform(svg.getScreenCTM().inverse());
   }
 
+  // kıstırma / kaydırma başlayınca sürüklemeyi bırak (47-ui-zoom.js çağırır)
+  ui.cancelDrag = function () {
+    if (!drag) return;
+    drag = null; ui.dragging = false;
+    App.ctl.dispatch({ type: 'UI', patch: { mq: null } });
+  };
+  const zoomBusy = () => !!(ui.zoom && ui.zoom.busy());
+
   function bubbleDown(e, s, r) {
+    if (zoomBusy()) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.stopPropagation();
     e.preventDefault();
@@ -3136,6 +3204,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     App.ctl.dispatch({ type: 'SELECT', id: s.id });
   }
   function bgDown(e) {
+    if (zoomBusy()) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const S = App.store.get();
     if (!e.shiftKey && S.selectedId) App.ctl.dispatch({ type: 'SELECT', id: null });
@@ -3144,7 +3213,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     drag = { marq: true, add: e.shiftKey, wx: w.x, wy: w.y, sx: e.clientX, sy: e.clientY, moved: false, pid: e.pointerId };
   }
   function svgMove(e) {
-    if (!drag) return;
+    if (!drag || zoomBusy()) return;
     if (drag.marq) {
       if (!drag.moved) {
         if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
@@ -3164,10 +3233,10 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     const w = toWorld(e);
     if (drag.group) {
       let dx = w.x - drag.gx, dy = w.y - drag.gy;
-      // hiçbir daire pafta alanından taşmasın
+      // hiçbir daire tuvalin (dünya) sınırından taşmasın
       let ax = dx, ay = dy;
       drag.ids.forEach((id) => {
-        const o = drag.orig[id], c0 = geo.clampPos(o.x + dx, o.y + dy, drag.rad[id]);
+        const o = drag.orig[id], c0 = geo.clampWorld(o.x + dx, o.y + dy, drag.rad[id]);
         ax = dx >= 0 ? Math.min(ax, c0.x - o.x) : Math.max(ax, c0.x - o.x);
         ay = dy >= 0 ? Math.min(ay, c0.y - o.y) : Math.max(ay, c0.y - o.y);
       });
@@ -3176,11 +3245,11 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
       App.ctl.dispatch({ type: 'SET_POSITIONS', positions: pos });
       return;
     }
-    const c = geo.clampPos(w.x + drag.dx, w.y + drag.dy, drag.r);
+    const c = geo.clampWorld(w.x + drag.dx, w.y + drag.dy, drag.r);
     App.ctl.dispatch({ type: 'MOVE', id: drag.id, x: c.x, y: c.y });
   }
   function svgUp(e) {
-    if (!drag) return;
+    if (!drag || zoomBusy()) return;
     try { ui.svgEl.releasePointerCapture(e.pointerId); } catch (err) {}
     const g = drag;
     drag = null;
@@ -3218,7 +3287,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     let ax = dv[0] * n, ay = dv[1] * n;
     S.project.spaces.forEach((s) => {
       if (!ms.has(list, s.id)) return;
-      const c0 = geo.clampPos(s.x + dv[0] * n, s.y + dv[1] * n, rad[s.id]);
+      const c0 = geo.clampWorld(s.x + dv[0] * n, s.y + dv[1] * n, rad[s.id]);
       if (dv[0]) ax = dv[0] > 0 ? Math.min(ax, c0.x - s.x) : Math.max(ax, c0.x - s.x);
       if (dv[1]) ay = dv[1] > 0 ? Math.min(ay, c0.y - s.y) : Math.max(ay, c0.y - s.y);
     });
@@ -3238,6 +3307,8 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     const info = App.board.infoOf(P, d.score);
 
     const stat = App.board.staticPrims(info, { live: true }).map((p) => App.board.primToV(p));
+    const view = state.ui.view;
+    const hitW = Math.round(geo.clampHit(26 / (view ? view.k : 1)));
 
     const lines = [];
     Object.keys(P.relations).forEach((key) => {
@@ -3250,7 +3321,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
       const label = a.name + ' ↔ ' + b.name + ': ' + App.REL[type].label + ' (tıkla: değiştir)';
       lines.push(h('g', { key: 'r' + key, class: 'rel ' + cls },
         prims.map((p, i) => App.board.primToV(p, i === 0 && cls ? { class: cls } : null)),
-        h('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'rel-hit', stroke: 'transparent', 'stroke-width': 26, onclick: (e) => { e.stopPropagation(); ctl.dispatch({ type: 'CYCLE_RELATION', a: a.id, b: b.id }); } }, h('title', {}, label))));
+        h('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: 'rel-hit', stroke: 'transparent', 'stroke-width': hitW, onclick: (e) => { e.stopPropagation(); ctl.dispatch({ type: 'CYCLE_RELATION', a: a.id, b: b.id }); } }, h('title', {}, label))));
     });
 
     const hl = state.ui.highlight;
@@ -3271,21 +3342,23 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
         h('title', {}, s.name + ' — ' + App.util.fmt(s.area) + ' m²'));
     });
 
+    const cls = 'board-svg' + (view ? ' zoomed' : '') + (state.ui.tool === 'hand' ? ' tool-hand' : '') + (state.ui.sp ? ' pan-ready' : '') + (state.ui.pn ? ' panning' : '');
     const svg = h('svg', {
-      id: 'pafta', class: 'board-svg', viewBox: '0 0 ' + geo.W + ' ' + geo.H, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Bubble diagram paftası',
-      ref: (el) => { ui.svgEl = el; }, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp,
+      id: 'pafta', class: cls, viewBox: geo.viewBox(view), preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Bubble diagram paftası (sonsuz tuval: tekerlekle yakınlaştır, Boşluk + sürükleyerek kaydır)',
+      ref: (el) => { ui.svgEl = el; if (ui.zoom) ui.zoom.wire(el); }, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp,
       onpointerdown: bgDown,
-    }, stat, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings),
+    }, ui.zoom ? ui.zoom.grid(view) : null, stat, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings),
     grp.length ? ms.frame(ms.bounds(boxes(state).filter((q) => ms.has(grp, q.id))), 16) : null,
     state.ui.mq ? ms.marquee(state.ui.mq) : null);
 
     const needHelp = P.spaces.length >= 3 && d.score.percent != null && d.score.percent < 60;
     const empty = !P.spaces.length;
-    const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Daireye tıklayıp soldan ilişkilerini düzenleyin · Boşlukta kutu çizerek birkaç daireyi seçip birlikte taşıyın (Shift: ekle / çıkar)';
+    const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Boşlukta kutu çizerek birkaç daire seçin (Shift: ekle / çıkar) · Tekerlek: yakınlaştır / uzaklaştır · Boşluk + sürükle: kaydır — paftanın dışında da boş alan var';
 
     const attn = needHelp || P.meta.example;
     const stage = h('div', { class: 'board-stage' },
       svg,
+      ui.zoom ? ui.zoom.bar(state) : null,
       grp.length ? ms.chip(grp.length, { noun: 'mekân', onclear: () => ctl.dispatch({ type: 'UI', patch: { ms: [] } }) }) : null,
       empty ? h('div', { class: 'empty-card' },
         h('h2', { class: 'empty-title' }, 'Pafta boş'),
@@ -3712,7 +3785,6 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
         state.ui.module === 'islev' ? h('button', { type: 'button', class: 'gpill' + (state.ui.assistantOpen ? ' on' : ''), onclick: ctl.toggleAssistant, 'aria-pressed': String(!!state.ui.assistantOpen), title: 'Akıllı öneri panelini aç / kapat' },
           ui.icon('spark', 16), h('span', {}, 'Akıllı öneri'),
           issues ? h('span', { class: 'badge' + (state.ui.assistantOpen ? '' : ' pulse-badge') }, String(issues)) : null) : null),
-      gbtn(state.ui.boardWide ? 'shrink' : 'expand', state.ui.boardWide ? 'Paftayı sığdır' : 'Paftayı genişlet', { onclick: App.ctl.toggleBoardWide, pressed: !!state.ui.boardWide, title: state.ui.boardWide ? 'Paftayı pencereye sığdır' : 'Paftayı tam genişlikte göster (kaydırılır)' }),
       ui.profileBtn && App.visit && App.visit.enabled() ? gbtn('user', 'Profilim ve gizlilik', { onclick: ui.profileBtn, title: 'Profil bilgilerim, gizlilik ve verilerimi silme' }) : null,
       ui.themeToggle(state),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
@@ -4039,6 +4111,299 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
 })();
 
 /* ==========================================================================
+   47-ui-zoom.js — sonsuz tuval: yakınlaştır / uzaklaştır / kaydır
+   Pafta (levha) tuvalin ortasındaki bir sayfadır; kullanıcı uzaklaştırıp paftanın dışındaki boş alanları keşfeder,
+   daireleri oraya bırakabilir. Görünüm yalnızca arayüz durumudur (state.ui.view = null | { cx, cy, k }); projeye / JSON'a yazılmaz.
+     tekerlek ........ imlecin olduğu noktaya yakınlaştır · Ctrl + tekerlek / dokunmatik yüzey kıstırma de aynı
+     kaydırma ........ orta tuşla sürükle · Boşluk basılıyken sürükle · El aracı · ok tuşları (seçili grup yokken)
+     dokunmatik ...... iki parmakla kıstır + sürükle
+     klavye .......... + / − yakınlaştır · 0 paftaya dön
+   Dönüşüm: SVG viewBox = merkez + çarpan (meet); ekran ölçeği = sfit · k, sfit = min(eleman_g / W, eleman_y / H).
+   Daire sürükleme / kutu seçimi aynı kalır: dünya koordinatı svg.getScreenCTM() ile hesaplanır (42-ui-board.js).
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const geo = App.geo;
+  const clamp = App.util.clamp;
+  const Z = (ui.zoom = {});
+
+  const get = () => App.store.get();
+  const dispatch = (a) => App.store.dispatch(a);
+  const reduceMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const DEFAULT = () => ({ cx: geo.W / 2, cy: geo.H / 2, k: 1 });
+  Z.cur = () => get().ui.view || DEFAULT();
+
+  /* ---------- ekran ölçüleri ---------- */
+  function metrics() {
+    const el = ui.svgEl;
+    if (!el || !el.isConnected) return null;
+    const r = el.getBoundingClientRect();
+    if (!(r.width > 0 && r.height > 0)) return null;
+    return { r: r, sfit: Math.min(r.width / geo.W, r.height / geo.H) };
+  }
+  // şu an ekranda görünen dünya dikdörtgeni
+  function visibleRect(v, m) {
+    const s = m.sfit * v.k;
+    const hw = m.r.width / (2 * s), hh = m.r.height / (2 * s);
+    return { x0: v.cx - hw, y0: v.cy - hh, x1: v.cx + hw, y1: v.cy + hh, s: s };
+  }
+  Z.visible = () => { const m = metrics(); return m ? visibleRect(Z.cur(), m) : null; };
+
+  /* ---------- daire sınırları (etiket payı dahil) ---------- */
+  function bubbleBoxes(S, only) {
+    const k = geo.scale(S.project.spaces);
+    return S.project.spaces.filter((s) => !only || only.indexOf(s.id) >= 0).map((s) => {
+      const r = geo.radius(s.area, k);
+      return { x0: s.x - r - 14, y0: s.y - r - 14, x1: s.x + r + 14, y1: s.y + r + 14 + (r < 36 ? 64 : 0) };
+    });
+  }
+  const union = (bs) => bs.reduce((u, b) => ({ x0: Math.min(u.x0, b.x0), y0: Math.min(u.y0, b.y0), x1: Math.max(u.x1, b.x1), y1: Math.max(u.y1, b.y1) }), { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity });
+  const SHEET = () => ({ x0: 0, y0: 0, x1: geo.W, y1: geo.H });
+  const inside = (b, o) => b.x0 >= o.x0 && b.y0 >= o.y0 && b.x1 <= o.x1 && b.y1 <= o.y1;
+
+  // dikdörtgeni (dünya) ekrana sığdıran görünüm
+  function fitView(b, padPx, m) {
+    const bw = Math.max(b.x1 - b.x0, 1), bh = Math.max(b.y1 - b.y0, 1);
+    const k = Math.min(Math.max(m.r.width - 2 * padPx, 40) / bw, Math.max(m.r.height - 2 * padPx, 40) / bh) / m.sfit;
+    return { cx: (b.x0 + b.x1) / 2, cy: (b.y0 + b.y1) / 2, k: clamp(k, geo.ZOOM.min, geo.ZOOM.max) };
+  }
+
+  /* ---------- görünümü değiştir ---------- */
+  let anim = null;
+  Z.cancel = function () { if (anim) { cancelAnimationFrame(anim.raf); anim = null; } };
+  Z.animating = () => !!anim;
+  Z.set = function (v) { dispatch({ type: 'UI', patch: { view: geo.normView(v) } }); };
+
+  // hedef görünüme yumuşak geçiş (log ölçekte yakınlaştırma); null = pafta
+  Z.animateTo = function (t) {
+    t = t || DEFAULT();
+    const a = Z.cur();
+    Z.cancel();
+    if (reduceMotion()) { Z.set(t); return; }
+    const t0 = performance.now(), D = 260;
+    anim = { raf: 0, t: t };
+    const step = function (now) {
+      const p = clamp((now - t0) / D, 0, 1), e = 1 - Math.pow(1 - p, 3);
+      if (p >= 1) { anim = null; Z.set(t); return; }
+      Z.set({ cx: a.cx + (t.cx - a.cx) * e, cy: a.cy + (t.cy - a.cy) * e, k: a.k * Math.pow(t.k / a.k, e) });
+      anim.raf = requestAnimationFrame(step);
+    };
+    anim.raf = requestAnimationFrame(step);
+  };
+
+  // (px, py) ekran noktası sabit kalacak şekilde çarpanla yakınlaştır
+  Z.zoomAt = function (px, py, f, base) {
+    const m = metrics();
+    const v = base || Z.cur();
+    const k2 = clamp(v.k * f, geo.ZOOM.min, geo.ZOOM.max);
+    if (!m) { Z.set({ cx: v.cx, cy: v.cy, k: k2 }); return; }
+    const s = m.sfit * v.k, s2 = m.sfit * k2;
+    const dx = px - (m.r.left + m.r.width / 2), dy = py - (m.r.top + m.r.height / 2);
+    Z.set({ cx: v.cx + dx / s - dx / s2, cy: v.cy + dy / s - dy / s2, k: k2 });
+  };
+  // art arda basılan + / − hedefi biriktirir (animasyon sürerken hedef görünümden devam edilir)
+  Z.zoomBy = function (f) { const v = anim ? anim.t : Z.cur(); Z.animateTo({ cx: v.cx, cy: v.cy, k: clamp(v.k * f, geo.ZOOM.min, geo.ZOOM.max) }); };
+  Z.home = function () { Z.animateTo(null); };
+
+  // paftayı ve tüm daireleri birlikte göster
+  Z.contentRect = (S) => union(bubbleBoxes(S).concat([SHEET()]));
+  Z.fitAll = function () {
+    const m = metrics();
+    const S = get();
+    const b = Z.contentRect(S);
+    if (!m || inside(b, SHEET())) { Z.home(); return; } // her şey paftanın içindeyse varsayılan görünüm
+    Z.animateTo(fitView(b, 36, m));
+  };
+
+  // bu daireler tamamen görünür değilse görünüme getir (listeden seçme, "yerini göster")
+  Z.reveal = function (ids) {
+    const m = metrics();
+    if (!m) return;
+    const S = get();
+    const bs = bubbleBoxes(S, ids);
+    if (!bs.length) return;
+    const b = union(bs), v = Z.cur(), vis = visibleRect(v, m), pad = 16 / vis.s;
+    if (b.x0 >= vis.x0 + pad && b.y0 >= vis.y0 + pad && b.x1 <= vis.x1 - pad && b.y1 <= vis.y1 - pad) return;
+    const f = fitView(b, 80, m);
+    Z.animateTo({ cx: (b.x0 + b.x1) / 2, cy: (b.y0 + b.y1) / 2, k: Math.min(f.k, v.k) });
+  };
+
+  // görünüm dışında kalan daire sayısı ("N daire görünüm dışında" düğmesi)
+  Z.offscreen = function (S) {
+    const m = metrics();
+    if (!m || !S.project.spaces.length) return 0;
+    const vis = visibleRect(S.ui.view || DEFAULT(), m);
+    return bubbleBoxes(S).filter((b) => b.x1 < vis.x0 || b.x0 > vis.x1 || b.y1 < vis.y0 || b.y0 > vis.y1).length;
+  };
+
+  /* ---------- tekerlek ---------- */
+  let wh = null;
+  function flushWheel() { const w = wh; wh = null; if (w) Z.zoomAt(w.x, w.y, w.f); }
+  function onWheel(e) {
+    if (get().ui.module !== 'islev') return;
+    e.preventDefault();
+    Z.cancel();
+    let dy = e.deltaY;
+    if (e.deltaMode === 1) dy *= 33; else if (e.deltaMode === 2) dy *= 400;
+    const f = Math.exp(-clamp(dy, -400, 400) * (e.ctrlKey ? 0.01 : 0.0016));
+    if (!wh) { wh = { x: e.clientX, y: e.clientY, f: 1 }; requestAnimationFrame(flushWheel); }
+    wh.x = e.clientX; wh.y = e.clientY; wh.f *= f;
+  }
+
+  /* ---------- işaretçi: kaydırma + kıstırma (yakalama aşamasında; daire sürükleme / kutu seçiminden önce) ---------- */
+  const pts = new Map();
+  let pinch = null, pan = null, inBoard = false;
+  Z.busy = () => !!(pan || pinch);
+  Z.inBoard = () => inBoard;
+
+  function mid2() {
+    const a = Array.from(pts.values()).slice(0, 2);
+    return { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2, d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1 };
+  }
+  function startPinch() {
+    const m = metrics();
+    if (!m) return;
+    if (ui.cancelDrag) ui.cancelDrag();
+    if (pan) endPan(pan.id);
+    Z.cancel();
+    const c = mid2();
+    pinch = { d0: c.d, mid0: { x: c.x, y: c.y }, v0: Z.cur() };
+  }
+  function endPan(id) {
+    if (!pan) return;
+    try { ui.svgEl.releasePointerCapture(id); } catch (err) {}
+    pan = null;
+    dispatch({ type: 'UI', patch: { pn: false } });
+  }
+
+  function capDown(e) {
+    inBoard = true;
+    const S = get();
+    if (S.ui.module !== 'islev') return;
+    if (e.pointerType === 'touch') {
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pts.size === 2 && !pinch) startPinch();
+      if (pinch) { e.stopPropagation(); e.preventDefault(); return; }
+    }
+    const want = e.button === 1 || (e.button === 0 && (S.ui.sp || S.ui.tool === 'hand'));
+    if (!want) return;
+    e.stopPropagation();
+    e.preventDefault();
+    Z.cancel();
+    pan = { id: e.pointerId, sx: e.clientX, sy: e.clientY, v: Z.cur() };
+    try { ui.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
+    dispatch({ type: 'UI', patch: { pn: true } });
+  }
+  function capMove(e) {
+    if (pts.has(e.pointerId)) pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pts.size >= 2) {
+      e.stopPropagation(); e.preventDefault();
+      const m = metrics();
+      if (!m) return;
+      const c = mid2(), v0 = pinch.v0;
+      const k2 = clamp(v0.k * c.d / pinch.d0, geo.ZOOM.min, geo.ZOOM.max);
+      const s0 = m.sfit * v0.k, s2 = m.sfit * k2;
+      const ex = m.r.left + m.r.width / 2, ey = m.r.top + m.r.height / 2;
+      // ilk orta noktanın altındaki dünya noktası, şimdiki orta noktanın altında kalsın
+      const wx = v0.cx + (pinch.mid0.x - ex) / s0, wy = v0.cy + (pinch.mid0.y - ey) / s0;
+      Z.set({ cx: wx - (c.x - ex) / s2, cy: wy - (c.y - ey) / s2, k: k2 });
+      return;
+    }
+    if (pan && e.pointerId === pan.id) {
+      e.stopPropagation(); e.preventDefault();
+      const m = metrics();
+      if (!m) return;
+      const s = m.sfit * pan.v.k;
+      Z.set({ cx: pan.v.cx - (e.clientX - pan.sx) / s, cy: pan.v.cy - (e.clientY - pan.sy) / s, k: pan.v.k });
+    }
+  }
+  function capUp(e) {
+    pts.delete(e.pointerId);
+    if (pinch && pts.size < 2) { pinch = null; e.stopPropagation(); }
+    if (pan && e.pointerId === pan.id) { e.stopPropagation(); endPan(e.pointerId); }
+    if (!pts.size && !pan) inBoard = false;
+  }
+
+  /* ---------- klavye ---------- */
+  const typing = (t) => !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+  const boardTarget = (t) => !t || t === document.body || t === document.documentElement || t === ui.svgEl;
+  document.addEventListener('keydown', function (e) {
+    const S = get();
+    if (S.ui.module !== 'islev' || e.ctrlKey || e.metaKey || e.altKey || typing(e.target)) return;
+    if (e.key === ' ' || e.code === 'Space') {
+      if (!boardTarget(e.target)) return; // odaktaki düğme / daire kendi Boşluk davranışını korur
+      e.preventDefault();
+      if (!S.ui.sp) dispatch({ type: 'UI', patch: { sp: true } });
+    } else if (e.key === '+' || e.key === '=') { e.preventDefault(); Z.zoomBy(1.25); }
+    else if (e.key === '-' || e.key === '_') { e.preventDefault(); Z.zoomBy(0.8); }
+    else if (e.key === '0') { Z.home(); }
+    else if (e.key.indexOf('Arrow') === 0 && boardTarget(e.target) && !ui.activeGroup(S).length) {
+      const m = metrics();
+      if (!m) return;
+      e.preventDefault();
+      const v = Z.cur(), n = (e.shiftKey ? 220 : 70) / (m.sfit * v.k);
+      const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+      Z.cancel();
+      Z.set({ cx: v.cx + d[0] * n, cy: v.cy + d[1] * n, k: v.k });
+    }
+  });
+  document.addEventListener('keyup', function (e) {
+    if ((e.key === ' ' || e.code === 'Space') && get().ui.sp) dispatch({ type: 'UI', patch: { sp: false } });
+  });
+  window.addEventListener('blur', function () { if (get().ui.sp) dispatch({ type: 'UI', patch: { sp: false } }); });
+
+  /* ---------- bağlama (svg ilk oluşturulduğunda bir kez) ---------- */
+  function onState(state, a) {
+    if (!a) return;
+    if (a.type === 'SELECT' && a.id && !inBoard) Z.reveal([a.id]);
+    else if (a.type === 'HIGHLIGHT' && a.pair) Z.reveal([a.pair.a, a.pair.b]);
+  }
+  let subscribed = false;
+  Z.wire = function (el) {
+    if (!el || el.__zw) return;
+    el.__zw = true;
+    el.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('pointerdown', capDown, true);
+    el.addEventListener('pointermove', capMove, true);
+    el.addEventListener('pointerup', capUp, true);
+    el.addEventListener('pointercancel', capUp, true);
+    el.addEventListener('mousedown', function (e) { if (e.button === 1) e.preventDefault(); }); // orta tuşla otomatik kaydırma açılmasın
+    if (!subscribed) { subscribed = true; App.store.subscribe(onState); }
+  };
+
+  /* ---------- arayüz: yakınlaştırma çubuğu ---------- */
+  Z.bar = function (state) {
+    const v = state.ui.view;
+    const hand = state.ui.tool === 'hand';
+    const away = Z.offscreen(state);
+    const b = (icon, label, fn, pressed) => ui.glass.gbtn(icon, label, { cls: 'gz', onclick: fn, pressed: pressed, size: 17 });
+    return h('div', { class: 'gzoom', role: 'toolbar', 'aria-label': 'Tuval: yakınlaştır, uzaklaştır, kaydır' },
+      b('hand', hand ? 'El aracını kapat' : 'El aracı: sürükleyerek kaydır (Boşluk + sürükle de olur)', () => dispatch({ type: 'UI', patch: { tool: hand ? 'select' : 'hand' } }), hand),
+      h('span', { class: 'gzoom-sep', 'aria-hidden': 'true' }),
+      b('minus', 'Uzaklaştır (−)', () => Z.zoomBy(0.8)),
+      h('button', { type: 'button', class: 'gz-pct mono', title: 'Paftaya dön (0)', 'aria-label': 'Yakınlaştırma yüzde ' + Math.round((v ? v.k : 1) * 100) + ', paftaya dönmek için tıkla', onclick: Z.home }, Math.round((v ? v.k : 1) * 100) + '%'),
+      b('plus', 'Yakınlaştır (+)', () => Z.zoomBy(1.25)),
+      h('span', { class: 'gzoom-sep', 'aria-hidden': 'true' }),
+      b('expand', 'Pafta ve tüm daireleri göster', Z.fitAll),
+      away ? h('button', { type: 'button', class: 'gz-away', title: 'Görünüm dışındaki daireleri göster', onclick: Z.fitAll }, away + ' daire görünüm dışında') : null);
+  };
+
+  // nokta ızgarası: paftanın dışında da tuvalin kaydığı hissedilsin (uzaklaşınca seyrekleşir)
+  Z.grid = function (view) {
+    if (!view) return null;
+    const step = 50 * Math.pow(2, Math.max(0, Math.ceil(Math.log2(0.5 / view.k))));
+    const W = geo.WORLD;
+    return [
+      h('defs', { key: 'ws-defs' }, h('pattern', { id: 'ws-dots', patternUnits: 'userSpaceOnUse', x: 72 - step / 2, y: 72 - step / 2, width: step, height: step },
+        h('circle', { cx: step / 2, cy: step / 2, r: 1.6 * Math.max(1, step / 50 / 1.5), fill: App.PAL.ink, opacity: 0.16 }))),
+      h('rect', { key: 'ws-grid', x: W.x0, y: W.y0, width: W.x1 - W.x0, height: W.y1 - W.y0, fill: 'url(#ws-dots)', 'pointer-events': 'none' }),
+    ];
+  };
+})();
+
+/* ==========================================================================
    48-ui-intro.js — açılış: marka simgesi çizilir, "archtools" harf harf belirir, sonra yumuşakça çözülür.
    Oturum başına bir kez gösterilir (?intro=1 ile zorlanır, ?intro=0 ile kapatılır).
    Herhangi bir tuş / tıklama / "Geç" ile atlanabilir. Hareket azaltma tercihinde kısa ve sakin.
@@ -4204,8 +4569,6 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     toastTimer = setTimeout(() => ctl.dispatch({ type: 'CLEAR_TOAST' }), 3600);
   };
 
-  // Pafta boyutu: Sığdır (görünür alana) ↔ Geniş (tam genişlik, kaydırılır); tercih tarayıcıda saklanır
-  ctl.toggleBoardWide = () => { const v = !get().ui.boardWide; try { window.localStorage.setItem('archtools.boardwide', v ? '1' : '0'); } catch (e) {} ctl.dispatch({ type: 'UI', patch: { boardWide: v } }); };
   ctl.toggleAssistant = () => ctl.dispatch({ type: 'UI', patch: { assistantOpen: !get().ui.assistantOpen } });
   ctl.openAnalysis = () => ctl.dispatch({ type: 'UI', patch: { assistantOpen: true, asTab: 'analysis' } });
 
@@ -4312,6 +4675,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     const from = {};
     st.project.spaces.forEach((s) => (from[s.id] = { x: s.x, y: s.y }));
     ctl.dispatch({ type: 'SNAPSHOT' });
+    if (get().ui.view && App.ui.zoom) App.ui.zoom.home(); // yerleşim paftaya yapılır: sonucu göster
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const dur = reduce ? 1 : 650;
     const t0 = performance.now();
@@ -4813,7 +5177,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     const d = App.state.derive(state);
     const t = state.ui.toast;
     const mod = state.ui.module;
-    return h('div', { class: 'app s-' + App.theme.name + ' m-' + mod + (mod === 'islev' && state.ui.assistantOpen ? ' as-open' : '') + (state.ui.boardWide ? ' bw-wide' : '') },
+    return h('div', { class: 'app s-' + App.theme.name + ' m-' + mod + (mod === 'islev' && state.ui.assistantOpen ? ' as-open' : '') },
       App.ui.header(state, d),
       App.ui.scorebar(state, d),
       App.ui.pageMain(state, d),
