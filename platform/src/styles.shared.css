@@ -1,4 +1,9 @@
-/* archtools kabuğu — iki temada ortak: açılış (intro) yapısı, modül geçişi, gezgin düzeni */
+/* archtools kabuğu: açılış (intro) yapısı, modül geçişi, gezgin düzeni */
+
+/* yazı tipleri: yerel, değişken (OFL; platform/fonts/OFL-*.txt). Google Fonts'a istek yapılmaz. */
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 200 800; font-display: swap; src: url("fonts/manrope-latin.woff") format("woff"); }
+@font-face { font-family: 'Unbounded'; font-style: normal; font-weight: 200 900; font-display: swap; src: url("fonts/unbounded-latin.woff") format("woff"); }
+
 
 /* ---------- açılış ---------- */
 .intro { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; overflow: hidden; background: var(--bg, #E4E5E9); transition: opacity .85s ease, transform .95s cubic-bezier(.7, 0, .2, 1), filter .85s ease; }
@@ -22,6 +27,7 @@ html[data-intro="off"] .intro { display: none; }
 @keyframes im-draw { to { stroke-dashoffset: 0; } }
 @keyframes im-fill { to { fill-opacity: var(--fo, 1); } }
 .intro-word { display: flex; justify-content: center; margin: 0; font-size: clamp(40px, 9.5vw, 84px); line-height: 1.05; white-space: nowrap; }
+.intro-word span:nth-child(1) { --i: 0; } .intro-word span:nth-child(2) { --i: 1; } .intro-word span:nth-child(3) { --i: 2; } .intro-word span:nth-child(4) { --i: 3; } .intro-word span:nth-child(5) { --i: 4; } .intro-word span:nth-child(6) { --i: 5; } .intro-word span:nth-child(7) { --i: 6; } .intro-word span:nth-child(8) { --i: 7; } .intro-word span:nth-child(9) { --i: 8; }
 .intro-word span { display: inline-block; opacity: 0; transform: translateY(.45em) scale(.96); filter: blur(8px); }
 .run .intro-word span { animation: iw-in .9s calc(1.55s + var(--i) * .075s) cubic-bezier(.2, .85, .25, 1) forwards; }
 @keyframes iw-in { to { opacity: 1; transform: none; filter: none; } }
@@ -61,26 +67,6 @@ html.vt-fade::view-transition-new(root) { animation: vt-in .38s .06s ease both; 
 @media (max-width: 520px) { .mnav-i { min-width: 0; } .mnav-i .mnav-l { display: none; } }
 
 /* ---------- açılış soruları ---------- */
-.wc { position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; padding: 16px; }
-.wc-scrim { position: absolute; inset: 0; }
-.wc-card { position: relative; display: flex; flex-direction: column; gap: 6px; width: min(720px, 100%); max-height: calc(100dvh - 32px); overflow: auto; padding: 22px 24px 18px; animation: wc-in .42s cubic-bezier(.2, .85, .25, 1) both; }
-@keyframes wc-in { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
-.wc-head { display: flex; align-items: center; justify-content: space-between; }
-.wc-step { font-size: 12px; color: var(--ink-2); }
-.wc-hello { margin: 0; font-size: 13px; color: var(--ink-2); }
-.wc-q { margin: 0 0 12px; font-size: clamp(20px, 3.4vw, 28px); line-height: 1.2; }
-.wc-list { display: grid; gap: 10px; }
-.wc-list-1 { grid-template-columns: 1fr; }
-.wc-list-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.wc-opt { display: flex; align-items: flex-start; gap: 14px; width: 100%; padding: 12px 14px; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.wc-ico { flex: none; display: grid; place-items: center; width: 38px; height: 38px; }
-.wc-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.wc-t b { font-size: 14.5px; line-height: 1.25; }
-.wc-t small { font-size: 12.5px; line-height: 1.35; color: var(--ink-2); }
-.wc-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
-.wc-flip { display: inline-grid; transform: scaleX(-1); }
-.wc-note { margin: 8px 0 0; font-size: 12px; color: var(--ink-2); }
-@media (max-width: 640px) { .wc-list-2 { grid-template-columns: 1fr; } .wc-card { padding: 18px 16px 14px; } }
 
 /* ---------- pafta boyutu: "Geniş" mod (tam genişlik, dikey kaydırma) ---------- */
 @media (min-width: 1024px) {

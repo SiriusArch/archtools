@@ -1,0 +1,10 @@
+# gizli değerler ve yerel dosyalar — asla commit edilmez
+.env
+.env.*
+*.pem
+*.key
+.vercel/
+node_modules/
+.bundle-check.js
+*.log
+.DS_Store

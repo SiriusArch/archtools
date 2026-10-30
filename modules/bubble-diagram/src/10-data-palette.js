@@ -1,36 +1,23 @@
 /* ==========================================================================
-   10-data-palette.js — Retro-Bauhaus renk belirteçleri (design tokens)
-   Renkler referans afişlerden alınmıştır (lacivert/sarı/kırmızı/yeşil/indigo/turuncu).
-   Tailwind'e taşırken: theme.extend.colors.bauhaus = App.PAL
+   10-data-palette.js — monokrom tema belirteçleri (design tokens), bölgeler, ilişki türleri, anahtar kelime ipuçları
    ========================================================================== */
 (function () {
   const App = window.App;
 
-  /* ---------------- temalar ----------------
-     İki tema vardır: 'glass' (varsayılan, minimal / buzlu cam, tek renksiz) ve 'bauhaus' (renkli).
-     App.PAL / App.ZONES / App.FONTS nesneleri yerinde güncellenir; böylece pafta çizimi ve
-     dışa aktarma her zaman etkin temayı kullanır. Tailwind'e taşırken: theme.extend.colors = THEMES[x].pal */
+  /* ---------------- tema ----------------
+     Arayüzün tek tabanı monokrom "glass" temasıdır (minimal, buzlu cam, gri tonlar). "Beni renklendir!" aynı yerleşimi
+     bozmaz; yalnızca renk değişkenlerini seçilen palete göre yeniden üretir (bkz. 13-lib-colortheme.js).
+     App.PAL / App.ZONES / App.FONTS nesneleri yerinde güncellenir; böylece pafta çizimi ve dışa aktarma her zaman
+     etkin renkleri kullanır. Tailwind'e taşırken: theme.extend.colors = App.THEMES.glass.pal */
   const THEMES = {
-    bauhaus: {
-      pal: { ink: '#261D11', paper: '#F1E6CB', paperDark: '#D9C9A3', blue: '#00427A', blueBright: '#0477BF', yellow: '#EAAE1B', red: '#C03A22', green: '#3A8040', indigo: '#4E5189', orange: '#E87E1B' },
-      fonts: {
-        d: "'Chakra Petch','Futura','Century Gothic','Trebuchet MS',sans-serif",
-        b: "'Jost','Futura','Century Gothic','Trebuchet MS',sans-serif",
-        m: "'DM Mono','Courier New',monospace",
-        l: "'Chakra Petch','Futura','Century Gothic','Trebuchet MS',sans-serif",
-      },
-      zones: {
-        sosyal: ['#EAAE1B', '#261D11'], ozel: ['#00427A', '#F1E6CB'], servis: ['#C03A22', '#F1E6CB'], calisma: ['#3A8040', '#F1E6CB'],
-        sirkulasyon: ['#D9C9A3', '#261D11'], teknik: ['#4E5189', '#F1E6CB'], acik: ['#E87E1B', '#261D11'],
-      },
-      label: { upper: true, cw: 0.66, nameW: 0.66 },
-      fontLoads: ["700 20px 'Chakra Petch'", "600 16px 'Jost'", "500 14px 'DM Mono'", "700 16px 'DM Mono'"],
-    },
     glass: {
-      // gri tonlar: renk yalnızca "Beni renklendir!" ile gelir
-      pal: { ink: '#17181B', paper: '#F3F4F6', paperDark: '#D6D8DD', blue: '#17181B', blueBright: '#44464D', yellow: '#C9CBD1', red: '#3A3C42', green: '#2A2B30', indigo: '#6C6F77', orange: '#9A9DA5' },
+      pal: {
+        ink: '#17181B', paper: '#F3F4F6', paperDark: '#D6D8DD', blue: '#17181B', blueBright: '#44464D', yellow: '#C9CBD1', red: '#3A3C42', green: '#2A2B30', indigo: '#6C6F77', orange: '#9A9DA5',
+        // pafta levhası (PNG/PDF ve canlı pafta): tuval, levha yüzü, gölge — renkli kipte palete göre türetilir
+        outer: '#E9EAEE', sheet: '#F6F7F9', sheetLive: 'rgba(249,250,252,.9)', shade: 'rgba(46,52,68,.22)',
+      },
       fonts: {
-        d: "'Unbounded','Syne','Century Gothic','Trebuchet MS',sans-serif",
+        d: "'Unbounded','Century Gothic','Trebuchet MS',sans-serif",
         b: "'Manrope','Segoe UI','Helvetica Neue',Arial,sans-serif",
         m: "'Manrope','Segoe UI','Helvetica Neue',Arial,sans-serif",
         l: "'Manrope','Segoe UI','Helvetica Neue',Arial,sans-serif",
@@ -61,17 +48,16 @@
 
   App.theme = {
     name: 'glass',
-    cur: function () { return THEMES[App.theme.name]; },
-    set: function (name) {
-      if (!THEMES[name]) return;
-      const t = THEMES[name];
-      App.theme.name = name;
+    cur: function () { return THEMES.glass; },
+    // monokrom taban değerlerine döner (renkli kip kapanırken de bu çağrılır)
+    reset: function () {
+      const t = THEMES.glass;
       Object.assign(App.PAL, t.pal);
       Object.assign(App.FONTS, t.fonts);
       Object.keys(App.ZONES).forEach(function (z) { App.ZONES[z].fill = t.zones[z][0]; App.ZONES[z].text = t.zones[z][1]; });
     },
   };
-  App.theme.set('glass');
+  App.theme.reset();
   App.ZONE_ORDER = ['sosyal', 'ozel', 'servis', 'calisma', 'sirkulasyon', 'teknik', 'acik'];
 
   // İlişki türleri

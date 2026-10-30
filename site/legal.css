@@ -1,0 +1,22 @@
+/* aydınlatma metni — uygulama CSS'indeki glass belirteçlerini kullanır; yalnızca yerleşim */
+.lg-wrap { max-width: 820px; margin: 0 auto; padding: 24px 16px 56px; display: flex; flex-direction: column; gap: 14px; }
+.lg-head { padding: 8px 6px 4px; }
+.lg-head h1 { margin: 10px 0 6px; font: 300 clamp(24px, 4.6vw, 34px)/1.15 var(--f-display); letter-spacing: -.02em; }
+.lg-back { display: inline-flex; align-items: center; height: 34px; padding: 0 16px; border-radius: 99px; background: var(--glass); border: 1px solid var(--stroke); box-shadow: var(--raise-sm); color: var(--ink); font: 700 13px var(--f-body); text-decoration: none; }
+.lg-meta { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+.lg-card { padding: 22px 24px; border-radius: 30px; background: var(--glass); border: 1px solid var(--stroke); box-shadow: var(--raise-sm); }
+.lg-card h2 { margin: 0 0 10px; font: 400 16px var(--f-display); }
+.lg-card h3 { margin: 16px 0 6px; font: 700 13px var(--f-body); color: var(--ink-2); }
+.lg-card p, .lg-card li { font-size: 14px; line-height: 1.6; }
+.lg-card p { margin: 0 0 10px; }
+.lg-card ul { margin: 0 0 10px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.lg-card a { color: var(--ink); text-underline-offset: 3px; }
+.lg-card code { padding: 1px 6px; border-radius: 8px; background: var(--inset-bg); font-size: 12.5px; }
+.lg-kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0 0 10px; font-size: 14px; }
+.lg-kv dt { color: var(--ink-2); font-weight: 700; }
+.lg-kv dd { margin: 0; overflow-wrap: anywhere; }
+.lg-unset { color: var(--ink-3); font-style: italic; }
+.lg-warn { padding: 10px 14px; border-radius: 18px; background: var(--inset-bg); box-shadow: var(--press-sm); }
+.lg-keys code { font-weight: 700; }
+.lg-foot { margin: 4px 6px 0; font-size: 12px; color: var(--ink-3); }
+@media (max-width: 520px) { .lg-card { padding: 18px 16px; border-radius: 24px; } .lg-kv { grid-template-columns: 1fr; gap: 2px; } .lg-kv dd { margin-bottom: 8px; } }

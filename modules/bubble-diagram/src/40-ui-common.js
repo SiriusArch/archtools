@@ -50,6 +50,7 @@
     marquee: ['M4 4h3M10 4h4M17 4h3', 'M20 4v3M20 10v4M20 17v3', 'M4 20h3M10 20h4M17 20h3', 'M4 4v3M4 10v4M4 17v3'],
     hand: ['M8 13V6.5a1.5 1.5 0 013 0V12', 'M11 11V4.5a1.5 1.5 0 013 0V11', 'M14 11V6a1.5 1.5 0 013 0v7.5c0 4-2.2 7-6 7-3 0-4.2-1.8-6-4.8l-1.6-2.6a1.5 1.5 0 012.6-1.5L8 14'],
     selall: ['M4 4h16v16H4z', 'M8 12.5l3 3 5-6.5'],
+    user: [{ c: [12, 8, 4] }, 'M4.5 21c0-4.3 3.4-7 7.5-7s7.5 2.7 7.5 7'],
     palette: ['M12 3a9 9 0 100 18c1.4 0 2-1 2-2 0-1.6-1.6-1.9-1.6-3.2 0-1 .8-1.8 1.9-1.8H17a4 4 0 004-4c0-3.9-4-7-9-7z', { c: [7.5, 11, 1.1] }, { c: [10, 7, 1.1] }, { c: [14.5, 7, 1.1] }],
   };
 
@@ -59,16 +60,8 @@
     return h('svg', { viewBox: '0 0 24 24', width: s, height: s, fill: 'none', stroke: 'currentColor', 'stroke-width': 2.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true', class: 'ico' }, kids);
   };
 
-  // Bauhaus üçlüsü: daire, kare, üçgen
-  ui.logo = function () {
-    if (App.theme.name === 'glass' && ui.glass) return ui.glass.logo();
-    return h('svg', { viewBox: '0 0 48 48', width: 44, height: 44, class: 'logo', 'aria-hidden': 'true' }, [
-      h('rect', { x: 2, y: 2, width: 44, height: 44, fill: App.PAL.blue, stroke: App.PAL.ink, 'stroke-width': 3 }),
-      h('circle', { cx: 17, cy: 17, r: 9, fill: App.PAL.yellow, stroke: App.PAL.ink, 'stroke-width': 2.5 }),
-      h('rect', { x: 24, y: 24, width: 16, height: 16, fill: App.PAL.red, stroke: App.PAL.ink, 'stroke-width': 2.5 }),
-      h('polygon', { points: '8,40 20,40 14,27', fill: App.PAL.paper, stroke: App.PAL.ink, 'stroke-width': 2.5, 'stroke-linejoin': 'round' }),
-    ]);
-  };
+  // marka işareti: üç geometrik form, tek renk
+  ui.logo = function () { return ui.glass.logo(); };
 
   ui.btn = function (label, opts) {
     opts = opts || {};
@@ -80,7 +73,7 @@
 
   ui.levelLabel = { hata: 'Hata', uyari: 'Uyarı', oneri: 'Öneri', ok: 'Tamam' };
 
-  // kategori noktası: kategori paleti rengini de gösterir (Bauhaus)
+  // kategori noktası: renk kipinde kategori paleti rengini de gösterir
   ui.zoneDot = function (zone) {
     const z = App.ZONES[zone] || App.ZONES.sosyal;
     const c = App.colors && App.store ? App.colors.zone(App.store.get().project, zone) : z;

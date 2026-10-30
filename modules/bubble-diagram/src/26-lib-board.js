@@ -13,16 +13,12 @@
 
   /* ---------------- primitif üreticiler ---------------- */
   /* İşlev şeması künyesi: ortak, ölçümlü pafta çerçevesi (App.sheet.frame) kullanılır */
-  function frameInfo(info, glass) {
+  function frameInfo(info) {
     const ink = PAL.ink;
-    const legend = glass ? [
+    const legend = [
       { label: 'Güçlü ilişki', line: { stroke: ink, sw: 6, cap: 'round' } },
       { label: 'Zayıf ilişki', line: { stroke: ink, sw: 2.5, dash: [9, 8], cap: 'round', opacity: 0.7 } },
       { label: 'Ayrı tut', line: { stroke: ink, sw: 3.5, dash: [0.5, 9], cap: 'round' } }
-    ] : [
-      { label: 'Güçlü ilişki', line: { stroke: ink, sw: 10, inner: { stroke: PAL.paper, sw: 3 } } },
-      { label: 'Zayıf ilişki', line: { stroke: ink, sw: 3, dash: [11, 8] } },
-      { label: 'Ayrı tut', line: { stroke: PAL.red, sw: 3, dash: [3, 8], cap: 'round' } }
     ];
     return {
       name: info.name, subtitle: info.typeLabel + ' · ' + info.variantLabel, legend: legend,
@@ -30,55 +26,9 @@
       scoreLabel: 'Verimlilik', percent: info.percent
     };
   }
-  function staticBauhaus(info) { return App.sheet.frame(frameInfo(info, false), false); }
 
-  function relBauhaus(a, b, type, ra, rb) {
-    const P = [];
-    if (type === 'strong') {
-      P.push({ t: 'line', x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: PAL.ink, sw: 11 });
-      P.push({ t: 'line', x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: PAL.paper, sw: 3 });
-    } else if (type === 'weak') {
-      P.push({ t: 'line', x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: PAL.ink, sw: 3, dash: [12, 9] });
-    } else if (type === 'avoid') {
-      P.push({ t: 'line', x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: PAL.red, sw: 3.5, dash: [3, 9], cap: 'round' });
-      // görünür aralığın ortasına çarpı işareti
-      const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-      const ux = (b.x - a.x) / d, uy = (b.y - a.y) / d;
-      const s0 = ra, s1 = d - rb;
-      const mid = s1 > s0 ? (s0 + s1) / 2 : d / 2;
-      const mx = a.x + ux * mid, my = a.y + uy * mid;
-      P.push({ t: 'circle', cx: mx, cy: my, r: 12, fill: PAL.paper, stroke: PAL.red, sw: 3 });
-      P.push({ t: 'line', x1: mx - 5, y1: my - 5, x2: mx + 5, y2: my + 5, stroke: PAL.red, sw: 3, cap: 'round' });
-      P.push({ t: 'line', x1: mx - 5, y1: my + 5, x2: mx + 5, y2: my - 5, stroke: PAL.red, sw: 3, cap: 'round' });
-    }
-    return P;
-  }
-
-  function bubbleBauhaus(s, r, col) {
-    const z = col || App.ZONES[s.zone] || App.ZONES.sosyal; // col: renk paleti (App.colors.space) — { fill, text }
-    const P = [];
-    P.push({ t: 'circle', cx: s.x, cy: s.y, r: r, fill: z.fill, stroke: PAL.ink, sw: 5 });
-    if (r >= 60) P.push({ t: 'circle', cx: s.x, cy: s.y, r: r - 11, stroke: z.text, sw: 1.5, opacity: 0.35 });
-    const lab = geo.label(s.name, r);
-    const areaTxt = fmt(s.area) + ' m²';
-    const afs = Math.max(10, Math.round(lab.fs * 0.78));
-    const lh = lab.fs * 1.12;
-    if (lab.outside) {
-      let y = s.y + r + 20;
-      lab.lines.forEach((ln, i) => { P.push({ t: 'text', x: s.x, y: y + i * lh, s: ln, size: lab.fs, weight: 700, fam: 'l', fill: PAL.ink, anchor: 'middle', ls: lab.ls }); });
-      P.push({ t: 'text', x: s.x, y: y + lab.lines.length * lh + 2, s: areaTxt, size: afs, weight: 500, fam: 'm', fill: PAL.ink, anchor: 'middle' });
-    } else {
-      const blockH = lab.lines.length * lh + afs + 4;
-      let y = s.y - blockH / 2 + lab.fs * 0.85;
-      lab.lines.forEach((ln, i) => { P.push({ t: 'text', x: s.x, y: y + i * lh, s: ln, size: lab.fs, weight: 700, fam: 'l', fill: z.text, anchor: 'middle', ls: lab.ls }); });
-      P.push({ t: 'text', x: s.x, y: y + lab.lines.length * lh + 2, s: areaTxt, size: afs, weight: 500, fam: 'm', fill: z.text, anchor: 'middle' });
-    }
-    return P;
-  }
-
-
-  /* ---------------- GLASS (minimal, tek renksiz) ---------------- */
-  function staticGlass(info, opts) { return App.sheet.frame(frameInfo(info, true), !!(opts && opts.live)); }
+  /* ---------------- pafta primitifleri (monokrom glass; renkli kipte palet renkleri) ---------------- */
+  function staticGlass(info, opts) { return App.sheet.frame(frameInfo(info), !!(opts && opts.live)); }
 
   function relGlass(a, b, type, ra, rb) {
     const P = [];
@@ -94,15 +44,16 @@
       const s0 = ra, s1 = d - rb;
       const mid = s1 > s0 ? (s0 + s1) / 2 : d / 2;
       const mx = a.x + ux * mid, my = a.y + uy * mid;
-      P.push({ t: 'circle', cx: mx, cy: my, r: 13, fill: '#F6F7F9', stroke: ink, sw: 2, shadow: { dx: 0, dy: 3, blur: 7, color: 'rgba(30,34,44,.28)' } });
+      P.push({ t: 'circle', cx: mx, cy: my, r: 13, fill: PAL.sheet, stroke: ink, sw: 2, shadow: { dx: 0, dy: 3, blur: 7, color: 'rgba(30,34,44,.28)' } });
       P.push({ t: 'line', x1: mx - 5, y1: my - 5, x2: mx + 5, y2: my + 5, stroke: ink, sw: 2.4, cap: 'round' });
       P.push({ t: 'line', x1: mx - 5, y1: my + 5, x2: mx + 5, y2: my - 5, stroke: ink, sw: 2.4, cap: 'round' });
     }
     return P;
   }
 
-  function bubbleGlass(s, r) {
-    const z = App.ZONES[s.zone] || App.ZONES.sosyal;
+  // col: { fill, text } — renk kipinde tek daire / kategori rengi (App.colors.space); verilmezse bölge varsayılanı
+  function bubbleGlass(s, r, col) {
+    const z = col || App.ZONES[s.zone] || App.ZONES.sosyal;
     const P = [];
     // yumuşak kabartma: koyu gölge + açık vurgu, üstüne cam kenar
     P.push({ t: 'circle', cx: s.x, cy: s.y, r: r, fill: z.fill, shadow: { dx: 9, dy: 12, blur: 22, color: 'rgba(36,40,52,.30)' } });
@@ -127,11 +78,10 @@
     return P;
   }
 
-  const isGlass = () => App.theme.name === 'glass';
-  const staticPrims = (info, opts) => (isGlass() ? staticGlass(info, opts) : staticBauhaus(info, opts));
-  const relLinePrims = (a, b, type, ra, rb) => (isGlass() ? relGlass(a, b, type, ra, rb) : relBauhaus(a, b, type, ra, rb));
-  // project verilirse Bauhaus temasında palet renkleri (tek daire > kategori) uygulanır
-  const bubblePrims = (s, r, project) => (isGlass() ? bubbleGlass(s, r) : bubbleBauhaus(s, r, project && App.colors ? App.colors.space(project, s) : null));
+  const staticPrims = staticGlass;
+  const relLinePrims = relGlass;
+  // project verilirse renk kipinde palet renkleri (tek daire > kategori) uygulanır
+  const bubblePrims = (s, r, project) => bubbleGlass(s, r, project && App.colors ? App.colors.space(project, s) : null);
 
   function infoOf(project, score) {
     const type = App.kb.type(project.meta.buildingType);

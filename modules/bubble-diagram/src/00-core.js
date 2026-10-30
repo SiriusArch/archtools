@@ -63,8 +63,9 @@
         if (v && typeof v === 'object') {
           let css = '';
           for (const s in v) if (v[s] != null && v[s] !== false) css += s.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()) + ':' + v[s] + ';';
-          if (el.getAttribute('style') !== css) el.setAttribute('style', css);
-        } else if (v) el.setAttribute('style', v); else el.removeAttribute('style');
+          // CSSOM ile yazılır (setAttribute('style') katı CSP'de engellenir)
+          if (el.__css !== css) { el.style.cssText = css; el.__css = css; }
+        } else if (v) { if (el.__css !== v) { el.style.cssText = v; el.__css = v; } } else { el.removeAttribute('style'); el.__css = null; }
       } else if (BOOL[k]) el[k] = !!v;
       else if (k === 'html') el.innerHTML = v;
       else if (v === false || v == null) el.removeAttribute(k);

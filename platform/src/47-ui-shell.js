@@ -9,7 +9,7 @@
   const ui = App.ui;
   const U = App.util;
 
-  const MODULES = [
+  const ALL_MODULES = [
     { id: 'islev', n: '01', label: 'İşlev Şeması', sub: 'İşlev şeması · bubble diagram', shape: 'circle' },
     { id: 'kat', n: '02', label: 'Mekân Etüdü', sub: 'Mekân etüdü · şekil, boyut ve ilişki', shape: 'square' },
     { id: 'analiz', n: '03', label: 'Mekân Analizi', sub: 'Mekân analizi · patlatılmış izometrik', shape: 'triangle' },
@@ -22,6 +22,9 @@
     { id: 'kolaj', n: '10', label: 'Kolaj Oluşturucu', sub: 'Kolaj oluşturucu · fotoğraf, kütle, siluet ve etiket', shape: 'collage' },
     { id: 'pafta', n: '11', label: 'Pafta Şablonu', sub: 'Pafta şablonu · araç çıktılarıyla jüri paftası', shape: 'layout' },
   ];
+  // yalnızca açık modüller gezilir ve listelenir (App.config.modules)
+  const ENABLED = (App.config && App.config.modules) || null;
+  const MODULES = ENABLED ? ALL_MODULES.filter((m) => ENABLED.indexOf(m.id) >= 0) : ALL_MODULES;
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
   ui.moduleSub = (state) => ui.moduleInfo(state.ui.module).sub;
@@ -47,6 +50,7 @@
   }
 
   ui.moduleNav = function (state) {
+    if (MODULES.length < 2) return null; // tek modül açıkken gezgin gösterilmez
     const cur = state.ui.module;
     return h('nav', { class: 'mnav', 'aria-label': 'archtools modülleri' },
       MODULES.map((m) => h('button', { key: m.id, type: 'button', class: 'mnav-i mnav-' + m.id + (m.id === cur ? ' on' : ''), 'aria-current': m.id === cur ? 'page' : null, title: m.n + ' · ' + m.label, onclick: () => App.ctl.go(m.id) },

@@ -2,9 +2,10 @@
    31-state-colors.js — renk paleti: kategori (bölge) ve tek daire rengi
    Model:  project.colors = { v: 1, zones: { <bölge>: ref }, spaces: { <mekânId>: ref } }
            ref = { p: 'cp4816', i: 2, hex: '#E19D29' }   (p/i palet kaynağını gösterir; hex her zaman geçerli renktir)
-   Öncelik: tek daire > kategori > tema varsayılanı. Özel renkler yalnızca Bauhaus ("Beni renklendir!") temasında çizilir;
-   sade temada (glass) veri korunur ama gösterilmez.
-   JSON uzantısı: extensions.colorPalette  (kullanılan paletlerin hex listesi dahil → dosya tek başına açılır)
+   Öncelik: tek daire > kategori > palet varsayılanı (13-lib-colortheme.js). Özel renkler yalnızca "Beni renklendir!"
+   açıkken çizilir; monokrom kipte veri korunur ama gösterilmez.
+   JSON uzantısı: extensions.colorPalette  (kullanılan paletlerin hex listesi dahil → dosya tek başına açılır;
+   ui: { on, palette } arayüz renk kipini taşır, dosya açılınca aynı görünüm gelir)
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -25,7 +26,7 @@
     return ref;
   }
 
-  const on = () => App.theme.name === 'bauhaus';
+  const on = () => App.colortheme.isOn();
   const readable = (fill) => PL.textOn(fill, App.PAL.ink, App.PAL.paper);
 
   /* ---------- çözümleme ---------- */
@@ -97,15 +98,19 @@
   const refOut = (r) => ({ palette: r.p || null, index: r.p ? r.i : null, hex: r.hex });
   function toExt(project) {
     const c = project.colors;
-    if (!c) return {};
+    const ui = App.store && App.store.get().ui.color;
+    const uiOn = !!(ui && ui.on && PL.get(ui.p));
+    if (!c && !uiOn) return {};
     const ids = new Set(project.spaces.map((s) => s.id));
     const zones = {}, spaces = {}, used = new Set();
+    if (!c) return { colorPalette: { version: 2, source: PL.source, ui: { on: true, palette: ui.p }, palettes: [{ id: ui.p, name: PL.get(ui.p).name, url: PL.get(ui.p).url, colors: PL.get(ui.p).colors.slice() }], zones: {}, spaces: {} } };
+    if (uiOn) used.add(ui.p);
     Object.keys(c.zones || {}).forEach((z) => { if (App.ZONES[z]) { zones[z] = refOut(c.zones[z]); if (c.zones[z].p) used.add(c.zones[z].p); } });
     Object.keys(c.spaces || {}).forEach((id) => { if (ids.has(id)) { spaces[id] = refOut(c.spaces[id]); if (c.spaces[id].p) used.add(c.spaces[id].p); } });
-    if (!Object.keys(zones).length && !Object.keys(spaces).length) return {};
+    if (!Object.keys(zones).length && !Object.keys(spaces).length && !uiOn) return {};
     return {
       colorPalette: {
-        version: 1, source: PL.source, appliesTo: 'bauhaus',
+        version: 2, source: PL.source, ui: { on: uiOn, palette: uiOn ? ui.p : null },
         palettes: Array.from(used).sort().map((id) => ({ id: id, name: PL.get(id).name, url: PL.get(id).url, colors: PL.get(id).colors.slice() })),
         zones: zones, spaces: spaces,
       },
@@ -133,5 +138,14 @@
   App.extImporters = App.extImporters || [];
   App.extImporters.push(function (ext, project) { const c = fromExt(ext && ext.colorPalette, project); return c ? { colors: c } : {}; });
 
-  App.colors = { defaults: defaults, makeRef: makeRef, zone: zoneColor, space: spaceColor, sourceOf: sourceOf, active: on, toExt: toExt, fromExt: fromExt };
+  // dosyadaki arayüz renk kipi (varsa): { on, p } — ctl.onFile projeyi yükledikten sonra uygular
+  function uiFromExt(ext) {
+    const x = ext && ext.colorPalette;
+    if (!x || typeof x !== 'object' || !x.ui || typeof x.ui !== 'object') return null;
+    const pal = typeof x.ui.palette === 'string' ? PL.get(x.ui.palette) : null; // yalnızca yerleşik paletler arayüz paleti olabilir
+    if (x.ui.on === true && pal) return { on: true, p: pal.id };
+    return x.ui.on === false ? { on: false, p: pal ? pal.id : null } : null;
+  }
+
+  App.colors = { uiFromExt: uiFromExt, defaults: defaults, makeRef: makeRef, zone: zoneColor, space: spaceColor, sourceOf: sourceOf, active: on, toExt: toExt, fromExt: fromExt };
 })();

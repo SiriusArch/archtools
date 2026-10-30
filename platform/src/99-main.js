@@ -5,18 +5,8 @@
   const App = window.App;
   const h = App.h;
 
-  // tema: URL (?style=bauhaus) > kayıtlı tercih > glass
-  (function () {
-    let name = 'glass';
-    try {
-      const q = new URLSearchParams(location.search).get('style');
-      const sv = window.localStorage.getItem('archtools.style') || window.localStorage.getItem('archtools.bubble.style');
-      name = q || sv || 'glass';
-    } catch (e) {}
-    if (!App.THEMES[name]) name = 'glass';
-    App.theme.set(name);
-    document.documentElement.setAttribute('data-style', name);
-  })();
+  // arayüz tabanı monokrom glass; "Beni renklendir!" kipi view() başında uygulanır (App.colortheme.sync)
+  App.theme.reset();
 
   App.store = App.createStore(App.state.reducer, App.state.initialState());
 
@@ -24,21 +14,12 @@
   const first = App.route.fromHash();
   if (first && first !== App.store.get().ui.module) App.store.dispatch({ type: 'UI', patch: { module: first } });
   App.route.setTitle(App.store.get().ui.module);
-  App.ctl.loadAnView();
-  App.ctl.loadSiteView();
-  App.ctl.loadImarView();
-  App.ctl.loadDsnView();
-  App.ctl.loadFizView();
-  App.ctl.loadEtutView();
-  if (App.ctl.loadPeView) App.ctl.loadPeView();
-  App.ctl.loadPlanView();
-  App.ctl.loadColView();
-  App.ctl.loadColImages();
-  App.ctl.loadTplView();
-  const fromLink = App.ctl.hashSite(); // #/arsa?lat=…&lon=… paylaşım bağlantısı
+  // yalnızca derlemeye giren modüllerin görünüm yükleyicileri vardır (gizli modüller pakete girmez)
+  ['loadAnView', 'loadSiteView', 'loadImarView', 'loadDsnView', 'loadFizView', 'loadEtutView', 'loadPeView', 'loadPlanView', 'loadColView', 'loadColImages', 'loadTplView'].forEach(function (n) { if (App.ctl[n]) App.ctl[n](); });
 
   function view() {
     const state = App.store.get();
+    App.colortheme.sync(state.ui.color); // renk kipi: CSS değişkenleri + pafta renkleri çizimden önce hazır olur
     const d = App.state.derive(state);
     const t = state.ui.toast;
     const mod = state.ui.module;
@@ -48,7 +29,7 @@
       App.ui.pageMain(state, d),
       h('div', { class: 'toast-zone', 'aria-live': 'polite', role: 'status' },
         t ? h('div', { key: t.id, class: 'toast toast-' + t.kind }, t.msg) : null),
-      App.ui.welcome ? App.ui.welcome(state) : null);
+      null);
   }
 
   const paint = App.mount(document.getElementById('root'), view);
@@ -72,6 +53,7 @@
     lastPct = pc;
   });
 
+  App.visit.hook(App.ctl); // kullanım olayları (allowlist; veri taşımaz)
   document.addEventListener('keydown', App.ctl.onKey);
   // odak halkası yalnızca klavye gezintisinde görünür (paftada fareyle tıklayınca çerçeve çıkmasın)
   const rootEl = document.body;
@@ -83,6 +65,6 @@
   // açılış animasyonu: uygulama altta hazır, intro yumuşakça çözülür
   App.intro.start(function () {
     if (App.store.get().restored) setTimeout(function () { App.ctl.toast('Son çalışmanız geri yüklendi.'); }, 250);
-    if (!fromLink && App.welcome) App.welcome.maybe(); // ilk açılış soruları
+    App.visit.init(); // profil kapısı (ilk ziyaret) ya da oturum başlangıcı; sunucu yapılandırılmamışsa kapalı
   });
 })();

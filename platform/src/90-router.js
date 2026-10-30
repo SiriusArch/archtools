@@ -5,7 +5,10 @@
 (function () {
   const App = window.App;
   const ctl = App.ctl;
-  const IDS = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta'];
+  // yalnızca açık modüller yönlendirilir (App.config.modules — build.py enjekte eder); gizli modüle adresten de gidilemez
+  const ALL = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta'];
+  const ENABLED = (App.config && App.config.modules) || ALL;
+  const IDS = ALL.filter((id) => ENABLED.indexOf(id) >= 0);
   const get = () => App.store.get();
 
   const fromHash = function () {

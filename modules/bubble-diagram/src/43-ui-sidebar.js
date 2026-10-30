@@ -133,15 +133,14 @@
 
   ui.sidebar = function (state, d) {
     const ctl = App.ctl;
-    const colorsOn = App.colors.active();
-    const tab = state.ui.tab === 'renk' && !colorsOn ? 'spaces' : state.ui.tab; // sade temada Renkler sekmesi yoktur
+    const tab = state.ui.tab;
     const cc = state.project.colors;
-    const nCustom = cc ? Object.keys(cc.zones).length + Object.keys(cc.spaces).length : 0;
+    const nCustom = cc && state.ui.color.on ? Object.keys(cc.zones).length + Object.keys(cc.spaces).length : 0;
     return h('aside', { class: 'sidebar', 'aria-label': 'Proje paneli' },
       h('div', { class: 'tabs', role: 'tablist' },
         h('button', { type: 'button', role: 'tab', id: 'tab-spaces', 'aria-selected': String(tab === 'spaces'), class: 'tab' + (tab === 'spaces' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'spaces' } }) }, 'Mekanlar', h('span', { class: 'tab-n' }, String(state.project.spaces.length))),
         h('button', { type: 'button', role: 'tab', id: 'tab-matrix', 'aria-selected': String(tab === 'matrix'), class: 'tab' + (tab === 'matrix' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'matrix' } }) }, 'İlişki matrisi', h('span', { class: 'tab-n' }, String(Object.keys(state.project.relations).length))),
-        colorsOn ? h('button', { type: 'button', role: 'tab', id: 'tab-renk', 'aria-selected': String(tab === 'renk'), class: 'tab' + (tab === 'renk' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'renk' } }) }, 'Renkler', nCustom ? h('span', { class: 'tab-n' }, String(nCustom)) : null) : null),
+        h('button', { type: 'button', role: 'tab', id: 'tab-renk', 'aria-selected': String(tab === 'renk'), class: 'tab' + (tab === 'renk' ? ' on' : ''), onclick: () => ctl.dispatch({ type: 'UI', patch: { tab: 'renk' } }) }, 'Renkler', nCustom ? h('span', { class: 'tab-n' }, String(nCustom)) : null)),
       h('div', { class: 'side-body', role: 'tabpanel' },
         tab === 'spaces' ? [formView(state), listView(state, d), templateView(state)] : tab === 'renk' ? ui.colorsPanel(state) : matrixView(state, d)));
   };

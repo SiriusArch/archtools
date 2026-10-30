@@ -169,9 +169,9 @@
   function baseGlass(live) {
     const P = [];
     const W = sheet.W, H = sheet.H, F = sheet.F, tb = sheet.tb, ink = PAL.ink;
-    if (!live) P.push({ t: 'rect', x: 0, y: 0, w: W, h: H, fill: '#E9EAEE' });
-    const fill = live ? 'rgba(249,250,252,.9)' : '#F6F7F9';
-    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, rx: 40, fill: fill, shadow: { dx: 10, dy: 14, blur: 30, color: 'rgba(46,52,68,.22)', css: 'var(--sheet-lo, rgba(46,52,68,.22))' } });
+    if (!live) P.push({ t: 'rect', x: 0, y: 0, w: W, h: H, fill: PAL.outer });
+    const fill = live ? PAL.sheetLive : PAL.sheet;
+    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, rx: 40, fill: fill, shadow: { dx: 10, dy: 14, blur: 30, color: PAL.shade, css: 'var(--sheet-lo, ' + PAL.shade + ')' } });
     P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, rx: 40, fill: fill, shadow: { dx: -8, dy: -8, blur: 20, color: 'rgba(255,255,255,.9)', css: 'var(--sheet-hi, rgba(255,255,255,.9))' } });
     for (let x = F + 50; x < W - F; x += 50) for (let y = F + 50; y < tb.y; y += 50) P.push({ t: 'circle', cx: x, cy: y, r: 1.5, fill: ink, opacity: 0.1 });
     P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, rx: 40, stroke: ink, sw: 1.5, opacity: 0.1 });
@@ -203,42 +203,7 @@
     return P;
   }
 
-  function frameBauhaus(info, live) {
-    const P = [];
-    const W = sheet.W, H = sheet.H, F = sheet.F, tb = sheet.tb;
-    P.push({ t: 'rect', x: 0, y: 0, w: W, h: H, fill: PAL.paper });
-    for (let x = F + 50; x < W - F; x += 50) P.push({ t: 'line', x1: x, y1: F, x2: x, y2: tb.y, stroke: PAL.ink, sw: 1, opacity: 0.07 });
-    for (let y = F + 50; y < tb.y; y += 50) P.push({ t: 'line', x1: F, y1: y, x2: W - F, y2: y, stroke: PAL.ink, sw: 1, opacity: 0.07 });
-    P.push({ t: 'rect', x: F, y: F, w: W - F * 2, h: H - F * 2, stroke: PAL.ink, sw: 6 });
-    P.push({ t: 'line', x1: F, y1: tb.y, x2: W - F, y2: tb.y, stroke: PAL.ink, sw: 5 });
-    P.push({ t: 'rect', x: tb.x, y: tb.y, w: tb.h, h: tb.h, fill: PAL.blue });
-    P.push({ t: 'circle', cx: tb.x + 36, cy: tb.y + 36, r: 20, fill: PAL.yellow, stroke: PAL.ink, sw: 3 });
-    P.push({ t: 'rect', x: tb.x + 54, y: tb.y + 50, w: 36, h: 36, fill: PAL.red, stroke: PAL.ink, sw: 3 });
-    P.push({ t: 'poly', pts: [[tb.x + 14, tb.y + 90], [tb.x + 46, tb.y + 90], [tb.x + 30, tb.y + 58]], fill: PAL.paper, stroke: PAL.ink, sw: 3 });
-    const th = { ink: PAL.ink, up: true, round: false, swW: 14, lineW: 54, swGap: 9, colGap: 22, stGap: 26, rowH: 22, stH: 28, lgOp: 1, slOp: 0.7,
-      lg: { size: 11.5, weight: 600, fam: 'b', ls: 1 }, sl: { size: 12, weight: 500, fam: 'm', ls: 1.5 }, sv: { size: 17, weight: 700, fam: 'd' },
-      sc: { size: 58, weight: 700, fam: 'd' }, scl: { size: 13, weight: 500, fam: 'm', ls: 2 } };
-    const m = measureBlocks(info, th);
-    const PAD = 20;
-    const xs0 = tb.x + tb.h;
-    const xs3 = tb.x + tb.w - Math.max(150, m.scW + PAD * 2);
-    const xs2 = m.stW ? xs3 - (m.stW + PAD * 2) : xs3;
-    const xs1 = m.legW ? xs2 - (m.legW + PAD * 2) : xs2;
-    [xs0, xs1, xs2, xs3].forEach((x, i) => { if (i === 0 || i === 3 || (i === 1 && m.legW) || (i === 2 && m.stW)) P.push({ t: 'line', x1: x, y1: tb.y, x2: x, y2: tb.y + tb.h, stroke: PAL.ink, sw: 4 }); });
-    titleBlock(P, info, xs0 + 22, Math.max(160, xs1 - xs0 - 44), { ink: PAL.ink, up: true, nameMax: 36, nameMin: 18, nameW: 700, nameLs: 1, subSize: 15, subMin: 11, subLs: 2, subOp: 0.8 });
-    legendItems(P, m, th, xs1 + PAD, tb);
-    statItems(P, m, th, xs2 + PAD, xs3 - PAD, tb);
-    const pc = info.percent;
-    const bg = pc == null ? PAL.paperDark : pc >= 70 ? PAL.green : pc >= 40 ? PAL.yellow : PAL.red;
-    const fg = pc == null ? PAL.ink : pc >= 70 ? PAL.paper : pc >= 40 ? PAL.ink : PAL.paper;
-    P.push({ t: 'rect', x: xs3, y: tb.y, w: tb.x + tb.w - xs3, h: tb.h, fill: bg });
-    P.push({ t: 'text', x: xs3 + PAD, y: tb.y + 30, s: m.scL, size: 13, weight: 500, fam: 'm', fill: fg, ls: 2 });
-    P.push({ t: 'text', x: xs3 + PAD, y: tb.y + 88, s: m.pcTxt, size: 58, weight: 700, fam: 'd', fill: fg });
-    P.push({ t: 'rect', x: tb.x, y: tb.y, w: tb.w, h: tb.h, stroke: PAL.ink, sw: 4 });
-    return P;
-  }
-
-  sheet.frame = function (info, live) { return App.theme.name === 'glass' ? frameGlass(info, live) : frameBauhaus(info, live); };
+  sheet.frame = function (info, live) { return frameGlass(info, live); };
 
   // Bölge göstergesi: yalnızca projede bulunan bölgeler
   sheet.zoneLegend = function (zones) {

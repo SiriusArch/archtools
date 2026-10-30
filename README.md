@@ -2,6 +2,8 @@
 
 Mimari yardımcı araçların toplandığı depo. On bir modül tek sitede, ortak proje verisiyle çalışır: bir modülde yaptığınız değişiklik diğerlerine otomatik yansır. İlk üçü bina içini, sonraki üçü bina çevresini ve parseli, sonraki ikisi tasarım üretimini ve maliyeti, sonraki üçü ölçekli vaziyet, kolaj ve pafta çizimini ele alır; sonuncusu bütün bu çıktıları tek paftada toplar.
 
+> **Yayın durumu:** yalnızca **01 · İşlev Şeması** erişilebilir. Diğer modüller kaynak olarak depoda durur ancak yayın paketine girmez.
+
 | # | Modül | Ne yapar | Rota |
 |---|---|---|---|
 | 01 | **İşlev Şeması** (Bubble Diagram) | Mekân + m² ekle, ilişkileri kur, daireleri yerleştir, verimlilik skoru ve Akıllı Öneri | `#/islev` |
@@ -22,17 +24,19 @@ Arsa Analizi'nde 15 dakikalık şehir karnesi, kural tabanlı **Sor** kutusu ve 
 
 Siteye girişte marka simgesi ve "archtools" adının yumuşakça belirdiği kısa bir açılış oynar (oturum başına bir kez; `?intro=1` ile zorlanır, `?intro=0` ile kapanır; **Geç** ile atlanır).
 
-İlk açılışta kısa bir karşılama sorar (çalışma alanı ve ilk hedef); yanıt yalnızca tarayıcıda saklanır, varsayılan programı ve açılan modülü seçer. Başlıktaki **Rehber** düğmesiyle yeniden açılır; `?welcome=0` kapatır, `?welcome=1` zorlar.
+**Giriş ve ziyaretçi profili:** Sunucu yapılandırılmışsa siteye ilk girişte kısa bir profil formu açılır (ad zorunlu; kurum, e-posta, rol isteğe bağlı; Google hesabı gerekmez) ve KVKK açık rızası alınır. Kullanım süresi, saat dağılımı, cihaz ve kaba konum yalnızca **yönetici panelinde** (`/admin`) görünür. Çizilen şemalar sunucuya gönderilmez. Ayrıntı: [KURULUM.md](KURULUM.md) ve [GUVENLIK.md](GUVENLIK.md). Sunucu yapılandırılmamışsa kapı ve takip kapalıdır; site olduğu gibi çalışır.
 
-**Renk paleti (Bauhaus teması):** İşlev Şeması'nın sol panelindeki **Renkler** sekmesi, [colorpalettes.net](https://colorpalettes.net/)'ten alınan 39 hazır paleti (her biri 5 renk) sunar. Bir palet seçin, sonra tonlarını **kategoriye** (ıslak/servis, sosyal/kamusal, teknik/depo… tüm daireleri boyar) ya da **tek bir daireye** (veya kutuyla seçilen birkaç daireye) uygulayın; tek daire rengi kategori renginin önüne geçer. **Kategorilere dağıt** paletin renklerini sırayla kategorilere atar, yazı rengi otomatik okunaklı seçilir. Renkler pafta PNG/PDF çıktısına, Pafta Şablonu'na ve JSON'a (`extensions.colorPalette`, kullanılan paletlerin hex listesiyle) işlenir; sade temada veri korunur ama gösterilmez. Veri: `modules/bubble-diagram/src/12-data-palettes.js` (`App.palettes`) · mantık: `31-state-colors.js` (`App.colors`) · arayüz: `45-ui-colors.js`.
+**Renk paleti:** İşlev Şeması'nın sol panelindeki **Renkler** sekmesi, [colorpalettes.net](https://colorpalettes.net/)'ten alınan 39 hazır paleti (her biri 5 renk) sunar. Site tasarımı tek tema olan monokrom buzlu camdır; palet seçildiğinde (ya da **Beni renklendir!** açıldığında) düğmelerin şekli ve yeri değişmez, yalnızca renkler seçilen paletten türetilir (yüzeyler, metin, vurgu, kategori renkleri; açık / koyu kipte okunabilirlik denetli). **Sadeleştir** monokroma döner. Kategori ve tek daire renkleri projeyle birlikte JSON'a `extensions.colorPalette` olarak yazılır.
 
-Varsayılan görünüm minimal, buzlu cam ve tek renksiz. **Beni renklendir!** düğmesi tüm modülleri Retro-Bauhaus temasına geçirir (**Sadeleştir** geri döner). Tercih tarayıcıda saklanır, `?style=bauhaus` ile de açılabilir.
 
-## Derleme
+## Derleme ve yayın
 ```
-python3 build.py     # modül kaynaklarını birleştirip kökteki index.html'i üretir
+python3 build.py                 # yalnızca İşlev Şeması (yayın varsayılanı) → public/
+python3 build.py --modules all   # tüm modüller (yalnızca yerel geliştirme)
+npm test                         # API testleri (bellek içi depo; ağ gerekmez)
+node tools/dev-server.mjs        # public/ + /api yerel sunucusu (CSP başlıklarıyla)
 ```
-`index.html` depo kökündedir; Vercel'de ayar gerekmez (Framework: Other, build komutu boş, çıktı klasörü `.`).
+Vercel yalnızca `public/` klasörünü yayınlar (`vercel.json`); `public/` derleme çıktısıdır ve depoya eklenir (Vercel'de derleme adımı yoktur). **Şu an yalnızca İşlev Şeması yayındadır**: diğer modüllerin kodu pakete hiç girmez, rotaları çalışmaz. Yeniden açmak için `python3 build.py --modules islev,kat,...` ve (yeni renk kipine uyarlandıktan sonra) `BUBBLE_ONLY_EXCLUDE` / varsayılan modül listesini güncelleyin. Kurulum: [KURULUM.md](KURULUM.md).
 
 ## Klasör yapısı
 ```

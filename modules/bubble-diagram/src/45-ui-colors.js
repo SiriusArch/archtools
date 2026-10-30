@@ -1,6 +1,6 @@
 /* ==========================================================================
-   45-ui-colors.js — "Renkler" paneli: palet seç → tonları kategoriye ya da tek daireye uygula
-   Yalnızca Bauhaus ("Beni renklendir!") temasında görünür. Veri: App.palettes · mantık: App.colors (31-state-colors.js)
+   45-ui-colors.js — "Renkler" paneli: palet seç → arayüz o paletle boyanır; tonları kategoriye ya da tek daireye uygula
+   Palet seçmek "Beni renklendir!" kipini açar. Veri: App.palettes · mantık: App.colors (31-state-colors.js) · renk üretimi: App.colortheme
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -9,7 +9,8 @@
   const PL = App.palettes;
 
   const dispatch = (a) => App.store.dispatch(a);
-  const curPal = (state) => PL.get(state.ui.pal) || PL.list[0];
+  const curPal = (state) => PL.get(state.ui.color.p) || PL.get(App.colortheme.DEFAULT) || PL.list[0];
+  const colorOn = (state) => !!state.ui.color.on;
 
   /* bir paletin 5 tonu: tıkla → uygula. cur: şu an uygulanan hex (ya da null) */
   function tones(pal, cur, onpick, label) {
@@ -25,9 +26,9 @@
   const resetBtn = (disabled, label, fn) => h('button', { type: 'button', class: 'icon-btn tone-x', title: label, 'aria-label': label, disabled: !!disabled, onclick: fn }, ui.icon('reset', 15));
 
   function palCard(state, p) {
-    const on = state.ui.pal === p.id;
+    const on = colorOn(state) && state.ui.color.p === p.id;
     return h('li', { key: p.id },
-      h('button', { type: 'button', class: 'pal-card' + (on ? ' on' : ''), title: p.name + ' · ' + p.colors.join(' '), 'aria-pressed': String(on), 'aria-label': p.name, onclick: () => dispatch({ type: 'UI', patch: { pal: p.id } }) },
+      h('button', { type: 'button', class: 'pal-card' + (on ? ' on' : ''), title: p.name + ' · ' + p.colors.join(' '), 'aria-pressed': String(on), 'aria-label': p.name, onclick: () => App.ctl.pickPalette(p.id) },
         h('span', { class: 'pal-strip', 'aria-hidden': 'true' }, p.colors.map((c, i) => h('i', { key: i, style: { background: c } }))),
         h('span', { class: 'pal-name mono' }, '#' + p.n)));
   }
@@ -72,6 +73,7 @@
   ui.colorsPanel = function (state) {
     const P = state.project;
     const pal = curPal(state);
+    const on = colorOn(state);
     const c = P.colors || { zones: {}, spaces: {} };
     const custom = Object.keys(c.zones).length + Object.keys(c.spaces).length;
     return h('div', { class: 'colors-tab' },
@@ -79,18 +81,19 @@
         h('div', { class: 'panel-head' },
           h('h2', { class: 'panel-title' }, 'Renk paleti'),
           h('span', { class: 'count mono' }, PL.list.length + ' palet')),
+        h('p', { class: 'note' }, on ? 'Arayüz ve şema seçili paletle boyanır. Başka bir palet seçerek değiştirin.' : 'Şu an monokrom görünüm açık. Bir palet seçin: düğmeler aynı kalır, yalnızca renkler değişir.'),
         h('ul', { class: 'pal-grid', role: 'list' }, PL.list.map((p) => palCard(state, p))),
-        h('p', { class: 'note pal-src' }, 'Seçili: ', h('b', {}, pal.name), ' · kaynak: ', h('a', { href: pal.url, target: '_blank', rel: 'noopener noreferrer' }, 'colorpalettes.net')),
-        h('div', { class: 'pal-actions' },
-          ui.btn('Kategorilere dağıt', { icon: 'palette', cls: 'btn-yellow', title: 'Seçili paletin renklerini projedeki kategorilere sırayla uygula', onclick: () => dispatch({ type: 'COLOR_DISTRIBUTE', palette: pal.id }) }),
-          ui.btn('Sıfırla', { icon: 'reset', title: 'Tüm özel renkleri kaldır', disabled: !custom, onclick: () => dispatch({ type: 'COLOR_RESET', what: 'all' }) }))),
-      h('div', { class: 'panel' },
+        h('p', { class: 'note pal-src' }, on ? 'Seçili: ' : 'Son seçilen: ', h('b', {}, pal.name), ' · kaynak: ', h('a', { href: pal.url, target: '_blank', rel: 'noopener noreferrer' }, 'colorpalettes.net')),
+        on ? h('div', { class: 'pal-actions' },
+          ui.btn('Kategorilere dağıt', { icon: 'palette', title: 'Seçili paletin renklerini projedeki kategorilere sırayla uygula', onclick: () => dispatch({ type: 'COLOR_DISTRIBUTE', palette: pal.id }) }),
+          ui.btn('Sıfırla', { icon: 'reset', title: 'Tüm özel renkleri kaldır', disabled: !custom, onclick: () => dispatch({ type: 'COLOR_RESET', what: 'all' }) })) : null),
+      on ? h('div', { class: 'panel' },
         h('h2', { class: 'panel-title' }, 'Kategoriler'),
         h('p', { class: 'note' }, 'Bir kategoriye ton seçin; o kategorideki tüm daireler boyanır.'),
-        h('ul', { class: 'zrows', role: 'list' }, App.ZONE_ORDER.map((z) => zoneRow(state, pal, z)))),
-      h('div', { class: 'panel' },
+        h('ul', { class: 'zrows', role: 'list' }, App.ZONE_ORDER.map((z) => zoneRow(state, pal, z)))) : null,
+      on ? h('div', { class: 'panel' },
         h('h2', { class: 'panel-title' }, 'Tek daire'),
-        targetCard(state, pal)));
+        targetCard(state, pal)) : null);
   };
 
   /* mekân satırının ayrıntısı için küçük renk seçici (Mekanlar sekmesi) */

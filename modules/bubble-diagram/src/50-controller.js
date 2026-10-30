@@ -28,23 +28,32 @@
     setTimeout(() => { const el = document.getElementById('sp-name'); if (el) { el.scrollIntoView({ block: 'nearest' }); el.focus(); } }, 30);
   };
 
-  /* ---------- tema: "Beni renklendir!" ↔ "Sadeleştir" ---------- */
-  const STYLE_KEY = 'archtools.style';
-  ctl.applyStyle = function (name) {
-    App.theme.set(name);
-    document.documentElement.setAttribute('data-style', name);
-    try { window.localStorage.setItem(STYLE_KEY, name); } catch (e) {}
-    ctl.dispatch({ type: 'UI', patch: { style: name } });
+  /* ---------- renk kipi: "Beni renklendir!" ↔ "Sadeleştir" ----------
+     Arayüz her zaman monokrom glass yerleşimidir; kip yalnızca renk değişkenlerini değiştirir (13-lib-colortheme.js).
+     Tercih: state.ui.color = { on, p } — localStorage'a yalnızca bu iki değer yazılır. */
+  const COLOR_KEY = 'archtools.color';
+  ctl.setColor = function (patch) {
+    const next = Object.assign({}, get().ui.color, patch);
+    if (!App.palettes.get(next.p)) next.p = App.colortheme.DEFAULT;
+    next.on = !!next.on;
+    ctl.dispatch({ type: 'UI', patch: { color: next } });
+    try { window.localStorage.setItem(COLOR_KEY, JSON.stringify({ on: next.on, p: next.p })); } catch (e) {}
     if (App.paintNow) App.paintNow();
   };
+  // palet seç: renk kipini açar ve arayüzü o paletle boyar
+  ctl.pickPalette = function (id) { ctl.setColor({ on: true, p: id }); };
   let switching = false;
-  ctl.toggleStyle = function (e) {
+  ctl.toggleColor = function (e) {
     if (switching) return;
-    const next = App.theme.name === 'glass' ? 'bauhaus' : 'glass';
+    const turnOn = !get().ui.color.on;
+    const apply = function () {
+      ctl.setColor({ on: turnOn });
+      if (turnOn) ctl.dispatch({ type: 'UI', patch: { tab: 'renk' } }); // palet seçimi hemen görünsün
+    };
     const root = document.documentElement;
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const btn = e && e.currentTarget;
-    if (!document.startViewTransition || reduce) { ctl.applyStyle(next); return; }
+    if (!document.startViewTransition || reduce) { apply(); return; }
     // açılan daire: düğmenin olduğu yerden tüm sayfaya yayılır
     const r = btn && btn.getBoundingClientRect ? btn.getBoundingClientRect() : { left: innerWidth / 2, top: 0, width: 0, height: 0 };
     const x = r.left + r.width / 2, y = r.top + r.height / 2;
@@ -55,13 +64,14 @@
     root.classList.add('vt-reveal');
     switching = true;
     let vt;
-    try { vt = document.startViewTransition(function () { ctl.applyStyle(next); }); } catch (err) { switching = false; root.classList.remove('vt-reveal'); ctl.applyStyle(next); return; }
+    try { vt = document.startViewTransition(function () { apply(); if (App.paintNow) App.paintNow(); }); } catch (err) { switching = false; root.classList.remove('vt-reveal'); apply(); return; }
     const done = function () {
       switching = false;
       root.classList.remove('vt-reveal');
-      // renklenirken daireler sırayla "açılır"
-      root.classList.add('bloom');
-      setTimeout(function () { root.classList.remove('bloom'); }, 1400);
+      if (turnOn) { // renklenirken daireler sırayla "açılır"
+        root.classList.add('bloom');
+        setTimeout(function () { root.classList.remove('bloom'); }, 1400);
+      }
     };
     vt.finished.then(done, done);
   };
@@ -170,8 +180,13 @@
     const rd = new FileReader();
     rd.onload = function () {
       try {
-        const project = App.files.fromJSON(String(rd.result));
+        const text = String(rd.result);
+        const project = App.files.fromJSON(text);
         ctl.dispatch({ type: 'LOAD_PROJECT', project: project });
+        // dosya renkli kaydedildiyse aynı görünümle açılır
+        let ext = null; try { ext = JSON.parse(text).extensions; } catch (e2) {}
+        const cu = App.colors.uiFromExt(ext);
+        if (cu) ctl.setColor(cu);
         ctl.toast('“' + project.meta.name + '” yüklendi · ' + project.spaces.length + ' mekân', 'success');
       } catch (err) { ctl.toast(err.message, 'error'); }
     };

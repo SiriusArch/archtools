@@ -90,11 +90,20 @@
         stTab: 'katlar', anTab: 'gorunum', an: App.analysisDefaults ? App.analysisDefaults() : {},
         site: App.siteUi ? App.siteUi.arsa() : {}, imar: App.siteUi ? App.siteUi.imar() : {}, yer: App.siteUi ? App.siteUi.yer() : {}, dsn: App.dsnUi ? App.dsnUi.dsn() : {}, fiz: App.dsnUi ? App.dsnUi.fiz() : {}, etut: App.etutDefaults ? App.etutDefaults() : {}, pe: App.peDefaults ? App.peDefaults() : {}, plan: App.planDefaults ? App.planDefaults() : {}, col: App.collageDefaults ? App.collageDefaults() : {}, tpl: App.tplDefaults ? App.tplDefaults() : {}, geo: { busy: null, msg: '', err: null },
         form: { name: '', area: '' }, tplType: project.meta.buildingType, tplVariant: project.meta.variant,
-        busy: null, hintDismissed: false, ms: [], mq: null, pal: App.palettes.list[0].id, style: App.theme.name, boardWide: readWide(),
+        busy: null, hintDismissed: false, ms: [], mq: null, color: readColor(), boardWide: readWide(),
       },
     };
   }
 
+  // "Beni renklendir!" tercihi: yalnızca { on, p } okunur; geçersiz her şey varsayılana düşer
+  function readColor() {
+    const d = { on: false, p: App.colortheme.DEFAULT };
+    try {
+      const o = JSON.parse(window.localStorage.getItem('archtools.color') || 'null');
+      if (o && typeof o === 'object' && typeof o.p === 'string' && App.palettes.get(o.p)) return { on: o.on === true, p: o.p };
+    } catch (e) {}
+    return d;
+  }
   function readWide() { try { return window.localStorage.getItem('archtools.boardwide') === '1'; } catch (e) { return false; } }
 
   /* ---------------- reducer ---------------- */

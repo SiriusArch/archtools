@@ -27,17 +27,12 @@
       h('path', { d: 'M5 36l7-12 7 12z', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.2, 'stroke-linejoin': 'round', opacity: 0.55 }));
   };
 
-  /* --- tema anahtarı: glass'ta "Beni renklendir!", Bauhaus'ta "Sadeleştir" --- */
+  /* --- "Beni renklendir!" anahtarı: aynı düğme, aynı yer; açıkken "Sadeleştir" olur ve noktalar palet renklerini gösterir --- */
   ui.themeToggle = function (state) {
-    const toGlass = App.theme.name === 'bauhaus';
-    if (toGlass) {
-      return h('button', { type: 'button', class: 'btn btn-theme', onclick: App.ctl.toggleStyle, title: 'Renkleri kaldır, sade cam görünüme dön' },
-        h('span', { class: 'theme-dots', 'aria-hidden': 'true' }, h('i', {}), h('i', {}), h('i', {})),
-        h('span', {}, 'Sadeleştir'));
-    }
-    return h('button', { type: 'button', class: 'gcolor', onclick: App.ctl.toggleStyle, title: 'Şemayı Bauhaus renkleriyle boya' },
+    const on = !!state.ui.color.on;
+    return h('button', { type: 'button', class: 'gcolor' + (on ? ' on' : ''), onclick: App.ctl.toggleColor, 'aria-pressed': String(on), title: on ? 'Renkleri kaldır, monokrom görünüme dön' : 'Şemayı ve arayüzü renk paletiyle boya' },
       h('span', { class: 'gcolor-dots', 'aria-hidden': 'true' }, h('i', {}), h('i', {}), h('i', {})),
-      h('span', {}, 'Beni renklendir!'));
+      h('span', {}, on ? 'Sadeleştir' : 'Beni renklendir!'));
   };
 
   glass.header = function (state, d) {
@@ -61,13 +56,13 @@
         h('div', { class: 'gseg', role: 'group', 'aria-label': 'Dışa aktar' },
           h('button', { type: 'button', onclick: ctl.exportPNG, disabled: !!state.ui.busy, title: 'Saf şemayı PNG resmi olarak indir' }, 'PNG'),
           h('button', { type: 'button', onclick: ctl.exportPDF, disabled: !!state.ui.busy, title: 'Saf şemayı A3 PDF olarak indir' }, 'PDF'),
-          h('button', { type: 'button', onclick: () => ctl.exportReport(), disabled: !!state.ui.busy, title: 'Tüm modüllerden çok sayfalı proje raporu (PDF)' }, 'Rapor')),
+          ctl.exportReport ? h('button', { type: 'button', onclick: () => ctl.exportReport(), disabled: !!state.ui.busy, title: 'Tüm modüllerden çok sayfalı proje raporu (PDF)' }, 'Rapor') : null),
         state.ui.module === 'islev' ? h('span', { class: 'gh-sep', 'aria-hidden': 'true' }) : null,
         state.ui.module === 'islev' ? h('button', { type: 'button', class: 'gpill' + (state.ui.assistantOpen ? ' on' : ''), onclick: ctl.toggleAssistant, 'aria-pressed': String(!!state.ui.assistantOpen), title: 'Akıllı öneri panelini aç / kapat' },
           ui.icon('spark', 16), h('span', {}, 'Akıllı öneri'),
           issues ? h('span', { class: 'badge' + (state.ui.assistantOpen ? '' : ' pulse-badge') }, String(issues)) : null) : null),
       gbtn(state.ui.boardWide ? 'shrink' : 'expand', state.ui.boardWide ? 'Paftayı sığdır' : 'Paftayı genişlet', { onclick: App.ctl.toggleBoardWide, pressed: !!state.ui.boardWide, title: state.ui.boardWide ? 'Paftayı pencereye sığdır' : 'Paftayı tam genişlikte göster (kaydırılır)' }),
-      ui.helpBtn ? gbtn('help', 'Başlangıç rehberi', { onclick: ui.helpBtn, title: 'Başlangıç sorularını yeniden aç' }) : null,
+      ui.profileBtn && App.visit && App.visit.enabled() ? gbtn('user', 'Profilim ve gizlilik', { onclick: ui.profileBtn, title: 'Profil bilgilerim, gizlilik ve verilerimi silme' }) : null,
       ui.themeToggle(state),
       h('input', { id: 'file-load', class: 'sr', type: 'file', accept: '.json,application/json', tabindex: -1, onchange: ctl.onFile, 'aria-label': 'Proje dosyası seç' }));
   };
