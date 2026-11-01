@@ -39,7 +39,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #101114; --bg-2: #1D1F25; --bg-3: #0A0B0D;
-    --glass: rgba(44, 47, 56, .55); --glass-2: rgba(62, 66, 78, .62); --stroke: rgba(255, 255, 255, .09);
+    --glass: rgba(34, 37, 45, .9); --glass-2: rgba(52, 56, 67, .94); --stroke: rgba(255, 255, 255, .09);
     --line: rgba(255, 255, 255, .09); --ink: #F1F2F5; --ink-2: #A3A7B0; --ink-3: #6E727C; --on-ink: #141518;
     --hi: rgba(255, 255, 255, .05); --lo: rgba(0, 0, 0, .55); --lo-soft: rgba(0, 0, 0, .4); --inset-bg: rgba(0, 0, 0, .22);
     --dial-pin: #1D1F25; --sheet-hi: rgba(255, 255, 255, .04); --sheet-lo: rgba(0, 0, 0, .6); --dot-ring: rgba(255, 255, 255, .42); --ring: rgba(241, 242, 245, .4); --ring-0: rgba(241, 242, 245, 0); color-scheme: dark;
@@ -47,7 +47,7 @@
 }
 :root[data-theme="dark"] {
   --bg: #101114; --bg-2: #1D1F25; --bg-3: #0A0B0D;
-  --glass: rgba(44, 47, 56, .55); --glass-2: rgba(62, 66, 78, .62); --stroke: rgba(255, 255, 255, .09);
+  --glass: rgba(34, 37, 45, .9); --glass-2: rgba(52, 56, 67, .94); --stroke: rgba(255, 255, 255, .09);
   --line: rgba(255, 255, 255, .09); --ink: #F1F2F5; --ink-2: #A3A7B0; --ink-3: #6E727C; --on-ink: #141518;
   --hi: rgba(255, 255, 255, .05); --lo: rgba(0, 0, 0, .55); --lo-soft: rgba(0, 0, 0, .4); --inset-bg: rgba(0, 0, 0, .22);
   --dial-pin: #1D1F25; --sheet-hi: rgba(255, 255, 255, .04); --sheet-lo: rgba(0, 0, 0, .6); --dot-ring: rgba(255, 255, 255, .42); --ring: rgba(241, 242, 245, .4); --ring-0: rgba(241, 242, 245, 0); color-scheme: dark;

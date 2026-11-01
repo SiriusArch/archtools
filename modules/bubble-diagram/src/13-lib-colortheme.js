@@ -90,7 +90,7 @@
       };
       if (dark) {
         Object.assign(v, {
-          '--glass': rgba(hsl(H, sb * 0.5, 0.2), 0.55), '--glass-2': rgba(hsl(H, sb * 0.5, 0.27), 0.62), '--stroke': 'rgba(255,255,255,.09)',
+          '--glass': rgba(hsl(H, sb * 0.5, 0.16), 0.9), '--glass-2': rgba(hsl(H, sb * 0.5, 0.23), 0.94), '--stroke': 'rgba(255,255,255,.09)',
           '--line': 'rgba(255,255,255,.09)', '--hi': 'rgba(255,255,255,.05)', '--lo': 'rgba(0,0,0,.55)', '--lo-soft': 'rgba(0,0,0,.4)', '--inset-bg': 'rgba(0,0,0,.22)',
           '--sheet-hi': 'rgba(255,255,255,.04)', '--sheet-lo': 'rgba(0,0,0,.6)', '--dot-ring': 'rgba(255,255,255,.42)',
         });

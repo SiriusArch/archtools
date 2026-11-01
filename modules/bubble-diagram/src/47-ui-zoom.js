@@ -369,21 +369,21 @@
         b('hand', hand ? 'El aracını kapat' : 'El aracı: sürükleyerek kaydır (Boşluk + sürükle de olur)', () => dispatch({ type: 'UI', patch: { tool: hand ? 'select' : 'hand' } }), hand),
         h('span', { class: 'gzoom-sep', 'aria-hidden': 'true' }),
         b('minus', 'Uzaklaştır (−)', () => Z.zoomBy(0.8)),
-        h('button', { type: 'button', class: 'gz-pct mono', title: 'Paftaya dön (0)', 'aria-label': 'Yakınlaştırma yüzde ' + Math.round((v ? v.k : 1) * 100) + ', paftaya dönmek için tıkla', onclick: Z.home }, Math.round((v ? v.k : 1) * 100) + '%'),
+        h('button', { type: 'button', class: 'gz-pct mono', title: 'Başlangıç görünümüne dön (0)', 'aria-label': 'Yakınlaştırma yüzde ' + Math.round((v ? v.k : 1) * 100) + ', başlangıç görünümüne dönmek için tıkla', onclick: Z.home }, Math.round((v ? v.k : 1) * 100) + '%'),
         b('plus', 'Yakınlaştır (+)', () => Z.zoomBy(1.25)),
         h('span', { class: 'gzoom-sep', 'aria-hidden': 'true' }),
-        b('fit', 'Pafta ve tüm daireleri göster', Z.fitAll),
+        b('fit', 'Tüm daireleri göster', Z.fitAll),
         b(foc ? 'shrink' : 'expand', foc ? 'Tam ekrandan çık (Esc)' : 'Tuvali tam ekran yap', () => Z.focus(), foc, 'gz-focus')));
   };
 
-  // sonsuz düzlem: her yerde nokta ızgarası (zemin kaydığını hissettirir; uzaklaşınca seyrekleşir, yaklaşınca sıklaşır)
+  // sonsuz beyaz pencere: her yerde ince nokta ızgarası (zemin kaydığını hissettirir; uzaklaşınca seyrekleşir, yaklaşınca sıklaşır)
   Z.grid = function (view, S) {
     const vp = VP(S), v = view || DEFAULT(), s = fitOf(vp) * v.k;
     const step = 50 * Math.pow(2, Math.ceil(Math.log2(30 / (50 * s)))); // ekranda ≈30–60 px arayla
     const x0 = v.cx - (vp.sx + vp.sw / 2) / s, y0 = v.cy - (vp.sy + vp.sh / 2) / s, w = vp.w / s, hh = vp.h / s;
     return [
       h('defs', { key: 'ws-defs' }, h('pattern', { id: 'ws-dots', patternUnits: 'userSpaceOnUse', x: -step / 2, y: -step / 2, width: step, height: step },
-        h('circle', { cx: step / 2, cy: step / 2, r: 1.3 / s, fill: 'var(--ink)', opacity: 0.2 }))),
+        h('circle', { cx: step / 2, cy: step / 2, r: 1.4 / s, fill: App.PAL.ink, opacity: 0.17 }))),
       h('rect', { key: 'ws-grid', x: x0 - step, y: y0 - step, width: w + 2 * step, height: hh + 2 * step, fill: 'url(#ws-dots)', 'pointer-events': 'none' }),
     ];
   };

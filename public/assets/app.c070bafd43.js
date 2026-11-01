@@ -814,7 +814,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
       };
       if (dark) {
         Object.assign(v, {
-          '--glass': rgba(hsl(H, sb * 0.5, 0.2), 0.55), '--glass-2': rgba(hsl(H, sb * 0.5, 0.27), 0.62), '--stroke': 'rgba(255,255,255,.09)',
+          '--glass': rgba(hsl(H, sb * 0.5, 0.16), 0.9), '--glass-2': rgba(hsl(H, sb * 0.5, 0.23), 0.94), '--stroke': 'rgba(255,255,255,.09)',
           '--line': 'rgba(255,255,255,.09)', '--hi': 'rgba(255,255,255,.05)', '--lo': 'rgba(0,0,0,.55)', '--lo-soft': 'rgba(0,0,0,.4)', '--inset-bg': 'rgba(0,0,0,.22)',
           '--sheet-hi': 'rgba(255,255,255,.04)', '--sheet-lo': 'rgba(0,0,0,.6)', '--dot-ring': 'rgba(255,255,255,.42)',
         });
@@ -3171,6 +3171,44 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
   };
   const zoomBusy = () => !!(ui.zoom && ui.zoom.busy());
 
+  /* Pencere sınırı. Tuval = beyaz pencerenin kendisi: daire merkezi görünür pencerenin içinde kalır (yarıçap + seçim halkası payıyla;
+     küçük dairenin etiketi altta durduğu için alt pay daha geniştir). Pencere daireden darsa (çok yakınlaşınca) merkez pencerenin orta bandında kalır. Daire zaten dışarıdaysa
+     (ör. yakınlaştırınca) yakalandığında zıplamaz: yalnızca içeri doğru hareket eder. Pencere ise sonsuzdur: daireyi kenara götürüp
+     bekleyince tuval kayar (edgePan) ve daire kenarda kalarak onunla birlikte yeni boş alana ilerler. */
+  function winBox(r, ox, oy) {
+    const v = ui.zoom && ui.zoom.visible();
+    if (!v) return { x0: -Infinity, y0: -Infinity, x1: Infinity, y1: Infinity };
+    const pad = r + 10, bot = pad + (r < 36 ? 64 : 0);
+    // pay, pencerenin en çok %40'ı: daire pencereden büyükse (çok yakınlaşınca) merkez ortadaki banda kıstırılır, takılıp kalmaz
+    const span = (a0, a1, p0, p1, o) => {
+      const cap = 0.4 * (a1 - a0);
+      return [Math.min(a0 + Math.min(p0, cap), o), Math.max(a1 - Math.min(p1, cap), o)];
+    };
+    const sx = span(v.x0, v.x1, pad, pad, ox), sy = span(v.y0, v.y1, pad, bot, oy);
+    return { x0: sx[0], x1: sx[1], y0: sy[0], y1: sy[1] };
+  }
+  // tek daire: istenen merkez (x, y) pencere ve dünya sınırı içinde kalacak biçimde kıstırılır; (ox, oy) sürükleme başındaki konum
+  function fitPoint(x, y, r, ox, oy) {
+    const b = winBox(r, ox, oy);
+    return geo.clampWorld(Math.max(b.x0, Math.min(b.x1, x)), Math.max(b.y0, Math.min(b.y1, y)), r);
+  }
+  // grup: tüm daireleri aynı kaydırmayla taşıyan (dx, dy) değerini, hiçbir daire pencereden ya da dünyadan taşmayacak biçimde kıs
+  function fitShift(items, dx, dy) {
+    let lx = -Infinity, hx = Infinity, ly = -Infinity, hy = Infinity;
+    items.forEach((q) => {
+      const b = winBox(q.r, q.x, q.y);
+      lx = Math.max(lx, b.x0 - q.x); hx = Math.min(hx, b.x1 - q.x);
+      ly = Math.max(ly, b.y0 - q.y); hy = Math.min(hy, b.y1 - q.y);
+    });
+    let ax = Math.max(lx, Math.min(hx, dx)), ay = Math.max(ly, Math.min(hy, dy));
+    items.forEach((q) => {
+      const c0 = geo.clampWorld(q.x + ax, q.y + ay, q.r);
+      ax = ax >= 0 ? Math.min(ax, c0.x - q.x) : Math.max(ax, c0.x - q.x);
+      ay = ay >= 0 ? Math.min(ay, c0.y - q.y) : Math.max(ay, c0.y - q.y);
+    });
+    return { x: ax, y: ay };
+  }
+
   function bubbleDown(e, s, r) {
     if (zoomBusy()) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
@@ -3189,11 +3227,12 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
       const orig = {}, rad = {};
       boxes(S0).forEach((q) => { if (ms.has(list, q.id)) rad[q.id] = q.r; });
       S0.project.spaces.forEach((q) => { if (ms.has(list, q.id)) orig[q.id] = { x: q.x, y: q.y }; });
-      drag = { group: true, id: s.id, ids: list, orig: orig, rad: rad, gx: w.x, gy: w.y, sx: e.clientX, sy: e.clientY, moved: false };
+      const items = list.filter((id) => orig[id]).map((id) => ({ x: orig[id].x, y: orig[id].y, r: rad[id] }));
+      drag = { group: true, id: s.id, ids: list, orig: orig, rad: rad, items: items, gx: w.x, gy: w.y, sx: e.clientX, sy: e.clientY, moved: false };
       try { ui.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
       return;
     }
-    drag = { id: s.id, dx: s.x - w.x, dy: s.y - w.y, sx: e.clientX, sy: e.clientY, moved: false, r: r };
+    drag = { id: s.id, dx: s.x - w.x, dy: s.y - w.y, ox: s.x, oy: s.y, sx: e.clientX, sy: e.clientY, moved: false, r: r };
     try { ui.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
     if ((S0.ui.ms || []).length) App.ctl.dispatch({ type: 'UI', patch: { ms: [] } });
     App.ctl.dispatch({ type: 'SELECT', id: s.id });
@@ -3229,21 +3268,15 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     }
     const w = toWorld(e);
     if (drag.group) {
-      let dx = w.x - drag.gx, dy = w.y - drag.gy;
-      // hiçbir daire tuvalin (dünya) sınırından taşmasın
-      let ax = dx, ay = dy;
-      drag.ids.forEach((id) => {
-        const o = drag.orig[id], c0 = geo.clampWorld(o.x + dx, o.y + dy, drag.rad[id]);
-        ax = dx >= 0 ? Math.min(ax, c0.x - o.x) : Math.max(ax, c0.x - o.x);
-        ay = dy >= 0 ? Math.min(ay, c0.y - o.y) : Math.max(ay, c0.y - o.y);
-      });
+      // hiçbir daire beyaz pencerenin (ve dünyanın) dışına çıkmasın
+      const a = fitShift(drag.items, w.x - drag.gx, w.y - drag.gy);
       const pos = {};
-      drag.ids.forEach((id) => { pos[id] = { x: drag.orig[id].x + ax, y: drag.orig[id].y + ay }; });
+      drag.ids.forEach((id) => { pos[id] = { x: drag.orig[id].x + a.x, y: drag.orig[id].y + a.y }; });
       App.ctl.dispatch({ type: 'SET_POSITIONS', positions: pos });
       if (ui.zoom) ui.zoom.edgePan(e.clientX, e.clientY);
       return;
     }
-    const c = geo.clampWorld(w.x + drag.dx, w.y + drag.dy, drag.r);
+    const c = fitPoint(w.x + drag.dx, w.y + drag.dy, drag.r, drag.ox, drag.oy);
     App.ctl.dispatch({ type: 'MOVE', id: drag.id, x: c.x, y: c.y });
     if (ui.zoom) ui.zoom.edgePan(e.clientX, e.clientY);
   }
@@ -3286,16 +3319,11 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     const n = e.shiftKey ? 20 : 4, dv = ms.DIRS[e.key];
     const rad = {};
     boxes(S).forEach((q) => { rad[q.id] = q.r; });
-    let ax = dv[0] * n, ay = dv[1] * n;
-    S.project.spaces.forEach((s) => {
-      if (!ms.has(list, s.id)) return;
-      const c0 = geo.clampWorld(s.x + dv[0] * n, s.y + dv[1] * n, rad[s.id]);
-      if (dv[0]) ax = dv[0] > 0 ? Math.min(ax, c0.x - s.x) : Math.max(ax, c0.x - s.x);
-      if (dv[1]) ay = dv[1] > 0 ? Math.min(ay, c0.y - s.y) : Math.max(ay, c0.y - s.y);
-    });
+    const items = S.project.spaces.filter((s) => ms.has(list, s.id)).map((s) => ({ x: s.x, y: s.y, r: rad[s.id] }));
+    const a = fitShift(items, dv[0] * n, dv[1] * n);
     App.ctl.dispatch({ type: 'DRAG_START' });
     const pos = {};
-    S.project.spaces.forEach((s) => { if (ms.has(list, s.id)) pos[s.id] = { x: s.x + ax, y: s.y + ay }; });
+    S.project.spaces.forEach((s) => { if (ms.has(list, s.id)) pos[s.id] = { x: s.x + a.x, y: s.y + a.y }; });
     App.ctl.dispatch({ type: 'SET_POSITIONS', positions: pos });
   });
 
@@ -3306,9 +3334,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     const by = new Map(P.spaces.map((s) => [s.id, s]));
     const farStrong = new Set(d.score.pairs.filter((p) => p.type === 'strong' && !p.ok).map((p) => p.key));
     const badAvoid = new Set(d.score.pairs.filter((p) => p.type === 'avoid' && !p.ok).map((p) => p.key));
-    const info = App.board.infoOf(P, d.score);
 
-    const stat = App.board.staticPrims(info, { live: true }).map((p) => App.board.primToV(p));
     const view = state.ui.view;
     const hitW = Math.round(geo.clampHit(26 / (ui.zoom ? ui.zoom.scale(view, state) : 1)));
 
@@ -3346,16 +3372,16 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
 
     const cls = 'board-svg' + (view ? ' moved' : '') + (state.ui.tool === 'hand' ? ' tool-hand' : '') + (state.ui.sp ? ' pan-ready' : '') + (state.ui.pn ? ' panning' : '');
     const svg = h('svg', {
-      id: 'pafta', class: cls, viewBox: ui.zoom ? ui.zoom.viewBox(view, state) : '0 0 ' + geo.W + ' ' + geo.H, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Bubble diagram paftası (sonsuz çalışma alanı: tekerlekle yakınlaştır, Boşluk + sürükleyerek kaydır)',
+      id: 'pafta', class: cls, style: { background: App.PAL.sheet }, viewBox: ui.zoom ? ui.zoom.viewBox(view, state) : '0 0 ' + geo.W + ' ' + geo.H, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Bubble diagram paftası (sonsuz çalışma alanı: tekerlekle yakınlaştır, Boşluk + sürükleyerek kaydır)',
       ref: (el) => { ui.svgEl = el; if (ui.zoom) ui.zoom.wire(el); }, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp,
       onpointerdown: bgDown,
-    }, ui.zoom ? ui.zoom.grid(view, state) : null, stat, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings),
+    }, ui.zoom ? ui.zoom.grid(view, state) : null, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings),
     grp.length ? ms.frame(ms.bounds(boxes(state).filter((q) => ms.has(grp, q.id))), 16) : null,
     state.ui.mq ? ms.marquee(state.ui.mq) : null);
 
     const needHelp = P.spaces.length >= 3 && d.score.percent != null && d.score.percent < 60;
     const empty = !P.spaces.length;
-    const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Boşlukta kutu çizerek birkaç daire seçin (Shift: ekle / çıkar) · Tekerlek: yakınlaştır / uzaklaştır · Boşluk + sürükle: kaydır — paftanın dışında da boş alan var';
+    const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Boşlukta kutu çizerek birkaç daire seçin (Shift: ekle / çıkar) · Tekerlek: yakınlaştır / uzaklaştır · Boşluk + sürükle: kaydır · Daireyi pencere kenarında tutarsanız pencere onunla birlikte ilerler';
 
     const attn = needHelp || P.meta.example;
     // slot: paftanın "güvenli alanı" (paneller arasında kalan boşluk). Tuval (stage) pencerenin tamamını kaplar; slot yalnızca
@@ -4485,21 +4511,21 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
         b('hand', hand ? 'El aracını kapat' : 'El aracı: sürükleyerek kaydır (Boşluk + sürükle de olur)', () => dispatch({ type: 'UI', patch: { tool: hand ? 'select' : 'hand' } }), hand),
         h('span', { class: 'gzoom-sep', 'aria-hidden': 'true' }),
         b('minus', 'Uzaklaştır (−)', () => Z.zoomBy(0.8)),
-        h('button', { type: 'button', class: 'gz-pct mono', title: 'Paftaya dön (0)', 'aria-label': 'Yakınlaştırma yüzde ' + Math.round((v ? v.k : 1) * 100) + ', paftaya dönmek için tıkla', onclick: Z.home }, Math.round((v ? v.k : 1) * 100) + '%'),
+        h('button', { type: 'button', class: 'gz-pct mono', title: 'Başlangıç görünümüne dön (0)', 'aria-label': 'Yakınlaştırma yüzde ' + Math.round((v ? v.k : 1) * 100) + ', başlangıç görünümüne dönmek için tıkla', onclick: Z.home }, Math.round((v ? v.k : 1) * 100) + '%'),
         b('plus', 'Yakınlaştır (+)', () => Z.zoomBy(1.25)),
         h('span', { class: 'gzoom-sep', 'aria-hidden': 'true' }),
-        b('fit', 'Pafta ve tüm daireleri göster', Z.fitAll),
+        b('fit', 'Tüm daireleri göster', Z.fitAll),
         b(foc ? 'shrink' : 'expand', foc ? 'Tam ekrandan çık (Esc)' : 'Tuvali tam ekran yap', () => Z.focus(), foc, 'gz-focus')));
   };
 
-  // sonsuz düzlem: her yerde nokta ızgarası (zemin kaydığını hissettirir; uzaklaşınca seyrekleşir, yaklaşınca sıklaşır)
+  // sonsuz beyaz pencere: her yerde ince nokta ızgarası (zemin kaydığını hissettirir; uzaklaşınca seyrekleşir, yaklaşınca sıklaşır)
   Z.grid = function (view, S) {
     const vp = VP(S), v = view || DEFAULT(), s = fitOf(vp) * v.k;
     const step = 50 * Math.pow(2, Math.ceil(Math.log2(30 / (50 * s)))); // ekranda ≈30–60 px arayla
     const x0 = v.cx - (vp.sx + vp.sw / 2) / s, y0 = v.cy - (vp.sy + vp.sh / 2) / s, w = vp.w / s, hh = vp.h / s;
     return [
       h('defs', { key: 'ws-defs' }, h('pattern', { id: 'ws-dots', patternUnits: 'userSpaceOnUse', x: -step / 2, y: -step / 2, width: step, height: step },
-        h('circle', { cx: step / 2, cy: step / 2, r: 1.3 / s, fill: 'var(--ink)', opacity: 0.2 }))),
+        h('circle', { cx: step / 2, cy: step / 2, r: 1.4 / s, fill: App.PAL.ink, opacity: 0.17 }))),
       h('rect', { key: 'ws-grid', x: x0 - step, y: y0 - step, width: w + 2 * step, height: hh + 2 * step, fill: 'url(#ws-dots)', 'pointer-events': 'none' }),
     ];
   };
