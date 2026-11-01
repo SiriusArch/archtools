@@ -23,7 +23,7 @@
     const d = App.state.derive(state);
     const t = state.ui.toast;
     const mod = state.ui.module;
-    return h('div', { class: 'app s-' + App.theme.name + ' m-' + mod + (mod === 'islev' && state.ui.assistantOpen ? ' as-open' : '') },
+    return h('div', { class: 'app s-' + App.theme.name + ' m-' + mod + (mod === 'islev' && state.ui.assistantOpen ? ' as-open' : '') + (mod === 'islev' && state.ui.focus ? ' cv-focus' : '') },
       App.ui.header(state, d),
       App.ui.scorebar(state, d),
       App.ui.pageMain(state, d),
@@ -60,6 +60,7 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Tab' || e.key.indexOf('Arrow') === 0) rootEl.classList.add('kbd'); }, true);
   document.addEventListener('pointerdown', function () { rootEl.classList.remove('kbd'); }, true);
   paint();
+  if (App.ui.zoom) App.ui.zoom.measure(); // güvenli alan ilk karede ölçülür (sonraki çizim ilk ekran karesinden önce yapılır)
   lastPct = App.state.derive(App.store.get()).score.percent;
 
   // açılış animasyonu: uygulama altta hazır, intro yumuşakça çözülür

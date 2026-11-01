@@ -15,21 +15,18 @@
     titleBlock: { x: FRAME, y: H - FRAME - TB_H, w: W - FRAME * 2, h: TB_H },
   });
 
-  /* Sonsuz tuval: pafta (levha) tuvalin ortasındaki bir sayfadır; daireler tuvalin her yerine bırakılabilir.
-     "Dünya" sınırı pafta boyutunun birkaç katıdır (sayıların makul kalması için); yakınlaştırma pafta sığdırmaya göre çarpandır (1 = pafta sığar). */
-  geo.WORLD = { x0: -3 * W, y0: -3 * H, x1: 4 * W, y1: 4 * H };
-  geo.ZOOM = { min: 0.12, max: 6 };
+  /* Sonsuz tuval: pafta (levha) sonsuz düzlemin ortasındaki bir sayfadır; daireler düzlemin her yerine bırakılabilir.
+     Dünya sınırı yalnızca sayıların makul kalması içindir (±1 milyon birim ≈ 700 pafta eni; kayan nokta hassasiyeti bozulmasın);
+     kullanıcı pratikte sınıra hiç takılmaz. Yakınlaştırma çarpanı paftanın görünür alana sığdığı ölçeğe göredir (1 = pafta sığar). */
+  geo.WORLD = { x0: -1e6, y0: -1e6, x1: 1e6, y1: 1e6 };
+  geo.ZOOM = { min: 0.02, max: 24 };
   geo.clampWorld = function (x, y, r) {
     const w = geo.WORLD, m = r || 0;
     return { x: clamp(x, w.x0 + m, w.x1 - m), y: clamp(y, w.y0 + m, w.y1 - m) };
   };
   geo.clampHit = (w) => clamp(w, 8, 90); // ilişki çizgisinin tıklama genişliği
   geo.inSheet = (x, y) => x >= geo.area.x0 && x <= geo.area.x1 && y >= geo.area.y0 && y <= geo.area.y1;
-  // görünüm: null (pafta sığdırılmış) ya da { cx, cy, k }; SVG viewBox'ı bundan üretilir (merkez + çarpan)
-  geo.viewBox = function (v) {
-    if (!v) return '0 0 ' + W + ' ' + H;
-    return (v.cx - W / (2 * v.k)) + ' ' + (v.cy - H / (2 * v.k)) + ' ' + (W / v.k) + ' ' + (H / v.k);
-  };
+  // görünüm: null (pafta görünür alana sığdırılmış) ya da { cx, cy, k }; SVG viewBox'ı 47-ui-zoom.js (Z.viewBox) üretir
   geo.normView = function (v) {
     if (!v) return null;
     const k = clamp(Number(v.k) || 1, geo.ZOOM.min, geo.ZOOM.max);

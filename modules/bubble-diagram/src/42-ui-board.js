@@ -7,7 +7,7 @@
   const ui = App.ui;
   const geo = App.geo;
 
-  let drag = null;
+  let drag = null, lastPt = null;
   const ms = App.multi;
   /* çoklu seçim: kutu çizerek ya da Shift + tıkla birkaç mekân seç, birini sürükleyince hepsi birlikte taşınır */
   const activeMs = (S) => { const have = new Set(S.project.spaces.map((s) => s.id)); const r = (S.ui.ms || []).filter((id) => have.has(id)); return !S.selectedId && r.length >= 2 ? r : []; };
@@ -19,17 +19,14 @@
     App.ctl.dispatch({ type: 'UI', patch: { ms: list } });
   };
 
-  function toWorld(e) {
-    const svg = ui.svgEl;
-    const pt = svg.createSVGPoint();
-    pt.x = e.clientX; pt.y = e.clientY;
-    return pt.matrixTransform(svg.getScreenCTM().inverse());
-  }
+  // istemci noktası → dünya (çözümsel: görünüm durumundan; DOM güncellemesini beklemez, otomatik kaydırmada da doğru kalır)
+  function toWorld(e) { return ui.zoom.toWorld(e.clientX, e.clientY); }
 
   // kıstırma / kaydırma başlayınca sürüklemeyi bırak (47-ui-zoom.js çağırır)
   ui.cancelDrag = function () {
     if (!drag) return;
-    drag = null; ui.dragging = false;
+    drag = null; ui.dragging = false; lastPt = null;
+    if (ui.zoom) ui.zoom.stopEdge();
     App.ctl.dispatch({ type: 'UI', patch: { mq: null } });
   };
   const zoomBusy = () => !!(ui.zoom && ui.zoom.busy());
@@ -72,6 +69,7 @@
   }
   function svgMove(e) {
     if (!drag || zoomBusy()) return;
+    lastPt = { clientX: e.clientX, clientY: e.clientY, pointerId: e.pointerId };
     if (drag.marq) {
       if (!drag.moved) {
         if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 4) return;
@@ -80,6 +78,7 @@
       }
       const w1 = toWorld(e);
       App.ctl.dispatch({ type: 'UI', patch: { mq: ms.rect([drag.wx, drag.wy], [w1.x, w1.y]) } });
+      if (ui.zoom) ui.zoom.edgePan(e.clientX, e.clientY);
       return;
     }
     if (!drag.moved) {
@@ -101,17 +100,22 @@
       const pos = {};
       drag.ids.forEach((id) => { pos[id] = { x: drag.orig[id].x + ax, y: drag.orig[id].y + ay }; });
       App.ctl.dispatch({ type: 'SET_POSITIONS', positions: pos });
+      if (ui.zoom) ui.zoom.edgePan(e.clientX, e.clientY);
       return;
     }
     const c = geo.clampWorld(w.x + drag.dx, w.y + drag.dy, drag.r);
     App.ctl.dispatch({ type: 'MOVE', id: drag.id, x: c.x, y: c.y });
+    if (ui.zoom) ui.zoom.edgePan(e.clientX, e.clientY);
   }
+  // otomatik kaydırma tuvali kaydırdığında sürüklenen öğeyi (işaretçi sabit) yeni dünya konumuna taşı
+  ui.redrag = function () { if (drag && lastPt) svgMove(lastPt); };
   function svgUp(e) {
     if (!drag || zoomBusy()) return;
     try { ui.svgEl.releasePointerCapture(e.pointerId); } catch (err) {}
     const g = drag;
-    drag = null;
+    drag = null; lastPt = null;
     ui.dragging = false;
+    if (ui.zoom) ui.zoom.stopEdge();
     if (g.marq) {
       const S = App.store.get();
       if (!g.moved) {
@@ -166,7 +170,7 @@
 
     const stat = App.board.staticPrims(info, { live: true }).map((p) => App.board.primToV(p));
     const view = state.ui.view;
-    const hitW = Math.round(geo.clampHit(26 / (view ? view.k : 1)));
+    const hitW = Math.round(geo.clampHit(26 / (ui.zoom ? ui.zoom.scale(view, state) : 1)));
 
     const lines = [];
     Object.keys(P.relations).forEach((key) => {
@@ -200,12 +204,12 @@
         h('title', {}, s.name + ' — ' + App.util.fmt(s.area) + ' m²'));
     });
 
-    const cls = 'board-svg' + (view ? ' zoomed' : '') + (state.ui.tool === 'hand' ? ' tool-hand' : '') + (state.ui.sp ? ' pan-ready' : '') + (state.ui.pn ? ' panning' : '');
+    const cls = 'board-svg' + (view ? ' moved' : '') + (state.ui.tool === 'hand' ? ' tool-hand' : '') + (state.ui.sp ? ' pan-ready' : '') + (state.ui.pn ? ' panning' : '');
     const svg = h('svg', {
-      id: 'pafta', class: cls, viewBox: geo.viewBox(view), preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Bubble diagram paftası (sonsuz tuval: tekerlekle yakınlaştır, Boşluk + sürükleyerek kaydır)',
+      id: 'pafta', class: cls, viewBox: ui.zoom ? ui.zoom.viewBox(view, state) : '0 0 ' + geo.W + ' ' + geo.H, preserveAspectRatio: 'xMidYMid meet', role: 'img', 'aria-label': 'Bubble diagram paftası (sonsuz çalışma alanı: tekerlekle yakınlaştır, Boşluk + sürükleyerek kaydır)',
       ref: (el) => { ui.svgEl = el; if (ui.zoom) ui.zoom.wire(el); }, onpointermove: svgMove, onpointerup: svgUp, onpointercancel: svgUp,
       onpointerdown: bgDown,
-    }, ui.zoom ? ui.zoom.grid(view) : null, stat, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings),
+    }, ui.zoom ? ui.zoom.grid(view, state) : null, stat, h('g', { class: 'lines' }, lines), h('g', { class: 'bubbles' }, bubbles), h('g', { class: 'rings' }, rings),
     grp.length ? ms.frame(ms.bounds(boxes(state).filter((q) => ms.has(grp, q.id))), 16) : null,
     state.ui.mq ? ms.marquee(state.ui.mq) : null);
 
@@ -214,21 +218,23 @@
     const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Boşlukta kutu çizerek birkaç daire seçin (Shift: ekle / çıkar) · Tekerlek: yakınlaştır / uzaklaştır · Boşluk + sürükle: kaydır — paftanın dışında da boş alan var';
 
     const attn = needHelp || P.meta.example;
-    const stage = h('div', { class: 'board-stage' },
-      svg,
-      ui.zoom ? ui.zoom.bar(state) : null,
+    // slot: paftanın "güvenli alanı" (paneller arasında kalan boşluk). Tuval (stage) pencerenin tamamını kaplar; slot yalnızca
+    // yerleşimdeki boşluğu ayırır ve yüzen öğeleri (zoom çubuğu, seçim çipi, boş durum) tutar.
+    const slot = h('div', { class: 'board-slot' },
+      h('div', { class: 'board-stage' }, svg),
       grp.length ? ms.chip(grp.length, { noun: 'mekân', onclear: () => ctl.dispatch({ type: 'UI', patch: { ms: [] } }) }) : null,
       empty ? h('div', { class: 'empty-card' },
         h('h2', { class: 'empty-title' }, 'Pafta boş'),
         h('p', {}, 'Soldaki formdan mekân adı ve m² girin, ya da hazır bir bina programıyla başlayın.'),
         h('div', { class: 'empty-actions' },
           ui.btn('Örnek konutu yükle', { icon: 'newdoc', cls: 'btn-primary', onclick: () => ctl.loadTemplate('konut', '2+1') }),
-          ui.btn('İlk mekânı ekle', { icon: 'plus', onclick: ctl.focusForm }))) : null);
+          ui.btn('İlk mekânı ekle', { icon: 'plus', onclick: ctl.focusForm }))) : null,
+      ui.zoom ? ui.zoom.bar(state) : null);
     const hintEl = hint ? h('p', { class: 'board-hint' }, hint, h('button', { type: 'button', class: 'hint-x', 'aria-label': 'İpucunu kapat', onclick: () => ctl.dispatch({ type: 'UI', patch: { hintDismissed: true } }) }, ui.icon('close', 14))) : null;
 
     return h('section', { class: 'board-wrap', 'aria-label': 'Pafta' },
       h('div', { class: 'gstrip' }, ui.glass.dial(state, d), ui.glass.dock(state, d, attn)),
-      stage,
+      slot,
       h('div', { class: 'board-foot' }, hintEl, h('span', { class: 'board-scale', title: 'Daire alanı m² ile orantılıdır. Çok küçük mekânlar okunabilirlik için en az 24 birim yarıçapla çizilir.' }, 'daire alanı ∝ m²')));
   };
 })();

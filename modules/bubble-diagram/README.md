@@ -9,24 +9,29 @@ Bağımlılıksız saf JS; `window.App` altında ad alanlı modüller.
 | 20–27 | saf mantık: geometri, skor, yerleşim, eşleştirme, analiz, asistan, pafta çizimi, dosya (JSON/PNG/PDF) |
 | 30 | state, reducer (modüller `App.state.hooks` ile eylem ekler), geri/ileri al |
 | 40–46 | ortak arayüz bileşenleri ve glass kabuğu |
-| 47 | sonsuz tuval: yakınlaştır / uzaklaştır / kaydır (`App.ui.zoom`) |
+| 47 | sonsuz çalışma alanı: yakınlaştır / kaydır / kıstır / kenarda otomatik kaydır (`App.ui.zoom`) |
 | 50 | controller (ortak: dışa aktarma `ctl.exporters[modül]`, dosya, tema, klavye) |
 
 Ortak çekirdek (00–27, 30, 40–50) bu klasördedir; diğer modüller ve kabuk `platform/src` ile kardeş klasörlerde durur. Derleme kökten: `python3 build.py`.
 
 `20–27` arayüzden bağımsızdır; React'e taşınabilir.
 
-## Sonsuz tuval (yakınlaştır / kaydır)
-Pafta (A3 levha, 1400 × 990 birim) tuvalin ortasındaki bir sayfadır; kullanıcı uzaklaşıp paftanın dışındaki boş alanı keşfeder, daireleri oraya bırakabilir. Görünüm yalnızca arayüz durumudur: `state.ui.view = null | { cx, cy, k }` (`null` = pafta pencereye sığdırılmış; `k` = sığdırmaya göre çarpan, 0,12 – 6). Projeye ve JSON'a **yazılmaz**.
+## Sonsuz çalışma alanı (yakınlaştır / kaydır)
+Tuval **pencerenin tamamını** kaplar (kenardan kenara, kutu yok); sol panel, üst bar, kadran ve asistan tuvalin üstünde yüzen cam kartlardır. Pafta (A3 levha, 1400 × 990 birim) bu sonsuz düzlemin ortasındaki bir sayfadır; kullanıcı her yöne sınırsız kayabilir, uzaklaşıp boş alanları keşfedebilir, daireleri düzlemin her yerine bırakabilir. Her yerde nokta ızgarası vardır (uzaklaşınca seyrekleşir, yaklaşınca sıklaşır).
 
-| Eylem | Kullanım |
-|---|---|
-| yakınlaştır / uzaklaştır | tekerlek (imlecin altındaki nokta sabit kalır), Ctrl + tekerlek / dokunmatik yüzey kıstırma, `+` / `−`, araç çubuğu |
-| kaydır | orta tuş sürükle · **Boşluk** + sürükle · **El aracı** · ok tuşları (seçili grup yokken, Shift ×3) |
-| dokunmatik | iki parmakla kıstır ve sürükle |
-| paftaya dön | `0` ya da yüzde göstergesine tık; "Pafta ve tüm daireleri göster" düğmesi ikisini birlikte sığdırır |
-
-Teknik notlar: SVG `viewBox` = `geo.viewBox(view)`; daire sürükleme, kutu seçimi ve ilişki çizgisi tıklaması `svg.getScreenCTM()` ile dünya koordinatı kullandığı için yakınlaştırmada da değişmeden çalışır. Dünya sınırı pafta boyutunun −3 … +4 katıdır (`geo.WORLD`). Paftanın dışındaki daireler: PNG/PDF çıktısı bunları içerecek şekilde genişler (hepsi paftadaysa çıktı değişmez, PDF sayfa oranı uyar); JSON'daki `x`/`y` olduğu gibi korunur; **Otomatik yerleştir** düğmesi bütün daireleri paftaya toplar ve görünümü pafta konumuna döndürür; mekân eklerken toplu yerleşim paftanın dışındaki daireleri yerinde bırakır (`autoLayout` `opts.fixed`), yeni mekân görünen alanın ortasına yerleşir.
+- **Durum:** `state.ui.view = null | { cx, cy, k }` — `null` pafta güvenli alana sığdırılmış varsayılan görünümdür; `k` sığdırmaya göre çarpandır (0,02 – 24; araç çubuğunda yüzde). `state.ui.vp = { w, h, sx, sy, sw, sh }` pencere boyutu ve **güvenli alan**dır (paneller arasında kalan boşluk, alttaki araç şeridi hariç); `ResizeObserver` ile ölçülür (`Z.measure`). Görünüm yalnızca arayüz durumudur: **projeye, JSON'a ve geri al yığınına yazılmaz**; `LOAD_PROJECT` görünümü sıfırlar.
+- **Dönüşüm (çözümsel, DOM'a bağlı değil):** SVG pencere boyutundadır; bakılan dünya noktası `(cx, cy)` güvenli alanın merkezine oturur, ekran ölçeği `s = sfit · k` (`sfit` = pafta güvenli alana sığma ölçeği). `Z.viewBox(view, state)` viewBox'ı üretir, `Z.toWorld(clientX, clientY)` işaretçiyi dünyaya çevirir (daire sürükleme, kutu seçimi, otomatik kaydırma hep bunu kullanır). Çizgi tıklama genişliği `geo.clampHit(26 / s)`.
+- **Sınır yok:** `geo.WORLD` = ±1 milyon birim (≈700 pafta eni; yalnızca kayan nokta hassasiyetini korur); `geo.clampWorld`, `geo.inSheet`, `geo.normView` (varsayılana çok yakın görünümü `null`'a çeker). JSON'da `x`/`y` bu dünya koordinatıdır (pafta 0…1400 × 0…990).
+- **Girdiler (`47-ui-zoom.js`, `App.ui.zoom`):**
+  - yakınlaştır/uzaklaştır: tekerlek (imlecin altındaki dünya noktası sabit), Ctrl + tekerlek / dokunmatik yüzey kıstırma, `+` / `−` (art arda basış hedefi biriktirir), araç çubuğu;
+  - kaydır: orta tuş sürükle, **Boşluk + sürükle**, **El aracı**, ok tuşları (seçili grup yokken; Shift ×3), dokunmatikte iki parmak;
+  - **kenara sürükleme:** daire (ya da seçim kutusu) güvenli alanın kenarına götürülünce tuval kendiliğinden kayar (`Z.edgePan`, ≤780 px/sn; daire işaretçinin altında kalır);
+  - `0` ya da yüzde göstergesi: paftaya dön; "Pafta ve tüm daireleri göster" paftayı ve bütün daireleri birlikte sığdırır;
+  - geçişler 260 ms, log ölçekte; `prefers-reduced-motion` ile anında.
+- **Yerleşim (CSS):** `.board-stage` `position: fixed; inset: 0` (tuval); `.board-slot` yerleşimde paneller arasındaki boşluğu ayırır ve yüzen araçları (`.gz-dock`, `.an-chip`, `.empty-card`) tutar; kartlar (`.gh`, `.sidebar`, `.gdial`, `.gdock`, `.assistant`, `.board-hint`) `z-index: 2` ile tuvalin üstündedir, aralarındaki boşluktaki tıklama tuvale gider. **Dar ekranda** (<1024 px) tuval sayfa akışında kenardan kenaradır; araç çubuğundaki **tam ekran** düğmesi (`ui.focus`, `.cv-focus`) tuvali pencerenin tamamı yapar (Esc ile çıkılır).
+- **Seçim/odak:** listeden ya da ilişkiden bir daire seçildiğinde (`SELECT`, `HIGHLIGHT`) görünüm dışındaysa görünüme kayar; "N daire görünüm dışında" düğmesi.
+- **Dışa aktarma:** `board.exportBox(project, k)` daireler pafta dışındaysa tuvali onları kapsayacak şekilde genişletir (+48 gölge payı; hepsi paftadaysa çıktı **değişmez**: PNG 2800×1980); piksel üst sınırı `min(…, 5000/max(w,h), √(16e6/(w·h)))` (çok uzak daire varsa çıktı küçülür); PDF sayfa oranı görüntüye uyar.
+- **Yerleşim algoritması:** "Otomatik yerleştir" bütün daireleri paftaya toplar ve görünümü `null` yapar; mekân eklerken toplu yerleşim paftanın dışındaki daireleri yerinde bırakır (`autoLayout` `opts.fixed`), yeni mekân görünen alanın ortasına (`freeSpot(…, center)`) yerleşir.
 
 ## JSON şeması
 ```json
