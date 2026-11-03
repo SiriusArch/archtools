@@ -4954,6 +4954,14 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
   const MSG = {
     name: 'Lütfen adınızı ve soyadınızı birlikte yazın (örn. Ayşe Yılmaz; rakam ve işaret kullanmayın).',
     email: 'E-posta zorunludur. Gmail, Hotmail / Outlook, Yahoo, iCloud, Yandex, Proton gibi güvenilir bir sağlayıcıdan ya da okul (.edu.tr) / kamu (.gov.tr) adresi girin.',
+    // sunucunun döndürdüğü nedene göre (api/_lib/names.js): ad soyad kuralları tek yerde, sunucuda
+    name_words: 'Adınızı ve soyadınızı birlikte yazın (örn. Ayşe Yılmaz).',
+    name_format: 'Ad soyad yalnızca Türkçe harflerden oluşmalı; rakam, işaret ve q / w / x kullanılamaz (en çok 4 sözcük).',
+    name_profanity: 'Ad soyad uygunsuz ifade içeremez. Lütfen gerçek adınızı ve soyadınızı yazın.',
+    name_first: 'Adınız tanınmadı. Lütfen gerçek adınızı Türkçe yazımıyla girin (örn. Sarp, Ayşe). Takma ad ve yabancı ad kabul edilmez.',
+    name_gibberish: 'Ad soyad geçerli görünmüyor. Lütfen gerçek adınızı ve soyadınızı yazın.',
+    email_profanity: 'E-posta adresi uygunsuz ifade içeremez.',
+    org_profanity: 'Kurum / okul adı uygunsuz ifade içeremez.',
     rate: 'Kısa sürede çok fazla deneme yapıldı. Lütfen biraz sonra tekrar deneyin.',
     offline: 'Sunucuya ulaşılamadı. Bağlantınızı kontrol edip yeniden deneyin.',
     server: 'Şu an kaydınız oluşturulamadı. Lütfen yeniden deneyin.',
@@ -4972,7 +4980,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
       h('label', { class: 'lbl', for: id }, label),
       h('input', { id: id, class: 'ginput', type: opts.type || 'text', maxlength: opts.max, value: F[opts.key], keep: true, autocomplete: opts.ac, inputmode: opts.im || null, placeholder: opts.ph || null,
         'aria-required': opts.req ? 'true' : null, 'aria-invalid': opts.invalid ? 'true' : null,
-        oninput: (e) => { F[opts.key] = e.target.value; if (G.error) G.error = null; redraw(); } }));
+        oninput: (e) => { F[opts.key] = e.target.value; if (G.error) { G.error = null; G.reason = ''; } redraw(); } }));
   }
 
   function rolesRow() {
@@ -4998,14 +5006,14 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     p.then(function (r) {
       G.busy = false;
       if (r.ok) { if (G.mode === 'profile') { G.saved = true; redraw(); setTimeout(function () { if (G && G.mode === 'profile') api.close(); }, 700); } else api.close(); return; }
-      G.error = r.error || 'server'; redraw();
+      G.error = r.error || 'server'; G.reason = r.reason || ''; redraw();
     });
   }
 
   function formCard() {
     const isForm = G.mode === 'form';
     if (!isForm && !G.loaded) return h('div', { class: 'gate-card', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Profilim ve gizlilik' }, h('h2', { class: 'gate-title' }, 'Profilim ve gizlilik'), h('p', { class: 'gate-lead' }, 'Yükleniyor…'));
-    const err = G.error ? MSG[G.error] || MSG.server : null;
+    const err = G.error ? MSG[G.error + '_' + G.reason] || MSG[G.error] || MSG.server : null;
     const canSkip = isForm && (G.error === 'offline' || G.error === 'server' || G.error === 'store_unavailable');
     const cl = contactLine();
     return h('div', { class: 'gate-card', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'gate-title', 'aria-describedby': 'gate-lead' },
@@ -5019,7 +5027,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
       G.notice ? h('p', { class: 'gate-notice', role: 'status' }, G.notice) : null,
       h('form', { class: 'gate-form', novalidate: true, onsubmit: (e) => { e.preventDefault(); submit(); } },
         field('g-name', 'Ad Soyad', { key: 'name', max: 80, ac: 'name', req: true, ph: 'Örn. Ayşe Yılmaz', invalid: G.error === 'name' }),
-        field('g-org', 'Kurum / okul (isteğe bağlı)', { key: 'org', max: 80, ac: 'organization', ph: 'Örn. ODTÜ Mimarlık' }),
+        field('g-org', 'Kurum / okul (isteğe bağlı)', { key: 'org', max: 80, ac: 'organization', ph: 'Örn. ODTÜ Mimarlık', invalid: G.error === 'org' }),
         field('g-mail', 'E-posta', { key: 'email', max: 120, ac: 'email', type: 'email', im: 'email', ph: 'ad@gmail.com', req: true, invalid: G.error === 'email' }),
         rolesRow(),
         err ? h('p', { class: 'gate-err', role: 'alert' }, err) : null,
@@ -5185,7 +5193,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     register: function (f) {
       return post(Object.assign({ a: 'reg' }, f, env())).then(function (r) {
         if (r.status === 200 && r.j.ok) { cred = { vid: r.j.vid, token: r.j.token }; write(cred); return startSession().then(function () { repaint(); setTimeout(function () { V.locate(); }, 400); return { ok: true }; }); } // kayıttan sonra tarayıcı konum izni sorulur (reddedilirse sorun yok)
-        return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server' };
+        return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server', reason: r.j.reason || '' };
       });
     },
     // tarayıcı konumu: tarayıcı kendi izin penceresini gösterir; yalnızca izin verilirse yaklaşık konum gönderilir
@@ -5202,7 +5210,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
       return post(auth(Object.assign({ a: 'upd' }, f))).then(function (r) {
         if (r.status === 200) return { ok: true };
         if (r.status === 401 || r.status === 403) onAuthFail(r);
-        return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server' };
+        return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server', reason: r.j.reason || '' };
       });
     },
     // açık kalan oturumu kapat (yalnızca kapı "yine de devam et" derse)

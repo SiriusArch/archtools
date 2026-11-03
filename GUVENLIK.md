@@ -11,7 +11,7 @@ Bu belge neyin neden korunduğunu ve sınırlarını özetler. Kurulum için [KU
 ## Ziyaretçi verisi
 | Konu | Uygulama |
 |---|---|
-| Kimlik | Ad soyad + e-posta (yalnızca güvenilir sağlayıcılar: Gmail, Hotmail / Outlook, Yahoo, iCloud, Yandex, Proton vb. ve .edu.tr / .gov.tr) + rıza zorunlu; kurum / rol isteğe bağlı. Google hesabı gerekmez. **Kimlikler beyana dayanır, doğrulanmaz.** |
+| Kimlik | Ad soyad + e-posta (yalnızca güvenilir sağlayıcılar: Gmail, Hotmail / Outlook, Yahoo, iCloud, Yandex, Proton vb. ve .edu.tr / .gov.tr) zorunlu; kurum / rol isteğe bağlı. Ad soyad sunucuda denetlenir (`api/_lib/names.js`): Türk alfabesi, ilk ad Türkçe ad listesinde (~1.470 ad), küfür / hakaret (rakam-simge ikamesi ve ayrık yazım dahil), anlamsız yazı ve yer tutucu reddedilir; yazım kanonikleşir ("sarp gönülal" → "Sarp Gönülal"). Kurum adı ve e-posta kullanıcı adı da küfür denetiminden geçer. Google hesabı gerekmez. **Kimlikler beyana dayanır, doğrulanmaz.** |
 | IP adresi | **Saklanmaz.** Hız sınırı için yalnızca tuzlu tek yönlü özet, en çok 1 gün yaşayan sayaç anahtarında. |
 | User-Agent | Ham metin saklanmaz; "Chrome · Windows · masaüstü" gibi kaba etiketler. |
 | Konum | Barındırıcının verdiği ülke / şehir (IP kaynaklı) + **yalnızca ziyaretçi tarayıcı iznini verirse** yaklaşık konum (enlem / boylam ≈110 m'ye yuvarlanır; `Permissions-Policy: geolocation=(self)`). Ziyaretçi "Profilim ve gizlilik" penceresinden güncelleyebilir / silebilir. |

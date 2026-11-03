@@ -1,4 +1,5 @@
 'use strict';
+const N = require('./names');
 /* validate.js — girdi temizleme ve doğrulama. Hiçbir istemci değerine güvenilmez. */
 
 const ROLES = ['mimar', 'ogrenci', 'akademisyen', 'ofis', 'kamu', 'gayrimenkul', 'diger'];
@@ -11,7 +12,6 @@ function clean(v, max) {
   if (typeof v !== 'string') return '';
   return v.normalize('NFC').replace(BAD, '').replace(/\s+/g, ' ').trim().slice(0, max);
 }
-const NAME = /^[\p{L}\p{M}][\p{L}\p{M} .'’-]{1,79}$/u;
 const EMAIL = /^[a-z0-9][a-z0-9._%+-]{0,63}@[a-z0-9.-]{3,190}$/;
 /* E-posta zorunludur ve yalnızca güvenilir sağlayıcılardan kabul edilir (tek kullanımlık / uydurma adresleri ayıklamak için).
    İstemci (platform/src/51-ui-gate.js) aynı listeyi kullanır; değiştirirseniz ikisini birlikte güncelleyin (tests/api.test.mjs eşitliği denetler). */
@@ -28,14 +28,19 @@ const VID = /^[A-Za-z0-9_-]{16}$/;
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const SID = /^[A-Za-z0-9_-]{12,24}$/;
 
+// Ad soyad kuralları (küfür, anlamsız yazı, Türkçe ad listesi, kanonik yazım) names.js içindedir; hata nedeni (reason) istemciye döner
 function profile(b) {
-  const name = clean(b.name, 80);
-  if (!NAME.test(name) || name.split(' ').filter((w) => w.replace(/[^\p{L}]/gu, '').length >= 2).length < 2) return { error: 'name' }; // ad + soyad
+  const n = N.personName(clean(b.name, 80));
+  if (n.error) return { error: 'name', reason: n.reason };
+  const name = n.value;
   const email = clean(b.email, 120).toLowerCase();
   if (!mailOk(email)) return { error: 'email' };
+  if (N.profane(email.slice(0, email.indexOf('@')))) return { error: 'email', reason: 'profanity' };
+  const org = clean(b.org, 80);
+  if (org && N.profane(org)) return { error: 'org', reason: 'profanity' };
   const role = clean(b.role, 20);
   if (role && ROLES.indexOf(role) < 0) return { error: 'role' };
-  return { value: { name: name, org: clean(b.org, 80), email: email, role: role } };
+  return { value: { name: name, org: org, email: email, role: role } };
 }
 const int = (v, a, z) => { const n = Math.floor(Number(v)); return Number.isFinite(n) ? Math.max(a, Math.min(z, n)) : a; };
 function env(b) { // istemci ortamı: kaba, sınırlı ve yalnızca biçim denetimli

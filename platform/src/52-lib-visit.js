@@ -112,7 +112,7 @@
     register: function (f) {
       return post(Object.assign({ a: 'reg' }, f, env())).then(function (r) {
         if (r.status === 200 && r.j.ok) { cred = { vid: r.j.vid, token: r.j.token }; write(cred); return startSession().then(function () { repaint(); setTimeout(function () { V.locate(); }, 400); return { ok: true }; }); } // kayıttan sonra tarayıcı konum izni sorulur (reddedilirse sorun yok)
-        return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server' };
+        return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server', reason: r.j.reason || '' };
       });
     },
     // tarayıcı konumu: tarayıcı kendi izin penceresini gösterir; yalnızca izin verilirse yaklaşık konum gönderilir
@@ -129,7 +129,7 @@
       return post(auth(Object.assign({ a: 'upd' }, f))).then(function (r) {
         if (r.status === 200) return { ok: true };
         if (r.status === 401 || r.status === 403) onAuthFail(r);
-        return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server' };
+        return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server', reason: r.j.reason || '' };
       });
     },
     // açık kalan oturumu kapat (yalnızca kapı "yine de devam et" derse)

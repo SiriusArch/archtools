@@ -23,7 +23,7 @@ module.exports = async function handler(req, res) {
 
     if (a === 'reg') {
       const p = V.profile(b);
-      if (p.error) return fail(res, 400, p.error);
+      if (p.error) return send(res, 400, { ok: false, error: p.error, reason: p.reason || '' });
       const ik = ipKey(req);
       if (!(await D.limit('reg:' + ik, 8, 3600)) || !(await D.limit('reg:all:' + new Date().toISOString().slice(0, 10), 3000, 86400))) return fail(res, 429, 'rate');
       const r = await D.register(p.value, V.env(b), req);
@@ -49,7 +49,7 @@ module.exports = async function handler(req, res) {
     if (a === 'me') return send(res, 200, { ok: true, profile: await D.me(b.vid) });
     if (a === 'upd') {
       const p = V.profile(b);
-      if (p.error) return fail(res, 400, p.error);
+      if (p.error) return send(res, 400, { ok: false, error: p.error, reason: p.reason || '' });
       await D.update(b.vid, p.value);
       return send(res, 200, { ok: true });
     }

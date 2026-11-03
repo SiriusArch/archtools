@@ -70,6 +70,31 @@ test('e-posta zorunlu ve yalnızca güvenilir sağlayıcı; ad soyad zorunlu', a
   (V.default || V).MAIL_SUFFIXES.forEach((d) => assert.ok(gate.includes("'" + d + "'"), 'istemci uzantı listesinde yok: ' + d));
 });
 
+test('ad soyad: küfür, anlamsız yazı, yabancı / takma ad reddedilir; yazım kanonikleşir', async () => {
+  const bad = {
+    profanity: ['Orospu Çocuğu', 'Ali Orospu', 'Ahmet S1kt1r', 'Ahmet Oros Pu', 'Mehmet Amk', 'Zeynep Fuckmann', 'Ayşe Yarrrak'],
+    first: ['John Smith', 'Elon Musk', 'Batman Robin', 'Kralım Benim'],
+    gibberish: ['asd asd', 'Ahmet Asdasd', 'Ahmet Kkkk', 'Ahmet Bcdfg', 'Test Deneme', 'Mehmet Bey', 'Ayşe Abcabc'],
+    format: ['Ahmet 123', 'Ayşe Yılmaz Kaya Demir Öz', 'Ali Wolf', 'Ayşe X.'],
+    words: ['Sarp', ''],
+  };
+  for (const reason of Object.keys(bad)) for (const n of bad[reason]) {
+    const r = await regIp({ name: n });
+    assert.equal(r.json.error, 'name', n); assert.equal(r.json.reason, reason, n + ' → ' + r.json.reason);
+  }
+  const canon = { 'sarp gönülal': 'Sarp Gönülal', 'SARP GÖNÜLAL': 'Sarp Gönülal', 'ayse yilmaz': 'Ayşe Yilmaz', 'ayşe nur yılmaz': 'Ayşe Nur Yılmaz', 'ata şakir kaya': 'Ata Şakir Kaya', 'nigar türkmen': 'Nigar Türkmen', 'ilker kırkpınar': 'İlker Kırkpınar', 'berivan aslan': 'Berivan Aslan' };
+  for (const n of Object.keys(canon)) {
+    const r = await regIp({ name: n });
+    assert.equal(r.status, 200, n);
+    assert.equal(store.toObj(await store.cmd('HGETALL', 'at:v:' + r.json.vid)).name, canon[n]);
+  }
+  assert.equal((await regIp({ email: 'orospu@gmail.com' })).json.reason, 'profanity');
+  assert.equal((await regIp({ org: 'Amk Ltd' })).json.error, 'org');
+  // listedeki her ad, soyadla birlikte kabul edilir; hiçbiri küfür sayılmaz
+  const N = require('../api/_lib/names.js');
+  assert.deepEqual(N.GIVEN.filter((g) => !N.personName(g + ' Yılmaz').value), []);
+});
+
 test('konum: yalnızca kimlikli ve geçerli; yaklaşık saklanır; silinebilir; yönetici listesinde görünür', async () => {
   const a = (await regIp()).json;
   const ok = (extra) => call(v, Object.assign({ a: 'loc', vid: a.vid, token: a.token }, extra));
@@ -90,7 +115,7 @@ test('konum: yalnızca kimlikli ve geçerli; yaklaşık saklanır; silinebilir; 
 });
 
 test('nabız: süre birikir, sınırlanır, olaylar yalnızca izinli türlerle kaydolur; oturum çalınamaz', async () => {
-  const a = (await reg()).json, b = (await reg({ name: 'Başka Kişi' })).json;
+  const a = (await reg()).json, b = (await reg({ name: 'Berk Aydın' })).json;
   const sid = 'sidsidsidsid1234';
   assert.equal((await call(v, { a: 'ping', vid: a.vid, token: 'x'.repeat(43), sid, sec: 10 })).status, 401);
   let r = await call(v, { a: 'ping', vid: a.vid, token: a.token, sid, sec: 30, ev: [{ k: 'start' }, { k: 'palette', d: 'cp4811' }, { k: '<script>' }, { k: 'export_png', d: 'a b<c' }] });
@@ -107,8 +132,8 @@ test('nabız: süre birikir, sınırlanır, olaylar yalnızca izinli türlerle k
 test('engelleme, kendi verisini görme / düzeltme / silme', async () => {
   const a = (await reg()).json;
   assert.equal((await call(v, { a: 'me', vid: a.vid, token: a.token })).json.profile.org, 'ODTÜ');
-  assert.equal((await call(v, { a: 'upd', vid: a.vid, token: a.token, name: 'Yeni Ad Soyad', org: '', email: 'yeni@hotmail.com', role: '' })).status, 200);
-  assert.equal((await call(v, { a: 'me', vid: a.vid, token: a.token })).json.profile.name, 'Yeni Ad Soyad');
+  assert.equal((await call(v, { a: 'upd', vid: a.vid, token: a.token, name: 'mehmet ali öztürk', org: '', email: 'yeni@hotmail.com', role: '' })).status, 200);
+  assert.equal((await call(v, { a: 'me', vid: a.vid, token: a.token })).json.profile.name, 'Mehmet Ali Öztürk') // kanonik yazım;
   await store.cmd('HSET', 'at:v:' + a.vid, 'bl', '1');
   assert.equal((await call(v, { a: 'ping', vid: a.vid, token: a.token, sid: 'blockblockblock1', sec: 1 })).json.error, 'blocked');
   await store.cmd('HSET', 'at:v:' + a.vid, 'bl', '0');
