@@ -124,7 +124,6 @@
         }, function (e) { resolve({ ok: false, error: e && e.code === 1 ? 'denied' : 'unavailable' }); }, { enableHighAccuracy: false, timeout: 20000, maximumAge: 600000 });
       });
     },
-    clearLocation: function () { return post(auth({ a: 'loc', clear: true })).then(function (r) { return { ok: r.status === 200 }; }); },
     me: function () { return post(auth({ a: 'me' })).then(function (r) { return r.status === 200 ? r.j.profile : (onAuthFail(r), null); }); },
     update: function (f) {
       return post(auth(Object.assign({ a: 'upd' }, f))).then(function (r) {

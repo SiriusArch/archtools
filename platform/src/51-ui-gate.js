@@ -32,8 +32,6 @@
     server: 'Şu an kaydınız oluşturulamadı. Lütfen yeniden deneyin.',
     store_unavailable: 'Şu an kaydınız oluşturulamadı. Lütfen yeniden deneyin.',
   };
-  const LOC = { denied: 'Tarayıcı konum izni verilmedi. İsterseniz tarayıcının adres çubuğundaki izin ayarından açıp yeniden deneyebilirsiniz.', unsupported: 'Bu tarayıcı konum paylaşımını desteklemiyor.', unavailable: 'Konum şu an alınamadı. Daha sonra yeniden deneyin.', server: 'Konum kaydedilemedi. Daha sonra yeniden deneyin.' };
-
   let G = null; // { mode, busy, error, notice, loaded }
   let F = { name: '', org: '', email: '', role: '' };
   let paint = null, root = null, opener = null;
@@ -103,25 +101,9 @@
           h('button', { type: 'submit', class: 'btn btn-primary', disabled: G.busy || !valid() }, G.busy ? 'Kaydediliyor…' : isForm ? 'Devam et' : 'Kaydet'),
           !isForm ? h('button', { type: 'button', class: 'btn', onclick: () => api.close() }, 'Kapat') : null,
           canSkip ? h('button', { type: 'button', class: 'btn', onclick: () => { App.visit.skip(); api.close(); } }, 'Yine de devam et') : null)),
-      !isForm ? locBlock() : null,
       cl ? h('p', { class: 'gate-meta' }, cl) : null);
   }
 
-  // konum (isteğe bağlı): tarayıcının izin penceresi açılır; yalnızca izin verirseniz yaklaşık konum (≈110 m) yöneticiye görünür
-  function locBlock() {
-    const l = G.loc;
-    return h('div', { class: 'gate-fld' },
-      h('span', { class: 'lbl' }, 'Konum (isteğe bağlı)'),
-      h('p', { class: 'gate-meta' }, l ? 'Yaklaşık konumunuz paylaşıldı (' + l.lat.toFixed(3) + ', ' + l.lon.toFixed(3) + ').' : 'Tarayıcı konum izni verilmediğinde yönetici yalnızca IP kaynaklı ülke / şehir bilgisini görür.'),
-      G.locMsg ? h('p', { class: 'gate-err', role: 'status' }, G.locMsg) : null,
-      l ? h('div', { class: 'gate-actions' },
-        h('button', { type: 'button', class: 'btn', disabled: G.busy, onclick: dropLoc }, 'Konumumu sil')) : null);
-  }
-  function dropLoc() {
-    if (G.busy) return;
-    G.busy = true; redraw();
-    App.visit.clearLocation().then(function () { G.busy = false; G.loc = null; G.locMsg = null; redraw(); });
-  }
 
   function blockedCard() {
     return h('div', { class: 'gate-card', role: 'alertdialog', 'aria-modal': 'true', 'aria-labelledby': 'gate-title' },
@@ -147,7 +129,7 @@
       inertApp(true);
       redraw();
       if (mode === 'profile') {
-        App.visit.me().then(function (p) { if (!G || G.mode !== 'profile') return; if (p) { F.name = p.name; F.org = p.org; F.email = p.email; F.role = p.role; G.loc = p.loc || null; } G.loaded = true; redraw(); setTimeout(function () { const el = document.getElementById('g-name'); if (el) el.focus(); }, 30); });
+        App.visit.me().then(function (p) { if (!G || G.mode !== 'profile') return; if (p) { F.name = p.name; F.org = p.org; F.email = p.email; F.role = p.role; } G.loaded = true; redraw(); setTimeout(function () { const el = document.getElementById('g-name'); if (el) el.focus(); }, 30); });
       } else setTimeout(function () { const el = document.getElementById(mode === 'form' ? 'g-name' : 'gate-title'); if (el) el.focus(); }, 60);
     },
     close: function () {
