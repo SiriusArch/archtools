@@ -5039,19 +5039,10 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     const l = G.loc;
     return h('div', { class: 'gate-fld' },
       h('span', { class: 'lbl' }, 'Konum (isteğe bağlı)'),
-      h('p', { class: 'gate-meta' }, l ? 'Yaklaşık konumunuz paylaşıldı (' + l.lat.toFixed(3) + ', ' + l.lon.toFixed(3) + ').' : 'Tarayıcı konumunuz paylaşılmıyor; yönetici yalnızca IP kaynaklı ülke / şehir bilgisini görür.'),
+      h('p', { class: 'gate-meta' }, l ? 'Yaklaşık konumunuz paylaşıldı (' + l.lat.toFixed(3) + ', ' + l.lon.toFixed(3) + ').' : 'Tarayıcı konum izni verilmediğinde yönetici yalnızca IP kaynaklı ülke / şehir bilgisini görür.'),
       G.locMsg ? h('p', { class: 'gate-err', role: 'status' }, G.locMsg) : null,
-      h('div', { class: 'gate-actions' },
-        h('button', { type: 'button', class: 'btn', disabled: G.busy, onclick: shareLoc }, l ? 'Konumu güncelle' : 'Konumumu paylaş'),
-        l ? h('button', { type: 'button', class: 'btn', disabled: G.busy, onclick: dropLoc }, 'Konumumu sil') : null));
-  }
-  function shareLoc() {
-    if (G.busy) return;
-    G.busy = true; G.locMsg = null; redraw();
-    App.visit.locate().then(function (r) {
-      G.busy = false;
-      if (r.ok) App.visit.me().then(function (p) { if (G) { G.loc = p && p.loc; redraw(); } }); else { G.locMsg = LOC[r.error] || LOC.server; redraw(); }
-    });
+      l ? h('div', { class: 'gate-actions' },
+        h('button', { type: 'button', class: 'btn', disabled: G.busy, onclick: dropLoc }, 'Konumumu sil')) : null);
   }
   function dropLoc() {
     if (G.busy) return;
@@ -5167,8 +5158,16 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
   // profil düğmesi gibi durum bağımlı arayüz, durum değişince yeniden çizilsin (ui.visitTick yalnızca yeniden çizim tetikler)
   function repaint() { try { if (App.store) App.store.dispatch({ type: 'UI', patch: { visitTick: Date.now() } }); } catch (e) {} }
 
+  // tarayıcıda konum izni zaten verilmişse (kalıcı izin), oturum başında sessizce konum gönderilir; izin sorulmaz
+  function autoLocate() {
+    try {
+      if (!navigator.permissions || !navigator.permissions.query) return;
+      navigator.permissions.query({ name: 'geolocation' }).then(function (p) { if (p.state === 'granted') V.locate(); }, function () {});
+    } catch (e) {}
+  }
+
   function startSession() {
-    status = 'ok'; startTimers();
+    status = 'ok'; startTimers(); autoLocate();
     queue.push({ k: 'start' });
     return post(auth({ a: 'ping', sid: sid, sec: 0, ev: queue.splice(0, 8) })).then(function (r) {
       if (r.status === 200) return;

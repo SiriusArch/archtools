@@ -112,19 +112,10 @@
     const l = G.loc;
     return h('div', { class: 'gate-fld' },
       h('span', { class: 'lbl' }, 'Konum (isteğe bağlı)'),
-      h('p', { class: 'gate-meta' }, l ? 'Yaklaşık konumunuz paylaşıldı (' + l.lat.toFixed(3) + ', ' + l.lon.toFixed(3) + ').' : 'Tarayıcı konumunuz paylaşılmıyor; yönetici yalnızca IP kaynaklı ülke / şehir bilgisini görür.'),
+      h('p', { class: 'gate-meta' }, l ? 'Yaklaşık konumunuz paylaşıldı (' + l.lat.toFixed(3) + ', ' + l.lon.toFixed(3) + ').' : 'Tarayıcı konum izni verilmediğinde yönetici yalnızca IP kaynaklı ülke / şehir bilgisini görür.'),
       G.locMsg ? h('p', { class: 'gate-err', role: 'status' }, G.locMsg) : null,
-      h('div', { class: 'gate-actions' },
-        h('button', { type: 'button', class: 'btn', disabled: G.busy, onclick: shareLoc }, l ? 'Konumu güncelle' : 'Konumumu paylaş'),
-        l ? h('button', { type: 'button', class: 'btn', disabled: G.busy, onclick: dropLoc }, 'Konumumu sil') : null));
-  }
-  function shareLoc() {
-    if (G.busy) return;
-    G.busy = true; G.locMsg = null; redraw();
-    App.visit.locate().then(function (r) {
-      G.busy = false;
-      if (r.ok) App.visit.me().then(function (p) { if (G) { G.loc = p && p.loc; redraw(); } }); else { G.locMsg = LOC[r.error] || LOC.server; redraw(); }
-    });
+      l ? h('div', { class: 'gate-actions' },
+        h('button', { type: 'button', class: 'btn', disabled: G.busy, onclick: dropLoc }, 'Konumumu sil')) : null);
   }
   function dropLoc() {
     if (G.busy) return;

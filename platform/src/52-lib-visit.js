@@ -67,8 +67,16 @@
   // profil düğmesi gibi durum bağımlı arayüz, durum değişince yeniden çizilsin (ui.visitTick yalnızca yeniden çizim tetikler)
   function repaint() { try { if (App.store) App.store.dispatch({ type: 'UI', patch: { visitTick: Date.now() } }); } catch (e) {} }
 
+  // tarayıcıda konum izni zaten verilmişse (kalıcı izin), oturum başında sessizce konum gönderilir; izin sorulmaz
+  function autoLocate() {
+    try {
+      if (!navigator.permissions || !navigator.permissions.query) return;
+      navigator.permissions.query({ name: 'geolocation' }).then(function (p) { if (p.state === 'granted') V.locate(); }, function () {});
+    } catch (e) {}
+  }
+
   function startSession() {
-    status = 'ok'; startTimers();
+    status = 'ok'; startTimers(); autoLocate();
     queue.push({ k: 'start' });
     return post(auth({ a: 'ping', sid: sid, sec: 0, ev: queue.splice(0, 8) })).then(function (r) {
       if (r.status === 200) return;
