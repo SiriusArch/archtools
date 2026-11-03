@@ -1,6 +1,6 @@
 'use strict';
 /* /api/v — ziyaretçi uç noktası (POST, JSON). İşlemler (a):
-     reg      profil oluştur (açık rıza zorunlu)  → { vid, token }
+     reg      profil oluştur  → { vid, token }
      ping     etkin süre + olay nabzı (30 sn'de bir; oturum başlangıcı da buradan)
      loc      tarayıcı konumu (yalnızca kullanıcı izin verirse; yaklaşık) ya da { clear: true } ile sil
      me       kendi profilini getir     upd  kendi profilini güncelle     del  tüm verilerimi sil
@@ -22,7 +22,6 @@ module.exports = async function handler(req, res) {
     if (!store.configured()) return fail(res, 503, 'store_unavailable');
 
     if (a === 'reg') {
-      if (b.consent !== true || b.cv !== V.CONSENT_VERSION) return fail(res, 400, 'consent');
       const p = V.profile(b);
       if (p.error) return fail(res, 400, p.error);
       const ik = ipKey(req);

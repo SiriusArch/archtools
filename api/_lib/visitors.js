@@ -35,7 +35,7 @@ async function register(p, env, req) {
   const row = {
     name: p.name, org: p.org, email: p.email, role: p.role, th: C.sha256(token),
     co: g.country, ci: g.city, dev: ua.dev, br: ua.br, os: ua.os, tz: env.tz, lg: env.lg, sw: env.sw, sh: env.sh, dpr: env.dpr,
-    cat: now, fs: now, ls: now, nv: 0, ts: 0, bl: 0, cv: V.CONSENT_VERSION, ca: now,
+    cat: now, fs: now, ls: now, nv: 0, ts: 0, bl: 0, cv: '', ca: 0,
   };
   const flat = []; Object.keys(row).forEach((x) => flat.push(x, row[x]));
   const ttl = RET();

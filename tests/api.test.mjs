@@ -43,9 +43,7 @@ test('CSRF ve biçim korumaları', async () => {
   assert.match(c.headers['cache-control'], /no-store/);
 });
 
-test('kayıt: rıza zorunlu, girdi doğrulanır, token yalnızca özet olarak saklanır', async () => {
-  assert.equal((await reg({ consent: false })).json.error, 'consent');
-  assert.equal((await reg({ cv: 'eski' })).json.error, 'consent');
+test('kayıt: girdi doğrulanır, token yalnızca özet olarak saklanır', async () => {
   assert.equal((await reg({ name: '<img onerror=x>' })).json.error, 'name');
   assert.equal((await reg({ email: 'bozuk' })).json.error, 'email');
   assert.equal((await reg({ role: 'hacker' })).json.error, 'role');

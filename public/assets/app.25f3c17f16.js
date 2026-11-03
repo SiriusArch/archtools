@@ -4927,7 +4927,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
 
 /* ==========================================================================
    51-ui-gate.js — profil kapısı (ilk ziyaret) ve "Profilim ve gizlilik" penceresi
-   Kapı zorunludur: ad soyad + e-posta (güvenilir sağlayıcı) + açık rıza olmadan site kullanılmaz. Google / e-posta doğrulaması yoktur; bilgiler kişinin beyanıdır.
+   Kapı zorunludur: ad soyad + e-posta (güvenilir sağlayıcı) olmadan site kullanılmaz. Google / e-posta doğrulaması yoktur; bilgiler kişinin beyanıdır.
    Pencere ayrı bir sanal-DOM kökünde (#gate-root) çizilir; açıkken uygulama (#root) etkileşime kapatılır (inert).
    Kullanım: App.ui.gate.open('form' | 'profile' | 'blocked')  ·  mantık ve ağ: App.visit (52-lib-visit.js)
    ========================================================================== */
@@ -4954,7 +4954,6 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
   const MSG = {
     name: 'Lütfen adınızı ve soyadınızı birlikte yazın (örn. Ayşe Yılmaz; rakam ve işaret kullanmayın).',
     email: 'E-posta zorunludur. Gmail, Hotmail / Outlook, Yahoo, iCloud, Yandex, Proton gibi güvenilir bir sağlayıcıdan ya da okul (.edu.tr) / kamu (.gov.tr) adresi girin.',
-    consent: 'Devam etmek için aydınlatma metnini onaylamanız gerekir.',
     rate: 'Kısa sürede çok fazla deneme yapıldı. Lütfen biraz sonra tekrar deneyin.',
     offline: 'Sunucuya ulaşılamadı. Bağlantınızı kontrol edip yeniden deneyin.',
     server: 'Şu an kaydınız oluşturulamadı. Lütfen yeniden deneyin.',
@@ -4963,10 +4962,10 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
   const LOC = { denied: 'Tarayıcı konum izni verilmedi. İsterseniz tarayıcının adres çubuğundaki izin ayarından açıp yeniden deneyebilirsiniz.', unsupported: 'Bu tarayıcı konum paylaşımını desteklemiyor.', unavailable: 'Konum şu an alınamadı. Daha sonra yeniden deneyin.', server: 'Konum kaydedilemedi. Daha sonra yeniden deneyin.' };
 
   let G = null; // { mode, busy, error, notice, confirmDelete, loaded }
-  let F = { name: '', org: '', email: '', role: '', consent: false };
+  let F = { name: '', org: '', email: '', role: '' };
   let paint = null, root = null, opener = null;
 
-  const valid = () => nameOk(F.name) && mailOk(F.email) && (G.mode === 'profile' || F.consent);
+  const valid = () => nameOk(F.name) && mailOk(F.email);
   const redraw = () => { if (paint) paint(); };
   const inertApp = (on) => { const r = document.getElementById('root'); if (!r) return; if (on) { r.setAttribute('inert', ''); r.setAttribute('aria-hidden', 'true'); } else { r.removeAttribute('inert'); r.removeAttribute('aria-hidden'); } };
 
@@ -4995,7 +4994,6 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     const name = F.name.trim().replace(/\s+/g, ' ');
     if (!nameOk(name)) { G.error = 'name'; redraw(); return; }
     if (!mailOk(F.email)) { G.error = 'email'; redraw(); return; }
-    if (G.mode === 'form' && !F.consent) { G.error = 'consent'; redraw(); return; }
     const fields = { name: name, org: F.org.trim(), email: F.email.trim(), role: F.role };
     G.busy = true; G.error = null; redraw();
     const p = G.mode === 'form' ? App.visit.register(fields) : App.visit.update(fields);
@@ -5026,10 +5024,6 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
         field('g-org', 'Kurum / okul (isteğe bağlı)', { key: 'org', max: 80, ac: 'organization', ph: 'Örn. ODTÜ Mimarlık' }),
         field('g-mail', 'E-posta', { key: 'email', max: 120, ac: 'email', type: 'email', im: 'email', ph: 'ad@gmail.com', req: true, invalid: G.error === 'email' }),
         rolesRow(),
-        isForm ? h('label', { class: 'gate-consent' },
-          h('input', { type: 'checkbox', checked: !!F.consent, onchange: (e) => { F.consent = e.target.checked; if (G.error === 'consent') G.error = null; redraw(); }, 'aria-describedby': 'gate-consent-t' }),
-          h('span', { id: 'gate-consent-t' }, 'Ad soyad, e-posta, kurum, rol, kullanım süresi, cihaz bilgisi ve yaklaşık konumumun (IP kaynaklı şehir; tarayıcı izin verirsem yaklaşık konumum) site yöneticisi tarafından işlenmesine açık rıza veriyorum. ',
-            h('a', { href: '/gizlilik', target: '_blank', rel: 'noopener noreferrer' }, 'Aydınlatma metnini'), ' okudum.')) : null,
         err ? h('p', { class: 'gate-err', role: 'alert' }, err) : null,
         G.saved ? h('p', { class: 'gate-ok', role: 'status' }, 'Kaydedildi.') : null,
         h('div', { class: 'gate-actions' },
@@ -5079,7 +5073,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     G.busy = true; redraw();
     App.visit.remove().then(function (r) {
       G.busy = false;
-      if (r.ok) { F = { name: '', org: '', email: '', role: '', consent: false }; api.open('form', { notice: 'Verileriniz silindi.' }); return; }
+      if (r.ok) { F = { name: '', org: '', email: '', role: '' }; api.open('form', { notice: 'Verileriniz silindi.' }); return; }
       G.error = r.error || 'server'; redraw();
     });
   }
@@ -5227,7 +5221,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     },
 
     register: function (f) {
-      return post(Object.assign({ a: 'reg', consent: true, cv: CV }, f, env())).then(function (r) {
+      return post(Object.assign({ a: 'reg' }, f, env())).then(function (r) {
         if (r.status === 200 && r.j.ok) { cred = { vid: r.j.vid, token: r.j.token }; write(cred); return startSession().then(function () { repaint(); setTimeout(function () { V.locate(); }, 400); return { ok: true }; }); } // kayıttan sonra tarayıcı konum izni sorulur (reddedilirse sorun yok)
         return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server' };
       });

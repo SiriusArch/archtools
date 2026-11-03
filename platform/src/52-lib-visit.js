@@ -102,7 +102,7 @@
     },
 
     register: function (f) {
-      return post(Object.assign({ a: 'reg', consent: true, cv: CV }, f, env())).then(function (r) {
+      return post(Object.assign({ a: 'reg' }, f, env())).then(function (r) {
         if (r.status === 200 && r.j.ok) { cred = { vid: r.j.vid, token: r.j.token }; write(cred); return startSession().then(function () { repaint(); setTimeout(function () { V.locate(); }, 400); return { ok: true }; }); } // kayıttan sonra tarayıcı konum izni sorulur (reddedilirse sorun yok)
         return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server' };
       });
