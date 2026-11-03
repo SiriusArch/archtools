@@ -34,7 +34,7 @@
   };
   const LOC = { denied: 'Tarayıcı konum izni verilmedi. İsterseniz tarayıcının adres çubuğundaki izin ayarından açıp yeniden deneyebilirsiniz.', unsupported: 'Bu tarayıcı konum paylaşımını desteklemiyor.', unavailable: 'Konum şu an alınamadı. Daha sonra yeniden deneyin.', server: 'Konum kaydedilemedi. Daha sonra yeniden deneyin.' };
 
-  let G = null; // { mode, busy, error, notice, confirmDelete, loaded }
+  let G = null; // { mode, busy, error, notice, loaded }
   let F = { name: '', org: '', email: '', role: '' };
   let paint = null, root = null, opener = null;
 
@@ -90,7 +90,7 @@
       h('h2', { id: 'gate-title', class: 'gate-title' }, isForm ? 'Hoş geldiniz' : 'Profilim ve gizlilik'),
       h('p', { id: 'gate-lead', class: 'gate-lead' }, isForm
         ? 'Başlamadan önce kısa bir profil oluşturun. Hesap açmanız ya da şifre belirlemeniz gerekmez. Bilgilerinizi yalnızca site yöneticisi görebilir.'
-        : 'Bilgilerinizi güncelleyebilir ya da tüm verilerinizi silebilirsiniz.'),
+        : 'Bilgilerinizi ve konum paylaşımınızı buradan güncelleyebilirsiniz.'),
       G.notice ? h('p', { class: 'gate-notice', role: 'status' }, G.notice) : null,
       h('form', { class: 'gate-form', novalidate: true, onsubmit: (e) => { e.preventDefault(); submit(); } },
         field('g-name', 'Ad Soyad', { key: 'name', max: 80, ac: 'name', req: true, ph: 'Örn. Ayşe Yılmaz', invalid: G.error === 'name' }),
@@ -104,15 +104,6 @@
           !isForm ? h('button', { type: 'button', class: 'btn', onclick: () => api.close() }, 'Kapat') : null,
           canSkip ? h('button', { type: 'button', class: 'btn', onclick: () => { App.visit.skip(); api.close(); } }, 'Yine de devam et') : null)),
       !isForm ? locBlock() : null,
-      !isForm ? h('div', { class: 'gate-danger' },
-        G.confirmDelete
-          ? h('div', { class: 'gate-confirm', role: 'alertdialog', 'aria-label': 'Silme onayı' },
-              h('p', {}, 'Tüm profil ve kullanım verileriniz kalıcı olarak silinir. Siteyi kullanmaya devam etmek için profilinizi yeniden oluşturmanız gerekir.'),
-              h('div', { class: 'gate-actions' },
-                h('button', { type: 'button', class: 'btn btn-primary', disabled: G.busy, onclick: doDelete }, G.busy ? 'Siliniyor…' : 'Evet, verilerimi sil'),
-                h('button', { type: 'button', class: 'btn', onclick: () => { G.confirmDelete = false; redraw(); } }, 'Vazgeç')))
-          : h('button', { type: 'button', class: 'linkbtn', onclick: () => { G.confirmDelete = true; redraw(); } }, 'Verilerimi sil'),
-        h('p', { class: 'gate-meta' }, 'Veriler son kullanımdan ', String(App.visit.info().retentionDays), ' gün sonra otomatik silinir. ', h('a', { href: '/gizlilik', target: '_blank', rel: 'noopener noreferrer' }, 'Aydınlatma metni'))) : null,
       cl ? h('p', { class: 'gate-meta' }, cl) : null);
   }
 
@@ -141,16 +132,6 @@
     App.visit.clearLocation().then(function () { G.busy = false; G.loc = null; G.locMsg = null; redraw(); });
   }
 
-  function doDelete() {
-    if (G.busy) return;
-    G.busy = true; redraw();
-    App.visit.remove().then(function (r) {
-      G.busy = false;
-      if (r.ok) { F = { name: '', org: '', email: '', role: '' }; api.open('form', { notice: 'Verileriniz silindi.' }); return; }
-      G.error = r.error || 'server'; redraw();
-    });
-  }
-
   function blockedCard() {
     return h('div', { class: 'gate-card', role: 'alertdialog', 'aria-modal': 'true', 'aria-labelledby': 'gate-title' },
       h('div', { class: 'gate-head' }, ui.glass ? ui.glass.logo() : null, h('span', { class: 'gate-brand' }, 'archtools')),
@@ -171,7 +152,7 @@
         document.addEventListener('keydown', function (e) { if (G && G.mode === 'profile' && e.key === 'Escape') api.close(); });
       }
       if (!G || !opener) opener = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
-      G = Object.assign({ mode: mode, busy: false, error: null, notice: null, confirmDelete: false, saved: false, loaded: mode !== 'profile' }, o || {});
+      G = Object.assign({ mode: mode, busy: false, error: null, notice: null, saved: false, loaded: mode !== 'profile' }, o || {});
       inertApp(true);
       redraw();
       if (mode === 'profile') {

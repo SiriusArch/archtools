@@ -125,12 +125,6 @@
         return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server' };
       });
     },
-    remove: function () {
-      return post(auth({ a: 'del' })).then(function (r) {
-        if (r.status === 200) { clear(); cred = null; status = 'gate'; repaint(); return { ok: true }; }
-        return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server' };
-      });
-    },
     // açık kalan oturumu kapat (yalnızca kapı "yine de devam et" derse)
     skip: function () { status = 'off'; repaint(); },
     flush: flush,
