@@ -1,7 +1,7 @@
 'use strict';
 /* visitors.js — ziyaretçi profili, oturum ve süre verisi (Upstash Redis).
    Anahtarlar (önek at:):
-     v:<vid>      HASH  profil + sayaçlar (name org email role th co ci dev br os tz lg sw sh dpr cat fs ls nv ts lab nt bl cv ca)
+     v:<vid>      HASH  profil + sayaçlar (name org email role th co ci dev br os tz lg sw sh dpr cat fs ls nv ts lab nt bl cv ca la lo lc lt)
      vs / vc      ZSET  son görülme / kayıt zamanına göre ziyaretçi dizini
      ss:<vid>     ZSET  oturum listesi (skor = başlangıç)   s:<sid> HASH {vid,start,last,sec}   ev:<sid> LIST olaylar (en çok 200)
      hr:<vid>     HASH  İstanbul saatine göre etkin saniye   hr:all genel   tot HASH toplamlar   day:<g> HASH  dayv:<g> SET
@@ -99,7 +99,12 @@ async function ping(vid, b, req) {
 /* ---------------- kendi profili ---------------- */
 async function me(vid) {
   const o = store.toObj(await store.cmd('HGETALL', k.v(vid)));
-  return { name: o.name || '', org: o.org || '', email: o.email || '', role: o.role || '', consentAt: Number(o.ca) || 0, consentVersion: o.cv || '' };
+  return { name: o.name || '', org: o.org || '', email: o.email || '', role: o.role || '', consentAt: Number(o.ca) || 0, consentVersion: o.cv || '', loc: o.la != null && o.la !== '' ? { lat: Number(o.la), lon: Number(o.lo), at: Number(o.lt) || 0 } : null };
+}
+/* tarayıcı konumu: kullanıcı izin verirse (yaklaşık, 3 ondalık); loc === null → konumu sil */
+async function setLocation(vid, loc) {
+  if (!loc) { await store.cmd('HDEL', k.v(vid), 'la', 'lo', 'lc', 'lt'); return; }
+  await store.pipe([['HSET', k.v(vid), 'la', loc.lat, 'lo', loc.lon, 'lc', loc.acc, 'lt', Date.now()], ['EXPIRE', k.v(vid), RET()]]);
 }
 async function update(vid, p) {
   await store.pipe([['HSET', k.v(vid), 'name', p.name, 'org', p.org, 'email', p.email, 'role', p.role], ['EXPIRE', k.v(vid), RET()]]);
@@ -141,6 +146,7 @@ function shape(id, o, ls) {
     id: id, name: o.name || '', org: o.org || '', email: o.email || '', role: o.role || '', country: o.co || '', city: o.ci || '', device: o.dev || '', browser: o.br || '', os: o.os || '',
     created: Number(o.cat) || 0, last: Number(o.ls) || Number(ls) || 0, visits: Number(o.nv) || 0, sec: Number(o.ts) || 0, label: o.lab || '', note: o.nt || '', blocked: o.bl === '1',
     tz: o.tz || '', lang: o.lg || '', screen: o.sw && o.sh ? o.sw + '×' + o.sh + (o.dpr ? ' @' + o.dpr + 'x' : '') : '', consent: o.cv ? o.cv : '', consentAt: Number(o.ca) || 0,
+    lat: o.la != null && o.la !== '' ? Number(o.la) : null, lon: o.lo != null && o.lo !== '' ? Number(o.lo) : null, locAcc: Number(o.lc) || 0, locAt: Number(o.lt) || 0,
   };
 }
 async function list(offset, limit, by) {
@@ -191,4 +197,4 @@ async function exportAll(max) {
   return out.slice(0, max);
 }
 
-module.exports = { limit, register, authenticate, ping, me, update, remove, overview, list, detail, adminUpdate, exportAll, ONLINE_MS, RET };
+module.exports = { setLocation, limit, register, authenticate, ping, me, update, remove, overview, list, detail, adminUpdate, exportAll, ONLINE_MS, RET };

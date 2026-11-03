@@ -8,7 +8,7 @@
 (function () {
   const App = window.App;
   const KEY = 'archtools.visitor';
-  const CV = '2026-10'; // aydınlatma / rıza metni sürümü (sunucudaki CONSENT_VERSION ile aynı olmalı)
+  const CV = '2026-11'; // aydınlatma / rıza metni sürümü (sunucudaki CONSENT_VERSION ile aynı olmalı)
   const KINDS = ['start', 'color_on', 'color_off', 'palette', 'auto_layout', 'add_space', 'template', 'export_png', 'export_pdf', 'save_json', 'load_json'];
   const API = () => (App.config && App.config.api && App.config.api.visit) || '/api/v';
   const BEAT = 30000, IDLE = 60000;
@@ -103,10 +103,20 @@
 
     register: function (f) {
       return post(Object.assign({ a: 'reg', consent: true, cv: CV }, f, env())).then(function (r) {
-        if (r.status === 200 && r.j.ok) { cred = { vid: r.j.vid, token: r.j.token }; write(cred); return startSession().then(function () { repaint(); return { ok: true }; }); }
+        if (r.status === 200 && r.j.ok) { cred = { vid: r.j.vid, token: r.j.token }; write(cred); return startSession().then(function () { repaint(); setTimeout(function () { V.locate(); }, 400); return { ok: true }; }); } // kayıttan sonra tarayıcı konum izni sorulur (reddedilirse sorun yok)
         return { ok: false, error: r.status === 0 ? 'offline' : r.j.error || 'server' };
       });
     },
+    // tarayıcı konumu: tarayıcı kendi izin penceresini gösterir; yalnızca izin verilirse yaklaşık konum gönderilir
+    locate: function () {
+      return new Promise(function (resolve) {
+        if (!cred || !navigator.geolocation) return resolve({ ok: false, error: 'unsupported' });
+        navigator.geolocation.getCurrentPosition(function (p) {
+          post(auth({ a: 'loc', lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy })).then(function (r) { resolve(r.status === 200 ? { ok: true } : { ok: false, error: 'server' }); });
+        }, function (e) { resolve({ ok: false, error: e && e.code === 1 ? 'denied' : 'unavailable' }); }, { enableHighAccuracy: false, timeout: 20000, maximumAge: 600000 });
+      });
+    },
+    clearLocation: function () { return post(auth({ a: 'loc', clear: true })).then(function (r) { return { ok: r.status === 200 }; }); },
     me: function () { return post(auth({ a: 'me' })).then(function (r) { return r.status === 200 ? r.j.profile : (onAuthFail(r), null); }); },
     update: function (f) {
       return post(auth(Object.assign({ a: 'upd' }, f))).then(function (r) {

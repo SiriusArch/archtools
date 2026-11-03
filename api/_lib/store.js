@@ -2,7 +2,7 @@
 /* store.js — Upstash Redis REST istemcisi (bağımlılıksız, yalnızca fetch).
    Ortam: UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN  (Vercel Marketplace "Upstash Redis" bunları KV_REST_API_URL / KV_REST_API_TOKEN adıyla da verir).
    Test / yerel önizleme: AT_STORE=memory → bellek içi sahte depo (aynı RESP biçimiyle yanıt verir).
-   Yalnızca aşağıdaki komutlar kullanılır: GET SET DEL INCR EXPIRE HSET HSETNX HGET HMGET HGETALL HINCRBY ZADD ZREM ZREVRANGE ZCARD ZCOUNT LPUSH LTRIM LRANGE SADD SCARD */
+   Yalnızca aşağıdaki komutlar kullanılır: GET SET DEL INCR EXPIRE HSET HSETNX HDEL HGET HMGET HGETALL HINCRBY ZADD ZREM ZREVRANGE ZCARD ZCOUNT LPUSH LTRIM LRANGE SADD SCARD */
 
 const URL_ = () => process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '';
 const TOKEN = () => process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
@@ -25,6 +25,7 @@ function memExec(args) {
     case 'EXPIRE': { if (!mem.data.has(k)) return 0; mem.exp.set(k, Date.now() + Number(a[0]) * 1000); return 1; }
     case 'HSET': { let v = get('h'); if (!v) { v = { t: 'h', v: new Map() }; mem.data.set(k, v); } let n = 0; for (let i = 0; i < a.length; i += 2) { if (!v.v.has(S(a[i]))) n++; v.v.set(S(a[i]), S(a[i + 1])); } return n; }
     case 'HSETNX': { let v = get('h'); if (!v) { v = { t: 'h', v: new Map() }; mem.data.set(k, v); } if (v.v.has(S(a[0]))) return 0; v.v.set(S(a[0]), S(a[1])); return 1; }
+    case 'HDEL': { const v = get('h'); let n = 0; if (v) a.forEach((f) => { if (v.v.delete(S(f))) n++; }); return n; }
     case 'HGET': { const v = get('h'); return v && v.v.has(S(a[0])) ? v.v.get(S(a[0])) : null; }
     case 'HMGET': { const v = get('h'); return a.map((f) => (v && v.v.has(S(f)) ? v.v.get(S(f)) : null)); }
     case 'HGETALL': { const v = get('h'); const o = []; if (v) v.v.forEach((val, f) => o.push(f, val)); return o; }

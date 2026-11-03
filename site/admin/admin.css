@@ -62,3 +62,6 @@ body.adm { min-height: 100%; }
 .adm-audit { max-height: 60vh; overflow-y: auto; }
 .adm-err { margin: 0; padding: 9px 16px; border-radius: 18px; background: var(--ink); color: var(--on-ink); font-size: 13px; font-weight: 700; }
 @media (max-width: 640px) { .adm-wrap { padding: 12px 12px 32px; } .adm-top { padding: 12px 14px; border-radius: 30px; } .adm-panel { padding: 20px 16px 28px; } .adm-kv { grid-template-columns: 100px minmax(0, 1fr); } }
+
+.adm-loc { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.adm-loc:hover { text-decoration-thickness: 2px; }

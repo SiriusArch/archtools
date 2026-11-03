@@ -107,8 +107,8 @@ module.exports = async function handler(req, res) {
     }
     if (a === 'export') {
       const rows = await D.exportAll(5000);
-      const head = ['id', 'ad', 'kurum', 'eposta', 'rol', 'ulke', 'sehir', 'cihaz', 'tarayici', 'isletim_sistemi', 'ilk_kayit_utc', 'son_gorulme_utc', 'oturum', 'toplam_sure_sn', 'etiket', 'not', 'engelli', 'riza_surumu'];
-      const lines = [head.join(',')].concat(rows.map((r) => [r.id, r.name, r.org, r.email, r.role, r.country, r.city, r.device, r.browser, r.os, iso(r.created), iso(r.last), r.visits, r.sec, r.label, r.note, r.blocked ? 1 : 0, r.consent].map(csvCell).join(',')));
+      const head = ['id', 'ad', 'kurum', 'eposta', 'rol', 'ulke', 'sehir', 'cihaz', 'tarayici', 'isletim_sistemi', 'ilk_kayit_utc', 'son_gorulme_utc', 'oturum', 'toplam_sure_sn', 'etiket', 'not', 'engelli', 'riza_surumu', 'konum_enlem', 'konum_boylam', 'konum_zamani_utc'];
+      const lines = [head.join(',')].concat(rows.map((r) => [r.id, r.name, r.org, r.email, r.role, r.country, r.city, r.device, r.browser, r.os, iso(r.created), iso(r.last), r.visits, r.sec, r.label, r.note, r.blocked ? 1 : 0, r.consent, r.lat == null ? '' : r.lat, r.lon == null ? '' : r.lon, r.locAt ? iso(r.locAt) : ''].map(csvCell).join(',')));
       await audit('export', { n: rows.length }, req);
       return send(res, 200, { ok: true, csv: '﻿' + lines.join('\r\n') });
     }

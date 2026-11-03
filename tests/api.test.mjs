@@ -25,7 +25,10 @@ function call(h, body, { headers = {}, method = 'POST', raw } = {}) {
     h(req, res);
   });
 }
-const reg = (extra) => call(v, Object.assign({ a: 'reg', name: 'Şule Ağaoğlu', org: 'ODTÜ', email: 'sule@example.test', role: 'ogrenci', consent: true, cv: '2026-10', tz: 'Europe/Istanbul', lg: 'tr-TR', sw: 1440, sh: 900, dpr: 2 }, extra));
+const reg = (extra) => call(v, Object.assign({ a: 'reg', name: 'Şule Ağaoğlu', org: 'ODTÜ', email: 'sule@gmail.com', role: 'ogrenci', consent: true, cv: '2026-11', tz: 'Europe/Istanbul', lg: 'tr-TR', sw: 1440, sh: 900, dpr: 2 }, extra));
+
+let ipN = 0; // kayıt hız sınırını (IP başına saatte 8) aşmamak için her çağrıya ayrı IP
+const regIp = (extra) => call(v, Object.assign({ a: 'reg', name: 'Şule Ağaoğlu', org: 'ODTÜ', email: 'sule@gmail.com', role: 'ogrenci', consent: true, cv: '2026-11' }, extra), { headers: { 'x-forwarded-for': '198.51.100.' + (++ipN) } });
 
 test('CSRF ve biçim korumaları', async () => {
   assert.equal((await call(v, { a: 'contact' }, { method: 'GET' })).status, 405);
@@ -56,6 +59,38 @@ test('kayıt: rıza zorunlu, girdi doğrulanır, token yalnızca özet olarak sa
   assert.ok(!JSON.stringify(row).includes('Mozilla'), 'ham User-Agent saklanmamalı');
 });
 
+test('e-posta zorunlu ve yalnızca güvenilir sağlayıcı; ad soyad zorunlu', async () => {
+  for (const e of ['', 'sirket@firma.com', 'a@gmail.com.evil.test', 'a@evil.test', 'a b@gmail.com', 'a@gmail..com', '<x>@gmail.com']) assert.equal((await regIp({ email: e })).json.error, 'email', 'reddedilmeli: ' + e);
+  for (const e of ['x@gmail.com', 'X@Hotmail.com', 'x@outlook.com.tr', 'x@yahoo.com', 'x@icloud.com', 'x@yandex.com', 'x@itu.edu.tr', 'x@bilgi.edu.tr', 'x@belediye.gov.tr']) assert.equal((await regIp({ email: e })).status, 200, 'kabul edilmeli: ' + e);
+  assert.equal((await regIp({ name: 'Ayşe' })).json.error, 'name'); // yalnızca ad
+  assert.equal((await regIp({ name: 'A B' })).json.error, 'name');
+  assert.equal((await regIp({ name: '' })).json.error, 'name');
+  // istemci listesi sunucudakiyle aynı
+  const V = await import('../api/_lib/validate.js');
+  const gate = (await import('node:fs')).readFileSync(new URL('../platform/src/51-ui-gate.js', import.meta.url), 'utf8');
+  (V.default || V).MAIL_DOMAINS.forEach((d) => assert.ok(gate.includes("'" + d + "'"), 'istemci listesinde yok: ' + d));
+  (V.default || V).MAIL_SUFFIXES.forEach((d) => assert.ok(gate.includes("'" + d + "'"), 'istemci uzantı listesinde yok: ' + d));
+});
+
+test('konum: yalnızca kimlikli ve geçerli; yaklaşık saklanır; silinebilir; yönetici listesinde görünür', async () => {
+  const a = (await regIp()).json;
+  const ok = (extra) => call(v, Object.assign({ a: 'loc', vid: a.vid, token: a.token }, extra));
+  assert.equal((await call(v, { a: 'loc', vid: a.vid, token: 'x'.repeat(43), lat: 41, lon: 29 })).status, 401);
+  assert.equal((await ok({ lat: 91, lon: 0 })).json.error, 'loc');
+  assert.equal((await ok({ lat: 'abc', lon: 0 })).json.error, 'loc');
+  assert.equal((await ok({ lat: 41.0123456, lon: 28.9784321, acc: 37 })).status, 200);
+  const row = store.toObj(await store.cmd('HGETALL', 'at:v:' + a.vid));
+  assert.equal(row.la, '41.012'); assert.equal(row.lo, '28.978'); assert.equal(row.lc, '40');
+  assert.equal((await call(v, { a: 'me', vid: a.vid, token: a.token })).json.profile.loc.lat, 41.012);
+  const D = require('../api/_lib/visitors.js');
+  const dd = await D.detail(a.vid);
+  assert.equal(dd.profile.lat, 41.012); assert.equal(dd.profile.lon, 28.978); assert.ok(dd.profile.locAt > 0);
+  assert.equal((await ok({ clear: true })).status, 200);
+  assert.equal((await D.detail(a.vid)).profile.lat, null);
+  const row2 = store.toObj(await store.cmd('HGETALL', 'at:v:' + a.vid));
+  assert.equal(row2.la, undefined); assert.equal(row2.lo, undefined);
+});
+
 test('nabız: süre birikir, sınırlanır, olaylar yalnızca izinli türlerle kaydolur; oturum çalınamaz', async () => {
   const a = (await reg()).json, b = (await reg({ name: 'Başka Kişi' })).json;
   const sid = 'sidsidsidsid1234';
@@ -74,8 +109,8 @@ test('nabız: süre birikir, sınırlanır, olaylar yalnızca izinli türlerle k
 test('engelleme, kendi verisini görme / düzeltme / silme', async () => {
   const a = (await reg()).json;
   assert.equal((await call(v, { a: 'me', vid: a.vid, token: a.token })).json.profile.org, 'ODTÜ');
-  assert.equal((await call(v, { a: 'upd', vid: a.vid, token: a.token, name: 'Yeni Ad', org: '', email: '', role: '' })).status, 200);
-  assert.equal((await call(v, { a: 'me', vid: a.vid, token: a.token })).json.profile.name, 'Yeni Ad');
+  assert.equal((await call(v, { a: 'upd', vid: a.vid, token: a.token, name: 'Yeni Ad Soyad', org: '', email: 'yeni@hotmail.com', role: '' })).status, 200);
+  assert.equal((await call(v, { a: 'me', vid: a.vid, token: a.token })).json.profile.name, 'Yeni Ad Soyad');
   await store.cmd('HSET', 'at:v:' + a.vid, 'bl', '1');
   assert.equal((await call(v, { a: 'ping', vid: a.vid, token: a.token, sid: 'blockblockblock1', sec: 1 })).json.error, 'blocked');
   await store.cmd('HSET', 'at:v:' + a.vid, 'bl', '0');
@@ -88,7 +123,7 @@ test('engelleme, kendi verisini görme / düzeltme / silme', async () => {
 test('kayıt hız sınırı', async () => {
   const hdr = { 'x-forwarded-for': '198.51.100.77' };
   let last;
-  for (let i = 0; i < 9; i++) last = await call(v, { a: 'reg', name: 'Ali Veli', consent: true, cv: '2026-10' }, { headers: hdr });
+  for (let i = 0; i < 9; i++) last = await call(v, { a: 'reg', name: 'Ali Veli', email: 'ali@gmail.com', consent: true, cv: '2026-11' }, { headers: hdr });
   assert.equal(last.status, 429);
 });
 

@@ -11,10 +11,10 @@ Bu belge neyin neden korunduğunu ve sınırlarını özetler. Kurulum için [KU
 ## Ziyaretçi verisi
 | Konu | Uygulama |
 |---|---|
-| Kimlik | İsim + rıza zorunlu; kurum / e-posta / rol isteğe bağlı. Google hesabı gerekmez. **Kimlikler beyana dayanır, doğrulanmaz.** |
+| Kimlik | Ad soyad + e-posta (yalnızca güvenilir sağlayıcılar: Gmail, Hotmail / Outlook, Yahoo, iCloud, Yandex, Proton vb. ve .edu.tr / .gov.tr) + rıza zorunlu; kurum / rol isteğe bağlı. Google hesabı gerekmez. **Kimlikler beyana dayanır, doğrulanmaz.** |
 | IP adresi | **Saklanmaz.** Hız sınırı için yalnızca tuzlu tek yönlü özet, en çok 1 gün yaşayan sayaç anahtarında. |
 | User-Agent | Ham metin saklanmaz; "Chrome · Windows · masaüstü" gibi kaba etiketler. |
-| Konum | Yalnızca barındırıcının verdiği ülke / şehir; kesin konum istenmez. |
+| Konum | Barındırıcının verdiği ülke / şehir (IP kaynaklı) + **yalnızca ziyaretçi tarayıcı iznini verirse** yaklaşık konum (enlem / boylam ≈110 m'ye yuvarlanır; `Permissions-Policy: geolocation=(self)`). Ziyaretçi "Profilim ve gizlilik" penceresinden güncelleyebilir / silebilir. |
 | Proje içeriği | **Sunucuya gönderilmez.** Yalnızca izinli olay adları (`start`, `color_on`, `export_png` …). |
 | Süre | Sekme görünür **ve** son 60 sn içinde etkileşim varsa sayılır; nabız başına en çok 90 sn. |
 | Saklama | Son etkinlikten `RETENTION_DAYS` (180) gün sonra otomatik silinir; kişi kendi verisini anında silebilir. |

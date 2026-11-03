@@ -2,6 +2,7 @@
 /* /api/v — ziyaretçi uç noktası (POST, JSON). İşlemler (a):
      reg      profil oluştur (açık rıza zorunlu)  → { vid, token }
      ping     etkin süre + olay nabzı (30 sn'de bir; oturum başlangıcı da buradan)
+     loc      tarayıcı konumu (yalnızca kullanıcı izin verirse; yaklaşık) ya da { clear: true } ile sil
      me       kendi profilini getir     upd  kendi profilini güncelle     del  tüm verilerimi sil
      contact  veri sorumlusu iletişim bilgisi (ortam değişkeninden; depoda tutulmaz)
    Kimlik: vid + token (token yalnızca ziyaretçide; sunucuda SHA-256 özeti). Ham IP / User-Agent saklanmaz. */
@@ -38,6 +39,13 @@ module.exports = async function handler(req, res) {
     if (a === 'ping') {
       const r = await D.ping(b.vid, b, req);
       return r.ok ? send(res, 200, { ok: true }) : fail(res, r.status, r.error);
+    }
+    if (a === 'loc') {
+      if (b.clear === true) { await D.setLocation(b.vid, null); return send(res, 200, { ok: true }); }
+      const l = V.location(b);
+      if (l.error) return fail(res, 400, l.error);
+      await D.setLocation(b.vid, l.value);
+      return send(res, 200, { ok: true });
     }
     if (a === 'me') return send(res, 200, { ok: true, profile: await D.me(b.vid) });
     if (a === 'upd') {

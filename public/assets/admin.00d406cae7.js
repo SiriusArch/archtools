@@ -74,6 +74,11 @@
   }
 
   /* ---------- panel ---------- */
+  // tarayıcı konumu (ziyaretçi izin verdiyse): harita bağlantısı yeni sekmede açılır; Referer gönderilmez
+  const hasLoc = (v) => typeof v.lat === 'number' && typeof v.lon === 'number';
+  function mapLink(v, text) {
+    return el('a', { class: 'adm-loc', href: 'https://www.openstreetmap.org/?mlat=' + v.lat + '&mlon=' + v.lon + '#map=16/' + v.lat + '/' + v.lon, target: '_blank', rel: 'noopener noreferrer', onclick: (e) => e.stopPropagation(), title: 'Haritada aç (OpenStreetMap)' }, text || (v.lat.toFixed(3) + ', ' + v.lon.toFixed(3)));
+  }
   function kpi(v, label, sub) { return el('div', { class: 'adm-card adm-kpi' }, el('b', {}, v), el('span', {}, label), sub ? el('small', {}, sub) : null); }
 
   function hoursCard(hours) {
@@ -115,7 +120,7 @@
       el('tbody', {}, a.map((v) => el('tr', { class: 'row-b', tabindex: 0, role: 'button', 'aria-label': v.name + ' ayrıntısı', onclick: () => open(v), onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(v); } } },
         el('td', {}, el('div', { class: 'nm' }, v.name), v.label ? el('div', { class: 'mu' }, v.label) : v.email ? el('div', { class: 'mu' }, v.email) : null),
         el('td', {}, v.org || '—', v.role ? el('div', { class: 'mu' }, ROLE[v.role] || v.role) : null),
-        el('td', {}, country(v.country), v.city ? el('div', { class: 'mu' }, v.city) : null),
+        el('td', {}, country(v.country), v.city ? el('div', { class: 'mu' }, v.city) : null, hasLoc(v) ? el('div', { class: 'mu' }, '📍 ', mapLink(v)) : null),
         el('td', {}, v.device || '—', el('div', { class: 'mu' }, [v.browser, v.os].filter(Boolean).join(' · '))),
         el('td', {}, dt.format(v.created)),
         el('td', {}, fmtAgo(v.last)),
@@ -183,7 +188,7 @@
       const kv = (k, v) => [el('dt', {}, k), el('dd', {}, v || '—')];
       drawer([
         el('div', { class: 'adm-row2' }, el('h2', {}, p.name), p.blocked ? el('span', { class: 'adm-pill bad' }, 'engelli') : online(p) ? el('span', { class: 'adm-pill on' }, 'çevrimiçi') : null),
-        el('dl', { class: 'adm-kv' }, kv('Kurum / okul', p.org), kv('E-posta', p.email), kv('Rol', ROLE[p.role] || p.role), kv('Konum', [p.city, country(p.country)].filter(Boolean).join(', ')),
+        el('dl', { class: 'adm-kv' }, kv('Kurum / okul', p.org), kv('E-posta', p.email), kv('Rol', ROLE[p.role] || p.role), kv('Konum (IP, yaklaşık)', [p.city, country(p.country)].filter(Boolean).join(', ')), kv('Tarayıcı konumu', hasLoc(p) ? [mapLink(p), ' · ' + (p.locAcc ? '±' + p.locAcc + ' m · ' : '') + dt.format(p.locAt)] : 'paylaşılmadı'),
           kv('Cihaz', [p.device, p.browser, p.os].filter(Boolean).join(' · ')), kv('Ekran', p.screen), kv('Saat dilimi / dil', [p.tz, p.lang].filter(Boolean).join(' · ')),
           kv('İlk kayıt', dt.format(p.created)), kv('Son görülme', dt.format(p.last)), kv('Toplam süre', fmtDur(p.sec)), kv('Ziyaret sayısı', String(p.visits)), kv('Rıza', p.consentAt ? dt.format(p.consentAt) + ' · sürüm ' + p.consent : '—')),
         hours,
