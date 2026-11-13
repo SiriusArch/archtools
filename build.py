@@ -2,7 +2,7 @@
 """archtools: kaynakları birleştirip yayın klasörü `public/` dizinini üretir (Vercel yalnızca bunu sunar).
 
 Kullanım:
-  python3 build.py                  yalnızca İşlev Şeması (Bubble Diyagram) — yayın varsayılanı
+  python3 build.py                  İşlev Şeması + Kent Dokusu — yayın varsayılanı
   python3 build.py --modules all    tüm modüller (geliştirme; yayında kullanılmaz)
   python3 build.py --modules islev,kat
 
@@ -37,8 +37,14 @@ MODULE_DIRS = {
     'vaziyet': ['modules/site-plan/src'],
     'kolaj': ['modules/collage/src'],
     'pafta': ['modules/board-template/src'],
+    'kent': ['modules/kentdoku/src'],
 }
-ALL = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta']
+ALL = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta', 'kent']
+# yayın varsayılanı; Kent Dokusu'nun hesap motoru ayrı pakettir (modules/kentdoku/dist) ve yalnızca modül açılınca yüklenir
+DEFAULT = ['islev', 'kent']
+# platformun harita altlığı / DXF / XLSX / kırpma dosyalarına ihtiyaç duymayan modüller
+LIGHT = {'islev', 'kent'}
+KENT_DIST = 'modules/kentdoku/dist'
 PLATFORM = 'platform/src'
 # yalnızca İşlev Şeması yayınlanırken pakete girmeyen platform dosyaları (harita altlığı, DXF/XLSX yazıcıları, kırpma):
 # harici ağ adresleri ve kullanılmayan kod istemciye gitmesin
@@ -71,7 +77,7 @@ def strip_css(css):
 
 def parse_args():
     ap = argparse.ArgumentParser(description='archtools yayın paketini üretir')
-    ap.add_argument('--modules', default='islev', help="virgülle ayrılmış modül kimlikleri ya da 'all' (varsayılan: islev)")
+    ap.add_argument('--modules', default=','.join(DEFAULT), help="virgülle ayrılmış modül kimlikleri ya da 'all' (varsayılan: %s)" % ','.join(DEFAULT))
     a = ap.parse_args()
     mods = ALL if a.modules == 'all' else [m.strip() for m in a.modules.split(',') if m.strip()]
     bad = [m for m in mods if m not in MODULE_DIRS]
@@ -82,7 +88,7 @@ def parse_args():
 
 def main():
     mods = parse_args()
-    bubble_only = mods == ['islev']
+    bubble_only = all(m in LIGHT for m in mods)
     src_dirs = []
     for m in mods:
         for d in MODULE_DIRS[m]:
@@ -103,6 +109,14 @@ def main():
     if dup:
         print('uyarı: aynı sayı önekini paylaşan dosyalar:', ', '.join(dup))
     config = {'modules': mods, 'api': {'visit': '/api/v'}}
+    kent_files = []
+    if 'kent' in mods:
+        dist = os.path.join(root, KENT_DIST)
+        man = os.path.join(dist, 'manifest.json')
+        if not os.path.exists(man):
+            sys.exit('hata: %s yok. Önce: cd modules/kentdoku/engine && npm install && npm run build' % man)
+        config['kent'] = {'engine': '/assets/kent/' + json.loads(read(man))['engine']}
+        kent_files = [f for f in sorted(os.listdir(dist)) if f != 'manifest.json']
     prelude = 'window.App = window.App || {};\nwindow.App.config = %s;\n' % json.dumps(config, separators=(',', ':'))
     js = prelude + '\n'.join(read(f) for f in js_files)
 
@@ -146,6 +160,8 @@ def main():
     write(os.path.join(assets, app_js), js)
     write(os.path.join(assets, app_css), css)
     write(os.path.join(assets, boot_js), boot)
+    for f in kent_files:  # içerik özetli adlar (esbuild) → /assets altında sınırsız önbellek güvenli
+        write(os.path.join(assets, 'kent', f), open(os.path.join(root, KENT_DIST, f), 'rb').read())
 
     intro = read(os.path.join(root, 'platform', 'src', 'intro.html'))
     preload = ''.join('<link rel="preload" href="%s" as="font" type="font/woff" crossorigin>\n' % v for v in font_map.values())
@@ -154,8 +170,8 @@ def main():
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>archtools — İşlev Şeması</title>
-<meta name="description" content="archtools: ilişki matrisinden işlev şeması (bubble diagram) üretin, otomatik yerleştirin, renk paletleriyle boyayın.">
+<title>archtools</title>
+<meta name="description" content="archtools: ilişki matrisinden işlev şeması üretin; haritadan seçtiğiniz alanın vaziyet paftasını, analizini ve 3B bağlam modelini çıkarın.">
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#E4E5E9">

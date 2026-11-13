@@ -1,5 +1,5 @@
 window.App = window.App || {};
-window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
+window.App.config = {"modules":["islev","kent"],"api":{"visit":"/api/v"},"kent":{"engine":"/assets/kent/engine.6W7UQXQA.js"}};
 /* ==========================================================================
    00-core.js — ortak yardımcılar, mini sanal-DOM (h/patch), store
    Tüm modüller window.App altında toplanır; mantık katmanları (lib/*) arayüzden
@@ -3036,6 +3036,61 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
 })();
 
 /* ==========================================================================
+   39-state-kent.js — Modül 12 (Kent Dokusu) durumu
+   Arayüz durumu state.ui.kent içinde durur (UI eylemiyle yamalanır; geri-al geçmişine girmez).
+   İndirilen veri, SVG çıktısı, harita ve 3B nesneleri serileştirilemez; App.kent.rt içinde tutulur.
+   Hesap motoru (harita, veri, çizim, dışa aktarım) ayrı bir ES modülüdür ve yalnızca bu modül
+   açıldığında yüklenir: App.config.kent.engine (build.py enjekte eder).
+   ========================================================================== */
+(function () {
+  const App = window.App;
+
+  const K0 = {
+    tab: 'konum',          // sol panel sekmesi: konum · gorunum · aktar
+    view: 'map',           // pafta görünümü: map · plan · model · ozet
+    lat: 41.0256, lon: 28.9741, name: '',
+    size: 750, ratio: 1,   // alan genişliği (m) ve yükseklik/genişlik oranı
+    base: 'sokak',         // altlık: sokak · uydu
+    style: 'arch', mode: 'plan',
+    layers: { binalar: true, yollar: true, yaya: true, ray: true, su: true, yesil: true, topo: false, pafta: true },
+    scale: 2000,           // PDF ölçeği
+    axo: false,
+    q: '', results: null, searching: false,
+    busy: null,            // { title, msg, frac }
+    has: false,            // veri yüklendi mi
+    rev: 0                 // çalışma zamanı verisi değişince yeniden çizim tetikler
+  };
+
+  const SIZES = [300, 500, 750, 1000, 1500, 2000, 3000];
+  const RATIOS = [{ v: 1, label: 'Kare' }, { v: 0.7071, label: 'Yatay' }, { v: 1.4142, label: 'Dikey' }];
+  const SCALES = [500, 1000, 2000, 5000, 10000];
+  const LAYERS = [['binalar', 'Binalar'], ['yollar', 'Yollar'], ['yaya', 'Yaya yolları'], ['ray', 'Raylı sistem'], ['su', 'Su'], ['yesil', 'Yeşil alan'], ['topo', 'Eşyükselti'], ['pafta', 'Ölçek ve kuzey']];
+  const MODES = [
+    ['plan', 'Vaziyet', 'Seçtiğiniz stilde sade vaziyet planı.'],
+    ['yukseklik', 'Yükseklik', 'Binalar yüksekliğe göre renklendirilir.'],
+    ['kat', 'Kat adedi', 'Yükseklikten hesaplanan yaklaşık kat sayısı (3,2 m kat yüksekliği varsayımı).'],
+    ['taban', 'Taban alanı', 'Binalar taban alanı büyüklüğüne göre renklendirilir.'],
+    ['islev', 'Bina işlevi', 'Konut, ticaret, eğitim gibi kullanım türleri; etiketlenmemiş binalar gri görünür.'],
+    ['ulasim', 'Ulaşım', 'Yol kademelenmesi, yaya ağı, raylı sistem ve duraklar.'],
+    ['arazi', 'Arazi kullanımı', 'Park, konut alanı, eğitim, tarım gibi alan kullanımları.'],
+    ['gunes', 'Güneş yolu', 'Enleme göre gündönümü ve ekinoks güneş yörüngeleri.'],
+    ['ruzgar', 'Rüzgar gülü', 'Geçen yılın günlük hakim rüzgar yönleri.']
+  ];
+  const EXPORTS = [
+    ['svg', 'SVG', 'Illustrator'], ['pdf', 'PDF', 'ölçekli vektör'], ['png', 'PNG', '4000 px'], ['dxf', 'DXF', 'AutoCAD · Rhino'],
+    ['obj', 'OBJ', '3B model'], ['glb', 'GLB', 'Blender · SketchUp'], ['stl', 'STL', '3B baskı'], ['geojson', 'GeoJSON', 'QGIS']
+  ];
+
+  App.kent = {
+    K0: K0, SIZES: SIZES, RATIOS: RATIOS, SCALES: SCALES, LAYERS: LAYERS, MODES: MODES, EXPORTS: EXPORTS,
+    of: function (state) { const k = state.ui.kent; return k ? k : K0; },
+    dims: function (k) { return { w: k.size, h: Math.round(k.size * k.ratio) }; },
+    // çalışma zamanı: motor, harita, veri, çıktı, 3B, kaydır/yakınlaştır
+    rt: { eng: null, map: null, mapEl: null, modelEl: null, planEl: null, paperEl: null, data: null, metrics: null, site: null, svg: '', v3: null, dirty3d: true, seq: 0, pz: { k: 1, x: 0, y: 0, touched: false } }
+  };
+})();
+
+/* ==========================================================================
    40-ui-common.js — ikonlar ve ortak arayüz yardımcıları
    ========================================================================== */
 (function () {
@@ -3872,7 +3927,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
 /* ==========================================================================
    47-ui-shell.js — archtools kabuğu: modül gezgini, ortak skor kadranı verisi,
    araç çubuğu ve sayfa iskeleti. Modüller yalnızca kendi içeriğini üretir.
-   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · vaziyet · kolaj · pafta
+   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · vaziyet · kolaj · pafta · kent
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -3892,6 +3947,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     { id: 'vaziyet', n: '09', label: 'Vaziyet Planı', sub: 'Vaziyet planı · ölçekli yerleşim paftası', shape: 'sitemap' },
     { id: 'kolaj', n: '10', label: 'Kolaj Oluşturucu', sub: 'Kolaj oluşturucu · fotoğraf, kütle, siluet ve etiket', shape: 'collage' },
     { id: 'pafta', n: '11', label: 'Pafta Şablonu', sub: 'Pafta şablonu · araç çıktılarıyla jüri paftası', shape: 'layout' },
+    { id: 'kent', n: '12', label: 'Kent Dokusu', sub: 'Kent dokusu · vaziyet paftası, alan analizi ve 3B bağlam', shape: 'city' },
   ];
   // yalnızca açık modüller gezilir ve listelenir (App.config.modules)
   const ENABLED = (App.config && App.config.modules) || null;
@@ -3915,6 +3971,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     else if (shape === 'sitemap') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 2.4, width: 13.2, height: 13.2, rx: 1 }, q)), h('rect', Object.assign({ x: 5, y: 5.4, width: 4.6, height: 4.2, rx: 0.6 }, p)), h('path', { d: 'M2.6 12.6h12.8', stroke: 'currentColor', 'stroke-width': 1.6, fill: 'none' }), h('circle', Object.assign({ cx: 12.6, cy: 6.4, r: 1.7 }, p)));
     else if (shape === 'collage') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 3.4, width: 9.6, height: 11.2, rx: 1 }, q)), h('circle', Object.assign({ cx: 11.4, cy: 6.8, r: 3.6 }, p)), h('path', { d: 'M8 14.6l3.2-3.6 4.4 3.6z', fill: 'currentColor', stroke: 'currentColor', 'stroke-width': 1.2, 'stroke-linejoin': 'round' }));
     else if (shape === 'layout') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 2.4, width: 13.2, height: 13.2, rx: 1 }, q)), h('rect', Object.assign({ x: 4.6, y: 4.6, width: 5.2, height: 5.6, rx: 0.5 }, p)), h('path', { d: 'M12 5h1.6M12 8h1.6M5 13h8', stroke: 'currentColor', 'stroke-width': 1.4, fill: 'none', 'stroke-linecap': 'round' }));
+    else if (shape === 'city') g = h('g', {}, h('rect', Object.assign({ x: 2.6, y: 8, width: 4.4, height: 7.4, rx: 0.8 }, p)), h('rect', Object.assign({ x: 8.2, y: 2.6, width: 4.2, height: 12.8, rx: 0.8 }, p)), h('rect', Object.assign({ x: 13.4, y: 10.4, width: 2.4, height: 5, rx: 0.6 }, p)));
     else if (shape === 'coin') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.6 }, q)), h('path', { d: 'M9 5.2v7.6M6.8 7.4c0-1 .9-1.7 2.2-1.7s2.2.7 2.2 1.6c0 2.3-4.4 1.1-4.4 3.4 0 .9 1 1.7 2.2 1.7s2.2-.7 2.2-1.7', stroke: 'currentColor', 'stroke-width': 1.3, fill: 'none', 'stroke-linecap': 'round' }));
     else g = h('path', Object.assign({ d: 'M2.5 15.2L9 3l6.5 12.2z' }, p));
     return h('svg', { viewBox: '0 0 18 18', width: 16, height: 16, class: 'msh msh-' + shape, 'aria-hidden': 'true' }, g);
@@ -4136,6 +4193,7 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
     if (m === 'vaziyet' && ui.plan) return h('main', { class: 'main main-vaziyet', key: 'main-vaziyet' }, ui.plan.sidebar(state, d), ui.plan.board(state, d));
     if (m === 'kolaj' && ui.col) return h('main', { class: 'main main-kolaj', key: 'main-kolaj' }, ui.col.sidebar(state, d), ui.col.board(state, d));
     if (m === 'pafta' && ui.tpl) return h('main', { class: 'main main-pafta', key: 'main-pafta' }, ui.tpl.sidebar(state, d), ui.tpl.board(state, d));
+    if (m === 'kent' && ui.kent) return h('main', { class: 'main main-kent', key: 'main-kent' }, ui.kent.sidebar(state, d), ui.kent.board(state, d));
     if (m === 'yer' && ui.yer) return h('main', { class: 'main main-yer', key: 'main-yer' }, ui.yer.sidebar(state, d), ui.yer.board(state, d));
     return h('main', { class: 'main main-islev', key: 'main-islev' }, ui.sidebar(state, d), ui.board(state, d), ui.assistant(state, d));
   };
@@ -5260,14 +5318,446 @@ window.App.config = {"modules":["islev"],"api":{"visit":"/api/v"}};
 })();
 
 /* ==========================================================================
-   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/vaziyet · #/kolaj · #/pafta
+   86-ui-kent.js — Modül 12 arayüzü: Kent Dokusu
+   Haritadan seçilen alanın bina, yol, su ve yeşil verisinden vaziyet paftası, analiz haritaları,
+   3B bağlam modeli ve alan özeti üretir.
+   Sol panel: Konum · Görünüm · Dışa aktar. Pafta: Harita · Pafta · 3B · Özet.
+   Harita (Leaflet), SVG pafta ve 3B tuval sanal DOM dışında yaşar; ref ile bağlanır (bkz. 87-ctl-kent.js).
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const h = App.h;
+  const ui = App.ui;
+  const kent = App.kent;
+  const rt = kent.rt;
+  const ctl = () => App.ctl;
+  const K = (ui.kent = {});
+
+  const nf = (v, d) => Number(v).toLocaleString('tr-TR', { maximumFractionDigits: d || 0, minimumFractionDigits: d || 0 });
+  const note = (t, cls) => h('p', { class: 'note' + (cls ? ' ' + cls : '') }, t);
+
+  /* ---------------- skor kadranı ---------------- */
+  ui.meterOpts.kent = function (state) {
+    const k = kent.of(state), m = rt.metrics, d = rt.data;
+    if (!d || !m) return { label: 'Taban alanı oranı', percent: null, msg: k.busy ? k.busy.msg : 'Haritadan bir alan seçip paftayı oluşturun', chips: [], issues: 0 };
+    return {
+      label: 'Taban alanı oranı', percent: Math.round(m.coverage * 100),
+      msg: nf(m.count) + ' bina · ' + d.meta.w + '×' + d.meta.h + ' m · ' + nf(m.ha, 1) + ' hektar',
+      chips: [
+        { label: 'Bina', value: nf(m.count), cls: 'dot' },
+        { label: 'Yoğunluk', value: nf(m.far, 2), cls: 'dot' },
+        { label: 'Ort. yükseklik', value: nf(m.meanHeight, 1) + ' m', cls: 'dot' },
+        { label: 'Yeşil', value: '%' + nf(m.green * 100), cls: 'dot' },
+      ],
+      issues: 0, issuesText: '', onIssues: null,
+    };
+  };
+
+  /* ---------------- sol panel: Konum ---------------- */
+  function konumTab(state, k) {
+    const c = ctl(), d = kent.dims(k);
+    const res = k.results;
+    return [
+      ui.section('Konum', h('div', { class: 'sec-box' },
+        h('label', { class: 'sr', for: 'kent-q' }, 'Adres, mahalle, şehir ya da koordinat'),
+        h('input', { id: 'kent-q', class: 'inp', type: 'search', autocomplete: 'off', placeholder: 'örn. Kaleiçi, Edirne', value: k.q, keep: true,
+          oninput: (e) => c.kentQuery(e.target.value), onkeydown: (e) => { if (e.key === 'Enter') c.kentQuery(e.target.value, true); } }),
+        k.searching ? note('Aranıyor…') : null,
+        res && !res.length ? note('Sonuç bulunamadı. Haritayı sürükleyerek de konum seçebilirsiniz.') : null,
+        res && res.length ? h('ul', { class: 'kent-res' }, res.map((r, i) => h('li', { key: i },
+          h('button', { type: 'button', class: 'kent-res-b', onclick: () => c.kentPick(r) }, h('b', {}, r.name), h('span', {}, r.label))))) : null,
+        note(k.lat.toFixed(5) + '° K, ' + k.lon.toFixed(5) + '° D', 'mono')), null, 'kloc'),
+      ui.section('Alan', h('div', { class: 'sec-box' },
+        ui.fld2('Genişlik', h('select', { id: 'kent-size', class: 'inp', value: String(k.size), onchange: (e) => c.kentArea({ size: Number(e.target.value) }) },
+          kent.SIZES.map((s) => h('option', { key: s, value: String(s) }, s + ' m')))),
+        ui.fld2('Oran', ui.segmented({ label: 'Pafta oranı', wide: true, value: k.ratio, options: kent.RATIOS, onchange: (v) => c.kentArea({ ratio: v }) })),
+        ui.fld2('Altlık', ui.segmented({ label: 'Harita altlığı', wide: true, value: k.base, options: [{ v: 'sokak', label: 'Sokak' }, { v: 'uydu', label: 'Uydu' }], onchange: (v) => c.kentBase(v) })),
+        note('Çizilecek alan: ' + d.w + ' × ' + d.h + ' m. Haritadaki çerçeve bu alanı gösterir.'),
+        ui.btn(k.has ? 'Paftayı yeniden oluştur' : 'Paftayı oluştur', { icon: 'target', cls: 'btn-primary btn-wide', onclick: () => c.kentGenerate(), disabled: !!k.busy })), d.w + '×' + d.h, 'karea'),
+    ];
+  }
+
+  /* ---------------- sol panel: Görünüm ---------------- */
+  function swatch(id, st, on) {
+    const bld = st.bld === 'none' ? st.bldStroke : st.bld;
+    return h('button', { key: id, type: 'button', class: 'kent-sw' + (on ? ' on' : ''), 'aria-pressed': String(on), title: st.ad, onclick: () => ctl().kentStyle(id) },
+      h('span', { class: 'kent-sw-c', 'aria-hidden': 'true' },
+        h('i', { style: { background: st.bg } }), h('i', { style: { background: bld } }), h('i', { style: { background: st.water } })),
+      h('span', { class: 'kent-sw-l' }, st.ad));
+  }
+  function gorunumTab(state, k) {
+    const c = ctl(), eng = rt.eng;
+    const cur = kent.MODES.find((m) => m[0] === k.mode) || kent.MODES[0];
+    return [
+      ui.section('Harita türü', h('div', { class: 'sec-box' },
+        h('div', { class: 'kent-chips', role: 'group', 'aria-label': 'Harita türü' },
+          kent.MODES.map((m) => h('button', { key: m[0], type: 'button', class: 'sgm-b kent-chip' + (m[0] === k.mode ? ' on' : ''), 'aria-pressed': String(m[0] === k.mode), onclick: () => c.kentMode(m[0]) }, m[1]))),
+        note(cur[2])), null, 'kmode'),
+      ui.section('Pafta stili', h('div', { class: 'sec-box' },
+        eng ? h('div', { class: 'kent-sws' }, Object.keys(eng.STYLES).map((id) => swatch(id, eng.STYLES[id], id === k.style))) : note('Stiller yükleniyor…')), null, 'kstyle'),
+      ui.section('Katmanlar', h('div', { class: 'sec-box' },
+        h('div', { class: 'tgl-row' }, kent.LAYERS.map((l) => ui.toggle({ label: l[1], on: !!k.layers[l[0]], onclick: () => c.kentLayer(l[0]) }))),
+        k.layers.topo && rt.data && !(rt.site && rt.site.terrain) ? note(rt.site ? 'Yükseklik verisi alınamadı.' : 'Yükseklik verisi yükleniyor…') : null), null, 'klayers'),
+    ];
+  }
+
+  /* ---------------- sol panel: Dışa aktar ---------------- */
+  function aktarTab(state, k) {
+    const c = ctl(), m = rt.data ? rt.data.meta : kent.dims(k);
+    const off = !k.has || !!k.busy;
+    return [
+      ui.section('Dışa aktar', h('div', { class: 'sec-box' },
+        ui.fld2('PDF ölçeği', h('select', { id: 'kent-scale', class: 'inp', value: String(k.scale), onchange: (e) => c.kentSet({ scale: Number(e.target.value) }) },
+          kent.SCALES.map((s) => h('option', { key: s, value: String(s) }, '1:' + s))),
+          'PDF sayfası: ' + Math.round(m.w * 1000 / k.scale) + ' × ' + Math.round(m.h * 1000 / k.scale) + ' mm'),
+        h('div', { class: 'kent-exp' }, kent.EXPORTS.map((x) => h('button', { key: x[0], type: 'button', class: 'btn kent-exp-b', disabled: off, title: x[1] + ' · ' + x[2], onclick: () => c.kentExport(x[0]) },
+          h('b', {}, x[1]), h('span', {}, x[2])))),
+        note(k.has ? 'Pafta çıktıları (SVG, PDF, PNG) ekrandaki harita türü ve stille iner. Model birimi metredir.' : 'Dışa aktarmak için önce paftayı oluşturun.')), null, 'kexp'),
+      ui.section('Veri kaynakları', h('div', { class: 'sec-box' },
+        note('Binalar: Overture Maps ve GlobalBuildingAtlas (TU Münih). Yol, su ve yeşil: Overture Maps, © OpenStreetMap katkıcıları. İklim, yükseklik ve hava: Open-Meteo. Deprem: USGS.'),
+        note('Bina yükseklikleri uydu görüntüsünden kestirilir ve ticari olmayan kullanım lisansıyla yayımlanmıştır; kesin ölçü gereken işlerde yerinde doğrulayın.')), null, 'ksrc'),
+    ];
+  }
+
+  K.sidebar = function (state) {
+    const k = kent.of(state), c = ctl();
+    const tabs = ui.tabsBar([
+      { id: 'konum', label: 'Konum' },
+      { id: 'gorunum', label: 'Görünüm' },
+      { id: 'aktar', label: 'Dışa aktar' },
+    ], k.tab, (id) => c.kentSet({ tab: id }));
+    const body = k.tab === 'gorunum' ? gorunumTab(state, k) : k.tab === 'aktar' ? aktarTab(state, k) : konumTab(state, k);
+    return ui.sideShell('sb-kent', 'Kent dokusu paneli', tabs, body);
+  };
+
+  /* ---------------- alan özeti ---------------- */
+  const dot = (color, label) => h('span', { class: 'kent-lg' }, h('i', { class: 'kent-dot', style: { background: color } }), label);
+  function metric(label, value, sub) {
+    return h('div', { class: 'kent-metric', key: label }, h('span', { class: 'kent-mk' }, label), h('b', { class: 'kent-mv' }, value), h('span', { class: 'kent-ms' }, sub));
+  }
+  function ozet(state, k) {
+    const eng = rt.eng, S = eng.Site, m = rt.data.meta, bm = rt.metrics, st = rt.site;
+    const cl = st && st.climate, t = st && st.terrain;
+    const wait = st ? 'veri alınamadı' : 'yükleniyor…';
+    const pills = [];
+    if (cl) pills.push(cl.koppen.code + ' · ' + cl.koppen.ad, nf(cl.tMean, 1) + ' °C ortalama, ' + nf(cl.rain) + ' mm yağış', 'Hakim rüzgar ' + cl.wind.top);
+    pills.push('Yazın ' + S.fmtHours(S.dayLength(m.lat, 172)) + ' gün ışığı');
+    if (t) pills.push('Deniz seviyesinden ' + nf(t.center) + ' m');
+    if (!st) pills.push('İklim ve arazi verisi yükleniyor…');
+    return h('div', { class: 'kent-oz' },
+      h('header', { class: 'kent-oz-head' },
+        h('h2', { class: 'kent-oz-title' }, k.name || 'Seçili alan'),
+        h('span', { class: 'kent-oz-coord mono' }, m.lat.toFixed(4) + ', ' + m.lon.toFixed(4) + ' · ' + m.w + '×' + m.h + ' m')),
+      h('div', { class: 'kent-pills' }, pills.map((p, i) => h('span', { key: i, class: 'kent-pill' }, p))),
+      h('div', { class: 'kent-cards' },
+        h('section', { class: 'kent-card kent-card-wide' }, h('h3', { class: 'panel-title' }, 'İklim' + (cl ? ', ' + cl.year : '')),
+          cl ? h('div', { class: 'kent-chart', html: S.climateChart(cl) }) : note(wait),
+          cl ? h('div', { class: 'kent-lgs' }, dot('#D8432B', 'Ortalama sıcaklık'), dot('#F4B8A6', 'Günlük aralık'), dot('#BFD3F7', 'Yağış')) : null),
+        h('section', { class: 'kent-card' }, h('h3', { class: 'panel-title' }, 'Rüzgar gülü'),
+          cl ? h('div', { class: 'kent-chart', html: S.windRose(cl.wind) }) : note(wait),
+          cl ? note('Çoğunlukla ' + cl.wind.top + ' yönünden (günlerin %' + nf(cl.wind.topShare * 100) + ' kadarı). Günlük en yüksek hız ortalaması ' + nf(cl.wind.peak) + ' km/sa.') : null),
+        h('section', { class: 'kent-card' }, h('h3', { class: 'panel-title' }, 'Güneş yolu'),
+          h('div', { class: 'kent-chart', html: S.sunDiagram(m.lat) }),
+          h('div', { class: 'kent-lgs' }, dot('#D8432B', '21 Haziran'), dot('#E89B3C', 'Ekinoks'), dot('#2F62D9', '21 Aralık')))),
+      h('div', { class: 'kent-metrics' },
+        metric('Yapılaşma', nf(bm.count) + ' bina', nf(bm.ha, 1) + ' hektarda'),
+        metric('Taban alanı oranı', '%' + nf(bm.coverage * 100), 'TAKS benzeri, alanın tamamına göre'),
+        metric('Yapı yoğunluğu', nf(bm.far, 2), 'KAKS benzeri (toplam kat alanı / alan)'),
+        metric('Ortalama bina yüksekliği', nf(bm.meanHeight, 1) + ' m', 'en yüksek ' + nf(bm.maxHeight) + ' m'),
+        metric('Yeşil alan', '%' + nf(bm.green * 100), 'park, koru ve çim alanlar'),
+        metric('Yol ağı', nf(bm.roadKm, 1) + ' km', bm.stops + ' durak'),
+        metric('İklim tipi', cl ? cl.koppen.code : '—', cl ? cl.koppen.ad : wait),
+        metric('Isıtma · soğutma', cl ? nf(cl.hdd) + ' · ' + nf(cl.cdd) : '—', cl ? 'derece-gün, 18 °C taban' : wait),
+        metric('Güneş enerjisi', cl ? nf(cl.solar) + ' kWh/m²' : '—', cl ? 'yıllık, yatay yüzeyde' : wait),
+        metric('Arazi', t ? nf(t.relief) + ' m kot farkı' : '—', t ? 'en dik eğim %' + nf(t.grade, 1) + ', zemin ' + nf(t.min) + '–' + nf(t.max) + ' m' : wait),
+        metric('Hava kalitesi', st && st.air ? nf(st.air.pm25, 1) + ' µg/m³' : '—', st && st.air ? 'PM2.5, son 92 gün · DSÖ kılavuzunun ' + nf(st.air.pm25 / 5, 1) + ' katı' : wait),
+        metric('Deprem geçmişi', st && st.quakes ? nf(st.quakes.count) + ' deprem' : '—', st && st.quakes ? '100 km içinde, M4.5+, 1976 sonrası' : wait)),
+      note('Oranlar çizilen alanın tamamına göre hesaplanır; imar durumu yerine geçmez. Bina verisi: ' + m.source + '.'));
+  }
+
+  /* ---------------- pafta ---------------- */
+  K.board = function (state, d) {
+    const k = kent.of(state), c = ctl(), has = !!rt.data, view = k.view;
+    const cls = (id) => 'kent-view kent-' + id + (view === id ? ' on' : '');
+    let overlay = null;
+    if (k.busy) {
+      overlay = ui.emptyCard(k.busy.title || 'Hazırlanıyor', k.busy.msg || '', [
+        h('div', { class: 'kent-bar', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': Math.round((k.busy.frac || 0) * 100) }, h('i', { style: { width: Math.round((k.busy.frac || 0) * 100) + '%' } }))], 'kent-busy');
+    } else if (!has && view !== 'map') {
+      overlay = ui.emptyCard('Önce bir alan seçin', 'Haritada konumu bulun, çerçeveyi arsanın üzerine getirin ve paftayı oluşturun.', [
+        ui.btn('Haritaya dön', { icon: 'pin', cls: 'btn-primary', onclick: () => c.kentView('map') })]);
+    }
+    const stage = h('div', { class: 'kent-slot' },
+      h('div', { key: 'kv-map', class: cls('map'), ref: (el) => c.kentMapRef(el) }),
+      h('div', { key: 'kv-plan', class: cls('plan'), ref: (el) => { rt.planEl = el; }, onwheel: c.kentWheel, onpointerdown: c.kentDown, onpointermove: c.kentDrag, onpointerup: c.kentUp, onpointercancel: c.kentUp },
+        h('div', { class: 'kent-paper', ref: (el) => { rt.paperEl = el; c.kentApplyPZ(); }, html: rt.svg || '' })),
+      h('div', { key: 'kv-model', class: cls('model'), ref: (el) => c.kentModelRef(el) }),
+      h('div', { key: 'kv-ozet', class: cls('ozet') }, view === 'ozet' && has && rt.eng ? ozet(state, k) : null),
+      overlay);
+
+    const m = has ? rt.data.meta : null;
+    const hint = view === 'map' ? 'Haritayı sürükleyin; çerçeve çizilecek alandır · “Paftayı oluştur” ile veriyi indirin'
+      : view === 'plan' ? 'Tekerlek ile yakınlaştırın, sürükleyerek kaydırın · harita türü ve stil sol panelde'
+        : view === 'model' ? 'Sol tuş: döndür · sağ tuş: kaydır · tekerlek: yakınlaştır'
+          : 'İklim, arazi ve yapılaşma özeti seçili alan için hesaplanır';
+    return ui.boardPage(state, d, {
+      label: 'Kent dokusu paftası',
+      stage: stage,
+      scale: m ? nf(rt.data.buildings.length) + ' bina · ' + m.w + '×' + m.h + ' m' : 'Alan seçilmedi',
+      foot: h('p', { class: 'board-hint' }, hint),
+      tools: [
+        { k: 'seg', label: 'Görünüm', value: view, options: [{ v: 'map', label: 'Harita' }, { v: 'plan', label: 'Pafta' }, { v: 'model', label: '3B' }, { v: 'ozet', label: 'Özet' }], onchange: (v) => c.kentView(v) },
+        { k: 'sep' },
+        { k: 'btn', label: has ? 'Yeniden oluştur' : 'Paftayı oluştur', icon: 'target', strong: true, onclick: () => c.kentGenerate(), disabled: !!k.busy, title: 'Çerçevedeki alanın verisini indir ve çiz' },
+        view === 'plan' ? { k: 'icon', label: 'Sığdır', icon: 'expand', onclick: () => c.kentFit(), disabled: !has, title: 'Paftayı ekrana sığdır' } : null,
+        view === 'model' ? { k: 'btn', label: 'Aksonometrik', icon: 'cube', onclick: () => c.kentAxo(), disabled: !has, pressed: !!k.axo, title: 'Perspektif / aksonometrik' } : null,
+        view === 'model' ? { k: 'icon', label: 'Görünümü sıfırla', icon: 'reset', onclick: () => c.kentReset3d(), disabled: !has, title: 'Kamerayı başlangıç konumuna al' } : null,
+        view === 'model' ? { k: 'icon', label: 'Görüntü al', icon: 'copy', onclick: () => c.kentShot(), disabled: !has, title: '3B görünümü PNG olarak indir' } : null,
+        { k: 'sep' },
+        { k: 'btn', label: 'Dışa aktar', icon: 'download', onclick: () => c.kentSet({ tab: 'aktar' }), disabled: !has, title: 'SVG, PDF, PNG, DXF, OBJ, GLB, STL, GeoJSON' },
+      ],
+    });
+  };
+})();
+
+/* ==========================================================================
+   87-ctl-kent.js — Modül 12 (Kent Dokusu) denetleyicisi
+   Motor yükleme, harita bağlama, veri indirme, yeniden çizim, 3B, dışa aktarım, arama.
+   ========================================================================== */
+(function () {
+  const App = window.App;
+  const ctl = App.ctl;
+  const kent = App.kent;
+  const rt = kent.rt;
+
+  const get = () => kent.of(App.store.get());
+  const set = (patch) => ctl.dispatch({ type: 'UI', patch: { kent: Object.assign({}, get(), patch) } });
+  const bump = (patch) => set(Object.assign({ rev: get().rev + 1 }, patch || {}));
+  ctl.kentSet = set;
+
+  /* ---------------- motor ---------------- */
+  let enginePromise = null;
+  ctl.kentEngine = function () {
+    if (!enginePromise) {
+      const cfg = App.config && App.config.kent;
+      enginePromise = (cfg && cfg.engine ? import(cfg.engine) : Promise.reject(new Error('Kent Dokusu motoru bu derlemede yok')))
+        .then(function (m) { rt.eng = m; bump(); return m; })
+        .catch(function (e) { enginePromise = null; throw e; });
+    }
+    return enginePromise;
+  };
+
+  /* ---------------- harita ---------------- */
+  ctl.kentMapRef = function (el) {
+    if (rt.mapEl === el) return;
+    rt.mapEl = el;
+    if (rt.map) { try { rt.map.remove(); } catch (e) { /* kapsayıcı DOM'dan çıkmış */ } rt.map = null; }
+    ctl.kentEngine().then(function (m) {
+      if (rt.mapEl !== el || rt.map) return;
+      const k = get(), d = kent.dims(k);
+      rt.map = m.createMap(el, { lat: k.lat, lon: k.lon, w: d.w, h: d.h, base: k.base, onMove: function (lat, lon) { set({ lat: lat, lon: lon }); } });
+    }).catch(function () { ctl.toast('Harita motoru yüklenemedi. Bağlantınızı kontrol edin.', 'error'); });
+  };
+  ctl.kentArea = function (patch) {
+    set(patch);
+    const d = kent.dims(get());
+    if (rt.map) rt.map.setFrame(d.w, d.h);
+  };
+  ctl.kentBase = function (b) { set({ base: b }); if (rt.map) rt.map.setBase(b); };
+
+  /* ---------------- arama ---------------- */
+  let searchT = null, searchSeq = 0;
+  function runSearch() {
+    const q = get().q.trim();
+    if (q.length < 3) { set({ results: null, searching: false }); return; }
+    const seq = ++searchSeq;
+    set({ searching: true });
+    ctl.kentEngine().then(function (m) { return m.geocode(q); }).then(function (list) {
+      if (seq === searchSeq) set({ results: list.slice(0, 6), searching: false });
+    }).catch(function () { if (seq === searchSeq) set({ results: [], searching: false }); });
+  }
+  ctl.kentQuery = function (v, now) {
+    set({ q: v });
+    clearTimeout(searchT);
+    searchT = setTimeout(runSearch, now ? 0 : 450);
+  };
+  ctl.kentPick = function (r) {
+    clearTimeout(searchT); searchSeq++;
+    set({ name: r.name, q: r.name, results: null, searching: false, lat: r.lat, lon: r.lon, view: 'map' });
+    if (rt.map) { rt.map.setView(r.lat, r.lon, 16); setTimeout(function () { rt.map.invalidate(); }, 40); }
+  };
+
+  /* ---------------- çizim ---------------- */
+  function redraw(k) {
+    if (!rt.data || !rt.eng) return;
+    const cl = rt.site && rt.site.climate;
+    rt.svg = rt.eng.buildSVG(rt.data, { style: k.style, layers: k.layers, mode: k.mode, wind: cl ? cl.wind : null, windError: rt.site && !cl ? 'Rüzgar verisi alınamadı' : null, topo: rt.site && rt.site.terrain });
+  }
+  function change(patch, opts) {
+    const k = Object.assign({}, get(), patch);
+    redraw(k);
+    if (opts && opts.model) rt.dirty3d = true;
+    bump(patch);
+    if (opts && opts.model && k.view === 'model') ensure3d();
+  }
+  ctl.kentStyle = function (id) { change({ style: id }, { model: true }); };
+  ctl.kentMode = function (id) { change(rt.data && get().view !== 'plan' ? { mode: id, view: 'plan' } : { mode: id }); if (rt.data) setTimeout(ctl.kentFitIfIdle, 30); };
+  ctl.kentLayer = function (id) { const l = Object.assign({}, get().layers); l[id] = !l[id]; change({ layers: l }); };
+
+  /* ---------------- veri ---------------- */
+  ctl.kentGenerate = function (at) {
+    const k0 = get();
+    if (k0.busy) return;
+    const c = at || (rt.map ? rt.map.center() : { lat: k0.lat, lon: k0.lon });
+    const d = kent.dims(k0);
+    const seq = ++rt.seq;
+    set({ busy: { title: 'Veri indiriliyor', msg: 'Hazırlanıyor…', frac: 0.02 }, lat: c.lat, lon: c.lon, results: null });
+    ctl.kentEngine().then(function (m) {
+      return m.loadArea({ lat: c.lat, lon: c.lon, w: d.w, h: d.h }, function (a, n) {
+        if (seq === rt.seq) set({ busy: { title: 'Veri indiriliyor', msg: a + ' / ' + n + ' veri parçası', frac: 0.05 + 0.9 * a / n } });
+      }).then(function (data) {
+        if (seq !== rt.seq) return;
+        rt.data = data; rt.site = null; rt.dirty3d = true;
+        rt.metrics = m.Site.builtMetrics(data);
+        rt.pz.touched = false;
+        redraw(get());
+        bump({ busy: null, has: true, view: 'plan' });
+        setTimeout(ctl.kentFit, 30);
+        if (!data.buildings.length) ctl.toast('Bu alanda bina verisi bulunamadı. Başka bir konum deneyin.');
+        m.Site.fetchSite(data.meta.lat, data.meta.lon, data.meta.w, data.meta.h).then(function (site) {
+          if (seq !== rt.seq) return;
+          rt.site = site;
+          const k = get();
+          if (k.layers.topo || k.mode === 'ruzgar') redraw(k);
+          bump();
+        });
+      });
+    }).catch(function (e) {
+      if (seq !== rt.seq) return;
+      set({ busy: null });
+      ctl.toast((e && e.message) || 'Veri alınırken bir hata oluştu.', 'error');
+    });
+  };
+
+  /* ---------------- görünüm ---------------- */
+  ctl.kentView = function (v) {
+    if (get().view === v) return;
+    set({ view: v });
+    if (v === 'map') setTimeout(function () { if (rt.map) rt.map.invalidate(); }, 40);
+    if (v === 'plan') setTimeout(ctl.kentFitIfIdle, 30);
+    if (v === 'model') setTimeout(ensure3d, 30);
+  };
+
+  // 2B pafta: kaydır / yakınlaştır (store'a yazılmaz; doğrudan CSSOM)
+  ctl.kentApplyPZ = function () {
+    const el = rt.paperEl, p = rt.pz;
+    if (el) el.style.transform = 'translate(' + p.x + 'px,' + p.y + 'px) scale(' + p.k + ')';
+  };
+  ctl.kentFit = function () {
+    const vp = rt.planEl;
+    if (!vp || !rt.data) return;
+    const r = vp.getBoundingClientRect(), m = rt.data.meta, p = rt.pz;
+    if (!r.width || !r.height) return;
+    p.k = Math.min(r.width / m.w, r.height / m.h) * 0.9;
+    p.x = -m.w * p.k / 2; p.y = -m.h * p.k / 2; p.touched = false;
+    ctl.kentApplyPZ();
+  };
+  ctl.kentFitIfIdle = function () { if (!rt.pz.touched) ctl.kentFit(); };
+  ctl.kentWheel = function (e) {
+    if (!rt.data) return;
+    e.preventDefault();
+    const r = rt.planEl.getBoundingClientRect(), p = rt.pz;
+    const mx = e.clientX - r.left - r.width / 2, my = e.clientY - r.top - r.height / 2;
+    const nk = Math.min(40, Math.max(0.05, p.k * Math.exp(-e.deltaY * 0.0015)));
+    p.x = mx - (mx - p.x) * nk / p.k; p.y = my - (my - p.y) * nk / p.k; p.k = nk; p.touched = true;
+    ctl.kentApplyPZ();
+  };
+  let drag = null;
+  ctl.kentDown = function (e) {
+    if (!rt.data) return;
+    drag = { x: e.clientX - rt.pz.x, y: e.clientY - rt.pz.y };
+    try { rt.planEl.setPointerCapture(e.pointerId); } catch (err) { /* yok */ }
+    rt.planEl.classList.add('drag');
+  };
+  ctl.kentDrag = function (e) {
+    if (!drag) return;
+    rt.pz.x = e.clientX - drag.x; rt.pz.y = e.clientY - drag.y; rt.pz.touched = true;
+    ctl.kentApplyPZ();
+  };
+  ctl.kentUp = function () { drag = null; if (rt.planEl) rt.planEl.classList.remove('drag'); };
+  window.addEventListener('resize', function () { if (App.store && App.store.get().ui.module === 'kent' && get().view === 'plan') ctl.kentFitIfIdle(); });
+
+  /* ---------------- 3B ---------------- */
+  ctl.kentModelRef = function (el) {
+    if (rt.modelEl === el) return;
+    rt.modelEl = el;
+    if (rt.v3 && rt.v3.ready()) rt.v3.attach(el);
+  };
+  function ensure3d() {
+    if (!rt.data || !rt.eng || !rt.modelEl) return Promise.resolve(null);
+    const first = !rt.v3;
+    if (first || rt.dirty3d) set({ busy: { title: '3B model', msg: first ? 'Görüntüleyici yükleniyor…' : 'Binalar yükseltiliyor…', frac: first ? 0.3 : 0.7 } });
+    return (rt.v3 ? Promise.resolve(rt.v3) : rt.eng.load3d().then(function (v) { rt.v3 = v; return v; })).then(function (v) {
+      return new Promise(function (res) { setTimeout(function () { res(v); }, 30); });
+    }).then(function (v) {
+      v.init(rt.modelEl);
+      if (rt.dirty3d) { v.build(rt.data, get().style); v.setOrtho(!!get().axo); rt.dirty3d = false; }
+      v.render();
+      set({ busy: null });
+      return v;
+    }).catch(function (e) {
+      set({ busy: null });
+      ctl.toast('3B görüntüleyici yüklenemedi.', 'error');
+      return null;
+    });
+  }
+  ctl.kentAxo = function () { const on = !get().axo; set({ axo: on }); if (rt.v3 && rt.v3.ready()) rt.v3.setOrtho(on); };
+  ctl.kentReset3d = function () { if (rt.v3 && rt.v3.ready()) rt.v3.resetView(); };
+
+  /* ---------------- dışa aktarım ---------------- */
+  const TR = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u' };
+  function fileBase() {
+    const k = get();
+    return 'archtools_kent_' + (k.name || k.lat.toFixed(4) + '_' + k.lon.toFixed(4)).toLowerCase().replace(/[çğıöşü]/g, function (c) { return TR[c]; }).replace(/[^a-z0-9._-]+/g, '_').slice(0, 50);
+  }
+  ctl.kentExport = function (kind) {
+    if (!rt.data || !rt.eng || get().busy) return;
+    const X = rt.eng.X, m = rt.data.meta, base = fileBase(), k = get(), topo = rt.site && rt.site.terrain;
+    let job;
+    if (kind === 'svg') job = Promise.resolve(X.download(base + '.svg', X.exportSVG(rt.svg)));
+    else if (kind === 'png') job = X.exportPNG(rt.svg, m.w, m.h).then(function (b) { X.download(base + '.png', b); });
+    else if (kind === 'pdf') {
+      set({ busy: { title: 'PDF hazırlanıyor', msg: 'Vektör çizim dönüştürülüyor…', frac: 0.5 } });
+      job = new Promise(function (res) { setTimeout(res, 40); }).then(function () { return X.exportPDF(rt.svg, m.w, m.h, k.scale); }).then(function (b) { X.download(base + '_1-' + k.scale + '.pdf', b); });
+    } else if (kind === 'dxf') job = Promise.resolve(X.download(base + '.dxf', X.exportDXF(rt.data, { topo: topo })));
+    else if (kind === 'geojson') job = Promise.resolve(X.download(base + '.geojson', X.exportGeoJSON(rt.data, topo)));
+    else job = ensure3d().then(function (v) {
+      if (!v) throw new Error('3B model hazırlanamadı');
+      if (kind === 'obj') return X.download(base + '.obj', v.exportOBJ(), 'text/plain');
+      if (kind === 'stl') return v.exportSTL().then(function (buf) { X.download(base + '.stl', new Blob([buf], { type: 'model/stl' })); });
+      return v.exportGLB().then(function (buf) { X.download(base + '.glb', new Blob([buf], { type: 'model/gltf-binary' })); });
+    });
+    job.then(function () { set({ busy: null }); ctl.toast(kind.toUpperCase() + ' dosyası indirildi.', 'success'); })
+      .catch(function (e) { set({ busy: null }); ctl.toast('Dışa aktarım başarısız: ' + ((e && e.message) || e), 'error'); });
+  };
+  ctl.kentShot = function () {
+    if (!rt.v3 || !rt.v3.ready() || !rt.eng) return;
+    // data: adresi fetch ile okunamaz (CSP connect-src 'self'); elle çözülür
+    const bin = atob(rt.v3.snapshot().split(',')[1]), a = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+    rt.eng.X.download(fileBase() + '_3b.png', new Blob([a], { type: 'image/png' }));
+  };
+})();
+
+/* ==========================================================================
+   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/vaziyet · #/kolaj · #/pafta · #/kent
    Geçiş: View Transitions varsa yumuşak çapraz solma, yoksa anında.
    ========================================================================== */
 (function () {
   const App = window.App;
   const ctl = App.ctl;
   // yalnızca açık modüller yönlendirilir (App.config.modules — build.py enjekte eder); gizli modüle adresten de gidilemez
-  const ALL = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta'];
+  const ALL = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta', 'kent'];
   const ENABLED = (App.config && App.config.modules) || ALL;
   const IDS = ALL.filter((id) => ENABLED.indexOf(id) >= 0);
   const get = () => App.store.get();

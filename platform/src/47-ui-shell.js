@@ -1,7 +1,7 @@
 /* ==========================================================================
    47-ui-shell.js — archtools kabuğu: modül gezgini, ortak skor kadranı verisi,
    araç çubuğu ve sayfa iskeleti. Modüller yalnızca kendi içeriğini üretir.
-   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · vaziyet · kolaj · pafta
+   Modül kimlikleri (state.ui.module ve #/rota): islev · kat · analiz · arsa · imar · yer · tasarim · fizibilite · vaziyet · kolaj · pafta · kent
    ========================================================================== */
 (function () {
   const App = window.App;
@@ -21,6 +21,7 @@
     { id: 'vaziyet', n: '09', label: 'Vaziyet Planı', sub: 'Vaziyet planı · ölçekli yerleşim paftası', shape: 'sitemap' },
     { id: 'kolaj', n: '10', label: 'Kolaj Oluşturucu', sub: 'Kolaj oluşturucu · fotoğraf, kütle, siluet ve etiket', shape: 'collage' },
     { id: 'pafta', n: '11', label: 'Pafta Şablonu', sub: 'Pafta şablonu · araç çıktılarıyla jüri paftası', shape: 'layout' },
+    { id: 'kent', n: '12', label: 'Kent Dokusu', sub: 'Kent dokusu · vaziyet paftası, alan analizi ve 3B bağlam', shape: 'city' },
   ];
   // yalnızca açık modüller gezilir ve listelenir (App.config.modules)
   const ENABLED = (App.config && App.config.modules) || null;
@@ -44,6 +45,7 @@
     else if (shape === 'sitemap') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 2.4, width: 13.2, height: 13.2, rx: 1 }, q)), h('rect', Object.assign({ x: 5, y: 5.4, width: 4.6, height: 4.2, rx: 0.6 }, p)), h('path', { d: 'M2.6 12.6h12.8', stroke: 'currentColor', 'stroke-width': 1.6, fill: 'none' }), h('circle', Object.assign({ cx: 12.6, cy: 6.4, r: 1.7 }, p)));
     else if (shape === 'collage') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 3.4, width: 9.6, height: 11.2, rx: 1 }, q)), h('circle', Object.assign({ cx: 11.4, cy: 6.8, r: 3.6 }, p)), h('path', { d: 'M8 14.6l3.2-3.6 4.4 3.6z', fill: 'currentColor', stroke: 'currentColor', 'stroke-width': 1.2, 'stroke-linejoin': 'round' }));
     else if (shape === 'layout') g = h('g', {}, h('rect', Object.assign({ x: 2.4, y: 2.4, width: 13.2, height: 13.2, rx: 1 }, q)), h('rect', Object.assign({ x: 4.6, y: 4.6, width: 5.2, height: 5.6, rx: 0.5 }, p)), h('path', { d: 'M12 5h1.6M12 8h1.6M5 13h8', stroke: 'currentColor', 'stroke-width': 1.4, fill: 'none', 'stroke-linecap': 'round' }));
+    else if (shape === 'city') g = h('g', {}, h('rect', Object.assign({ x: 2.6, y: 8, width: 4.4, height: 7.4, rx: 0.8 }, p)), h('rect', Object.assign({ x: 8.2, y: 2.6, width: 4.2, height: 12.8, rx: 0.8 }, p)), h('rect', Object.assign({ x: 13.4, y: 10.4, width: 2.4, height: 5, rx: 0.6 }, p)));
     else if (shape === 'coin') g = h('g', {}, h('circle', Object.assign({ cx: 9, cy: 9, r: 6.6 }, q)), h('path', { d: 'M9 5.2v7.6M6.8 7.4c0-1 .9-1.7 2.2-1.7s2.2.7 2.2 1.6c0 2.3-4.4 1.1-4.4 3.4 0 .9 1 1.7 2.2 1.7s2.2-.7 2.2-1.7', stroke: 'currentColor', 'stroke-width': 1.3, fill: 'none', 'stroke-linecap': 'round' }));
     else g = h('path', Object.assign({ d: 'M2.5 15.2L9 3l6.5 12.2z' }, p));
     return h('svg', { viewBox: '0 0 18 18', width: 16, height: 16, class: 'msh msh-' + shape, 'aria-hidden': 'true' }, g);
@@ -265,6 +267,7 @@
     if (m === 'vaziyet' && ui.plan) return h('main', { class: 'main main-vaziyet', key: 'main-vaziyet' }, ui.plan.sidebar(state, d), ui.plan.board(state, d));
     if (m === 'kolaj' && ui.col) return h('main', { class: 'main main-kolaj', key: 'main-kolaj' }, ui.col.sidebar(state, d), ui.col.board(state, d));
     if (m === 'pafta' && ui.tpl) return h('main', { class: 'main main-pafta', key: 'main-pafta' }, ui.tpl.sidebar(state, d), ui.tpl.board(state, d));
+    if (m === 'kent' && ui.kent) return h('main', { class: 'main main-kent', key: 'main-kent' }, ui.kent.sidebar(state, d), ui.kent.board(state, d));
     if (m === 'yer' && ui.yer) return h('main', { class: 'main main-yer', key: 'main-yer' }, ui.yer.sidebar(state, d), ui.yer.board(state, d));
     return h('main', { class: 'main main-islev', key: 'main-islev' }, ui.sidebar(state, d), ui.board(state, d), ui.assistant(state, d));
   };

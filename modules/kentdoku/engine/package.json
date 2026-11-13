@@ -1,0 +1,20 @@
+{
+  "name": "kentdoku-engine",
+  "private": true,
+  "type": "module",
+  "description": "archtools Kent Dokusu modülünün hesap motoru. `npm run build` -> ../dist (build.py bunu public/assets/kent/ altına kopyalar).",
+  "scripts": { "build": "node build.mjs" },
+  "dependencies": {
+    "@mapbox/vector-tile": "2.0.3",
+    "fzstd": "0.1.1",
+    "hyparquet": "1.33.0",
+    "jspdf": "2.5.1",
+    "leaflet": "1.9.4",
+    "pbf": "4.0.1",
+    "pmtiles": "3.2.1",
+    "polygon-clipping": "0.15.7",
+    "svg2pdf.js": "2.2.3",
+    "three": "0.160.0"
+  },
+  "devDependencies": { "esbuild": "0.24.0" }
+}

@@ -1,0 +1,8 @@
+import{z as u}from"./k.F3XY7VLT.js";import"./k.YXJZLY3S.js";var M=class{parse(V,g={}){g=Object.assign({binary:!1},g);let f=g.binary,y=[],d=0;V.traverse(function(t){if(t.isMesh){let o=t.geometry,i=o.index,a=o.getAttribute("position");d+=i!==null?i.count/3:a.count/3,y.push({object3d:t,geometry:o})}});let e,n=80;if(f===!0){let t=d*2+d*3*4*4+80+4,o=new ArrayBuffer(t);e=new DataView(o),e.setUint32(n,d,!0),n+=4}else e="",e+=`solid exported
+`;let c=new u,m=new u,p=new u,x=new u,z=new u,l=new u;for(let t=0,o=y.length;t<o;t++){let i=y[t].object3d,a=y[t].geometry,r=a.index,b=a.getAttribute("position");if(r!==null)for(let s=0;s<r.count;s+=3){let B=r.getX(s+0),A=r.getX(s+1),F=r.getX(s+2);h(B,A,F,b,i)}else for(let s=0;s<b.count;s+=3){let B=s+0,A=s+1,F=s+2;h(B,A,F,b,i)}}return f===!1&&(e+=`endsolid exported
+`),e;function h(t,o,i,a,r){c.fromBufferAttribute(a,t),m.fromBufferAttribute(a,o),p.fromBufferAttribute(a,i),r.isSkinnedMesh===!0&&(r.applyBoneTransform(t,c),r.applyBoneTransform(o,m),r.applyBoneTransform(i,p)),c.applyMatrix4(r.matrixWorld),m.applyMatrix4(r.matrixWorld),p.applyMatrix4(r.matrixWorld),W(c,m,p),w(c),w(m),w(p),f===!0?(e.setUint16(n,0,!0),n+=2):(e+=`		endloop
+`,e+=`	endfacet
+`)}function W(t,o,i){x.subVectors(i,o),z.subVectors(t,o),x.cross(z).normalize(),l.copy(x).normalize(),f===!0?(e.setFloat32(n,l.x,!0),n+=4,e.setFloat32(n,l.y,!0),n+=4,e.setFloat32(n,l.z,!0),n+=4):(e+="	facet normal "+l.x+" "+l.y+" "+l.z+`
+`,e+=`		outer loop
+`)}function w(t){f===!0?(e.setFloat32(n,t.x,!0),n+=4,e.setFloat32(n,t.y,!0),n+=4,e.setFloat32(n,t.z,!0),n+=4):e+="			vertex "+t.x+" "+t.y+" "+t.z+`
+`}}};export{M as STLExporter};

@@ -1,12 +1,12 @@
 /* ==========================================================================
-   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/vaziyet · #/kolaj · #/pafta
+   90-router.js — modül gezintisi: #/islev · #/kat · #/analiz · #/arsa · #/imar · #/yer · #/tasarim · #/fizibilite · #/vaziyet · #/kolaj · #/pafta · #/kent
    Geçiş: View Transitions varsa yumuşak çapraz solma, yoksa anında.
    ========================================================================== */
 (function () {
   const App = window.App;
   const ctl = App.ctl;
   // yalnızca açık modüller yönlendirilir (App.config.modules — build.py enjekte eder); gizli modüle adresten de gidilemez
-  const ALL = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta'];
+  const ALL = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta', 'kent'];
   const ENABLED = (App.config && App.config.modules) || ALL;
   const IDS = ALL.filter((id) => ENABLED.indexOf(id) >= 0);
   const get = () => App.store.get();

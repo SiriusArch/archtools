@@ -39,3 +39,18 @@ CSP (`default-src 'none'`, betik / stil yalnızca kendi kaynağından, satır i�
 
 ## Güvenlik sorunu bildirme
 Bir açık bulduysanız lütfen depo sahibine GitHub üzerinden **özel** bir güvenlik bildirimi (*Security → Report a vulnerability*) açın; herkese açık issue'ya ayrıntı yazmayın.
+
+## Kent Dokusu modülü ve üçüncü taraf istekleri
+
+Kent Dokusu modülü açıldığında tarayıcı, harita ve analiz verisini doğrudan veri sağlayıcılardan indirir. Bu nedenle
+CSP iki yönergede genişletildi; `script-src` ve `style-src` hâlâ yalnızca `'self'` (tüm kod kendi sunucumuzdan):
+
+- `connect-src`: tiles.overturemaps.org, stac.overturemaps.org, data.source.coop, archive-api / api / air-quality-api
+  .open-meteo.com, earthquake.usgs.gov, nominatim.openstreetmap.org, photon.komoot.io
+- `img-src`: server.arcgisonline.com (altlık karoları)
+
+Sonuç: modülü kullanan ziyaretçinin IP adresi ve istediği alanın koordinatları bu sağlayıcılara gider
+(Referrer-Policy: no-referrer olduğundan site adresi gitmez). İşlev Şeması'nı kullanan ziyaretçi için hiçbir
+üçüncü taraf isteği yapılmaz; motor ve harita kodu yalnızca `#/kent` açılınca yüklenir. Aydınlatma metni
+(`site/privacy/index.html`) bu aktarımı henüz anlatmıyor; yayına almadan önce güncellenmelidir.
+Modülü kapatmak için: `python build.py --modules islev` ve `vercel.json` içindeki ek adresleri kaldırın.

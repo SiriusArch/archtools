@@ -80,3 +80,22 @@ Dosya şeması `mimari-asistan.bubble-diagram` v1'dir; `platform: "archtools"` a
 `floorStudy` içe aktarılır (kat ataması ve ayarlar geri yüklenir); `spaceAnalysis` yalnızca okunur, içe aktarmada yeniden hesaplanır. `siteAnalysis` (konum, yarıçap, parsel), `zoning` (imar parametreleri ve senaryolar) ve `siteSelection` (adaylar, ağırlıklar, filtreler) içe aktarılır; skorlar ve sıralama yeniden hesaplanır. Parsel koordinatları konum merkezine göre metredir (x doğu, y kuzey). `design.parameters` ve `feasibility.assumptions` içe aktarılır; sonuçlar yeniden hesaplanır. HERE API anahtarı hiçbir zaman JSON'a, paylaşım bağlantısına ya da dışa aktarmaya girmez (yalnızca tarayıcıda `localStorage`). Yeni modül kendi uzantısını `App.extProviders.push(project => ({ anahtar: veri }))` ile ekler.
 
 Ayrıntılar: `modules/bubble-diagram/README.md`, `modules/floor-study/README.md`, `modules/space-analysis/README.md`, `modules/site-analysis/README.md`, `modules/building-design/README.md`.
+
+## Kent Dokusu modülü (`#/kent`)
+
+Haritadan seçilen alanın bina, yol, su ve yeşil verisinden vaziyet paftası (9 stil, 9 harita türü), alan özeti
+(iklim, rüzgar, güneş, arazi, hava kalitesi, deprem, yapılaşma oranları) ve 3B bağlam modeli üretir.
+Dışa aktarım: SVG, PDF, PNG, DXF, OBJ, GLB, STL, GeoJSON.
+
+- Arayüz: `modules/kentdoku/src/` (`39-state-kent.js`, `86-ui-kent.js`, `87-ctl-kent.js`, `styles.shared.css`).
+  Uygulamanın kendi bileşenlerini ve glass belirteçlerini kullanır; kabuk kaydı `47-ui-shell.js`, rota `90-router.js`.
+- Hesap motoru: `modules/kentdoku/engine/src/` (ES modülleri). Paketlenmiş hâli `modules/kentdoku/dist/` altında
+  depoya işlenir; `build.py` bunu `public/assets/kent/` altına kopyalar ve giriş dosyasını `App.config.kent.engine`
+  olarak enjekte eder. Motor yalnızca modül açıldığında, three.js yalnızca 3B istenince yüklenir.
+- Motoru yeniden paketlemek (yalnızca `engine/src` ya da bağımlılık değişince):
+  `cd modules/kentdoku/engine && npm install && npm run build`, ardından `python build.py`.
+- Yayın varsayılanı artık `islev,kent`. Yalnızca İşlev Şeması için: `python build.py --modules islev`.
+
+Veri kaynakları (API anahtarı yok): Overture Maps (bina, yol, arazi), GlobalBuildingAtlas / TU Münih (bina ve
+yükseklik; yükseklik verisi ticari olmayan kullanım lisansıyla listelenir), Open-Meteo (iklim, yükseklik, hava),
+USGS (deprem), Esri (altlık karoları), Nominatim / Photon (adres arama).
