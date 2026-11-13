@@ -99,3 +99,12 @@ Dışa aktarım: SVG, PDF, PNG, DXF, OBJ, GLB, STL, GeoJSON.
 Veri kaynakları (API anahtarı yok): Overture Maps (bina, yol, arazi), GlobalBuildingAtlas / TU Münih (bina ve
 yükseklik; yükseklik verisi ticari olmayan kullanım lisansıyla listelenir), Open-Meteo (iklim, yükseklik, hava),
 USGS (deprem), Esri (altlık karoları), Nominatim / Photon (adres arama).
+
+## Araç galerisi (araçlar arası geçiş)
+
+Üst bardaki "Araçlar" tetikleyicisi tam ekran, hareketli bir menü açar (`platform/src/48-ui-gallery.js`,
+stiller `platform/src/styles.glass.css` sonunda). Araçlar perspektif çizim ızgarası üzerinde yatay dizilmiş
+paftalardır; sürükleme, tekerlek, ok tuşları ve alt listeyle gezilir, Enter ya da "Aracı aç" ile seçilir, Esc kapatır.
+Kitaplık kullanılmaz (ham WebGL); pafta görselleri tema renkleriyle 2B tuvale çizilir, dosya indirilmez.
+WebGL yoksa menü sade liste olarak çalışır; "hareketi azalt" tercihinde bükülme ve salınım kapanır.
+Yeni bir modül eklendiğinde galeriye kendiliğinden girer; kendine özgü çizim için `drawArt` içine bir dal eklenir.

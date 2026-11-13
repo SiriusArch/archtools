@@ -29,8 +29,10 @@
     if (App.paintNow) App.paintNow();
   }
 
+  let instant = false; // araç galerisi kendi geçiş animasyonunu oynatır: çapraz solma beklenmez
   function switchTo(id) {
     if (get().ui.module === id) return;
+    if (instant || document.hidden) { instant = false; apply(id); return; }
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!document.startViewTransition || reduce || (App.intro && App.intro.active)) { apply(id); return; }
     const root = document.documentElement;
@@ -42,8 +44,9 @@
     } catch (e) { done(); apply(id); }
   }
 
-  ctl.go = function (id) {
+  ctl.go = function (id, opts) {
     if (IDS.indexOf(id) < 0 || get().ui.module === id) return;
+    instant = !!(opts && opts.instant);
     if (fromHash() !== id) { try { location.hash = '#/' + id; return; } catch (e) {} }
     switchTo(id);
   };

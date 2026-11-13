@@ -51,12 +51,17 @@
     return h('svg', { viewBox: '0 0 18 18', width: 16, height: 16, class: 'msh msh-' + shape, 'aria-hidden': 'true' }, g);
   }
 
+  /* Araç gezgini: üst barda tek bir tetikleyici; tıklanınca hareketli araç galerisi açılır (48-ui-gallery.js).
+     Tetikleyici geçerli aracı, yanında diğer araçların simgelerini (üst üste binmiş paftalar gibi) gösterir. */
   ui.moduleNav = function (state) {
     if (MODULES.length < 2) return null; // tek modül açıkken gezgin gösterilmez
-    const cur = state.ui.module;
-    return h('nav', { class: 'mnav', 'aria-label': 'archtools modülleri' },
-      MODULES.map((m) => h('button', { key: m.id, type: 'button', class: 'mnav-i mnav-' + m.id + (m.id === cur ? ' on' : ''), 'aria-current': m.id === cur ? 'page' : null, title: m.n + ' · ' + m.label, onclick: () => App.ctl.go(m.id) },
-        shapeIcon(m.shape), h('span', { class: 'mnav-n mono' }, m.n), h('span', { class: 'mnav-l' }, m.label))));
+    const cur = ui.moduleInfo(state.ui.module);
+    const rest = MODULES.filter((m) => m.id !== cur.id).slice(0, 3);
+    return h('nav', { class: 'mnav gnav', 'aria-label': 'archtools araçları' },
+      h('button', { type: 'button', class: 'gnav-b', 'aria-haspopup': 'dialog', title: 'Araçlar arasında geçiş yap (' + MODULES.length + ' araç)', onclick: (e) => App.gallery.open(e.currentTarget) },
+        h('span', { class: 'gnav-cur' }, shapeIcon(cur.shape), h('span', { class: 'gnav-l' }, cur.label)),
+        h('span', { class: 'gnav-stack', 'aria-hidden': 'true' }, rest.map((m) => h('i', { key: m.id, class: 'gnav-s' }, shapeIcon(m.shape)))),
+        h('span', { class: 'gnav-more' }, 'Araçlar', h('b', { class: 'mono' }, String(MODULES.length)))));
   };
 
   /* ---------------- skor kadranı verileri (her modül kendi skorunu bildirir) ---------------- */
