@@ -184,3 +184,13 @@
   .pe-pop { bottom: 70px; }
   .pe-chip { left: 14px; top: 62px; }
 }
+
+/* ---------- Mekân Etüdü: çizim alanı panellerin yanında kendi kutusunda durur ----------
+   Uygulamanın genel düzeninde .board-stage pencerenin tamamını kaplar ve paneller üstünde yüzer
+   (İşlev Şeması'nın sonsuz tuvali). Bu modülün paftaları sabit ölçekli olduğundan panellerin altında
+   kalmamalı: sahne, kadran şeridi ile alt satır arasındaki boş alana yerleşir. */
+.main-kat .board-stage { position: relative; inset: auto; z-index: 1; isolation: isolate; flex: 1; min-height: 0; border-radius: 34px; overflow: hidden; background: var(--sheet, #fff); box-shadow: var(--press); }
+@media (max-width: 1023px) { .main-kat .board-stage { flex: none; height: 66vh; height: clamp(380px, 66svh, 700px); } }
+/* başka modüllerin stil dosyalarında da tanımlı iki sınıf: o modüller yayında olmasa da çalışsın */
+.board-svg-plan { touch-action: none; cursor: grab; }
+.btn-tool.on, .btn-tool[aria-pressed="true"] { box-shadow: var(--press-sm); }

@@ -325,7 +325,11 @@
   }
 
   function envTab(state, fd) {
-    return [mapSection(state, fd), siteSection(state, fd), ctxSection(state, fd), linkSection(state, fd)];
+    // harita altlığı konum aramasına (Arsa Analizi), vaziyet bağlantısı Vaziyet Planı modülüne dayanır;
+    // o modüller yayında değilse bölümler gösterilmez (çıkmaz düğme kalmasın)
+    const hasMap = !!(ui.site && ui.site.searchBox);
+    const hasPlanMod = !!(App.route && App.route.IDS.indexOf('vaziyet') >= 0);
+    return [hasMap ? mapSection(state, fd) : null, siteSection(state, fd), ctxSection(state, fd), hasPlanMod ? linkSection(state, fd) : null];
   }
 
   /* ---------------- adımlar sekmesi ---------------- */

@@ -2,7 +2,7 @@
 """archtools: kaynakları birleştirip yayın klasörü `public/` dizinini üretir (Vercel yalnızca bunu sunar).
 
 Kullanım:
-  python3 build.py                  İşlev Şeması + Kent Dokusu — yayın varsayılanı
+  python3 build.py                  İşlev Şeması + Mekân Etüdü + Kent Dokusu — yayın varsayılanı
   python3 build.py --modules all    tüm modüller (geliştirme; yayında kullanılmaz)
   python3 build.py --modules islev,kat
 
@@ -41,10 +41,14 @@ MODULE_DIRS = {
 }
 ALL = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta', 'kent']
 # yayın varsayılanı; Kent Dokusu'nun hesap motoru ayrı pakettir (modules/kentdoku/dist) ve yalnızca modül açılınca yüklenir
-DEFAULT = ['islev', 'kent']
+DEFAULT = ['islev', 'kat', 'kent']
 # platformun harita altlığı / DXF / XLSX / kırpma dosyalarına ihtiyaç duymayan modüller
 LIGHT = {'islev', 'kent'}
 KENT_DIST = 'modules/kentdoku/dist'
+# bir modülün, başka (gizli) modülün klasöründen ihtiyaç duyduğu tekil kitaplık dosyaları
+MODULE_FILES = {
+    'kat': ['modules/space-analysis/src/33-lib-iso.js'],  # izometrik izdüşüm (kütle ve süreç görünümleri)
+}
 PLATFORM = 'platform/src'
 # yalnızca İşlev Şeması yayınlanırken pakete girmeyen platform dosyaları (harita altlığı, DXF/XLSX yazıcıları, kırpma):
 # harici ağ adresleri ve kullanılmayan kod istemciye gitmesin
@@ -101,6 +105,11 @@ def main():
     js_files = []
     for d in src_dirs:
         js_files += glob.glob(os.path.join(d, '[0-9][0-9]-*.js'))
+    for m in mods:
+        for f in MODULE_FILES.get(m, []):
+            f = os.path.join(root, f)
+            if os.path.normpath(f) not in [os.path.normpath(x) for x in js_files]:
+                js_files.append(f)
     if bubble_only:
         js_files = [f for f in js_files if os.path.basename(f) not in BUBBLE_ONLY_EXCLUDE]
     js_files.sort(key=lambda f: os.path.basename(f))

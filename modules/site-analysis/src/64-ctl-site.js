@@ -103,33 +103,7 @@
   };
 
   /* ---------------- görünüm durumu: kalıcı ve animasyonlu ---------------- */
-  const timers = {};
-  function makeView(uiKey, storeKey, persist) {
-    const save = function () {
-      clearTimeout(timers[uiKey]);
-      timers[uiKey] = setTimeout(function () {
-        try {
-          const v = get().ui[uiKey], o = {};
-          persist.forEach((k) => { o[k] = v[k]; });
-          window.localStorage.setItem(storeKey, JSON.stringify(o));
-        } catch (e) {}
-      }, 350);
-    };
-    const set = function (patch, silent) {
-      ctl.dispatch({ type: 'UI', patch: { [uiKey]: Object.assign({}, get().ui[uiKey], patch) } });
-      if (!silent) save();
-    };
-    const load = function (clean) {
-      try {
-        const o = JSON.parse(window.localStorage.getItem(storeKey) || 'null');
-        if (!o || typeof o !== 'object') return;
-        const p = clean(o);
-        if (p) ctl.dispatch({ type: 'UI', patch: { [uiKey]: Object.assign({}, get().ui[uiKey], p) } });
-      } catch (e) {}
-    };
-    return { set: set, load: load, save: save };
-  }
-  ctl.makeView = makeView;
+  const makeView = ctl.makeView; // platform/src/53-ctl-view.js
 
   let raf = 0;
   function tween(setter, getter, props, dur, done) {

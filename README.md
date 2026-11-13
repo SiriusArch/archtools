@@ -94,7 +94,7 @@ Dışa aktarım: SVG, PDF, PNG, DXF, OBJ, GLB, STL, GeoJSON.
   olarak enjekte eder. Motor yalnızca modül açıldığında, three.js yalnızca 3B istenince yüklenir.
 - Motoru yeniden paketlemek (yalnızca `engine/src` ya da bağımlılık değişince):
   `cd modules/kentdoku/engine && npm install && npm run build`, ardından `python build.py`.
-- Yayın varsayılanı artık `islev,kent`. Yalnızca İşlev Şeması için: `python build.py --modules islev`.
+- Yayın varsayılanı artık `islev,kat,kent` (İşlev Şeması, Mekân Etüdü, Kent Dokusu). Yalnızca İşlev Şeması için: `python build.py --modules islev`.
 
 Veri kaynakları (API anahtarı yok): Overture Maps (bina, yol, arazi), GlobalBuildingAtlas / TU Münih (bina ve
 yükseklik; yükseklik verisi ticari olmayan kullanım lisansıyla listelenir), Open-Meteo (iklim, yükseklik, hava),
