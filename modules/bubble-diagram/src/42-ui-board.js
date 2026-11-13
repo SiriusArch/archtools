@@ -241,7 +241,8 @@
 
     const needHelp = P.spaces.length >= 3 && d.score.percent != null && d.score.percent < 60;
     const empty = !P.spaces.length;
-    const hint = state.ui.hintDismissed ? null : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Boşlukta kutu çizerek birkaç daire seçin (Shift: ekle / çıkar) · Tekerlek: yakınlaştır / uzaklaştır · Boşluk + sürükle: kaydır · Daireyi pencere kenarında tutarsanız pencere onunla birlikte ilerler';
+    const touch = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    const hint = state.ui.hintDismissed ? null : touch ? 'Daireleri sürükleyin · Çizgiye dokunarak ilişkiyi değiştirin · Boş alanda tek parmakla kaydırın, iki parmakla yakınlaştırın · Sağ alttaki düğmeyle tuvali tam ekran yapın' : 'Daireleri sürükleyin · Çizgiye tıklayarak ilişkiyi değiştirin · Boşlukta kutu çizerek birkaç daire seçin (Shift: ekle / çıkar) · Tekerlek: yakınlaştır / uzaklaştır · Boşluk + sürükle: kaydır · Daireyi pencere kenarında tutarsanız pencere onunla birlikte ilerler';
 
     const attn = needHelp || P.meta.example;
     // slot: paftanın "güvenli alanı" (paneller arasında kalan boşluk). Tuval (stage) pencerenin tamamını kaplar; slot yalnızca

@@ -633,3 +633,32 @@ html.cv-lock, html.cv-lock body { overflow: hidden; overscroll-behavior: none; }
 .gate-meta { margin: 0; font-size: 12px; color: var(--ink-3); }
 .gate-danger .linkbtn { align-self: flex-start; }
 @media (max-width: 640px) { .gate-card { padding: 22px 18px 18px; border-radius: 30px; } }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+button, a, summary, label, .tab { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+@media (hover: none) {
+.gb[data-tip]::after { display: none !important; }
+}
+@media (max-width: 1023px) {
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
+.gh .gb, .gdock .gb { width: 44px; height: 44px; }
+.gh .gseg button { height: 40px; padding: 0 16px; }
+.gh .ginput { height: 46px; }
+.gh .gpill, .gh .gcolor { height: 44px; }
+.gdock .gpill { min-height: 44px; }
+.tabs .tab, .tab { height: 44px; }
+.tabs-sm .tab { height: 40px; }
+.icon-btn { width: 42px; height: 42px; }
+.area-inp { width: 72px; height: 42px; padding: 0 10px; border-radius: 21px; }
+.gzoom .gb { width: 40px; height: 40px; }
+.gz-pct { min-width: 54px; height: 40px; font-size: 13px; }
+.gz-away { height: 40px; padding: 0 16px; font-size: 12.5px; }
+.hint-x { width: 40px; height: 40px; }
+.gate-chip { min-height: 44px; }
+.summary { min-height: 44px; }
+.board-hint { align-items: center; }
+}
+@media (max-width: 380px) {
+.gzoom { gap: 1px; padding: 3px; }
+.gzoom .gb { width: 38px; height: 38px; }
+.gzoom-sep { margin: 6px 1px; }
+}

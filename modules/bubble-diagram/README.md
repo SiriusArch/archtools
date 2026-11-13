@@ -16,6 +16,11 @@ Ortak çekirdek (00–27, 30, 40–50) bu klasördedir; diğer modüller ve kabu
 
 `20–27` arayüzden bağımsızdır; React'e taşınabilir.
 
+## Mobil / dokunmatik
+- **Açılış görünümü:** güvenli alan 700 px'ten darsa varsayılan görünüm boş başlangıç alanı yerine dairelere sığdırılır (`47-ui-zoom.js` `homeView`, en çok ×2,6); "0" ve "Tüm daireleri göster" de dairelere sığdırır. Geniş ekranda davranış aynıdır (`view: null`).
+- **Hareketler:** daireye dokunup sürükle; boş alanda tek parmak tuvali kaydırır (dokunmatikte kutu seçimi yoktur); iki parmak yakınlaştırır / kaydırır; boş alana dokunmak seçimi kaldırır; çizgiye dokunmak ilişkiyi değiştirir.
+- **Ölçüler (`platform/src/styles.glass.css`, ≤1023 px):** giriş alanları 16 px (iOS odakta yakınlaştırmaz), dokunma hedefleri ≥40 px, dokunmatikte ipucu balonları kapalı (`hover: none`), ipucu metni dokunmatik hareketleri anlatır.
+
 ## Sonsuz beyaz pencere (yakınlaştır / kaydır)
 Tuval **pencerenin tamamını** kaplar (kenardan kenara) ve **kâğıt beyazıdır** (`App.PAL.sheet`; koyu modda da beyaz kalır, çünkü çizim açık kâğıda göre tasarlıdır; koyu modda paneller opaklaştırıldığı için okunur kalır). Gri "uzay boşluğu", kutu ve ekranda pafta çerçevesi / künye yoktur — canlı tuvalde yalnızca nokta ızgarası, ilişki çizgileri ve daireler çizilir; pafta levhası (çerçeve, künye, gösterge, skor) yalnızca PNG/PDF çıktısındadır. Sol panel, üst bar, kadran ve asistan beyaz pencerenin üstünde yüzen cam kartlardır. **Daireler beyaz pencerenin dışına çıkamaz**; pencerenin kendisi ise sonsuzdur: kullanıcı her yöne sınırsız kayabilir, uzaklaşıp boş alanları keşfedebilir. Her yerde nokta ızgarası vardır (uzaklaşınca seyrekleşir, yaklaşınca sıklaşır).
 

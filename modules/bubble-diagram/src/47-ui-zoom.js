@@ -152,7 +152,19 @@
   };
   // art arda basılan + / − hedefi biriktirir (animasyon sürerken hedef görünümden devam edilir)
   Z.zoomBy = function (f) { const v = anim ? anim.t : Z.cur(); Z.animateTo({ cx: v.cx, cy: v.cy, k: clamp(v.k * f, geo.ZOOM.min, geo.ZOOM.max) }); };
-  Z.home = function () { Z.animateTo(null); };
+  /* Dar ekran (telefon): varsayılan görünüm boş başlangıç alanına değil dairelere sığar; böylece daireler ve etiketler okunur boyda
+     başlar. Geniş ekranda ya da daire yokken null (başlangıç alanı) döner. */
+  const NARROW = 700, COMPACT_MAX = 2.6;
+  const narrow = (m) => !!m && m.vp.sw < NARROW;
+  function homeView(S) {
+    const m = metrics();
+    S = S || get();
+    if (!narrow(m) || !S.project.spaces.length) return null;
+    const v = fitView(union(bubbleBoxes(S)), 16, m);
+    v.k = Math.min(v.k, COMPACT_MAX);
+    return geo.normView(v);
+  }
+  Z.home = function () { Z.animateTo(homeView()); };
 
   // paftayı ve tüm daireleri birlikte göster
   Z.contentRect = (S) => union(bubbleBoxes(S).concat([SHEET()]));
@@ -160,6 +172,7 @@
     const m = metrics();
     const S = get();
     const b = Z.contentRect(S);
+    if (narrow(m) && S.project.spaces.length) { Z.animateTo(fitView(union(bubbleBoxes(S)), 16, m)); return; } // telefonda: yalnızca daireler
     if (!m || inside(b, SHEET())) { Z.home(); return; } // her şey paftanın içindeyse varsayılan görünüm
     Z.animateTo(fitView(b, 36, m));
   };
@@ -262,12 +275,14 @@
       if (pts.size === 2 && !pinch) startPinch();
       if (pinch) { e.stopPropagation(); e.preventDefault(); return; }
     }
-    const want = e.button === 1 || (e.button === 0 && (S.ui.sp || S.ui.tool === 'hand'));
+    // dokunmatik: boş alanda tek parmak tuvali kaydırır (daire ve çizgiler sürüklenir / dokunulur); iki parmak yakınlaştırır
+    const tEmpty = e.pointerType === 'touch' && e.isPrimary !== false && S.ui.tool !== 'hand' && !(e.target && e.target.closest && e.target.closest('.bubble, .rel'));
+    const want = e.button === 1 || (e.button === 0 && (S.ui.sp || S.ui.tool === 'hand')) || tEmpty;
     if (!want) return;
     e.stopPropagation();
     e.preventDefault();
     Z.cancel();
-    pan = { id: e.pointerId, sx: e.clientX, sy: e.clientY, v: Z.cur() };
+    pan = { id: e.pointerId, sx: e.clientX, sy: e.clientY, v: Z.cur(), tap: tEmpty };
     try { ui.svgEl.setPointerCapture(e.pointerId); } catch (err) {}
     dispatch({ type: 'UI', patch: { pn: true } });
   }
@@ -296,7 +311,13 @@
   function capUp(e) {
     pts.delete(e.pointerId);
     if (pinch && pts.size < 2) { pinch = null; e.stopPropagation(); }
-    if (pan && e.pointerId === pan.id) { e.stopPropagation(); endPan(e.pointerId); }
+    if (pan && e.pointerId === pan.id) {
+      e.stopPropagation();
+      // boş alana dokunup bırakma (kaydırma yok): seçimi kaldır
+      const tap = pan.tap && e.type === 'pointerup' && Math.abs(e.clientX - pan.sx) + Math.abs(e.clientY - pan.sy) < 8;
+      endPan(e.pointerId);
+      if (tap) { const S = get(); if (S.ui.ms && S.ui.ms.length) dispatch({ type: 'UI', patch: { ms: [] } }); if (S.selectedId) dispatch({ type: 'SELECT', id: null }); }
+    }
     if (!pts.size && !pan) inBoard = false;
   }
 
@@ -337,10 +358,17 @@
   function onState(state, a) {
     const f = !!state.ui.focus;
     if (f !== lastFocus) { lastFocus = f; document.documentElement.classList.toggle('cv-lock', f); }
+    if (!state.ui.view && state.ui.vp && state.ui.vp.sw < NARROW && state.project.spaces.length && !anim) compactSoon(); // telefonda varsayılan = dairelere sığdır
     if (!a) return;
     if (a.type === 'SELECT' && a.id && !inBoard) Z.reveal([a.id]);
     else if (a.type === 'HIGHLIGHT' && a.pair) Z.reveal([a.pair.a, a.pair.b]);
   }
+  const compactSoon = App.raf(function () {
+    const S = get();
+    if (S.ui.view || anim || pan || pinch) return;
+    const v = homeView(S);
+    if (v) Z.set(v);
+  });
   let subscribed = false;
   Z.wire = function (el) {
     if (!el) return;
