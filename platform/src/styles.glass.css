@@ -1,21 +1,10 @@
 /* archtools kabuğu — glass: açılış, modül gezgini, ortak kontroller */
 
 /* ---------- açılış ---------- */
-.intro { background-color: var(--bg); background-image: radial-gradient(70% 55% at 10% 6%, var(--bg-2), transparent 62%), radial-gradient(55% 50% at 94% 92%, var(--bg-3), transparent 70%); color: var(--ink); }
-.intro-glow { background: radial-gradient(closest-side, var(--hi), transparent 72%); }
-.intro-disc { border-radius: 50%; background: var(--glass-2); border: 1px solid var(--stroke); box-shadow: var(--raise); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-.intro-mark svg * { stroke: currentColor; }
-.im-c { fill: currentColor; --fo: .9; }
-.im-s { --fo: 0; }
-.im-t { --fo: 0; opacity: .55; }
-.intro-word { font: 300 clamp(40px, 9.5vw, 84px)/1.05 var(--f-display); letter-spacing: -.015em; }
-.intro-tag { font: 600 12px var(--f-body); letter-spacing: .34em; text-transform: uppercase; color: var(--ink-2); }
-.intro-modules { font: 600 12.5px var(--f-body); color: var(--ink-2); }
-.intro-bar { border-radius: 3px; background: var(--line); }
-.intro-bar i { background: var(--ink); border-radius: 3px; }
-.intro-skip { height: 40px; padding: 0 20px; border: 0; border-radius: 99px; background: var(--glass-2); box-shadow: var(--raise-sm); color: var(--ink); font: 700 13px var(--f-body); }
-.intro-skip:active { box-shadow: var(--press); }
-.intro-skip:focus-visible { outline: 2px solid var(--ink-3); outline-offset: 3px; }
+.intro-word { font: 300 clamp(44px, 10.5vw, 128px)/1.05 var(--f-display); letter-spacing: -.02em; }
+.intro-skip { height: 40px; padding: 0 20px; border: 1px solid rgba(255, 255, 255, .18); border-radius: 99px; background: rgba(255, 255, 255, .08); color: #F6F7F9; font: 700 13px var(--f-body); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.intro-skip:hover { background: rgba(255, 255, 255, .16); }
+.intro-skip:focus-visible { outline: 2px solid #F6F7F9; outline-offset: 3px; }
 
 /* ---------- modül gezgini ---------- */
 .mnav { gap: 2px; padding: 4px; border-radius: 99px; background: var(--inset-bg); box-shadow: var(--press); }

@@ -108,3 +108,12 @@ paftalardır; sürükleme, tekerlek, ok tuşları ve alt listeyle gezilir, Enter
 Kitaplık kullanılmaz (ham WebGL); pafta görselleri tema renkleriyle 2B tuvale çizilir, dosya indirilmez.
 WebGL yoksa menü sade liste olarak çalışır; "hareketi azalt" tercihinde bükülme ve salınım kapanır.
 Yeni bir modül eklendiğinde galeriye kendiliğinden girer; kendine özgü çizim için `drawArt` içine bir dal eklenir.
+
+## Açılış animasyonu
+
+`platform/src/48-ui-intro.js` + `platform/src/intro.html`: siyah zeminde dönen tel kafes küre → kürenin düğümleri
+"archtools" harflerine akar ve küre kaybolur → yazı "o" harfinin boşluğundan izleyiciye doğru büyür, zemin
+saydamlaşır ve siteye girilir. Kitaplık yok (2B tuval). Oturum başına bir kez oynar; `?intro=1` zorlar,
+`?intro=0` kapatır, `?introslow=6` ağır çekimde oynatır. Herhangi bir tuş, tıklama ya da "Geç" yarım saniyelik
+kısa dalışa atlar; "hareketi azalt" tercihinde yalnızca yazı kısa süre görünür.
+Süreler dosyanın başındaki `T` nesnesindedir.
