@@ -955,3 +955,10 @@ html.tg-lock, html.tg-lock body { overflow: hidden; overscroll-behavior: none; }
 .tg, .tg-top, .tg-title, .tg-list, .tg-foot, .tg-go, .tg-go svg, .gnav-s { transition: none; }
 .tg-hi.in { animation: none; transform: none; }
 }
+.tg-go.closed { background: var(--glass-2); color: var(--ink-3, var(--ink-2)); cursor: not-allowed; box-shadow: none; }
+.tg-go.closed svg { display: none; }
+.tg-go.shake { animation: tg-shake .42s cubic-bezier(.36, .07, .19, .97); }
+@keyframes tg-shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.tg-li.closed b { opacity: .55; text-decoration: line-through; text-decoration-thickness: 1px; }
+.tg-closed { margin-left: 2px; padding: 2px 8px; border-radius: 99px; background: #C03A22; color: #fff; font: 700 10.5px var(--f-body); font-style: normal; letter-spacing: .02em; align-self: center; }
+@media (prefers-reduced-motion: reduce) { .tg-go.shake { animation: none; } }

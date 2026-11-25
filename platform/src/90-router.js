@@ -8,7 +8,9 @@
   // yalnızca açık modüller yönlendirilir (App.config.modules — build.py enjekte eder); gizli modüle adresten de gidilemez
   const ALL = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta', 'kent'];
   const ENABLED = (App.config && App.config.modules) || ALL;
-  const IDS = ALL.filter((id) => ENABLED.indexOf(id) >= 0);
+  const CLOSED_MSG = 'Bu araç şu an bakımda ve geçici olarak kapalı.';
+  const isClosed = (id) => !!(App.ui && App.ui.isClosed && App.ui.isClosed(id));
+  const IDS = ALL.filter((id) => ENABLED.indexOf(id) >= 0 && !isClosed(id)); // kapalı araçlar yönlendirilmez
   const get = () => App.store.get();
 
   const fromHash = function () {
@@ -45,13 +47,26 @@
   }
 
   ctl.go = function (id, opts) {
+    if (isClosed(id)) { if (ctl.toast) ctl.toast(App.ui.moduleInfo(id).label + ': ' + CLOSED_MSG, 'warn'); return; }
     if (IDS.indexOf(id) < 0 || get().ui.module === id) return;
     instant = !!(opts && opts.instant);
     if (fromHash() !== id) { try { location.hash = '#/' + id; return; } catch (e) {} }
     switchTo(id);
   };
 
+  // kapalı bir araca adresle gelinirse işlev şemasına dönülür ve kısa bir uyarı gösterilir
+  function closedNotice() {
+    const m = /^#\/?([a-z]+)/.exec(location.hash || '');
+    if (!m || !isClosed(m[1])) return false;
+    try { history.replaceState(null, '', '#/islev'); } catch (e) {}
+    if (ctl.toast) setTimeout(function () { ctl.toast(App.ui.moduleInfo(m[1]).label + ': ' + CLOSED_MSG, 'warn'); }, 0);
+    return true;
+  }
+  App.route.closedNotice = closedNotice;
+  App.route.CLOSED_MSG = CLOSED_MSG;
+
   window.addEventListener('hashchange', function () {
+    closedNotice();
     switchTo(fromHash() || 'islev'); // boş adres = işlev şeması (geri düğmesiyle ilk sayfaya dönüş)
     if (ctl.hashSite) ctl.hashSite(); // #/arsa?lat=…&lon=… paylaşım bağlantısı
   });

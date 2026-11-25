@@ -108,6 +108,16 @@
     c.fillStyle = col.paper; c.fillRect(0, TH - 62, TW, 62); c.fillStyle = ink; c.fillRect(34, TH - 62, TW - 68, 2);
     c.textBaseline = 'middle'; c.textAlign = 'left'; c.font = '400 22px ' + col.display; c.fillText(m.label, 34, TH - 30);
     c.textAlign = 'right'; c.font = '700 15px ' + col.body; c.fillStyle = col.ink2; c.fillText('archtools · ' + m.n, TW - 34, TH - 30);
+    if (m.closed) { // kapalı araç: pafta soluk, ortada "KAPALI" damgası
+      c.fillStyle = 'rgba(246,247,249,.72)'; c.fillRect(0, 0, TW, TH - 62);
+      c.save(); c.translate(TW / 2, (TH - 62) / 2); c.rotate(-0.12);
+      c.font = '800 58px ' + col.body; c.textAlign = 'center'; c.textBaseline = 'middle';
+      const tw = c.measureText('KAPALI').width + 72;
+      c.lineWidth = 6; c.strokeStyle = '#C03A22'; c.strokeRect(-tw / 2, -50, tw, 100);
+      c.fillStyle = '#C03A22'; c.fillText('KAPALI', 0, 2);
+      c.font = '700 18px ' + col.body; c.fillStyle = ink; c.fillText('Bakımda · geçici olarak kullanılamıyor', 0, 92);
+      c.restore();
+    }
     return cv;
   }
 
@@ -269,7 +279,9 @@
     hi.textContent = m.label;
     hi.classList.remove('in'); void hi.offsetWidth; hi.classList.add('in');
     el.querySelector('.tg-go').classList.toggle('here', m.id === G.active);
-    el.querySelector('.tg-go span').textContent = m.id === G.active ? 'Bu araçtasınız' : 'Aracı aç';
+    el.querySelector('.tg-go').classList.toggle('closed', !!m.closed);
+    el.querySelector('.tg-go').setAttribute('aria-disabled', m.closed ? 'true' : 'false');
+    el.querySelector('.tg-go span').textContent = m.closed ? 'Şu an kapalı' : m.id === G.active ? 'Bu araçtasınız' : 'Aracı aç';
     Array.prototype.forEach.call(G.list.children, (b, k) => { b.classList.toggle('on', k === i); b.setAttribute('aria-current', k === i ? 'true' : 'false'); });
   }
 
@@ -279,6 +291,7 @@
     if (G.openAt) return;
     i = clamp(i, 0, G.mods.length - 1);
     const m = G.mods[i];
+    if (m.closed) { goTo(i); const b = G.el.querySelector('.tg-go'); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); return; } // kapalı araç açılmaz
     if (m.id === G.active) { close(); return; }
     goTo(i);
     G.chosen = i;
@@ -359,6 +372,7 @@
       b.type = 'button'; b.className = 'tg-li';
       b.innerHTML = '<span class="mono"></span><b></b>';
       b.firstChild.textContent = m.n; b.lastChild.textContent = m.label;
+      if (m.closed) { b.classList.add('closed'); const t = document.createElement('i'); t.className = 'tg-closed'; t.textContent = 'Kapalı'; b.appendChild(t); b.title = m.label + ' — şu an kapalı'; }
       b.onclick = function () { if (Math.round(G.target) === i) choose(i); else goTo(i); };
       b.onfocus = function () { if (!G.drag) goTo(i); };
       G.list.appendChild(b);

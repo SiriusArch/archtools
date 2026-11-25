@@ -26,6 +26,11 @@
   // yalnızca açık modüller gezilir ve listelenir (App.config.modules)
   const ENABLED = (App.config && App.config.modules) || null;
   const MODULES = ENABLED ? ALL_MODULES.filter((m) => ENABLED.indexOf(m.id) >= 0) : ALL_MODULES;
+  /* Geçici olarak kapalı araçlar: listede "Kapalı" işaretiyle görünür ama açılamaz (adresten de gidilemez).
+     Yeniden açmak için kimliği bu listeden çıkarmak yeterli. */
+  const CLOSED = ['kat'];
+  MODULES.forEach((m) => { m.closed = CLOSED.indexOf(m.id) >= 0; });
+  ui.isClosed = (id) => CLOSED.indexOf(id) >= 0;
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
   ui.moduleSub = (state) => ui.moduleInfo(state.ui.module).sub;

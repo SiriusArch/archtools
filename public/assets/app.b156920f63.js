@@ -10864,6 +10864,11 @@ window.App.config = {"modules":["islev","kat","kent"],"api":{"visit":"/api/v"},"
   // yalnızca açık modüller gezilir ve listelenir (App.config.modules)
   const ENABLED = (App.config && App.config.modules) || null;
   const MODULES = ENABLED ? ALL_MODULES.filter((m) => ENABLED.indexOf(m.id) >= 0) : ALL_MODULES;
+  /* Geçici olarak kapalı araçlar: listede "Kapalı" işaretiyle görünür ama açılamaz (adresten de gidilemez).
+     Yeniden açmak için kimliği bu listeden çıkarmak yeterli. */
+  const CLOSED = ['kat'];
+  MODULES.forEach((m) => { m.closed = CLOSED.indexOf(m.id) >= 0; });
+  ui.isClosed = (id) => CLOSED.indexOf(id) >= 0;
   ui.MODULES = MODULES;
   ui.moduleInfo = (id) => MODULES.find((m) => m.id === id) || MODULES[0];
   ui.moduleSub = (state) => ui.moduleInfo(state.ui.module).sub;
@@ -11713,6 +11718,16 @@ window.App.config = {"modules":["islev","kat","kent"],"api":{"visit":"/api/v"},"
     c.fillStyle = col.paper; c.fillRect(0, TH - 62, TW, 62); c.fillStyle = ink; c.fillRect(34, TH - 62, TW - 68, 2);
     c.textBaseline = 'middle'; c.textAlign = 'left'; c.font = '400 22px ' + col.display; c.fillText(m.label, 34, TH - 30);
     c.textAlign = 'right'; c.font = '700 15px ' + col.body; c.fillStyle = col.ink2; c.fillText('archtools · ' + m.n, TW - 34, TH - 30);
+    if (m.closed) { // kapalı araç: pafta soluk, ortada "KAPALI" damgası
+      c.fillStyle = 'rgba(246,247,249,.72)'; c.fillRect(0, 0, TW, TH - 62);
+      c.save(); c.translate(TW / 2, (TH - 62) / 2); c.rotate(-0.12);
+      c.font = '800 58px ' + col.body; c.textAlign = 'center'; c.textBaseline = 'middle';
+      const tw = c.measureText('KAPALI').width + 72;
+      c.lineWidth = 6; c.strokeStyle = '#C03A22'; c.strokeRect(-tw / 2, -50, tw, 100);
+      c.fillStyle = '#C03A22'; c.fillText('KAPALI', 0, 2);
+      c.font = '700 18px ' + col.body; c.fillStyle = ink; c.fillText('Bakımda · geçici olarak kullanılamıyor', 0, 92);
+      c.restore();
+    }
     return cv;
   }
 
@@ -11874,7 +11889,9 @@ window.App.config = {"modules":["islev","kat","kent"],"api":{"visit":"/api/v"},"
     hi.textContent = m.label;
     hi.classList.remove('in'); void hi.offsetWidth; hi.classList.add('in');
     el.querySelector('.tg-go').classList.toggle('here', m.id === G.active);
-    el.querySelector('.tg-go span').textContent = m.id === G.active ? 'Bu araçtasınız' : 'Aracı aç';
+    el.querySelector('.tg-go').classList.toggle('closed', !!m.closed);
+    el.querySelector('.tg-go').setAttribute('aria-disabled', m.closed ? 'true' : 'false');
+    el.querySelector('.tg-go span').textContent = m.closed ? 'Şu an kapalı' : m.id === G.active ? 'Bu araçtasınız' : 'Aracı aç';
     Array.prototype.forEach.call(G.list.children, (b, k) => { b.classList.toggle('on', k === i); b.setAttribute('aria-current', k === i ? 'true' : 'false'); });
   }
 
@@ -11884,6 +11901,7 @@ window.App.config = {"modules":["islev","kat","kent"],"api":{"visit":"/api/v"},"
     if (G.openAt) return;
     i = clamp(i, 0, G.mods.length - 1);
     const m = G.mods[i];
+    if (m.closed) { goTo(i); const b = G.el.querySelector('.tg-go'); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); return; } // kapalı araç açılmaz
     if (m.id === G.active) { close(); return; }
     goTo(i);
     G.chosen = i;
@@ -11964,6 +11982,7 @@ window.App.config = {"modules":["islev","kat","kent"],"api":{"visit":"/api/v"},"
       b.type = 'button'; b.className = 'tg-li';
       b.innerHTML = '<span class="mono"></span><b></b>';
       b.firstChild.textContent = m.n; b.lastChild.textContent = m.label;
+      if (m.closed) { b.classList.add('closed'); const t = document.createElement('i'); t.className = 'tg-closed'; t.textContent = 'Kapalı'; b.appendChild(t); b.title = m.label + ' — şu an kapalı'; }
       b.onclick = function () { if (Math.round(G.target) === i) choose(i); else goTo(i); };
       b.onfocus = function () { if (!G.drag) goTo(i); };
       G.list.appendChild(b);
@@ -16649,7 +16668,9 @@ window.App.config = {"modules":["islev","kat","kent"],"api":{"visit":"/api/v"},"
   // yalnızca açık modüller yönlendirilir (App.config.modules — build.py enjekte eder); gizli modüle adresten de gidilemez
   const ALL = ['islev', 'kat', 'analiz', 'arsa', 'imar', 'yer', 'tasarim', 'fizibilite', 'vaziyet', 'kolaj', 'pafta', 'kent'];
   const ENABLED = (App.config && App.config.modules) || ALL;
-  const IDS = ALL.filter((id) => ENABLED.indexOf(id) >= 0);
+  const CLOSED_MSG = 'Bu araç şu an bakımda ve geçici olarak kapalı.';
+  const isClosed = (id) => !!(App.ui && App.ui.isClosed && App.ui.isClosed(id));
+  const IDS = ALL.filter((id) => ENABLED.indexOf(id) >= 0 && !isClosed(id)); // kapalı araçlar yönlendirilmez
   const get = () => App.store.get();
 
   const fromHash = function () {
@@ -16686,13 +16707,26 @@ window.App.config = {"modules":["islev","kat","kent"],"api":{"visit":"/api/v"},"
   }
 
   ctl.go = function (id, opts) {
+    if (isClosed(id)) { if (ctl.toast) ctl.toast(App.ui.moduleInfo(id).label + ': ' + CLOSED_MSG, 'warn'); return; }
     if (IDS.indexOf(id) < 0 || get().ui.module === id) return;
     instant = !!(opts && opts.instant);
     if (fromHash() !== id) { try { location.hash = '#/' + id; return; } catch (e) {} }
     switchTo(id);
   };
 
+  // kapalı bir araca adresle gelinirse işlev şemasına dönülür ve kısa bir uyarı gösterilir
+  function closedNotice() {
+    const m = /^#\/?([a-z]+)/.exec(location.hash || '');
+    if (!m || !isClosed(m[1])) return false;
+    try { history.replaceState(null, '', '#/islev'); } catch (e) {}
+    if (ctl.toast) setTimeout(function () { ctl.toast(App.ui.moduleInfo(m[1]).label + ': ' + CLOSED_MSG, 'warn'); }, 0);
+    return true;
+  }
+  App.route.closedNotice = closedNotice;
+  App.route.CLOSED_MSG = CLOSED_MSG;
+
   window.addEventListener('hashchange', function () {
+    closedNotice();
     switchTo(fromHash() || 'islev'); // boş adres = işlev şeması (geri düğmesiyle ilk sayfaya dönüş)
     if (ctl.hashSite) ctl.hashSite(); // #/arsa?lat=…&lon=… paylaşım bağlantısı
   });
@@ -16711,6 +16745,7 @@ window.App.config = {"modules":["islev","kat","kent"],"api":{"visit":"/api/v"},"
   App.store = App.createStore(App.state.reducer, App.state.initialState());
 
   // ilk modül: adres çubuğundaki rota (#/kat ...)
+  if (App.route.closedNotice) App.route.closedNotice(); // #/kat gibi kapalı araç adresi
   const first = App.route.fromHash();
   if (first && first !== App.store.get().ui.module) App.store.dispatch({ type: 'UI', patch: { module: first } });
   App.route.setTitle(App.store.get().ui.module);

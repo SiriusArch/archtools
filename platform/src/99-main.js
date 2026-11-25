@@ -11,6 +11,7 @@
   App.store = App.createStore(App.state.reducer, App.state.initialState());
 
   // ilk modül: adres çubuğundaki rota (#/kat ...)
+  if (App.route.closedNotice) App.route.closedNotice(); // #/kat gibi kapalı araç adresi
   const first = App.route.fromHash();
   if (first && first !== App.store.get().ui.module) App.store.dispatch({ type: 'UI', patch: { module: first } });
   App.route.setTitle(App.store.get().ui.module);
