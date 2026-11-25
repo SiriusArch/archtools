@@ -85,7 +85,7 @@ Ayrıntılar: `modules/bubble-diagram/README.md`, `modules/floor-study/README.md
 
 Haritadan seçilen alanın bina, yol, su ve yeşil verisinden vaziyet paftası (9 stil, 9 harita türü), alan özeti
 (iklim, rüzgar, güneş, arazi, hava kalitesi, deprem, yapılaşma oranları) ve 3B bağlam modeli üretir.
-Dışa aktarım: SVG, PDF, PNG, DXF, OBJ, GLB, STL, GeoJSON.
+Dışa aktarım: SVG, PDF (1:200 – 1:10000; sayfa en çok 5080 mm), PNG, DXF, OBJ, SketchUp (COLLADA .dae — .skp kapalı bir biçim olduğu için tarayıcıda yazılamaz; SketchUp'ta Dosya › İçe aktar ile açılır), STL, GeoJSON. Alan genişliği 100 m – 3000 m.
 
 - Arayüz: `modules/kentdoku/src/` (`39-state-kent.js`, `86-ui-kent.js`, `87-ctl-kent.js`, `styles.shared.css`).
   Uygulamanın kendi bileşenlerini ve glass belirteçlerini kullanır; kabuk kaydı `47-ui-shell.js`, rota `90-router.js`.

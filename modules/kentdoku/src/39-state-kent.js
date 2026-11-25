@@ -24,9 +24,10 @@
     rev: 0                 // çalışma zamanı verisi değişince yeniden çizim tetikler
   };
 
-  const SIZES = [300, 500, 750, 1000, 1500, 2000, 3000];
+  const SIZES = [100, 150, 200, 250, 300, 500, 750, 1000, 1500, 2000, 3000];
   const RATIOS = [{ v: 1, label: 'Kare' }, { v: 0.7071, label: 'Yatay' }, { v: 1.4142, label: 'Dikey' }];
-  const SCALES = [500, 1000, 2000, 5000, 10000];
+  const SCALES = [200, 500, 1000, 2000, 5000, 10000];
+  const PDF_MAX_MM = 5080; // PDF sayfa sınırı (200 inç); daha büyük sayfa üretilemez
   const LAYERS = [['binalar', 'Binalar'], ['yollar', 'Yollar'], ['yaya', 'Yaya yolları'], ['ray', 'Raylı sistem'], ['su', 'Su'], ['yesil', 'Yeşil alan'], ['topo', 'Eşyükselti'], ['pafta', 'Ölçek ve kuzey']];
   const MODES = [
     ['plan', 'Vaziyet', 'Seçtiğiniz stilde sade vaziyet planı.'],
@@ -41,11 +42,11 @@
   ];
   const EXPORTS = [
     ['svg', 'SVG', 'Illustrator'], ['pdf', 'PDF', 'ölçekli vektör'], ['png', 'PNG', '4000 px'], ['dxf', 'DXF', 'AutoCAD · Rhino'],
-    ['obj', 'OBJ', '3B model'], ['glb', 'GLB', 'Blender · SketchUp'], ['stl', 'STL', '3B baskı'], ['geojson', 'GeoJSON', 'QGIS']
+    ['obj', 'OBJ', '3B model'], ['skp', 'SketchUp', 'DAE · SketchUp\'ta açılır'], ['stl', 'STL', '3B baskı'], ['geojson', 'GeoJSON', 'QGIS']
   ];
 
   App.kent = {
-    K0: K0, SIZES: SIZES, RATIOS: RATIOS, SCALES: SCALES, LAYERS: LAYERS, MODES: MODES, EXPORTS: EXPORTS,
+    K0: K0, SIZES: SIZES, RATIOS: RATIOS, SCALES: SCALES, PDF_MAX_MM: PDF_MAX_MM, LAYERS: LAYERS, MODES: MODES, EXPORTS: EXPORTS,
     of: function (state) { const k = state.ui.kent; return k ? k : K0; },
     dims: function (k) { return { w: k.size, h: Math.round(k.size * k.ratio) }; },
     // çalışma zamanı: motor, harita, veri, çıktı, 3B, kaydır/yakınlaştır

@@ -89,11 +89,13 @@
     return [
       ui.section('Dışa aktar', h('div', { class: 'sec-box' },
         ui.fld2('PDF ölçeği', h('select', { id: 'kent-scale', class: 'inp', value: String(k.scale), onchange: (e) => c.kentSet({ scale: Number(e.target.value) }) },
-          kent.SCALES.map((s) => h('option', { key: s, value: String(s) }, '1:' + s))),
-          'PDF sayfası: ' + Math.round(m.w * 1000 / k.scale) + ' × ' + Math.round(m.h * 1000 / k.scale) + ' mm'),
+          kent.SCALES.map((s) => { const big = Math.max(m.w, m.h) * 1000 / s > kent.PDF_MAX_MM; return h('option', { key: s, value: String(s), disabled: big && s !== k.scale }, '1:' + s + (big ? ' — bu alan için sayfa çok büyük' : '')); })),
+          Math.max(m.w, m.h) * 1000 / k.scale > kent.PDF_MAX_MM
+            ? 'Bu ölçekte sayfa ' + Math.round(m.w * 1000 / k.scale) + ' × ' + Math.round(m.h * 1000 / k.scale) + ' mm olur; PDF en çok ' + kent.PDF_MAX_MM + ' mm olabilir. Alanı küçültün ya da ölçeği büyütün.'
+            : 'PDF sayfası: ' + Math.round(m.w * 1000 / k.scale) + ' × ' + Math.round(m.h * 1000 / k.scale) + ' mm'),
         h('div', { class: 'kent-exp' }, kent.EXPORTS.map((x) => h('button', { key: x[0], type: 'button', class: 'btn kent-exp-b', disabled: off, title: x[1] + ' · ' + x[2], onclick: () => c.kentExport(x[0]) },
           h('b', {}, x[1]), h('span', {}, x[2])))),
-        note(k.has ? 'Pafta çıktıları (SVG, PDF, PNG) ekrandaki harita türü ve stille iner. Model birimi metredir.' : 'Dışa aktarmak için önce paftayı oluşturun.')), null, 'kexp'),
+        note(k.has ? 'Pafta çıktıları (SVG, PDF, PNG) ekrandaki harita türü ve stille iner. Model birimi metredir. SketchUp: .dae dosyasını Dosya › İçe aktar ile açın.' : 'Dışa aktarmak için önce paftayı oluşturun.')), null, 'kexp'),
       ui.section('Veri kaynakları', h('div', { class: 'sec-box' },
         note('Binalar: Overture Maps ve GlobalBuildingAtlas (TU Münih). Yol, su ve yeşil: Overture Maps, © OpenStreetMap katkıcıları. İklim, yükseklik ve hava: Open-Meteo. Deprem: USGS.'),
         note('Bina yükseklikleri uydu görüntüsünden kestirilir ve ticari olmayan kullanım lisansıyla yayımlanmıştır; kesin ölçü gereken işlerde yerinde doğrulayın.')), null, 'ksrc'),
@@ -195,7 +197,7 @@
         view === 'model' ? { k: 'icon', label: 'Görünümü sıfırla', icon: 'reset', onclick: () => c.kentReset3d(), disabled: !has, title: 'Kamerayı başlangıç konumuna al' } : null,
         view === 'model' ? { k: 'icon', label: 'Görüntü al', icon: 'copy', onclick: () => c.kentShot(), disabled: !has, title: '3B görünümü PNG olarak indir' } : null,
         { k: 'sep' },
-        { k: 'btn', label: 'Dışa aktar', icon: 'download', onclick: () => c.kentSet({ tab: 'aktar' }), disabled: !has, title: 'SVG, PDF, PNG, DXF, OBJ, GLB, STL, GeoJSON' },
+        { k: 'btn', label: 'Dışa aktar', icon: 'download', onclick: () => c.kentSet({ tab: 'aktar' }), disabled: !has, title: 'SVG, PDF, PNG, DXF, OBJ, SketchUp, STL, GeoJSON' },
       ],
     });
   };
